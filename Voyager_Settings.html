@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Voyager • Settings</title>
+<link rel="icon" href="brand-assets/voyager.png">
+<link rel="stylesheet" href="stream-command.css">
+<link rel="stylesheet" href="voyager-brand.css">
+<link rel="stylesheet" href="settings.css?v=2.11">
+<link rel="stylesheet" href="voyager-glass.css?v=2.11">
+</head>
+<body class="voyager-console voyager-settings">
+<div class="shell">
+<aside class="rail"><a class="brand" href="Voyager_Command_Center.html"><img class="logo-voyager" src="brand-assets/voyager.png" alt="Voyager membership program" width="68" height="68"><span>VOYAGER<small>MDA009 · MISSION CONTROL</small></span></a></aside>
+<main>
+<header class="top"><div><span class="eyebrow">EVERYTHING IN ONE PLACE</span><h1>Settings</h1></div><div class="toolbar"><span class="st-note" id="saved-where">Saved on this PC</span></div></header>
+<p class="st-notice" id="not-hosted" hidden>Open this page from the Voyager app (or START-VOYAGER-CONTROL.bat) to change settings here. Without it, edit <code>config.js</code> in Notepad.</p>
+
+<div class="st-layout">
+<nav class="card st-tabs" aria-label="Settings sections" role="tablist">
+<button type="button" role="tab" id="tab-connection" aria-controls="panel-connection" aria-selected="true"><strong>Connections</strong><span>Streamer.bot</span></button>
+<button type="button" role="tab" id="tab-branding" aria-controls="panel-branding" aria-selected="false"><strong>Branding &amp; logos</strong><span>Where logos appear</span></button>
+<button type="button" role="tab" id="tab-website" aria-controls="panel-website" aria-selected="false"><strong>Public website</strong><span>Publishing status</span></button>
+<button type="button" role="tab" id="tab-app" aria-controls="panel-app" aria-selected="false"><strong>App</strong><span>Version and data folder</span></button>
+</nav>
+
+<div class="st-panels">
+<section class="card st-panel" id="panel-connection" role="tabpanel" aria-labelledby="tab-connection">
+<span class="eyebrow">CONNECTIONS</span><h2>One connection for every page</h2>
+<p class="muted">Every Voyager page and OBS browser source reads this from <code>config.js</code>. It's Streamer.bot's WebSocket server, not OBS.</p>
+<form id="connection-form" class="st-form" autocomplete="off">
+<div class="st-head"><strong>Streamer.bot</strong><span id="sb-status" class="st-pill" data-state="wait">Checking…</span></div>
+<div class="st-grid">
+<label>Address<input name="host" required spellcheck="false" placeholder="127.0.0.1"></label>
+<label>Port<input name="port" type="number" min="1" max="65535" required></label>
+<label>Password<input name="password" type="password" spellcheck="false" placeholder="Leave blank to keep it"></label>
+</div>
+<label class="st-check"><input type="checkbox" name="requireAuthentication"> Refuse to connect if Streamer.bot has no password (recommended once you set one)</label>
+<div class="st-actions"><button type="submit" class="primary">Save</button><button type="button" id="test-connection">Test connection</button><button type="button" id="clear-password" class="link">Remove saved password</button></div>
+<p class="st-hint" id="connection-msg" role="status"></p>
+<p class="st-hint" id="config-file"></p>
+</form>
+<p class="st-hint">Some pages still have their own connection box. Those apply only to that page until you reload it.</p>
+</section>
+
+<section class="card st-panel" id="panel-branding" role="tabpanel" aria-labelledby="tab-branding" hidden>
+<span class="eyebrow">BRANDING &amp; LOGOS</span><h2>Where your logos appear</h2>
+<div class="st-logos">
+<figure><img src="brand-assets/voyager.png" alt=""><figcaption><strong>Voyager emblem</strong><span>Top of the sidebar, overlays, public site</span></figcaption></figure>
+<figure><img src="brand-assets/mda009.png" alt=""><figcaption><strong>MDA009</strong><span>Home, sidebar footer, overlays</span></figcaption></figure>
+<figure><img src="brand-assets/unprofessionals.png" alt=""><figcaption><strong>The Unprofessionals</strong><span>Home, sidebar footer, overlays</span></figcaption></figure>
+</div>
+<form id="branding-form" class="st-toggles">
+<label><span><strong>Partner logos on Home</strong><small>Shown once, in the welcome panel</small></span><input type="checkbox" name="partnersHome" role="switch"></label>
+<label><span><strong>"Presented by" in the sidebar</strong><small>Small and dimmed, brightens when you point at it</small></span><input type="checkbox" name="partnersSidebar" role="switch"></label>
+</form>
+<p class="st-hint">These apply to Voyager Control in this browser or app. OBS overlays and the public website keep their own logos. <a href="BRAND_REFRESH_SETUP.html">Stream branding &amp; preview ↗</a></p>
+</section>
+
+<section class="card st-panel" id="panel-website" role="tabpanel" aria-labelledby="tab-website" hidden>
+<span class="eyebrow">PUBLIC WEBSITE</span><h2>Your viewer site</h2>
+<dl class="st-facts" id="site-facts"><div><dt>Status</dt><dd id="site-status">Checking…</dd></div><div><dt>Address</dt><dd id="site-url">—</dd></div><div><dt>Last update</dt><dd id="site-last">—</dd></div></dl>
+<div class="st-actions"><a class="button primary" href="Voyager_Public_Site.html">Open Public website settings</a><a class="button" id="site-open" href="#" target="_blank" rel="noopener" hidden>View site ↗</a></div>
+</section>
+
+<section class="card st-panel" id="panel-app" role="tabpanel" aria-labelledby="tab-app" hidden>
+<span class="eyebrow">APP</span><h2>Voyager on this PC</h2>
+<dl class="st-facts"><div><dt>Version</dt><dd id="app-version">—</dd></div><div><dt>Data folder</dt><dd id="app-data">—</dd></div><div><dt>Node.js</dt><dd id="app-node">—</dd></div></dl>
+<p class="st-hint">Start with Windows, updates and the data folder are also in the Voyager tray menu.</p>
+<div class="st-actions"><a class="button" href="Voyager_System_Check.html">Run System check</a><a class="button" href="Voyager_Guide.html">Help</a></div>
+</section>
+</div>
+</div>
+</main>
+</div>
+<script src="config.js"></script>
+<script src="settings.js?v=2.11"></script>
+<script src="voyager-shell.js?v=2.11"></script>
+<script src="voyager-navigation.js"></script>
+</body>
+</html>

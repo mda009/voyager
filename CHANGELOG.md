@@ -2,6 +2,23 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.11.0 (30 October 2026)
+
+Less clutter and one place for settings. **No Streamer.bot C# changes**, nothing to re-import, and OBS overlays are unchanged. Installed apps update themselves.
+
+- **New Settings page** (sidebar footer, Ctrl K, or the tray menu):
+  - **Connections:** change the Streamer.bot address, port and password once. Voyager saves them into your `config.js` (only those lines; your comments and other settings are kept), so every page and OBS source uses them. The password is never shown again. Test the connection from the same screen.
+  - **Branding & logos:** choose whether the MDA009 and Unprofessionals logos appear on Home and in the sidebar.
+  - **Public website** and **App** show publishing status, the version and your data folder.
+- **Live status in the sidebar.** Every page shows whether Streamer.bot, Voyager and the public site are working, with links to Settings and System check.
+- **One header per page.** The large "Voyager Control" banner with three logos is gone from control pages, so content starts higher. The Voyager emblem stays at the top of the sidebar; MDA009 and The Unprofessionals appear once on Home and as a small "Presented by" row at the bottom of the sidebar. The Entrant board display keeps its banner.
+- **Help on every page.** The **?** button in each page header opens that page's setup guide in a side panel, so you don't lose your place. The sidebar's "Setup guide" is now **Help**.
+- **Giveaways in one place.** The sidebar has a single **Giveaways** item. Chat & members, Ticketed and the Entrant board are tabs at the top of the giveaway pages.
+- **Fleet alerts is now called Support alerts**, so it isn't confused with Voyager Versus.
+- **Home** no longer repeats the sidebar: the Live dashboard and Reporting cards and the Stream tools list are removed.
+- **System check** now has the sidebar like every other page.
+- Pages still have their own Connection box for one-off changes; these only affect that page until it is reloaded.
+
 ## 2.10.0 (30 October 2026)
 
 New look for Voyager Control. **No Streamer.bot C# changes**, nothing to re-import, and OBS overlays are unchanged. Installed apps update themselves.

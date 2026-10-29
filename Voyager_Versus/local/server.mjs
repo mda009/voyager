@@ -14,6 +14,7 @@ import {StreamEntries} from './stream-entries.mjs';
 import {PilotLeaderboard} from './pilot-leaderboard.mjs';
 import {LiveOverlay} from './live-overlay.mjs';
 import {PublicSite} from './public-site.mjs';
+import {readConnection,updateConnection} from './connection-config.mjs';
 let VERSION='unknown';try{VERSION=JSON.parse(await readFile(new URL('../package.json',import.meta.url),'utf8')).version;}catch{}
 const major=Number(process.versions.node.split('.')[0]);
 if(major<22||typeof WebSocket==='undefined'){console.error('Voyager Versus requires Node.js 22.4 or newer. Install it from https://nodejs.org/');process.exit(1);}
@@ -104,6 +105,17 @@ const server=http.createServer(async(req,res)=>{
     if(url.pathname==='/api/health'&&req.method==='GET'){response(res,200,{ok:true,version:VERSION,voyagerControl:hasControl});return;}
     if(url.pathname==='/api/shutdown'&&req.method==='POST'){if(!validToken(req)||!req.headers['content-type']?.startsWith('application/json')){response(res,403,{message:'Open the local control panel.'});return;}response(res,200,{ok:true,message:'Saving and stopping Voyager.'});setImmediate(()=>void stop());return;}
     if(url.pathname==='/api/system'&&req.method==='GET'){if(!validToken(req)){response(res,403,{message:'Open the local control panel.'});return;}let writable=true;try{const probe=join(dataDir,'.write-test');await writeFile(probe,'ok');await unlink(probe);}catch{writable=false;}response(res,200,{version:VERSION,node:process.versions.node,platform:process.platform,dataDir,dataWritable:writable,importedFrom,legacyDataPresent:await hasJson(legacyDataDir)&&legacyDataDir!==dataDir,controlBundled:hasControl});return;}
+    if(url.pathname==='/api/settings/connection'){
+      if(!hasControl){response(res,404,{message:'Settings need the full Voyager Control package.'});return;}
+      if(!validToken(req)){response(res,403,{message:'Open the local Settings page.'});return;}
+      const target=userFilesDir?join(userFilesDir,'config.js'):resolve(controlRoot,'config.js');
+      const current=async()=>{try{return await readFile(target,'utf8');}catch(e){if(e.code!=='ENOENT')throw e;return readFile(resolve(controlRoot,'config.js'),'utf8');}};
+      if(req.method==='GET'){try{response(res,200,{...readConnection(await current()),file:target});}catch(e){response(res,500,{message:e.message});}return;}
+      if(req.method!=='POST'||!req.headers['content-type']?.startsWith('application/json')){response(res,405,{message:'Method not allowed.'});return;}
+      try{const next=updateConnection(await current(),await body(req,4096));if(userFilesDir)await mkdir(userFilesDir,{recursive:true});const tmp=target+'.tmp';await writeFile(tmp,next);await rename(tmp,target);response(res,200,{ok:true,...readConnection(next),file:target});}
+      catch(e){response(res,400,{ok:false,message:e.message});}
+      return;
+    }
     if(url.pathname.startsWith('/api/public-site')||url.pathname.startsWith('/public/')||url.pathname==='/public'){
       if(!publicSite){response(res,404,{message:'The public website needs the full Voyager Control package.'});return;}
       const json=req.headers['content-type']?.startsWith('application/json');

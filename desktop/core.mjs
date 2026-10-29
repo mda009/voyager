@@ -51,7 +51,7 @@ export function linkPolicy(url,port=DEFAULT_PORT){
 }
 
 export function pageUrl(port,page){
-  const pages={home:'Voyager_Command_Center.html',versus:'Voyager_Versus.html',check:'Voyager_System_Check.html',guide:'Voyager_Guide.html',public:'Voyager_Public_Site.html',publisher:'Voyager_Public_Site.html?background=1'};
+  const pages={home:'Voyager_Command_Center.html',versus:'Voyager_Versus.html',check:'Voyager_System_Check.html',guide:'Voyager_Guide.html',public:'Voyager_Public_Site.html',settings:'Voyager_Settings.html',publisher:'Voyager_Public_Site.html?background=1'};
   return 'http://127.0.0.1:'+port+'/control/'+(pages[page]||pages.home);
 }
 

@@ -3,7 +3,7 @@
 const params=new URLSearchParams(location.search),demo=params.get('demo')==='1',page=window.VOYAGER_PAGE||'';
 const isHome=a=>{try{const u=new URL(a.getAttribute('href'),location.href);return u.pathname.split('/').pop()==='Voyager_Command_Center.html'&&!u.searchParams.has('page');}catch{return false;}};
 for(const home of [...document.querySelectorAll('aside.sidebar > a[href]')].filter(a=>isHome(a)&&!a.classList.contains('brand'))){const nav=document.createElement('nav');nav.setAttribute('aria-label','Voyager dashboards');home.before(nav);nav.append(home);}
-for(const nav of document.querySelectorAll('nav')){
+for(const nav of document.querySelectorAll('nav:not(.vg-nav)')){
  const home=[...nav.querySelectorAll('a[href]')].find(isHome);if(!home)continue;
  if(!nav.querySelector('[data-dashboard-page="live"]')){
   for(const [key,label,symbol]of [['reporting','Reporting','▥'],['live','Live dashboard','◉']]){const a=document.createElement('a');a.href='Voyager_Command_Center.html?page='+key;a.dataset.dashboardPage=key;a.textContent=symbol+'  '+label;if(home.classList.contains('help-link'))a.className='help-link';home.after(a);}

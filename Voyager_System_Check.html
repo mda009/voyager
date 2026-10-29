@@ -35,9 +35,12 @@ td,th{padding:10px 12px;text-align:left;border-bottom:1px solid #29394f}th{color
 .summary{font-weight:700;font-size:18px;margin:18px 0}
 @media (max-width:600px){h1{font-size:30px}main{margin-top:28px;padding:0 16px 50px}td,th{padding:8px 6px}}
 </style>
-<link rel="stylesheet" href="voyager-glass.css?v=2.10">
+<link rel="stylesheet" href="voyager-glass.css?v=2.11">
+<style>body.voyager-syscheck .shell>main{max-width:1040px;width:100%;margin:0 auto;padding:28px 28px 70px;box-sizing:border-box;justify-self:center}body.voyager-syscheck .shell{display:grid}body.voyager-syscheck .rail>.brand{display:flex;align-items:center;text-decoration:none}body.voyager-syscheck .rail>.brand>span{display:flex;flex-direction:column}body.voyager-syscheck .rail>.brand small{display:block}</style>
 </head>
-<body>
+<body class="voyager-console voyager-syscheck">
+<div class="shell">
+<aside class="rail"><a class="brand" href="Voyager_Command_Center.html"><img class="logo-voyager" src="brand-assets/voyager.png" alt="Voyager membership program" width="68" height="68"><span>VOYAGER<small>MDA009 · MISSION CONTROL</small></span></a></aside>
 <main>
 <div class="eyebrow">VOYAGER CONTROL / SYSTEM CHECK</div>
 <h1>Is everything ready to stream?</h1>
@@ -60,6 +63,7 @@ td,th{padding:10px 12px;text-align:left;border-bottom:1px solid #29394f}th{color
 
 <p style="margin-top:34px"><a href="Voyager_Guide.html">Setup guides and update history</a> · <a href="Voyager_Command_Center.html">Command Center</a></p>
 </main>
+</div>
 <script src="config.js"></script>
 <script>
 (()=>{'use strict';
@@ -177,6 +181,6 @@ for(const li of rows.values()){li.className='wait';li.dataset.state='wait';}
 checkHost();checkStreamerBot(cfg);
 })();
 </script>
-<script src="voyager-shell.js?v=2.10"></script>
+<script src="voyager-shell.js?v=2.11"></script>
 </body>
 </html>

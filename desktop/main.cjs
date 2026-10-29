@@ -89,6 +89,7 @@ function buildTray(){
     {label:'System check',click:()=>show('check')},
     {label:'Setup guide',click:()=>show('guide')},
     {label:'Public website',click:()=>show('public')},
+    {label:'Settings',click:()=>show('settings')},
     {label:'View my public website in browser',click:()=>openPublicSite()},
     {type:'separator'},
     {label:'Open data folder',click:()=>shell.openPath(paths.dataDir)},

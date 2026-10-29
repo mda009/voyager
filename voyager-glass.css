@@ -28,8 +28,8 @@ body.voyager-console :is(.rail,.sidebar) .rail-bottom{display:none}
 
 /* Grouped navigation built by voyager-shell.js */
 body.voyager-console nav.vg-nav{display:flex;flex-direction:column;gap:3px;margin:0}
-body.voyager-console .vg-nav .vg-group{font:700 11px/1 var(--brand-display);letter-spacing:1.8px;text-transform:uppercase;color:#8ea6bd;padding:12px 14px 5px}
-body.voyager-console .vg-nav a{display:flex;align-items:center;gap:12px;min-height:40px;padding:0 12px;border-radius:14px;border:1px solid transparent;color:#a7bccf;text-decoration:none;font:600 15px/1.2 var(--brand-display);letter-spacing:.35px;transition:background .15s,border-color .15s,color .15s}
+body.voyager-console .vg-nav .vg-group{font:700 11px/1 var(--brand-display);letter-spacing:1.8px;text-transform:uppercase;color:#8ea6bd;padding:9px 14px 4px}
+body.voyager-console .vg-nav a{display:flex;align-items:center;gap:12px;min-height:36px;padding:0 12px;border-radius:13px;border:1px solid transparent;color:#a7bccf;text-decoration:none;font:600 15px/1.2 var(--brand-display);letter-spacing:.35px;transition:background .15s,border-color .15s,color .15s}
 body.voyager-console .vg-nav a:hover{background:rgba(255,255,255,.055);color:#fff}
 body.voyager-console .vg-nav a.active{color:#eef8ff;background:linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,0)),rgba(65,105,225,.26);border-color:var(--vg-edge-hi);box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 8px 22px -10px rgba(65,105,225,.85)}
 body.voyager-console .vg-nav a .vg-ico{width:20px;flex:none;text-align:center;color:#7fb6d9;font-size:15px}
@@ -93,7 +93,7 @@ body.voyager-console .vg-steps li[data-state=skip]{display:none}
 .vg-palette .vg-item .vg-hint{font-size:12px;color:#9ab0c5}
 .vg-palette .vg-item[aria-selected=true]{background:linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,0)),rgba(65,105,225,.28);border-color:rgba(151,223,255,.34)}
 .vg-palette .vg-empty{padding:22px 14px;color:#9ab0c5}
-.vg-palette .vg-foot{display:flex;gap:16px;padding:10px 14px 2px;margin-top:6px;border-top:1px solid rgba(151,223,255,.10);font-size:12px;color:#9ab0c5}
+.vg-palette .vg-foot-keys{display:flex;gap:16px;padding:10px 14px 2px;margin-top:6px;border-top:1px solid rgba(151,223,255,.10);font-size:12px;color:#9ab0c5}
 .vg-palette kbd{font:600 11px 'Segoe UI',sans-serif;padding:2px 7px;border-radius:6px;border:1px solid rgba(151,223,255,.25);color:#c9d8e8}
 
 @media(max-width:900px){
@@ -109,3 +109,66 @@ body.voyager-console .vg-steps li[data-state=skip]{display:none}
  body.voyager-console{--vg-glass:#101a29;--vg-glass-strong:#0e1826}
 }
 @media(prefers-reduced-motion:reduce){body.voyager-console .vg-nav a{transition:none}}
+
+/* ── 2.11: one header, logos placed once, status card, help panel, giveaway tabs ── */
+/* The "Voyager Control" banner with three logos is no longer repeated on control pages.
+   The Entrant board (a display screen) keeps it. */
+body.voyager-console:not(.entrant-monitor) main>:is(.identity-bar,.identity){display:none}
+/* Home: the sidebar already links to these, so the duplicate launch cards and tool list are hidden. */
+body.voyager-home .dashboard-destinations,body.voyager-home .dashboard-tools{display:none}
+body.voyager-home .overview-grid{grid-template-columns:minmax(0,1fr)}
+
+/* Sidebar footer */
+body.voyager-console .vg-foot{margin-top:auto;padding:10px 12px;border-radius:16px;background:rgba(255,255,255,.04);border:1px solid rgba(151,223,255,.10);box-shadow:inset 0 1px 0 rgba(255,255,255,.05);display:flex;flex-direction:column;gap:8px}
+body.voyager-console :is(.rail,.sidebar)>.vg-foot{margin-top:auto}
+body.voyager-console :is(.rail,.sidebar){display:flex;flex-direction:column}
+body.voyager-console .vg-status{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:5px;font:12px/1.3 'Segoe UI',Arial,sans-serif}
+body.voyager-console .vg-status li{display:flex;align-items:center;gap:8px;color:#cfe0f2}
+body.voyager-console .vg-status .vg-name{flex:1}
+body.voyager-console .vg-status .vg-state{color:#9ab0c5}
+body.voyager-console .vg-dot{width:8px;height:8px;border-radius:50%;flex:none;background:#53687e}
+body.voyager-console .vg-status [data-state=ok] .vg-dot{background:#5ee8a4;box-shadow:0 0 8px #5ee8a4}
+body.voyager-console .vg-status [data-state=ok] .vg-state{color:#7ff0b5}
+body.voyager-console .vg-status [data-state=error] .vg-dot{background:#ff7a87;box-shadow:0 0 8px #ff7a8799}
+body.voyager-console .vg-status [data-state=error] .vg-state{color:#ff9aa6}
+body.voyager-console .vg-status [data-state=wait] .vg-dot{background:#ffd27a}
+body.voyager-console .vg-status [data-state=demo] .vg-dot{background:#ffd27a}
+body.voyager-console .vg-foot-links{display:flex;gap:12px;padding-top:6px;border-top:1px solid rgba(151,223,255,.08)}
+body.voyager-console .vg-foot-links a{font:600 13px/1.2 var(--brand-display);letter-spacing:.3px;color:#97dfff;text-decoration:none}
+body.voyager-console .vg-foot-links a:hover,body.voyager-console .vg-foot-links a.active{color:#fff}
+body.voyager-console .vg-presented{display:flex;align-items:center;gap:10px;padding:10px 8px 0}
+body.voyager-console .vg-presented[hidden]{display:none}
+body.voyager-console .vg-presented span{flex:1;font:600 10px/1 var(--brand-display);letter-spacing:1.3px;color:#8ea6bd}
+body.voyager-console .vg-presented img{height:26px;width:auto;opacity:.5;filter:grayscale(.35);transition:opacity .2s,filter .2s}
+body.voyager-console .vg-presented:hover img{opacity:1;filter:none}
+
+/* Home: partner logos once, in the welcome panel */
+body.voyager-console .home-intro{display:flex;align-items:center;gap:24px}
+body.voyager-console .vg-home-partners{margin-left:auto;padding-left:26px;border-left:1px solid rgba(151,223,255,.12)}
+body.voyager-console .vg-home-partners[hidden]{display:none}
+body.voyager-console .vg-home-partners span{font:600 10px/1 var(--brand-display);letter-spacing:1.6px;color:#8ea6bd}
+body.voyager-console .vg-home-partners img{height:52px;width:auto}
+body.voyager-console .vg-home-partners{display:grid;grid-template-columns:auto auto;column-gap:22px;row-gap:10px;justify-items:center}
+body.voyager-console .vg-home-partners span{grid-column:1/-1}
+
+/* Giveaway tabs */
+body.voyager-console .vg-subtabs{display:flex;gap:6px;flex-wrap:wrap;width:fit-content;max-width:100%;margin:0 0 18px;padding:5px;border-radius:999px;border:1px solid var(--vg-edge);background:var(--vg-sheen),var(--vg-glass);-webkit-backdrop-filter:var(--vg-blur);backdrop-filter:var(--vg-blur)}
+body.voyager-console .vg-subtabs a{display:flex;align-items:center;min-height:36px;padding:0 16px;border-radius:999px;border:1px solid transparent;color:#a7bccf;text-decoration:none;font:700 14px/1 var(--brand-display);letter-spacing:.4px}
+body.voyager-console .vg-subtabs a:hover{color:#fff;background:rgba(255,255,255,.05)}
+body.voyager-console .vg-subtabs a.active{color:#fff;background:linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,0)),rgba(65,105,225,.3);border-color:var(--vg-edge-hi)}
+
+/* Help for this page */
+body.voyager-console .vg-help-btn{width:40px;height:40px;min-width:40px;padding:0;border-radius:12px;font:700 17px/1 var(--brand-display);margin-left:8px;cursor:pointer;color:#e6eef7;border:1px solid rgba(151,223,255,.22);background:rgba(255,255,255,.06)}
+body.voyager-console .vg-help-btn[aria-expanded=true]{background:rgba(65,105,225,.35);border-color:var(--vg-edge-hi)}
+.vg-help{position:fixed;top:16px;right:16px;bottom:16px;width:min(480px,calc(100vw - 32px));z-index:900;display:flex;flex-direction:column;border-radius:24px;overflow:hidden;background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,0) 30%),rgba(14,24,38,.92);border:1px solid rgba(151,223,255,.24);box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 40px 90px -20px rgba(0,0,0,.85);-webkit-backdrop-filter:blur(24px) saturate(165%);backdrop-filter:blur(24px) saturate(165%)}
+.vg-help[hidden]{display:none}
+.vg-help-head{display:flex;align-items:center;gap:12px;padding:14px 14px 12px 20px;border-bottom:1px solid rgba(151,223,255,.12)}
+.vg-help-title{flex:1;font:700 13px/1 Rajdhani,'Segoe UI',sans-serif;letter-spacing:1.6px;text-transform:uppercase;color:#97dfff}
+.vg-help-head a{font:13px 'Segoe UI',sans-serif;color:#97dfff}
+.vg-help-close{width:36px;height:36px;border-radius:11px;border:1px solid rgba(151,223,255,.2);background:rgba(255,255,255,.06);color:#e6eef7;cursor:pointer;font-size:15px}
+.vg-help iframe{flex:1;width:100%;border:0;background:#080f18}
+body.voyager-console .shell>main{align-self:start}
+body.voyager-console nav.vg-subtabs{display:flex;flex-direction:row}
+body.voyager-console .shell>main{margin-top:0;margin-bottom:0}
+body.voyager-console :is(.top,.page-head).vg-has-help{padding-right:72px}
+body.voyager-console .vg-has-help>.vg-help-btn{position:absolute;right:16px;top:50%;transform:translateY(-50%);margin:0}
