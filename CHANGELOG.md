@@ -2,6 +2,16 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.10.0 (30 October 2026)
+
+New look for Voyager Control. **No Streamer.bot C# changes**, nothing to re-import, and OBS overlays are unchanged. Installed apps update themselves.
+
+- **Glass design.** Every control page now uses floating frosted-glass panels over soft Voyager blue and cyan glows, with the same colours and Rajdhani headings as before. Page headers float and stay visible while you scroll.
+- **One sidebar everywhere.** Every control page shows the same menu, grouped into Live, Community and Setup, with the current page highlighted. Ticketed giveaway, Fleet alerts, Entrant board, Live dashboard, Reporting, System check and the Setup guide are now one click from anywhere. Each page's own tools (giveaway pools, notes, settings) stay underneath.
+- **Jump anywhere (Ctrl K).** Press Ctrl K (or click "Jump to…" in the sidebar) on any page, type a few letters and press Enter to open a page, a setup guide, or a section of the current page.
+- **Giveaway steps.** Giveaway control shows where you are: Set up, Entries open (chat giveaways), Draw, Confirm.
+- If Windows "reduce transparency" is on, panels use solid colours instead of glass.
+
 ## 2.9.1 (29 October 2026)
 
 Desktop app update. **No Streamer.bot C# changes**, and nothing to re-import. Installed apps update themselves.

@@ -1,0 +1,111 @@
+/* Voyager glass theme (2.10). Floating frosted panels over soft blue and cyan glows.
+   Loaded after each control page's own styles; everything is scoped to body.voyager-console
+   so OBS overlays and on-stream pages are never affected. Colours and fonts are the
+   existing Voyager brand: navy #080f18, Voyager blue #4169e1, cyan #00d8ff, Rajdhani + Segoe UI. */
+body.voyager-console{
+ --vg-glass:rgba(16,26,41,.58);--vg-glass-strong:rgba(14,24,38,.82);--vg-edge:rgba(151,223,255,.15);--vg-edge-hi:rgba(151,223,255,.32);
+ --vg-sheen:linear-gradient(180deg,rgba(255,255,255,.065),rgba(255,255,255,0) 42%);--vg-blur:blur(22px) saturate(165%);
+ --vg-shadow:inset 0 1px 0 rgba(255,255,255,.09),0 26px 60px -26px rgba(0,0,0,.75);--vg-radius:22px;
+ background:
+  radial-gradient(760px 560px at 22% -8%,rgba(65,105,225,.30),transparent 70%),
+  radial-gradient(640px 520px at 100% 104%,rgba(0,216,255,.13),transparent 70%),
+  radial-gradient(420px 380px at 72% 38%,rgba(65,105,225,.10),transparent 70%),
+  linear-gradient(rgba(65,105,225,.035) 1px,transparent 1px),#080f18;
+ background-size:auto,auto,auto,100% 56px,auto;background-attachment:fixed;
+}
+
+/* Floating sidebar */
+body.voyager-console .shell{grid-template-columns:276px minmax(0,1fr)}
+body.voyager-console :is(.rail,.sidebar){
+ background:var(--vg-sheen),var(--vg-glass);-webkit-backdrop-filter:var(--vg-blur);backdrop-filter:var(--vg-blur);
+ border:1px solid var(--vg-edge);border-radius:26px;box-shadow:var(--vg-shadow);padding:20px 14px;box-sizing:border-box;scrollbar-width:thin;scrollbar-color:#2b4058 transparent;
+}
+body.voyager-console .rail{position:sticky;top:16px;height:calc(100vh - 32px);margin:16px 0 16px 16px}
+body.voyager-console .sidebar{position:fixed;inset:16px auto 16px 16px;width:248px;z-index:30}
+body.voyager-console .sidebar~main,body.voyager-console>main{margin-left:280px}
+body.voyager-console :is(.rail,.sidebar)>.brand{padding:0 6px;margin-bottom:14px}
+body.voyager-console :is(.rail,.sidebar) .rail-bottom{display:none}
+
+/* Grouped navigation built by voyager-shell.js */
+body.voyager-console nav.vg-nav{display:flex;flex-direction:column;gap:3px;margin:0}
+body.voyager-console .vg-nav .vg-group{font:700 11px/1 var(--brand-display);letter-spacing:1.8px;text-transform:uppercase;color:#8ea6bd;padding:12px 14px 5px}
+body.voyager-console .vg-nav a{display:flex;align-items:center;gap:12px;min-height:40px;padding:0 12px;border-radius:14px;border:1px solid transparent;color:#a7bccf;text-decoration:none;font:600 15px/1.2 var(--brand-display);letter-spacing:.35px;transition:background .15s,border-color .15s,color .15s}
+body.voyager-console .vg-nav a:hover{background:rgba(255,255,255,.055);color:#fff}
+body.voyager-console .vg-nav a.active{color:#eef8ff;background:linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,0)),rgba(65,105,225,.26);border-color:var(--vg-edge-hi);box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 8px 22px -10px rgba(65,105,225,.85)}
+body.voyager-console .vg-nav a .vg-ico{width:20px;flex:none;text-align:center;color:#7fb6d9;font-size:15px}
+body.voyager-console .vg-nav a.active .vg-ico{color:#00d8ff}
+body.voyager-console .vg-jump{display:flex;align-items:center;gap:10px;width:100%;min-height:42px;margin:4px 0 6px;padding:0 12px;border-radius:14px;border:1px solid var(--vg-edge);background:rgba(8,15,24,.45);color:#9ab0c5;font:500 14px 'Segoe UI',Arial,sans-serif;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.05);letter-spacing:0}
+body.voyager-console .vg-jump:hover{border-color:var(--vg-edge-hi);color:#e6eef7}
+body.voyager-console .vg-jump span{flex:1;text-align:left}
+body.voyager-console kbd{font:600 11px 'Segoe UI',sans-serif;padding:2px 7px;border-radius:6px;border:1px solid rgba(151,223,255,.25);color:#c9d8e8;background:rgba(255,255,255,.04)}
+body.voyager-console .vg-page-tools{margin-top:8px;padding-top:12px;border-top:1px solid rgba(151,223,255,.10)}
+
+/* Glass surfaces */
+body.voyager-console :is(.card,.security-intro,.pool-selector,.identity-bar,.home-intro,.points-intro){
+ background:var(--vg-sheen),var(--vg-glass);-webkit-backdrop-filter:var(--vg-blur);backdrop-filter:var(--vg-blur);
+ border:1px solid var(--vg-edge);border-radius:var(--vg-radius);box-shadow:var(--vg-shadow);
+}
+body.voyager-console .card .card,body.voyager-console .card :is(.stat,.home-kpi,.bucket,.detail-stat){-webkit-backdrop-filter:none;backdrop-filter:none;background:rgba(255,255,255,.035);border:1px solid rgba(151,223,255,.10);border-radius:16px;box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
+body.voyager-console :is(.stat,.home-kpi,.bucket,.detail-stat,.group-option,.preset,.platform-counts>div){border-radius:16px}
+body.voyager-console .home-kpi.featured{background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,0) 50%),rgba(65,105,225,.22);border-color:var(--vg-edge-hi)}
+body.voyager-console .bucket{background:var(--vg-sheen),rgba(16,26,41,.5);border:1px solid var(--vg-edge)}
+
+body.voyager-console :is(.home-intro,.points-intro,.pool-selector){padding:22px 26px;box-sizing:border-box}
+
+/* Floating page header */
+body.voyager-console :is(.top,.page-head){position:sticky;top:12px;z-index:20;padding:14px 22px;margin-bottom:22px;border:1px solid var(--vg-edge);border-radius:var(--vg-radius);background:var(--vg-sheen),var(--vg-glass-strong);-webkit-backdrop-filter:var(--vg-blur);backdrop-filter:var(--vg-blur);box-shadow:var(--vg-shadow)}
+body.voyager-console :is(.top,.page-head) h1{font-size:28px;text-transform:none;letter-spacing:.6px}
+
+/* Controls */
+body.voyager-console :is(button,a.button){border-radius:12px}
+body.voyager-console button.primary,body.voyager-console a.primary{background:linear-gradient(180deg,rgba(255,255,255,.18),rgba(255,255,255,0) 55%),#4169e1;border-color:rgba(151,223,255,.5);color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 12px 28px -12px rgba(65,105,225,.95)}
+body.voyager-console button.primary:hover:enabled,body.voyager-console a.primary:hover{background:linear-gradient(180deg,rgba(255,255,255,.24),rgba(255,255,255,0) 55%),#4f77ea;border-color:#9edfff}
+body.voyager-console :is(input,select,textarea){border-radius:10px}
+body.voyager-console :is(.pill,.badge,.version){border-radius:999px}
+body.voyager-console dialog{border-radius:24px;background:var(--vg-sheen),var(--vg-glass-strong);-webkit-backdrop-filter:var(--vg-blur);backdrop-filter:var(--vg-blur);border-color:var(--vg-edge-hi)}
+body.voyager-console dialog::backdrop{background:rgba(2,9,19,.6);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+
+/* Giveaway step bar */
+body.voyager-console .vg-steps{display:flex;gap:6px;flex-wrap:wrap;list-style:none;margin:0 0 20px;padding:6px;width:fit-content;max-width:100%;border-radius:999px;border:1px solid var(--vg-edge);background:var(--vg-sheen),var(--vg-glass);-webkit-backdrop-filter:var(--vg-blur);backdrop-filter:var(--vg-blur);box-shadow:var(--vg-shadow)}
+body.voyager-console .vg-steps li{display:flex;align-items:center;gap:8px;height:38px;padding:0 16px 0 5px;border-radius:999px;border:1px solid transparent;color:#9ab0c5;font:700 14px/1 var(--brand-display);letter-spacing:.5px}
+body.voyager-console .vg-steps li b{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.06);font-size:13px}
+body.voyager-console .vg-steps li[data-state=done]{color:#e6eef7}
+body.voyager-console .vg-steps li[data-state=done] b{background:rgba(94,232,164,.18);color:#5ee8a4}
+body.voyager-console .vg-steps li[data-state=current]{color:#fff;background:linear-gradient(180deg,rgba(255,255,255,.18),rgba(255,255,255,0) 60%),#4169e1;border-color:rgba(151,223,255,.45);box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 8px 22px -8px rgba(65,105,225,.9)}
+body.voyager-console .vg-steps li[data-state=current] b{background:rgba(255,255,255,.2)}
+body.voyager-console .vg-steps li[data-state=skip]{display:none}
+
+/* Jump anywhere (Ctrl K) */
+.vg-palette{position:fixed;inset:0;z-index:1000;display:flex;align-items:flex-start;justify-content:center;padding:12vh 16px 16px;background:rgba(2,8,15,.5);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.vg-palette[hidden]{display:none}
+.vg-palette .vg-box{width:min(640px,100%);max-height:72vh;display:flex;flex-direction:column;border-radius:26px;padding:12px;box-sizing:border-box;background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,0) 38%),rgba(14,24,38,.86);border:1px solid rgba(151,223,255,.22);box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 40px 90px -20px rgba(0,0,0,.85);-webkit-backdrop-filter:blur(26px) saturate(170%);backdrop-filter:blur(26px) saturate(170%);color:#e6eef7;font:14px/1.4 'Segoe UI',Arial,sans-serif}
+.vg-palette .vg-box .vg-search{display:flex;align-items:center;gap:12px;height:56px;padding:0 16px;flex-direction:row;margin:0;text-align:left;font:inherit;color:#9ab0c5;box-sizing:border-box;width:100%}
+.vg-palette .vg-box .vg-search input{display:block;width:auto;min-width:0;margin:0;padding:0;border-radius:0;box-shadow:none;text-align:left}
+.vg-palette .vg-box{text-align:left;line-height:1.4}
+.vg-palette .vg-search{display:flex;align-items:center;gap:12px;height:56px;padding:0 16px;border-radius:18px;background:rgba(8,15,24,.55);border:1px solid rgba(151,223,255,.24)}
+.vg-palette .vg-search input{flex:1;height:100%;border:0;outline:none;background:transparent;color:#e6eef7;font:18px 'Segoe UI',Arial,sans-serif}
+.vg-palette .vg-search input::placeholder{color:#8ea6bd}
+.vg-palette ul{list-style:none;margin:6px 0 0;padding:0;overflow:auto}
+.vg-palette .vg-head{font:700 11px/1 Rajdhani,'Segoe UI',sans-serif;letter-spacing:1.8px;text-transform:uppercase;color:#8ea6bd;padding:14px 14px 6px}
+.vg-palette .vg-item{display:flex;align-items:center;gap:14px;min-height:46px;padding:0 12px;border-radius:14px;border:1px solid transparent;cursor:pointer}
+.vg-palette .vg-item .vg-ico{width:32px;height:32px;flex:none;display:grid;place-items:center;border-radius:10px;background:rgba(255,255,255,.06);border:1px solid rgba(151,223,255,.14);color:#97dfff}
+.vg-palette .vg-item .vg-label{flex:1}
+.vg-palette .vg-item .vg-hint{font-size:12px;color:#9ab0c5}
+.vg-palette .vg-item[aria-selected=true]{background:linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,0)),rgba(65,105,225,.28);border-color:rgba(151,223,255,.34)}
+.vg-palette .vg-empty{padding:22px 14px;color:#9ab0c5}
+.vg-palette .vg-foot{display:flex;gap:16px;padding:10px 14px 2px;margin-top:6px;border-top:1px solid rgba(151,223,255,.10);font-size:12px;color:#9ab0c5}
+.vg-palette kbd{font:600 11px 'Segoe UI',sans-serif;padding:2px 7px;border-radius:6px;border:1px solid rgba(151,223,255,.25);color:#c9d8e8}
+
+@media(max-width:900px){
+ body.voyager-console .shell{display:block}
+ body.voyager-console .rail{position:static;height:auto;margin:12px}
+ body.voyager-console .sidebar{position:static;width:auto;margin:12px;inset:auto}
+ body.voyager-console .sidebar~main,body.voyager-console>main{margin-left:0}
+ body.voyager-console nav.vg-nav{flex-direction:row;flex-wrap:wrap}
+ body.voyager-console .vg-nav .vg-group{display:none}
+ body.voyager-console :is(.top,.page-head){position:static}
+}
+@media(prefers-reduced-transparency:reduce){
+ body.voyager-console{--vg-glass:#101a29;--vg-glass-strong:#0e1826}
+}
+@media(prefers-reduced-motion:reduce){body.voyager-console .vg-nav a{transition:none}}
