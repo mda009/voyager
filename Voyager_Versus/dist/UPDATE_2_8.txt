@@ -1,0 +1,47 @@
+VOYAGER VERSUS v2.8.0 - EXPLICIT CHAT START
+23 October 2026
+
+LIVE MATCH FLOW
+1. A viewer sends !versus by itself in Twitch chat.
+2. The challenger splash appears and reserves that viewer as initiator.
+3. A different eligible viewer sends !versus to become challenger.
+4. The 10-second countdown starts, followed by the 30-second battle.
+
+The previous !join matchmaking queue and !duel / !accept paths are disabled.
+Cooldown expiry and the ready announcement never start a match.
+After a match, a fresh !versus is required for the next call.
+Test and internal chat events are ignored. Duplicate message IDs are ignored.
+Live control-page simulations cannot start games on the shared OBS source.
+Open training preview uses a separate browser-only arena for demos and testing.
+
+INSTALL THE SMALL UPDATE
+1. Stop the running Voyager launcher in its console with Ctrl+C.
+2. Open the Voyager_Giveaway folder in the update ZIP. Copy its contents into
+   your existing Voyager_Giveaway folder, replacing matching program files.
+   Merge folders; do not delete the existing Voyager_Versus/local/data folder.
+3. Run START-VOYAGER-CONTROL.bat again and reconnect Streamer.bot in Versus
+   Stream setup. Reload the Versus dock and refresh the OBS Browser Source.
+4. Confirm the Versus page shows V2.8.0.
+5. Keep the existing live OBS URL:
+   http://127.0.0.1:8740/?overlay=1&hideIdle=1
+   Do not add demo=1 or preview=1 to that live battle source.
+
+No C# update or new Streamer.bot import is required for this change.
+Keep config.js and your original Voyager_Versus/local/data folder.
+That folder contains saved rewards, cooldowns, rankings and stream entry usage.
+The 45-minute global cooldown, +50 winner / 0 runner-up Voyager points and
+one initiator plus one challenger entry per viewer per stream still apply.
+
+The separate versuscall.html ready banner/audio can still play when the game
+becomes available, as configured. That announces availability; it does not
+open a challenger call or start a battle.
+
+VERIFY
+Leave the live game idle: no calling screen or battle should start by itself.
+!join and !duel should leave it idle.
+Have two different eligible viewers send !versus, in turn.
+The first opens the splash; only the second starts the countdown.
+Test while the cooldown allows a new call and the stream's role entries remain.
+
+This patch was checked with engine, host, chat, reward and browser tests.
+Your actual Streamer.bot and OBS installation still needs the local check above.

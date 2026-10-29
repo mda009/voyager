@@ -1,0 +1,10 @@
+node_modules/
+dist-release/
+desktop/release/
+Voyager_Versus/local/data/
+*.log
+Thumbs.db
+desktop.ini
+.DS_Store
+_site/
+wrangler.json

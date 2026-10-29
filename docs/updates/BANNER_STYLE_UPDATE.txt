@@ -1,0 +1,39 @@
+VOYAGER — TRANSPARENT STREAM BANNER UPDATE
+
+For an already installed Voyager stream banner:
+1. Extract this ZIP into a temporary folder.
+2. Copy these FOUR files from Voyager_Giveaway into your EXISTING working
+   Voyager_Giveaway folder, accepting replacement:
+      banner-renderer.css
+      banner-renderer.js
+      banner-control.css
+      Voyager_Banner_Control.html
+3. Keep the brand-assets folder beside the pages. It must contain
+   Rajdhani-600.ttf and Rajdhani-700.ttf (both included in this ZIP).
+4. In OBS, open the browser source that loads Voyager_Banner_Overlay.html
+   and click Refresh cache of current page. Refresh Stream banner control too.
+
+No new Streamer.bot import or C# compilation is required. Keep config.js and
+all existing settings/data files. The overlay filename and source position
+stay the same. The appearance update applies to the saved banner after refresh;
+you do not need to replace or republish your messages.
+
+APPEARANCE
+- Same locally bundled Rajdhani font family as the giveaway panel.
+- Light translucent navy background, rounded corners, fine blue accent edge.
+- Softer text shadow and glow; subtle separators and optional scanlines.
+- Transparent space around the strip; 16 px inset from each side.
+- Both Draft and Published previews use the same renderer as OBS.
+
+In Stream banner > Style & movement, the previous Background opacity setting
+is now called Panel tint strength. 100% uses the giveaway panel's light
+48%–38% background; 0% removes the background tint. Saved values use this new
+range, so an existing 90% setting is now translucent too. Text and borders
+remain visible. Changes to this control still need Publish to OBS.
+
+Your saved announcements, custom colours, speed, text size, height, visibility
+and pause/resume controls are retained. If OBS still shows the original solid
+ticker, confirm its local file is Voyager_Banner_Overlay.html and remove old
+custom OBS CSS that overrides the banner styling.
+
+For the first installation, follow BANNER_SETUP.html instead.

@@ -1,0 +1,286 @@
+/* Voyager stream identity: Rajdhani, midnight navy, royal blue, cyan and silver. */
+:root {
+  --font: 'Rajdhani', 'Arial Narrow', Arial, sans-serif;
+  --bg: #080f18; --surface: #0c1825; --border: #20364c;
+  --text: #edf6ff; --muted: #92aabe;
+  --blue: #4169e1; --cyan: #72d8ff; --silver: #dce9f2;
+  --orange: #e9c36b; --mint: #7ce1cb;
+  font-family: var(--font); font-size: 16px;
+}
+body { background: radial-gradient(ellipse at 55% 0, #14294266, transparent 65%), var(--bg); }
+::selection { color: white; background: #4169e188; }
+button, input, select, code { font-family: var(--font); }
+.sidebar { overflow-y: auto; background: linear-gradient(180deg,#0d1926,#080f18); border-right-color: #2a4059; padding-top: 24px; }
+.brand { gap: 9px; font-size: 21px; letter-spacing: 2px; }
+.brand-emblem { width: 55px; height: 55px; object-fit: contain; flex: 0 0 auto; mix-blend-mode: screen; }
+.brand small { color: #9dc7e8; font-size: 12px; letter-spacing: 5px; }
+.nav-label { color: #718ca6; font-size: 11px; margin-top: 35px; letter-spacing: 2px; }
+.nav { border: 1px solid transparent; border-radius: 4px; color: #a3b7ca; padding: 12px 10px; }
+.nav span { font-size: 16px; font-weight: 700; letter-spacing: .3px; }
+.nav b { font-size: 12px; }
+.nav.active { background: linear-gradient(90deg,#4169e12b,#12304a66); color: #f0f8ff; border-color: #35528a; box-shadow: inset 3px 0 #4169e1, 0 0 18px #00d8ff08; }
+.nav:hover { border-color: #34537a; background-color: #132338; }
+.eyebrow { font-family: var(--font); font-weight: 700; font-size: 11px; letter-spacing: 2px; color: #92adc5; }
+.side-card { background: linear-gradient(140deg,#10243a,#0b1623); border-color: #2e4660; border-radius: 4px; position: relative; }
+.side-card::before { content: ''; position: absolute; top: -1px; left: 14px; width: 40px; height: 2px; background: #4169e1; box-shadow: 0 0 12px #00d8ff55; }
+.side-card .eyebrow { font-size: 9px; }
+.side-card strong { font-size: 23px; text-transform: uppercase; font-weight: 700; }
+.side-card p { font-size: 15px; color: #a4b9ca; line-height: 1.5; }
+.side-card code { font-size: 22px; font-weight: 700; color: #edf6ff; }
+.side-bottom { text-align: center; padding-top: 26px; }
+.side-bottom > .eyebrow { font-size: 10px; letter-spacing: 2px; }
+.brand-wings { position: relative; width: 100%; overflow: hidden; }
+.brand-wings img { position: absolute; width: 100%; height: auto; left: 0; top: 50%; transform: translateY(-50%); mix-blend-mode: screen; }
+.mda-wings { height: 58px; margin: 10px 0; }
+.upr-wings { height: 78px; }
+.side-bottom small { color: #7591aa; font-size: 9px; letter-spacing: 2px; margin-top: 12px; }
+.topbar { border-bottom-color: #2a4059; height: 70px; position: relative; }
+.topbar::after { content: ''; position: absolute; left: 0; bottom: -1px; width: 74px; height: 2px; background: #4169e1; box-shadow: 0 0 12px #00d8ff55; }
+.breadcrumb { font-size: 13px; font-weight: 700; letter-spacing: 2px; color: #d2e2f1; }
+.connection { font-size: 13px; color: #a5bdcf; }
+.icon-btn { font-size: 13px; font-weight: 700; border-color: #314860; }
+.page-heading { margin: 30px 0 22px; }
+.page-heading h1 { font: 700 48px/1 var(--font); letter-spacing: 3px; margin: 10px 0; color: #edf6ff; }
+.page-heading h1 i { font-style: normal; color: #90bcff; text-shadow: 0 0 25px #4169e135; }
+.page-heading p { font-size: 16px; color: #a4b9cc; }
+.beta { font: 700 11px var(--font); color: #9cbbd3; letter-spacing: 1.5px; border-color: #355074; }
+.button { font-size: 14px; font-weight: 700; letter-spacing: .5px; padding: 10px 16px; border-radius: 4px; background: linear-gradient(180deg,#14263b,#101d2d); border-color: #334d6a; color: #d9e9f5; transition: border-color .15s, background .15s, box-shadow .15s; }
+.button:hover { border-color: #72c5f1; background: #192f49; box-shadow: 0 0 16px #00d8ff12; }
+.button.primary { background: linear-gradient(135deg,#4169e1,#2e50b2); border-color: #6185ee; color: #fff; box-shadow: 0 0 20px #4169e122, inset 0 1px #ffffff20; }
+.button.primary:hover { background: linear-gradient(135deg,#5079ef,#4169e1); border-color: #94b5ff; }
+.button:focus-visible,.nav:focus-visible,a:focus-visible { outline: 2px solid #b5e7ff; outline-offset: 3px; }
+.mode-banner { font-size: 13px; color: #abc3d8; border-radius: 4px; background: #0e1e30; border-color: #263f5e; }
+.arena-shell { background: #080f18; border: 1px solid #38577a; border-top: 2px solid #4169e1; border-radius: 5px; box-shadow: 0 14px 42px #0005, 0 0 22px #00d8ff0b; }
+.arena-meta,.arena-footer { background: linear-gradient(90deg,#080f18f2,#0f1e2df5,#080f18f2); color: #a4bcd1; border-color: #2d4664; font-weight: 700; }
+.arena-meta { height: 42px; font-size: 10px; letter-spacing: 1.5px; padding: 0 14px; }
+.arena-meta strong { color: #dceaf6; font-weight: 700; }
+.arena-brand { display: flex; align-items: center; gap: 9px; white-space: nowrap; }
+.arena-brand > img { height: 26px; width: 26px; object-fit: contain; mix-blend-mode: screen; }
+.arena-brand-wings { display: block; width: 48px; height: 20px; position: relative; overflow: hidden; }
+.arena-brand-wings img { width: 100%; height: auto; position: absolute; left: 0; top: 50%; transform: translateY(-50%); mix-blend-mode: screen; }
+.arena-brand-wings.upr { height: 25px; }
+.arena-stage::after { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(0deg,transparent 0 3px,#0000000d 3px 4px); pointer-events: none; z-index: 5; opacity: .5; }
+.pilot-name { font-weight: 700; letter-spacing: .5px; color: #edf6ff; }
+.pilot-tag { color: #78caff; font-weight: 700; }
+.pilot-hud.right .pilot-tag,.pilot-hud.right .hud-values { color: #b8cbdc; }
+.meter { border-radius: 0; background: #1c2d41; }
+.meter > span { background: linear-gradient(90deg,#4169e1,#70d7ff); box-shadow: 0 0 10px #00d8ff33; }
+.pilot-hud.right .meter > span { background: linear-gradient(90deg,#7f96ad,#e5f2ff); }
+.meter.energy > span { background: #b7cadb; }
+.hud-values { font-weight: 700; letter-spacing: .4px; color: #9bbbd4; }
+.cooldowns { font-weight: 700; color: #809bb4; }
+.cooldowns .ready { color: #b8ddf3; }
+.battle-clock strong { font-weight: 700; font-variant-numeric: tabular-nums; color: #f0f7ff; text-shadow: 0 0 18px #4169e140; }
+.battle-clock small { font-weight: 700; color: #a2bdd3; letter-spacing: 1.5px; }
+.battle-clock span { color: #849fb7; }
+.arena-footer { border-bottom: 2px solid #4169e1; font-size: 10px; letter-spacing: 1px; padding: 11px 14px; }
+.arena-footer b { font-size: 10px; font-weight: 700; color: #bcdbe9; }
+.arena-footer code { font-size: 13px; font-weight: 700; color: #fff; text-shadow: 0 0 8px #00d8ff44; }
+.battle-controls .button { font-size: 12px; }
+.control-note { color: #7b95ac; font-size: 11px; }
+.section-title h2,.panel h2,.simulator h2 { font-size: 19px; font-weight: 700; letter-spacing: .6px; }
+.section-title > span { font-size: 10px; color: #89a3b9; }
+.panel { background: linear-gradient(150deg,#0e1c2b,#0a1521); border-color: #263c54; border-radius: 5px; }
+.panel-title { background: linear-gradient(90deg,#112338b3,#0b1825); border-color: #263c54; padding: 15px 17px; }
+.panel-title h2 { font-size: 17px; text-transform: uppercase; letter-spacing: 1px; }
+.panel-title .eyebrow { font-size: 9px; }
+.count { color: #daeafa; background: #17304b; border: 1px solid #31517c; font-size: 14px; font-weight: 700; }
+.command-card { background: linear-gradient(145deg,#12263b,#0c1725); border-color: #2a435f; border-radius: 4px; }
+.command-card:hover { border-color: #4169e1; box-shadow: inset 0 2px #4169e1; }
+.command-card code { font-size: 20px; font-weight: 700; color: #eaf4ff; }
+.command-card strong { font-size: 15px; font-weight: 700; }
+.command-card small { font-size: 12px; color: #9bb3c9; }
+.command-card > span:last-child { font-size: 10px; color: #7d9fbd; }
+.empty { color: #91abc2; font-size: 14px; }
+.queue-row strong { font-size: 16px; font-weight: 700; }
+.queue-row small { font-size: 12px; color: #8ea9c0; }
+.queue-row .num { color: #81a1be; font-size: 13px; }
+.queue-row .queue-type { font-size: 11px; font-weight: 700; color: #82c8f2; }
+.panel-foot { font-size: 12px; color: #9cb3c9; }
+.text-button { font-size: 13px; font-weight: 700; color: #94c7ff; }
+.feed-item { font-size: 13px; color: #a9becf; }
+.feed-item small { font-size: 10px; color: #7799b6; }
+.feed-item.match,.feed-item.result,.feed-item.reward { color: #d9edff; }
+.feed-item.action { color: #a8c3dc; }
+.simulator h2 { font-size: 20px; }
+.simulator p { font-size: 13px; color: #95adc3; }
+label { font-size: 13px; font-weight: 700; color: #a7bdd1; }
+input,select { font-size: 16px; color: #e5f2ff; background: #081320; border-color: #314b68; border-radius: 3px; }
+input:focus,select:focus { border-color: #7196ff; box-shadow: 0 0 0 2px #4169e121; }
+.ship-card { background: linear-gradient(150deg,#12263b,#0a1420); border-left-color: #2c435d; border-right-color: #2c435d; border-bottom-color: #2c435d; border-radius: 5px; }
+.ship-card .eyebrow { font-size: 10px; letter-spacing: 1.6px; }
+.ship-card h3 { font-size: 34px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+.ship-card p { font-size: 16px; color: #a7bdcf; line-height: 1.6; }
+.ship-stats span { font-size: 12px; font-weight: 700; color: #8ca9c2; }
+.ship-stats b { font-size: 28px; font-weight: 700; color: #edf6ff; }
+.ship-model { font-size: 11px; font-weight: 700; }
+.info-strip { font-size: 15px; color: #b0c5d6; border-color: #2b4564; background: #0e2033; }
+th { font-size: 12px; font-weight: 700; letter-spacing: 1.5px; color: #92b7d8; }
+td { font-size: 17px; color: #d0e1ef; }
+td:nth-child(3) { color: #9fdcff; font-weight: 700; }
+.rank-note { font-size: 14px; color: #98b0c6; line-height: 1.6; }
+.panel-content p { font-size: 16px; color: #a6bdd2; line-height: 1.6; }
+.panel-content p.small { font-size: 13px; color: #91aabe; }
+.check { font-size: 14px; }
+.check input { accent-color: #4169e1; }
+.copy-row input { font-size: 14px; }
+.connection-detail { font-size: 14px; color: #b4d4f1; border-color: #2b4d72; background: #091827; }
+.reward-grid > div { border-radius: 4px; border-color: #345276; background: linear-gradient(135deg,#172c49,#0b1b2d); }
+.reward-grid > div + div { border-color: #3b4d60; background: linear-gradient(135deg,#1b2a38,#101c28); }
+.reward-grid span,.reward-grid small { font-size: 12px; color: #a9bfd3; font-weight: 700; }
+.reward-grid strong { color: #92caff; font-size: 44px; font-weight: 700; }
+.reward-grid > div + div strong { color: #e3edf6; }
+.reward-row { font-size: 15px; }
+.reward-row small { font-size: 12px; }
+.page-footer { font-size: 11px; color: #7898b3; }
+#toast { font-size: 16px; background: #102540; border-color: #4169e1; color: #f0f7ff; }
+
+/* Stream splash and combat screens use the same blue / silver identity. */
+.call-screen { background:transparent; }
+.call-screen::before {display:none;content:none;}
+.call-transmission { color: #b6ccdf; font-size: .95cqw; }
+.call-frequency { color: #86a6c3; }
+.call-heading { margin-top: 1.3cqw; }
+.call-heading > .call-wordmark { display: flex; align-items: center; justify-content: center; gap: .8cqw; font-size: 1.35cqw; letter-spacing: .32cqw; color: #edf6ff; }
+.call-wordmark img { width: 2.7cqw; height: 2.7cqw; object-fit: contain; mix-blend-mode: screen; }
+.call-heading > span i { color: #94bfff; font-style: normal; }
+.call-heading h2 { font-weight: 700; letter-spacing: .16cqw; color: #f0f7ff; text-shadow: 0 0 28px #4169e160; }
+.call-heading p,.call-prompt small,.call-versus,.arena-paused .call-screen::after { font-family: var(--font); }
+.call-heading p { font-size: 1.35cqw; color: #a8c0d5; }
+.call-seat { font-size: 1cqw; letter-spacing: .14cqw; color: #90c9ff; }
+.call-pilot strong { color: #edf6ff; font-weight: 700; letter-spacing: .08cqw; }
+.call-pilot small { color: #91afc9; font-size: .85cqw; }
+.call-versus { color: #c8e0f16b; font-weight: 700; font-style: normal; }
+.call-versus span { color: #88a4be; font-size: .85cqw; }
+.call-open-seat .call-seat { color: #d1e1ee; }
+.call-open-seat strong { color: #d9e7f2; }
+.call-open-seat small { color: #a5bbce; }
+.challenger-radar { border-color: #4169e185; background:transparent; box-shadow:none; }
+.challenger-radar b { color: #d6e8f9; filter: drop-shadow(0 0 10px #00d8ff44); }
+.radar-sweep { background: conic-gradient(from 0deg,transparent 70%,#4169e145 99%,#bce3ff88); }
+.radar-ring { border-color: #a9d3ff66; }
+.call-prompt > span { color: #b9d2e5; font-size: 1cqw; }
+.call-prompt code { color: white; background:transparent; border-color: #6694ee; border-radius: .3cqw; font-weight: 700; letter-spacing: .15cqw; }
+.call-prompt small { color: #a0bdd5; font-size: 1cqw; }
+.call-status { color: #89acc8; font-size: .8cqw; }
+.overlay .arena-meta { height: 4vh; }
+.overlay .arena-brand > img { width: 2.6vh; height: 2.6vh; }
+.overlay .arena-brand-wings { width: 4.5vh; height: 1.9vh; }
+.overlay .arena-brand-wings.upr { height: 2.4vh; }
+.overlay .arena-footer { font-size: clamp(9px,1.3vh,17px); }
+.overlay .arena-footer b,.overlay .arena-footer code { font-size: inherit; }
+.overlay.transparent .arena-stage::after { display: none; }
+.overlay.transparent .arena-shell { border-color: transparent; }
+
+@media(min-width:1600px) { .arena-meta,.arena-footer { font-size: 12px; } .feed-item { font-size: 15px; } .command-card code { font-size: 23px; } }
+@media(max-width:1180px) { .brand-emblem { width: 42px; height: 42px; } .brand { font-size: 17px; gap: 6px; } .brand small { font-size: 10px; } .breadcrumb { font-size: 11px; letter-spacing: 1px; } .connection { font-size: 12px; } .arena-brand-wings { display: none; } .panel-title .eyebrow { font-size: 8px; } .heading-actions .button { font-size: 12px; } }
+@media(max-width:950px) { .brand-emblem { width: 48px; height: 48px; } .nav { font-size: 22px; padding: 12px 5px; } .side-bottom { display: none; } .arena-brand-wings { display: block; } .arena-meta { font-size: 10px; } }
+@media(max-width:650px) {
+  .sidebar { padding: 7px 12px; background: #0b1625f5; backdrop-filter: blur(12px); }
+  .brand-emblem { width: 40px; height: 40px; }.brand div { font-size: 15px; }.brand small { font-size: 9px; letter-spacing: 3px; }
+  .nav { font-size: 20px; }.topbar { height: 48px; }.connection { font-size: 11px; }.page-heading h1 { font-size: 42px; letter-spacing: 2px; }.page-heading .eyebrow { font-size: 9px; }
+  .page-heading p { font-size: 15px; }.mode-banner { font-size: 12px; }.heading-actions .button { font-size: 14px; }
+  .arena-meta { height: 32px; font-size: 7px; letter-spacing: .6px; padding: 0 8px; }.arena-brand { gap: 5px; }.arena-brand > img { width: 19px; height: 19px; }.arena-brand-wings { display: none; }
+  .arena-footer { font-size: 7px; letter-spacing: .2px; padding: 9px 8px; }.arena-footer b { font-size: 8px; }.arena-footer code { font-size: 9px; }
+  .battle-controls .button { font-size: 11px; padding: 8px; }.command-card code { font-size: 20px; }.section-title h2 { font-size: 17px; }.section-title > span { font-size: 8px; }
+  .page-footer { font-size: 8px; letter-spacing: .6px; gap: 12px; }.ship-card p { font-size: 16px; }.copy-row { flex-wrap: wrap; }.copy-row input { min-width: 0; }.setup-grid .button { white-space: normal; }
+}
+
+@media(max-height:820px) and (min-width:951px) { .side-card { margin-top:18px; padding:14px; }.side-card p { margin:9px 0; font-size:13px; }.side-bottom { padding-top:16px; }.mda-wings { height:48px; margin:4px 0; }.upr-wings { height:60px; } }
+
+
+/* The game is always background-free; the dashboard only supplies its own page surface. */
+html.overlay-transparent,
+html.overlay-transparent body { background: transparent; color-scheme: normal; }
+/* Prevent a control-panel flash while the overlay module loads. */
+html.overlay-transparent body:not(.overlay) { visibility: hidden; }
+body.overlay,
+.overlay main,
+.overlay #tab-arena,
+.overlay .arena-grid,
+.overlay .arena-column,
+.arena-shell,
+.arena-stage,
+.arena-stage canvas,
+.arena-meta,
+.arena-footer,
+.call-screen,
+.connection-lost,
+.overlay-sound,
+.pilot-hud,
+.battle-clock,
+.meter {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+.arena-shell,
+.arena-meta,
+.arena-footer { border: 0; border-radius: 0; }
+.arena-stage::after,
+.call-screen::before {display:none;content:none;}
+.call-prompt code {
+  background:transparent;
+  border-color: transparent;
+  box-shadow:none;
+  animation:none;
+  text-shadow: 0 2px 4px #0009, 0 0 12px #4169e177;
+}
+.challenger-radar { background:transparent; box-shadow:none; }
+.arena-paused .call-screen::after { background:transparent; text-shadow: 0 2px 4px #0009; }
+.arena-paused .call-screen > * { visibility: hidden; }
+.arena-meta,
+.arena-footer,
+.call-heading,
+.call-pilot,
+.call-transmission,
+.call-status,
+.connection-lost,
+.pilot-hud,
+.battle-clock { text-shadow: 0 2px 4px #0009; }
+
+/* Embedded Voyager Control page: compact game tabs in the host's navigation. */
+body.embedded { background: transparent; }
+.embedded .sidebar { position: static; width: auto; padding: 8px 16px; border: 0; background: transparent; }
+.embedded .sidebar > :not(nav) { display: none; }
+.embedded .sidebar nav { display: flex; flex-wrap: wrap; gap: 8px; }
+.embedded .sidebar .nav { width: auto; margin: 0; padding: 9px 14px; }
+.embedded .sidebar .nav b { display: none; }
+.embedded main { margin: 0; padding: 0 18px 20px; max-width: none; }
+.embedded .page-heading h1 { font-size: 30px; }
+.embedded .page-heading { margin: 15px 0; }
+.embedded .page-heading .eyebrow, .embedded .page-footer { display: none; }
+.embedded .topbar { height: 42px; }
+.embedded .arena-grid { grid-template-columns: minmax(0,1fr) 260px; }
+@media(max-width:1000px) { .embedded .arena-grid { grid-template-columns: 1fr; } }
+
+/* Readable in-stream commands, floating beneath the ships without a backplate. */
+.battle-command-guide{position:absolute;left:7%;right:7%;bottom:2.2cqw;z-index:6;pointer-events:none;text-align:center;background:transparent;border:0;box-shadow:none;text-shadow:0 2px 5px #020915,0 0 12px #020915}
+.battle-command-guide>p{margin:0 0 .7cqw;font:700 .95cqw/1.25 var(--font);letter-spacing:.15cqw;color:#d7e8f5}
+.battle-command-list{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:2cqw}
+.battle-command-list code{display:block;font:700 2.1cqw/1.2 var(--font);color:#93ddff;letter-spacing:.05cqw;background:transparent}
+.battle-command-list span{display:block;margin-top:.25cqw;font:500 1cqw/1.25 var(--font);color:#e4eff8;white-space:nowrap}
+.arena-paused .battle-command-list{opacity:.65}
+.overlay #arena-active-prompt{font-size:clamp(9px,1.3vh,17px)}
+
+/* Real-time 3D fleet: one GPU renderer, transparent views throughout. */
+.graphics-status { margin: -9px 0 14px; color: #88a7be; font-size: 12px; letter-spacing: .7px; }
+.overlay .graphics-status { display: none; }
+.ship-card .ship-preview { display: none; width: 100%; height: 100%; position: relative; z-index: 1; }
+.ships-3d-ready .ship-preview { display: block; }
+.ships-3d-ready .ship-portrait img, .ships-3d-ready #call-ship { display: none; }
+#call-ship-3d { display: none; width: 25cqw; height: 16cqw; max-height: 28vh; }
+.ships-3d-ready #call-ship-3d { display: block; }
+.ship-portrait { height: 265px; }
+.ship-grid { opacity: .35; }
+.ship-model { z-index: 2; }
+@media(max-width:1180px){ .ship-portrait { height: 205px; } }
+@media(max-width:650px){ .ship-portrait { height: 255px; } }
+@media(prefers-reduced-motion:reduce){ #call-ship { animation: none; } }
+
+/* Payment verification and retained history. */
+.repair-actions{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0}.repair-summary{font-size:21px;font-weight:700;color:#a5e1ff;margin-top:14px}.repair-table{overflow:auto;margin-top:20px}.repair-table table{width:100%;min-width:830px}.repair-table td{vertical-align:top;font-size:15px}.repair-table td small{display:block;max-width:330px;font-size:12px;line-height:1.5;color:#9ab3c9;overflow-wrap:anywhere;margin-top:5px}.repair-table td:last-child{min-width:240px}.repair-table .text-button{margin-top:8px}#repair-dialog{max-width:650px;width:90vw;border:1px solid #5274a3;border-radius:7px;padding:28px;background:#0d1b2a;color:#eaf4ff}#repair-dialog::backdrop{background:#000b}#repair-dialog p{line-height:1.6;color:#b4cbdc}#repair-dialog textarea{display:block;width:100%;margin:10px 0 20px;padding:12px;background:#081320;border:1px solid #355777;color:#edf7ff;font:16px Rajdhani,Arial,sans-serif}#repair-dialog .check{align-items:flex-start;line-height:1.5;margin:20px 0}.overlay #tab-rewards{display:none!important}
+
+/* Per-stream role usage */
+#stream-entry-rows small{display:block;color:var(--muted,#8ca9bc);font-size:12px;font-weight:400;margin-top:3px}

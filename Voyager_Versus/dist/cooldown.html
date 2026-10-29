@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Voyager Versus · Cooldown</title>
+  <link rel="icon" href="brand/voyager.png" type="image/png">
+  <link rel="stylesheet" href="brand/fonts.css">
+  <link rel="stylesheet" href="cooldown.css?v=1.8.0">
+</head>
+<body>
+  <main id="cooldown" data-mode="offline" aria-label="Voyager Versus availability">
+    <header><img src="brand/voyager.png" width="36" height="36" alt=""><span>VOYAGER <b>VERSUS</b></span><small id="preview-label" hidden>PREVIEW</small></header>
+    <div class="readout">
+      <div class="time-block"><p id="timer-label">NEXT CALL IN</p><strong id="timer-value" role="timer" aria-live="off">--:--</strong></div>
+      <div class="command"><span>CHAT COMMAND</span><strong>!versus</strong></div>
+    </div>
+    <div class="progress" aria-hidden="true"><span id="timer-progress"></span></div>
+    <footer><span class="status-dot" aria-hidden="true"></span><span id="timer-hint">Connecting to Voyager…</span></footer>
+  </main>
+  <script type="module" src="cooldown.mjs?v=1.8.0"></script>
+</body>
+</html>

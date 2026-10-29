@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-160 -125 320 250" role="img" aria-labelledby="title"><title id="title">Phantom — violet stealth craft with curved crescent wings and a floating central cockpit</title><defs><linearGradient id="wing" x2="1" y2="1"><stop stop-color="#929ac1"/><stop offset=".4" stop-color="#46517c"/><stop offset=".75" stop-color="#1a2549"/><stop offset="1" stop-color="#070f26"/></linearGradient><linearGradient id="edge" x2="1" y2="0"><stop stop-color="#5b52b2"/><stop offset=".6" stop-color="#b5a2ef"/><stop offset="1" stop-color="#e0d4ff"/></linearGradient><linearGradient id="glass" x2="1" y2="0"><stop stop-color="#402d88"/><stop offset=".7" stop-color="#b385ff"/><stop offset="1" stop-color="#efdbff"/></linearGradient><filter id="g" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="3"/></filter></defs>
+<g stroke-linejoin="round"><path d="M-110 0Q-115-77-24-111L121-72 46-63-21-75Q-61-60-63-27L-24-16 50-16 103 0 50 16-24 16-63 27Q-61 60-21 75L46 63 121 72-24 111Q-115 77-110 0Z" fill="#0b122b" stroke="#929bd1" stroke-width="1.5"/>
+<path d="M-101-6Q-107-72-23-102L106-73 39-72-24-86Q-78-65-79-21Z" fill="url(#wing)" stroke="#b5bde5"/>
+<path d="M-101 6Q-107 72-23 102L106 73 39 72-24 86Q-78 65-79 21Z" fill="url(#wing)" stroke="#7984bb"/>
+<path d="M-97-14Q-94-69-23-96L72-76-23-87Q-77-64-81-24Z" fill="#8391ba" opacity=".5"/><path d="M-97 14Q-94 69-23 96L72 76-23 87Q-77 64-81 24Z" fill="#404b7a"/>
+<path d="M-73-29Q-71-60-23-80L47-68 113-72-23-91Q-87-66-88-19Z M-73 29Q-71 60-23 80L47 68 113 72-23 91Q-87 66-88 19Z" fill="url(#edge)"/>
+<path d="M-72-34Q-68-61-23-77L43-65 M-72 34Q-68 61-23 77L43 65" fill="none" stroke="#ad83ff" stroke-width="4" filter="url(#g)"/><path d="M-72-34Q-68-61-23-77L43-65 M-72 34Q-68 61-23 77L43 65" fill="none" stroke="#ddc8ff" stroke-width="1.5"/>
+<path d="M-83-20-48-27-4-10-4 10-48 27-83 20Z" fill="#202c51" stroke="#7986b8"/>
+<path d="M-34-13 19-25 60-16 111 0 60 16 19 25-34 13-47 0Z" fill="url(#wing)" stroke="#bdc6e5"/>
+<path d="M-15-6 27-14 61-9 91 0 61 9 27 14-15 6-24 0Z" fill="#090e26" stroke="#7b6abd"/><path d="M1-4 30-10 60-6 78 0 60 6 30 10 1 4 9 0Z" fill="url(#glass)"/>
+<path d="M-26-14 18-25 58-17 23-18Z" fill="#b4bddf"/><path d="M-26 14 18 25 58 17 23 18Z" fill="#454c82"/>
+<path d="M-108-31-90-40-83-21-99-13Z M-108 31-90 40-83 21-99 13Z" fill="#151c38" stroke="#7b8bb2"/>
+<path d="M-108-28-102-16 M-108 28-102 16" stroke="#b693ff" stroke-width="5" filter="url(#g)"/><path d="M-108-28-102-16 M-108 28-102 16" stroke="#ecdaff" stroke-width="3"/>
+<g stroke="#101936" stroke-width="3"><path d="m-67-68 10 8m2-16 9 8m2-15 8 8m-29 61 10-8m2 16 9-8m2 15 8-8"/></g><path d="M66-76 110-72 80-67 M66 76 110 72 80 67" fill="none" stroke="#d2b9ff" stroke-width="2"/></g></svg>

@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MDA009 • Voyager Members</title>
+<style>
+:root{color-scheme:normal;--ink:#f4f7ff;--muted:#8e9bb0;--panel-height:550px;--row-height:52px}
+*{box-sizing:border-box}html,body{width:100%;height:100%;margin:0;overflow:hidden;background:transparent;color:var(--ink);font-family:Arial,Helvetica,sans-serif}
+body.preview{background:radial-gradient(ellipse at 50% 10%,#14213e 0,transparent 60%),#050a13}
+.stage{width:1920px;height:1080px;position:absolute;transform-origin:0 0;display:flex;align-items:center;justify-content:center;padding:70px 80px}
+.board{width:100%;position:relative;opacity:0;visibility:hidden;transform:translateY(18px);transition:opacity .32s ease,transform .32s ease,visibility 0s .32s}.board.is-visible{opacity:1;visibility:visible;transform:translateY(0);transition-delay:0s}.masthead{display:flex;align-items:center;justify-content:space-between;margin:0 2px 30px}
+.brand{display:flex;align-items:center;gap:20px}.brand-icon{height:66px;width:66px;color:#82caff;filter:drop-shadow(0 0 14px #2087c566)}
+.eyebrow{font-size:13px;font-weight:700;letter-spacing:5px;color:#9caec8;margin-bottom:9px}.title{font-size:34px;font-weight:800;letter-spacing:4px;margin:0}.title span{color:#8ca7c7;font-weight:400;font-size:22px;letter-spacing:5px;margin-left:12px}
+.status-area{display:flex;gap:16px;align-items:center}.status{font-size:11px;font-weight:700;letter-spacing:2px;display:flex;gap:8px;align-items:center;color:#b2bed0}.status::before{content:"";width:6px;height:6px;border-radius:50%;background:#8d9aad}.status[data-state=live]::before{background:#74e5b6;box-shadow:0 0 12px #74e5b699}.status[data-state=error]::before{background:#ffbd72}.status[data-state=demo]::before{background:#92bfff}
+.edition{font-size:11px;letter-spacing:3px;border-left:1px solid #52627b66;padding-left:20px;color:#8090a8}
+.panels{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:18px}
+.panel{--accent:#5bbdff;--rgb:91,189,255;position:relative;height:var(--panel-height);border-radius:18px;border:1px solid rgba(var(--rgb),.28);background:linear-gradient(155deg,rgba(var(--rgb),.12),transparent 45%),linear-gradient(160deg,rgba(13,22,37,.97),rgba(5,10,20,.95));box-shadow:0 15px 38px #0004,0 0 24px rgba(var(--rgb),.035);overflow:hidden;display:flex;flex-direction:column}
+.panel::before{content:"";height:2px;position:absolute;top:0;left:28px;right:28px;background:linear-gradient(90deg,transparent,var(--accent),transparent);box-shadow:0 0 16px rgba(var(--rgb),.7)}
+.panel[data-tier=silver]{--accent:#d1dce9;--rgb:209,220,233}.panel[data-tier=gold]{--accent:#f4cb71;--rgb:244,203,113}.panel[data-tier=platinum]{--accent:#c9bcff;--rgb:201,188,255}
+.panel[data-tier=vip]{--accent:#ff6893;--rgb:255,104,147;background:linear-gradient(150deg,rgba(255,72,125,.16),transparent 50%),linear-gradient(160deg,#251020f5,#0e0812f5)}
+.panel[data-tier=platinum]{--accent:#e0e6ff;--rgb:208,219,255;background:linear-gradient(150deg,rgba(192,199,240,.13),transparent 50%),linear-gradient(160deg,#121421f5,#060912f5)}
+.panel-head{padding:25px 24px 21px;display:flex;justify-content:space-between;align-items:flex-start;position:relative;border-bottom:1px solid rgba(var(--rgb),.13)}
+.tier-label{font-size:11px;font-weight:700;letter-spacing:3px;color:var(--accent);margin-bottom:9px}.tier-name{font-size:28px;font-weight:800;letter-spacing:2.6px;margin:0;color:var(--accent)}.tier-subtitle{font-size:10px;letter-spacing:3.2px;margin-top:10px;color:#9ba8bd}
+.tier-emblem{width:62px;height:62px;flex:none;margin-top:7px;filter:drop-shadow(0 0 12px rgba(var(--rgb),.4));color:var(--accent)}
+.stats{display:flex;justify-content:space-between;align-items:center;padding:15px 24px 13px}.member-caption{color:#8594ac;font-size:11px;letter-spacing:2px}.count{font-size:20px;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums}.list-window{position:relative;flex:1;min-height:0;margin:0 14px;overflow:hidden;mask-image:linear-gradient(transparent,#000 12px,#000 calc(100% - 14px),transparent);-webkit-mask-image:linear-gradient(transparent,#000 12px,#000 calc(100% - 14px),transparent)}
+.track{position:absolute;top:0;left:0;right:0;will-change:transform}.member-row{height:var(--row-height);padding:0 11px;display:flex;align-items:center;gap:13px;border-bottom:1px solid #c1d7ff09}.avatar{width:29px;height:29px;border-radius:7px;background:rgba(var(--rgb),.09);border:1px solid rgba(var(--rgb),.14);display:grid;place-items:center;font-size:11px;color:var(--accent);font-weight:700;flex:none}.member-name{font-size:22px;font-weight:600;letter-spacing:.1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0}.member-dot{width:4px;height:4px;transform:rotate(45deg);background:var(--accent);opacity:.6;flex:none}
+.empty{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:15px;color:#8d9bb3;font-size:16px;line-height:1.6;padding:25px}.empty svg{width:40px;height:40px;color:var(--accent);opacity:.3}.empty[hidden]{display:none}.panel-foot{display:flex;align-items:center;gap:9px;color:var(--accent);padding:16px 24px 20px;font-size:9px;letter-spacing:2.5px;opacity:.65}.panel-foot::before{content:"";height:1px;flex:1;background:linear-gradient(90deg,rgba(var(--rgb),.35),transparent)}
+.board-foot{display:flex;justify-content:space-between;align-items:center;color:#8e9bb0;font-size:11px;letter-spacing:2px;padding:23px 3px 0}.board-foot strong{color:#c7d4e7;font-weight:500}.foot-rule{height:1px;background:#718ab329;flex:1;margin:0 23px}.demo-banner{display:none;color:#e7c583;margin-right:20px}.preview .demo-banner{display:inline}
+.layout-columns:not(.single-mode) .panel-head{padding:23px 18px 20px}.layout-columns:not(.single-mode) .tier-name{font-size:24px;letter-spacing:1.6px}.layout-columns:not(.single-mode) .tier-emblem{width:44px;height:44px;margin-top:13px}
+.layout-grid .panels{grid-template-columns:repeat(6,minmax(0,1fr))}.layout-grid:not(.single-mode) .panel{grid-column:span 2}.layout-grid:not(.single-mode) .panel:nth-child(4){grid-column:2/span 2}.layout-grid:not(.single-mode) .panel:nth-child(5){grid-column:4/span 2}.layout-grid .board{max-width:1540px}.layout-grid .panel{height:370px}.layout-grid .panel-head{padding:20px 23px 15px}.layout-grid .tier-name{font-size:23px}.layout-grid .tier-subtitle{display:none}.layout-grid .tier-emblem{height:48px;width:48px;margin-top:0}.layout-grid .stats{padding:12px 24px 8px}.layout-grid .panel-foot{padding:10px 24px 14px}.layout-grid .masthead{margin-bottom:20px}
+.layout-strip .stage{align-items:flex-end;padding-bottom:70px}.layout-strip .panel{height:280px}.layout-strip .panel-head{padding:18px 22px 14px}.layout-strip .tier-label,.layout-strip .tier-subtitle,.layout-strip .panel-foot{display:none}.layout-strip .tier-name{font-size:23px}.layout-strip .tier-emblem{width:32px;height:32px;margin-top:0}.layout-strip .stats{padding:11px 23px 8px}.layout-strip .masthead{margin-bottom:22px}.layout-strip .board-foot{padding-top:18px}
+.panel[hidden]{display:none!important}
+.single-mode .stage{justify-content:flex-end;align-items:center;padding:70px 80px}
+.single-mode.position-left .stage{justify-content:flex-start}
+.single-mode.position-center .stage{justify-content:center}
+.single-mode .board{width:460px;max-width:460px}
+.single-mode .panels{grid-template-columns:minmax(0,1fr)}
+.single-mode .panel{height:var(--panel-height)}
+.single-mode .masthead,.single-mode .board-foot{display:none}
+.single-mode .panel-head{padding:25px 24px 21px}
+.single-mode .tier-label{display:block}.single-mode .tier-name{font-size:28px}
+.single-mode .tier-subtitle{display:block}.single-mode .tier-emblem{width:62px;height:62px;margin-top:7px}
+.single-mode .stats{padding:15px 24px 13px}.single-mode .panel-foot{display:flex;padding:16px 24px 20px}
+.preview-note{display:none;position:fixed;left:24px;bottom:31px;color:#d6bd86;font-size:11px;letter-spacing:2px}.preview .preview-note{display:block}.preview-controls .command-preview{display:flex;gap:8px}.command-preview button[data-tier=blue]{color:#5bbdff}.command-preview button[data-tier=silver]{color:#d1dce9}.command-preview button[data-tier=gold]{color:#f4cb71}.command-preview button[data-tier=platinum]{color:#e0e6ff}.command-preview button[data-tier=vip]{color:#ff6893}
+.no-header .masthead,.no-header .board-foot{display:none}.no-status .status-area{display:none}
+dialog{width:min(680px,94vw);max-height:94vh;border:1px solid #344967;border-radius:16px;background:#0b1423;color:#e5ecfa;padding:27px;box-shadow:0 30px 120px #000b;font:14px Arial;overflow:auto}dialog::backdrop{background:#000a}dialog h2{margin:0 0 8px;font-size:25px}dialog p{color:#a5b3c8;line-height:1.55}dialog .fields{display:grid;grid-template-columns:1fr 1fr;gap:15px}label{display:flex;flex-direction:column;gap:7px;font-size:12px;color:#a5b3c8}input,select,button{font:inherit}input,select{width:100%;background:#111f33;border:1px solid #354963;color:#fff;padding:10px;border-radius:7px}.wide{grid-column:1/-1}.checks{display:flex;gap:14px;flex-wrap:wrap;margin:20px 0}.checks label{flex-direction:row;align-items:center}.checks input{width:16px}.actions{display:flex;gap:10px;flex-wrap:wrap}button{background:#18304c;border:1px solid #3b5f87;border-radius:8px;color:#e4f1ff;padding:10px 15px;cursor:pointer}button.primary{background:#85caff;color:#07131e;border-color:#85caff;font-weight:700}button:hover{filter:brightness(1.15)}.diagnostics{font:12px/1.6 monospace;background:#060c15;border:1px solid #253650;padding:12px;border-radius:8px;color:#c7d7e9;white-space:pre-wrap;overflow-wrap:anywhere;margin-top:16px}.small{font-size:12px}.close{float:right;padding:5px 10px}.preview-controls{display:none;position:fixed;right:24px;bottom:20px;z-index:3;gap:8px}.preview .preview-controls{display:flex}.preview-controls button{font-size:12px;background:#142137}
+@media(prefers-reduced-motion:reduce){.track{will-change:auto}.board{transition:none}}
+</style>
+<link rel="stylesheet" href="voyager-brand.css"><link rel="icon" href="brand-assets/voyager.png" type="image/png"></head>
+<body class="voyager-onair members-surface">
+<div class="stage" id="stage"><main class="board" aria-label="Voyager membership groups">
+<header class="masthead"><div class="brand"><img class="logo-voyager " src="brand-assets/voyager.png" alt="Voyager membership program" width="68" height="68"><div><div class="eyebrow">MDA009 / COMMUNITY REWARDS</div><h1 class="title">VOYAGER <span>MEMBERS</span></h1></div></div><div class="status-area"><span class="status" id="status" data-state="connecting">CONNECTING</span><span class="edition">CREW MANIFEST</span></div></header>
+<div class="panels" id="panels"></div>
+<footer class="board-foot"><span>FIVE GROUPS. <strong>ONE COMMUNITY.</strong></span><span class="foot-rule"></span><span class="demo-banner">DEMO • SAMPLE NAMES</span><span id="footer-copy">YOUR NEXT VOYAGE STARTS HERE</span><div class="overlay-partners" aria-label="MDA009 and The Unprofessionals"><span class="brand-image brand-image-mda "><img src="brand-assets/mda009.png" alt="MDA009"></span><span class="brand-image brand-image-upr "><img src="brand-assets/unprofessionals.png" alt="The Unprofessionals"></span></div></footer>
+<div class="member-callout-brand"><img class="logo-voyager " src="brand-assets/voyager.png" alt="Voyager membership program" width="68" height="68"><div class="overlay-partners" aria-label="MDA009 and The Unprofessionals"><span class="brand-image brand-image-mda "><img src="brand-assets/mda009.png" alt="MDA009"></span><span class="brand-image brand-image-upr "><img src="brand-assets/unprofessionals.png" alt="The Unprofessionals"></span></div></div></main></div>
+<div class="preview-note">DESIGN PREVIEW / SAMPLE NAMES</div><div class="preview-controls"><div class="command-preview"><button data-tier="blue">!bluemembers</button><button data-tier="silver">!silvermembers</button><button data-tier="gold">!goldmembers</button><button data-tier="platinum">!platinummembers</button><button data-tier="vip">!vipmembers</button><button data-tier="hide">Hide</button><button data-tier="all">All panels</button></div><button id="pause">Pause scroll</button><button id="settings-button">Settings</button></div>
+<dialog id="settings"><button class="close" id="close-settings" aria-label="Close settings">✕</button><h2>Voyager settings</h2><p>Press <strong>S</strong> in OBS → Interact to open this panel. Apply tests changes here; download <strong>config.js</strong> and replace the copy beside the overlay to keep them.</p>
+<form id="settings-form"><div class="fields">
+<label>Streamer.bot host<input name="host" required placeholder="127.0.0.1"></label><label>WebSocket port<input name="port" type="number" min="1" max="65535" required></label>
+<label class="wide">WebSocket password (if enabled)<input name="password" type="password" autocomplete="off"></label>
+<label class="wide">Snapshot action name<input name="actionName" required></label>
+<label>Layout<select name="layout"><option value="columns">Five columns</option><option value="grid">Three + two grid</option><option value="strip">Compact lower strip</option></select></label>
+<label>Scroll speed (pixels / second)<input name="scrollSpeed" type="number" min="0" max="120" required></label>
+<label>Refresh interval (seconds)<input name="refreshSeconds" type="number" min="5" max="300" required></label><label>Column panel height (pixels)<input name="panelHeight" type="number" min="280" max="760" required></label>
+<label>Called panel duration (seconds; 0 = until hidden)<input name="displaySeconds" type="number" min="0" max="3600" required></label><label>Called panel position<select name="panelPosition"><option value="right">Right</option><option value="left">Left</option><option value="center">Centre</option></select></label></div><div class="checks"><label><input name="showHeader" type="checkbox">Header</label><label><input name="showStatus" type="checkbox">Connection status</label><label><input name="highestTierOnly" type="checkbox">Highest tier only</label></div>
+<div class="actions"><button class="primary" type="submit">Apply & reconnect</button><button type="button" id="download-config">Download config.js</button><button type="button" id="refresh">Refresh members</button></div></form>
+<div class="diagnostics" id="diagnostics">Starting…</div><p class="small">Group names are set in the C# bridge. Members appear in every group they belong to unless “Highest tier only” is selected for core tiers. VIP membership is always shown independently. This overlay only reads memberships.</p></dialog>
+<script src="config.js"></script>
+<script>
+(()=>{'use strict';
+const DEFAULTS={host:'127.0.0.1',port:8080,password:'',path:'/',secure:false,actionName:'Voyager - Broadcast Members',actionId:'',refreshSeconds:15,scrollSpeed:22,layout:'columns',panelHeight:550,showHeader:true,showStatus:true,highestTierOnly:false,displaySeconds:30,panelPosition:'right'};
+const params=new URLSearchParams(location.search),demo=params.get('demo')==='1';
+let config={...DEFAULTS,...(window.VOYAGER_CONFIG||{})};
+const giveawayView=params.get('giveaway')==='1';
+let selectedPool=null;
+if(giveawayView){config.highestTierOnly=false;config.layout='columns';config.showStatus=false;}
+const commandMode=params.get('mode')==='commands';
+let presentation={mode:commandMode?'hidden':'all',tier:null},hideTimer=null;const seenControls=new Set();
+for(const key of ['host','password','actionName','actionId'])if(params.has(key))config[key]=params.get(key);
+for(const key of ['port','scrollSpeed','refreshSeconds','displaySeconds'])if(params.has(key))config[key]=Number(params.get(key));
+if(params.has('layout'))config.layout=params.get('layout');
+const CORE_KEYS=['blue','silver','gold','platinum'];
+const KEYS=[...CORE_KEYS,'vip'],NAMES=['BLUE','SILVER','GOLD','PLATINUM','RUBY VIP'],SUBTITLES=['EXPLORER','SENTINEL','COMMANDER','VANGUARD','COMMUNITY VIP'];
+const mark='<svg viewBox="0 0 80 80" aria-hidden="true"><path d="M40 4 72 22v36L40 76 8 58V22Z" fill="none" stroke="currentColor" opacity=".35"/><path d="m18 23 22 39 22-39H49L40 40l-9-17Z" fill="currentColor"/><path d="m27 15 13 7 13-7" fill="none" stroke="currentColor" stroke-width="2"/></svg>';
+const states={};let lastPayload=null,lastSnapshot=0,paused=false,detail='Starting…',phase='connecting';
+for(let i=0;i<KEYS.length;i++){
+ const el=document.createElement('section');el.className='panel';el.dataset.tier=KEYS[i];el.setAttribute('aria-label',NAMES[i]+' group');
+ el.innerHTML='<div class="panel-head"><div><div class="tier-label">VOYAGER / '+(KEYS[i]==='vip'?'VIP':'0'+(i+1))+'</div><h2 class="tier-name">'+NAMES[i]+'</h2><div class="tier-subtitle">'+SUBTITLES[i]+'</div></div><div class="tier-emblem">'+mark+'</div></div><div class="stats"><span class="member-caption">MEMBERS</span><span class="count">—</span></div><div class="list-window"><div class="track" role="list"></div><div class="empty">'+mark+'<span>Awaiting member list</span></div></div><div class="panel-foot">'+SUBTITLES[i]+' CREW</div>';
+ document.getElementById('panels').append(el);states[KEYS[i]]={el,viewport:el.querySelector('.list-window'),track:el.querySelector('.track'),empty:el.querySelector('.empty'),count:el.querySelector('.count'),users:[],offset:0,renderKey:'',nodes:[],signature:'',loaded:false,error:''};
+}
+function cleanConfig(c){return {...c,host:String(c.host||DEFAULTS.host).trim(),port:Math.max(1,Math.min(65535,Number(c.port)||8080)),layout:['columns','grid','strip'].includes(c.layout)?c.layout:'columns',scrollSpeed:Math.max(0,Math.min(120,Number(c.scrollSpeed)||0)),refreshSeconds:Math.max(5,Math.min(300,Number(c.refreshSeconds)||15)),panelHeight:Math.max(280,Math.min(760,Number(c.panelHeight)||550)),displaySeconds:Number.isFinite(Number(c.displaySeconds))?Math.max(0,Math.min(3600,Number(c.displaySeconds))):30,panelPosition:['left','right','center'].includes(c.panelPosition)?c.panelPosition:'right'};}
+function applyAppearance(){config=cleanConfig(config);document.body.className=['voyager-onair','members-surface',demo||params.get('preview')==='1'?'preview':'','layout-'+config.layout,config.showHeader?'':'no-header',config.showStatus?'':'no-status'].join(' ');document.documentElement.style.setProperty('--panel-height',config.panelHeight+'px');resize();for(const s of Object.values(states))s.renderKey='';applyPresentation();}
+function applyPresentation(){
+ const single=presentation.mode==='single'||(presentation.mode==='hidden'&&commandMode);
+ document.body.classList.toggle('single-mode',single);
+ for(const position of ['left','right','center'])document.body.classList.toggle('position-'+position,config.panelPosition===position);
+ for(const [tier,state] of Object.entries(states)){state.el.hidden=(presentation.mode==='single'&&tier!==presentation.tier)||(giveawayView&&selectedPool&&!selectedPool.includes(tier));state.renderKey='';}
+ document.querySelector('.board').classList.toggle('is-visible',presentation.mode!=='hidden');
+ document.getElementById('stage').dataset.panel=presentation.mode==='single'?presentation.tier:presentation.mode;
+}
+function hidePanels(){clearTimeout(hideTimer);presentation.mode='hidden';document.querySelector('.board').classList.remove('is-visible');document.getElementById('stage').dataset.panel='hidden';}
+function showPanel(tier,seconds=config.displaySeconds){
+ if(tier!=='all'&&!KEYS.includes(tier))return;
+ clearTimeout(hideTimer);presentation={mode:tier==='all'?'all':'single',tier:tier==='all'?null:tier};
+ if(tier!=='all'){states[tier].offset=0;states[tier].renderKey='';}
+ applyPresentation();
+ if(Number(seconds)>0)hideTimer=setTimeout(hidePanels,Math.min(3600,Number(seconds))*1000);
+}
+function controlPanel(payload){
+ if(!payload||payload.type!=='voyager.members.control.v1')return false;
+ if(payload.action!=='hide'&&(payload.action!=='show'||!KEYS.includes(payload.tier)))return false;
+ if(payload.eventId){if(seenControls.has(payload.eventId))return true;seenControls.add(payload.eventId);if(seenControls.size>100)seenControls.delete(seenControls.values().next().value);}
+ if(payload.action==='hide')hidePanels();else{showPanel(payload.tier);if(!demo)refreshMembers();}return true;
+}
+function resize(){const scale=Math.min(innerWidth/1920,innerHeight/1080);const stage=document.getElementById('stage');stage.style.transform='scale('+scale+')';stage.style.left=(innerWidth-1920*scale)/2+'px';stage.style.top=(innerHeight-1080*scale)/2+'px';}
+addEventListener('resize',resize);applyAppearance();
+function report(state,message){phase=state;detail=message;const node=document.getElementById('status');node.dataset.state=state;node.textContent=({live:'LIVE MEMBERS',connecting:'CONNECTING',offline:'OFFLINE',error:'CHECK SETUP',stale:'AWAITING UPDATE',demo:'DEMO PREVIEW'})[state]||state.toUpperCase();updateDiagnostics();}
+function updateDiagnostics(){document.getElementById('diagnostics').textContent=detail+'\n'+KEYS.map(k=>k.toUpperCase()+': '+(states[k].error|| (states[k].loaded?states[k].users.length+' members':'awaiting data'))).join('\n')+(lastSnapshot?'\nLast received: '+new Date(lastSnapshot).toLocaleTimeString():'');}
+function normalise(users){const found=new Map();for(const u of users){if(!u||typeof u!=='object')continue;const name=String(u.name||u.Username||u.display||u.login||'').trim();if(!name)continue;const platform=String(u.platform||u.Type||'twitch').toLowerCase(),login=String(u.login||u.Login||name).toLowerCase(),id=String(u.id||u.Id||'');const key=platform+':'+(id||login);if(!found.has(key))found.set(key,{key,name,platform,login});}return [...found.values()].sort((a,b)=>a.name.localeCompare(b.name,undefined,{sensitivity:'base',numeric:true})||a.key.localeCompare(b.key));}
+function applySnapshot(payload){if(!payload||payload.type!=='voyager.members.v1'||!payload.groups)return false;
+ // Older four-group bridges keep working while showing a clear VIP upgrade diagnostic.
+ if(!payload.groups.vip)payload={...payload,groups:{...payload.groups,vip:{groupName:'VIP GROUP',exists:false,error:'Update Voyager - Broadcast Members with the supplied C# file to load VIP GROUP.',users:[]}}};
+ // Only full, well-formed snapshots replace live data. Errors never look like empty groups.
+ if(KEYS.some(k=>!payload.groups[k]||!Array.isArray(payload.groups[k].users)))return false;
+ const rows={};for(const k of KEYS)rows[k]=normalise(payload.groups[k].users);
+ if(config.highestTierOnly){const seen=new Set();for(const k of [...CORE_KEYS].reverse()){rows[k]=rows[k].filter(u=>!seen.has(u.key));rows[k].forEach(u=>seen.add(u.key));}}
+ lastPayload=payload;lastSnapshot=Date.now();const problems=[];
+ for(const k of KEYS){const s=states[k],g=payload.groups[k],error=g.error||(g.exists===false?'Group not found: '+g.groupName:'');s.error=error;s.loaded=true;
+  if(error){problems.push(error);s.users=[];s.signature='';s.count.textContent='—';s.empty.querySelector('span').textContent='Group unavailable';s.empty.hidden=false;s.track.replaceChildren();s.nodes=[];s.renderKey='';continue;}
+  const next=rows[k],signature=JSON.stringify(next);if(signature!==s.signature){const oldTop=s.users.length?s.users[Math.floor(s.offset/52)%s.users.length]?.key:null;const at=next.findIndex(u=>u.key===oldTop);s.offset=at>=0?at*52+s.offset%52:0;s.users=next;s.signature=signature;s.renderKey='';}
+  s.count.textContent=next.length.toLocaleString();s.empty.hidden=next.length>0;s.empty.querySelector('span').textContent='No members yet';
+  if(!next.length){s.track.replaceChildren();s.nodes=[];s.offset=0;s.renderKey='';}
+ }
+ report(demo?'demo':problems.length?'error':'live',demo?'Preview uses fictional sample names.':problems.length?problems.join('\n'):'Connected to Streamer.bot. Receiving complete group snapshots (including VIP GROUP).');return true;
+}
+function draw(s,dt){if(presentation.mode==='hidden'||s.el.hidden)return;const n=s.users.length;if(!n||s.error)return;const height=s.viewport.clientHeight,visible=Math.ceil(height/52),scrolling=n*52>height;
+ if(scrolling&&!paused)s.offset=(s.offset+dt*config.scrollSpeed)%(n*52);else if(!scrolling)s.offset=0;
+ const start=scrolling?Math.floor(s.offset/52):0,amount=scrolling?visible+1:n,key=start+':'+amount+':'+n;
+ if(key!==s.renderKey){while(s.nodes.length<amount){const row=document.createElement('div');row.className='member-row';row.setAttribute('role','listitem');row.innerHTML='<span class="avatar" aria-hidden="true"></span><span class="member-name"></span><span class="member-dot" aria-hidden="true"></span>';s.track.append(row);s.nodes.push(row);}while(s.nodes.length>amount)s.nodes.pop().remove();
+  for(let i=0;i<amount;i++){const u=s.users[(start+i)%n],node=s.nodes[i];node.querySelector('.avatar').textContent=u.name.slice(0,2).toUpperCase();const text=node.querySelector('.member-name');text.textContent=u.name;text.title=u.name;text.style.fontSize=u.name.length>25?'16px':u.name.length>20?'18px':'22px';node.setAttribute('aria-label',u.name);}
+  s.renderKey=key;
+ }
+ s.track.style.transform='translateY(-'+(scrolling?s.offset%52:0).toFixed(2)+'px)';
+}
+let previous=performance.now();function frame(now){const dt=Math.max(0,Math.min(.1,(now-previous)/1000));previous=now;for(const s of Object.values(states))draw(s,dt);requestAnimationFrame(frame);}requestAnimationFrame(frame);
+// WebSocket connection: authenticated handshake, action discovery, requests and recovery.
+let socket=null,generation=0,retryTimer=null,pollTimer=null,handshakeTimer=null,snapshotTimer=null,eventTimer=null,ready=false,inFlight=false,actionId='',attempt=0,requestCounter=0,activeSnapshotId='';const pending=new Map();
+function request(kind,body={}){return new Promise((resolve,reject)=>{if(!socket||socket.readyState!==1)return reject(new Error('WebSocket is not connected.'));const id='voyager-'+Date.now()+'-'+(++requestCounter),timer=setTimeout(()=>{pending.delete(id);reject(new Error(kind+' timed out.'));},8000);pending.set(id,{resolve,reject,timer});socket.send(JSON.stringify({request:kind,id,...body}));});}
+function stop(){generation++;ready=false;inFlight=false;for(const t of [retryTimer,pollTimer,handshakeTimer,snapshotTimer,eventTimer])clearTimeout(t);for(const p of pending.values()){clearTimeout(p.timer);p.reject(new Error('Connection restarted.'));}pending.clear();if(socket){socket.onclose=null;socket.onmessage=null;socket.close();socket=null;}actionId='';}
+function scheduleReconnect(){clearTimeout(retryTimer);retryTimer=setTimeout(connect,Math.min(15000,1500*Math.pow(1.5,attempt++)));}
+async function sha64(value){if(!crypto.subtle)throw new Error('This browser cannot authenticate. Open the local HTML file in OBS or a current browser.');const hash=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(value));return btoa(String.fromCharCode(...new Uint8Array(hash)));}
+async function initialise(hello,gen){if(gen!==generation)return;clearTimeout(handshakeTimer);
+ try{if(hello.authentication){if(!config.password)throw new Error('Streamer.bot requires a password. Enter it in settings, download config.js, replace the old config.js and refresh OBS.');const secret=await sha64(config.password+hello.authentication.salt);await request('Authenticate',{authentication:await sha64(secret+hello.authentication.challenge)});}
+  if(gen!==generation)return;
+  await request('Subscribe',{events:{General:['Custom']}});
+  const actions=await request('GetActions');const matches=(actions.actions||[]).filter(a=>config.actionId?a.id===config.actionId:a.name===config.actionName);
+  if(matches.length!==1)throw new Error(matches.length?'More than one matching action. Set actionId in config.js.':'Create the action "'+config.actionName+'" and paste in the supplied C# code.');
+  if(matches[0].enabled===false)throw new Error('The Voyager snapshot action is disabled. Enable it in Streamer.bot.');actionId=matches[0].id;
+  ready=true;attempt=0;report('connecting','Connected. Requesting the membership group lists…');refreshMembers();
+  // Discover event names supported by this version; polling also catches changes.
+  request('GetEvents').then(async response=>{if(gen!==generation)return;const events={};for(const [source,names] of Object.entries(response.events||{}))if(source.toLowerCase()==='group'&&Array.isArray(names))events[source]=names;if(Object.keys(events).length)await request('Subscribe',{events});}).catch(()=>{});
+ }catch(e){if(gen!==generation)return;ready=false;report('error',e.message);}}
+function extract(message){if(['voyager.members.v1','voyager.members.control.v1'].includes(message?.type))return message;let data=message?.data;for(let i=0;i<3;i++){if(typeof data==='string'){try{data=JSON.parse(data);}catch{return null;}}if(['voyager.members.v1','voyager.members.control.v1'].includes(data?.type))return data;data=data?.data;}return null;}
+async function handleMessage(event,gen){if(gen!==generation)return;let msg;try{msg=JSON.parse(event.data);}catch{return;}
+ if(msg.id&&pending.has(msg.id)){const p=pending.get(msg.id);pending.delete(msg.id);clearTimeout(p.timer);msg.status==='error'?p.reject(new Error(msg.error||msg.message||'Streamer.bot rejected the request.')):p.resolve(msg);return;}
+ if(msg.request==='Hello'){initialise(msg,gen);return;}
+ if(!ready)return;
+ const payload=extract(msg);if(payload){if(controlPanel(payload))return;if(applySnapshot(payload)){if(!payload.requestId||payload.requestId===activeSnapshotId){clearTimeout(snapshotTimer);inFlight=false;}}return;}
+ if(msg.event?.source?.toLowerCase()==='group'){clearTimeout(eventTimer);eventTimer=setTimeout(refreshMembers,750);}
+}
+function connect(){stop();if(demo||giveawayView)return;const gen=generation;report('connecting','Connecting to Streamer.bot…');
+ try{const host=config.host.includes(':')&&!config.host.startsWith('[')?'['+config.host+']':config.host;socket=new WebSocket((config.secure?'wss://':'ws://')+host+':'+config.port+(config.path.startsWith('/')?config.path:'/'+config.path));}catch(e){report('error','Invalid WebSocket address. Check config.js.');return;}
+ socket.onmessage=e=>handleMessage(e,gen);socket.onerror=()=>{};socket.onclose=()=>{if(gen!==generation)return;ready=false;inFlight=false;clearTimeout(pollTimer);clearTimeout(snapshotTimer);clearTimeout(handshakeTimer);for(const p of pending.values()){clearTimeout(p.timer);p.reject(new Error('Streamer.bot disconnected.'));}pending.clear();report('offline','Cannot reach Streamer.bot. Check the WebSocket server, host and port. Retrying automatically; last received names remain visible.');scheduleReconnect();};
+ handshakeTimer=setTimeout(()=>{if(gen===generation&&socket?.readyState!==3){report('error','No Streamer.bot Hello received. Check that you used its WebSocket port, usually 8080, not OBS port 4455.');socket?.close();}},8000);
+}
+async function refreshMembers(){clearTimeout(pollTimer);if(demo){report('demo','Preview uses fictional sample names.');return;}if(!ready)return;
+ pollTimer=setTimeout(refreshMembers,config.refreshSeconds*1000);if(inFlight)return;inFlight=true;const gen=generation;activeSnapshotId='snapshot-'+Date.now()+'-'+(++requestCounter);const thisId=activeSnapshotId;
+ snapshotTimer=setTimeout(()=>{if(gen!==generation||activeSnapshotId!==thisId)return;inFlight=false;report('stale','The snapshot action has not sent data yet. Check C# compilation, action queues and the exact action name. The action should have only the supplied C# sub-action.');},10000);
+ try{await request('DoAction',{action:{id:actionId},args:{voyagerRequestId:thisId}});}catch(e){if(gen!==generation)return;clearTimeout(snapshotTimer);inFlight=false;report('error',e.message);}
+}
+setInterval(()=>{if(!demo&&ready&&lastSnapshot&&Date.now()-lastSnapshot>Math.max(45000,config.refreshSeconds*3000)&&phase==='live')report('stale','Members have not refreshed recently. Check Streamer.bot action queues.');},5000);
+const dialog=document.getElementById('settings'),form=document.getElementById('settings-form');
+function fillForm(){for(const [key,value] of Object.entries(config)){const field=form.elements.namedItem(key);if(field){if(field.type==='checkbox')field.checked=Boolean(value);else field.value=value;}}}
+function fromForm(){const next={...config};for(const key of ['host','password','actionName','layout','panelPosition'])next[key]=form.elements.namedItem(key).value;for(const key of ['port','scrollSpeed','refreshSeconds','panelHeight','displaySeconds'])next[key]=Number(form.elements.namedItem(key).value);for(const key of ['showHeader','showStatus','highestTierOnly'])next[key]=form.elements.namedItem(key).checked;return cleanConfig(next);}
+function openSettings(){fillForm();updateDiagnostics();dialog.showModal();}
+document.getElementById('settings-button').onclick=openSettings;document.getElementById('close-settings').onclick=()=>dialog.close();
+addEventListener('keydown',e=>{if(e.key.toLowerCase()==='s'&&!dialog.open&&!['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName)){e.preventDefault();openSettings();}});
+form.onsubmit=e=>{e.preventDefault();config=fromForm();applyAppearance();if(lastPayload)applySnapshot(lastPayload);if(!demo)connect();};
+document.getElementById('download-config').onclick=()=>{if(!form.reportValidity())return;const next=fromForm();const blob=new Blob(['// Keep this file beside Voyager_Members.html. Refresh OBS after changes.\nwindow.VOYAGER_CONFIG = '+JSON.stringify(next,null,2)+';\n'],{type:'text/javascript'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='config.js';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
+document.querySelectorAll('.command-preview button').forEach(button=>button.onclick=()=>{if(button.dataset.tier==='hide')hidePanels();else showPanel(button.dataset.tier,button.dataset.tier==='all'?0:config.displaySeconds);});
+document.getElementById('refresh').onclick=()=>ready?refreshMembers():connect();document.getElementById('pause').onclick=e=>{paused=!paused;e.target.textContent=paused?'Resume scroll':'Pause scroll';};
+if(demo){const demoNames=['AetherPilot','AuroraFox','BeaconRunner','BlueHorizon','CelestialNomad','CometRider','CosmicWanderer','DeepSpaceDave','EclipseVoyager','EmberFalcon','GravityGhost','HorizonSeeker','IonDrifter','LunarRanger','NebulaKnight','NovaPathfinder','OrbitBreaker','QuantumScout','SolarSentinel','StarboundAce','StellarEcho','TerraNavigator','VoidWalker','ZenithCaptain'];const groups={};KEYS.forEach((k,i)=>{groups[k]={exists:true,error:'',groupName:k==='vip'?'VIP GROUP':NAMES[i]+' GROUP',users:demoNames.slice(i*3,i*3+[24,18,12,9,9][i]).map((name,n)=>({id:k+n,platform:'twitch',login:name.toLowerCase(),name}))};});document.getElementById('footer-copy').textContent='DESIGN PREVIEW';applySnapshot({type:'voyager.members.v1',groups});if(commandMode&&KEYS.includes(params.get('panel')))showPanel(params.get('panel'));}else if(!giveawayView)connect();
+if(giveawayView){
+ hidePanels();
+ addEventListener('message',e=>{if(e.source!==parent||e.data?.type!=='voyager.giveaway.pool.v1')return;const d=e.data;if(!Array.isArray(d.selected)||!d.selected.length||d.selected.some(k=>!KEYS.includes(k)))return;selectedPool=d.selected;config.highestTierOnly=false;if(!applySnapshot({type:'voyager.members.v1',groups:d.groups}))return;document.querySelector('.eyebrow').textContent='MDA009 / VOYAGER GIVEAWAY';document.querySelector('.title').textContent=String(d.title||'GIVEAWAY').slice(0,160);document.querySelector('.title').style.cssText='font-size:30px;letter-spacing:1px;max-width:1500px;overflow-wrap:anywhere';document.querySelector('.board-foot').firstElementChild.textContent='LOCKED POOL · ONE ENTRY PER ACCOUNT';document.getElementById('footer-copy').textContent='PREVIOUS PICKS EXCLUDED';document.querySelector('.panels').style.gridTemplateColumns='repeat('+selectedPool.length+',minmax(0,1fr))';document.querySelector('.board').style.maxWidth=({1:650,2:1100,3:1540}[selectedPool.length]||1760)+'px';showPanel('all',0);});
+}
+})();
+</script>
+</body></html>

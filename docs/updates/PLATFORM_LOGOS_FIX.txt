@@ -1,0 +1,51 @@
+VOYAGER ENTRANT PLATFORM LOGOS 2.1.2 — 25 OCTOBER 2026
+
+INSTALL INTO YOUR EXISTING VOYAGER FOLDER
+
+1. Extract the ZIP. Copy the CONTENTS of its Voyager_Giveaway folder into
+   your existing Voyager_Giveaway folder. Replace matching files.
+   Keep your existing config.js and the rest of your folder.
+2. In OBS, open Properties on your existing giveaway Browser Source and
+   click Refresh cache of current page.
+3. In Giveaway Control, click Show pool.
+
+Keep the same OBS path: Voyager_Giveaway_Overlay.html. If you use the
+standalone Voyager_Entrant_Panel.html source, refresh that source as well.
+Do not point OBS at the ZIP or at a new nested copy of the folder.
+
+This is a display-only update for the entrant pool panel. No Streamer.bot
+code change or recompilation, new giveaway, or clearing entrants is needed.
+Your current giveaway, points, tickets and winner selection are unchanged.
+
+WHAT CHANGED
+
+Each entrant now has a dedicated 24-pixel platform logo in a 30-pixel badge:
+purple Twitch, red YouTube with a white play symbol, or green Kick.
+The platform name remains underneath the entrant's username. Their profile
+picture/initials and membership badges stay separate from the platform logo.
+
+The logos are embedded vectors, so they work without an external image host
+and remain sharp when the OBS source is scaled. They remain visible beside
+long usernames and if a viewer's profile picture cannot load.
+
+Platform names accept mixed capitalization and surrounding spaces. When
+the platform field is missing, the saved platform account key is used.
+Unknown accounts are labelled Unknown platform rather than guessed Twitch.
+
+Five visible rows, continuous scrolling, transparency, the Show pool fix,
+and the existing wheel / winner / claim sequence are retained.
+
+The small Voyager_Platform_Logos_Fix.zip contains just these five files:
+Voyager_Giveaway_Overlay.html
+giveaway-sequence-overlay.js
+Voyager_Entrant_Panel.html
+giveaway-pool-panel.js
+giveaway-pool-panel.css
+
+The same fix is included in the updated full Sequence and Ticket packages.
+Install only one package; the small fix is sufficient for this update.
+
+Verified in a local browser with all three platforms, open and locked pools,
+member previews, scrolling, long names, missing profile pictures, refresh,
+and the countdown / wheel / claim handoff. Live OBS must be refreshed on
+your computer to load the new files.

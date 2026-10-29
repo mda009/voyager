@@ -1,0 +1,31 @@
+/* Matches the compact Voyager giveaway panel; fonts are local for OBS. */
+@font-face{font-family:Rajdhani;src:url('brand-assets/Rajdhani-600.ttf') format('truetype');font-weight:600;font-style:normal;font-display:swap}
+@font-face{font-family:Rajdhani;src:url('brand-assets/Rajdhani-700.ttf') format('truetype');font-weight:700;font-style:normal;font-display:swap}
+html,body{margin:0;width:100%;height:100%;background:transparent;overflow:hidden}*{box-sizing:border-box}
+.banner-stage{
+ --banner-text:#f3f6fb;--banner-border:#a7d8ff;--banner-glow-rgb:167,216,255;
+ --banner-opacity:.9;--banner-font:32px;--banner-height:56px;--banner-spacing:2px;
+ position:absolute;bottom:0;left:16px;width:calc(100% - 32px);height:var(--banner-height);
+ overflow:hidden;border:1px solid rgba(218,231,248,.18);border-top:2px solid var(--banner-border);
+ border-radius:7px;
+ /* 100% tint strength matches the giveaway panel's 48% → 38% translucency. */
+ background:linear-gradient(115deg,rgba(8,15,24,calc(var(--banner-opacity) * .48)),rgba(15,30,45,calc(var(--banner-opacity) * .38)));
+ box-shadow:0 0 18px #00d8ff09,0 8px 24px #0002;
+ color:var(--banner-text);font:600 var(--banner-font)/1.1 Rajdhani,'Segoe UI',sans-serif;
+ letter-spacing:var(--banner-spacing);white-space:nowrap;display:flex;align-items:center;visibility:hidden;
+}
+.banner-stage[data-visible=true]{visibility:visible}
+.banner-stage[data-uppercase=true]{text-transform:uppercase}
+.banner-stage[data-scanlines=true]::after{
+ content:'';position:absolute;inset:0;z-index:2;pointer-events:none;
+ background:repeating-linear-gradient(0deg,transparent,transparent 3px,#d9e5ef0a 3px,#d9e5ef0a 4px);
+ opacity:calc(var(--banner-opacity) * .4);
+}
+.banner-track{display:flex;width:max-content;will-change:transform;animation:banner-scroll var(--banner-duration,60s) linear infinite;animation-play-state:paused}
+.banner-stage[data-running=true] .banner-track{animation-play-state:running}
+.banner-group{display:flex;align-items:center;flex-shrink:0;white-space:nowrap}
+.banner-message{flex-shrink:0;text-shadow:0 1px 3px #0009,0 0 10px rgba(var(--banner-glow-rgb),.12)}
+.banner-separator{margin:0 25px;font-size:.72em;color:var(--banner-border);opacity:.8;text-shadow:0 1px 3px #0009;flex-shrink:0}
+.banner-separator[data-shape=diamond]{display:inline-block;width:.24em;height:.24em;transform:rotate(45deg);border:1px solid currentColor}
+@keyframes banner-scroll{from{transform:translateX(0)}to{transform:translateX(calc(-1 * var(--banner-travel,1920px)))}}
+@media(max-width:600px){.banner-stage{left:8px;width:calc(100% - 16px)}}

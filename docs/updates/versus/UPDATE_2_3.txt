@@ -1,0 +1,64 @@
+VOYAGER VERSUS v2.3 — RSI FLEET REPLACEMENT
+21 October 2026
+
+WHY YOUR v2.2 SHIPS STILL LOOKED GENERIC
+The screenshot showed v2.2.0 and “4K PBR ships ready”. Your installation had
+worked. Those models were simplified procedural approximations; the 4K
+materials did not make their hulls accurate enough. This release replaces
+those hulls with the actual Gladius, Paladin and Sabre meshes published for
+the RSI website holoviewer.
+
+SEE THE REPLACEMENT FLEET BEFORE INSTALLING
+Open Voyager_Versus/dist/FLEET_PREVIEW.html in the extracted package.
+The images there are rendered from the same meshes used in the live arena.
+
+MODEL / EXISTING CHAT COMMAND
+Aegis Gladius  — !ship interceptor
+Anvil Paladin — !ship sentinel
+Aegis Sabre   — !ship phantom
+
+The command names and game loadouts stay compatible with existing accounts.
+The hangar, challenger screen and battle labels now show the ship names.
+The meshes are bundled locally; they do not load from RSI while you stream.
+
+INSTALL
+1. Stop the Voyager launcher and close the control/game tab.
+2. Back up your existing Voyager_Versus folder.
+3. From this new ZIP, open Voyager_Giveaway and copy ONLY Voyager_Versus into
+   your existing Voyager_Giveaway folder. Merge folders and replace matching
+   PROGRAM files. KEEP your existing Voyager_Versus/local/data folder.
+   Do not delete the old game folder or replace the whole Giveaway folder.
+4. Start your usual Voyager launcher again.
+5. Reload Voyager Versus. Check the title says V2.3.0. Once loaded, the line
+   below it should say “4K materials · RSI fleet: Gladius / Paladin / Sabre”
+   (2K or 1K if you selected a lower preset).
+6. In OBS, open this game's Browser Source properties and click Refresh cache
+   of current page. The existing overlay URL still works.
+7. Launch a demo and check all three ships in Ship hangar.
+
+No additional Streamer.bot C# compilation is needed if your v2.0 rewards
+setup is already installed. This release does not change payments, the
+45-minute cooldown, or the once-per-role entry limits. Winner: 50 Voyager
+points. Runner-up: 0. It does not repair an uninstalled rewards action.
+
+GRAPHICS AND EXPECTATIONS
+The ship geometry now comes from RSI's website viewer. The surface materials,
+4K maps, lighting, exhaust and weapon effects are Voyager's own additions.
+These are NOT full in-game Star Citizen assets or original game texture sets;
+viewer meshes have less detail and may reflect an earlier ship revision.
+
+Ultra uses native 4096 x 4096 PBR maps with up to 3840px rendering width.
+For native 4K output, set the OBS source to 3840 x 2160. Start at 30 FPS and
+try 60 FPS if your streaming GPU has headroom. Balanced uses 2048px maps and
+a 1920px render cap; Low uses 1024px maps and a 1280px cap.
+Choose quality in Stream setup and paste the generated URL into OBS.
+Your OBS canvas/output resolution still determines the final stream output.
+
+The overlay stays transparent. If WebGL or a mesh cannot load, the updated
+rendered ship artwork appears with a compatibility message. Check that you
+copied all files including dist/ships/*.ctm, dist/vendor and dist/materials.
+
+CHECKS
+Automated gameplay, reward, entry-limit and host checks pass. The replacement
+meshes, 4K maps, transparent rendering, quality caps and updated fallback
+artwork were checked in a local browser. Test OBS frame rate on your own PC.

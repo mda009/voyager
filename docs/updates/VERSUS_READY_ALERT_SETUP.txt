@@ -1,0 +1,99 @@
+VOYAGER VERSUS v2.7 — READY ANNOUNCEMENT AUDIO + OBS OVERLAY
+22 October 2026
+
+WHAT THIS UPDATE DOES
+After the existing ready message is confirmed sent by Streamer.bot, Voyager
+shows “A Voyager Versus is Ready” and “!versus” and plays your supplied
+Versus_AreYouReady.wav. The original WAV is unchanged (about 6.84 seconds).
+The floating blue/white banner has no background panel. It appears for
+12 seconds including a smooth fade, then returns to complete transparency.
+The headline types out first, followed by !versus with a blinking cursor.
+The Rajdhani font is embedded: no internet font download is needed.
+
+ALERT RENAMED TO VERSUSCALL.HTML
+The live OBS URL is now http://127.0.0.1:8740/versuscall.html.
+Merge this update into the existing folder to update all Control links.
+In your existing OBS ready-alert source, change only the URL to the address
+above, then refresh the source. Do not add a second copy of the source.
+For a manual HTML-only update, put versuscall.html in
+Voyager_Giveaway/Voyager_Versus/dist, beside Versus_AreYouReady.wav,
+and set the same new OBS URL. This does not update your Control page links;
+merge the ZIP for those. Your audio and automatic ready-message trigger
+continue to use the existing setup.
+
+INSTALL INTO YOUR EXISTING VOYAGER FOLDER
+1. Stop the Voyager launcher. Keep a backup of your existing folder.
+2. Extract Voyager_Versus_Ready_Alert_Update.zip. Merge its Voyager_Giveaway
+   folder into your current Voyager_Giveaway folder and replace included files.
+   Keep your config.js and Voyager_Versus/local/data folder; neither is included
+   in the patch. Do not replace your whole folder with this smaller update.
+3. Start Voyager again using your usual START-VOYAGER.bat / launch button.
+   Refresh the control page. The game heading should show V2.7.1.
+4. Connect Streamer.bot in the game's Stream setup and check the existing
+   Voyager Versus Rewards v2.5 action is verified. This update does not change
+   C# or require a new Streamer.bot import. Your ready chat must already work.
+
+OBS — USE THIS URL, NOT LOCAL FILE
+Add one Browser Source named “Voyager Versus Ready”. If you already have a
+source for versuscall.html, change that source instead of adding a duplicate.
+
+  URL:    http://127.0.0.1:8740/versuscall.html
+  Width:  1000
+  Height: 320
+  FPS:    60
+
+- Uncheck Local file. For automatic timing, OBS must use the local host URL.
+- Run the Voyager launcher on the OBS PC. If you changed the host port, use
+  the ready-alert URL shown in Voyager Control instead of the default above.
+- Enable Control audio via OBS. Ensure the source is not muted in the mixer.
+  Use Monitor and Output if you also want to hear the clip yourself; choose
+  the correct monitoring device and avoid a second desktop-audio capture.
+- Leave Shutdown source when not visible OFF.
+- Leave Refresh browser when scene becomes active OFF.
+- Position the source where you want the floating banner. It is intentionally
+  blank between announcements. Keep it loaded before the next ready message.
+- For twice the browser resolution, use 2000 x 640 then scale to the same
+  on-screen size. Text and lines scale cleanly with the source dimensions.
+- The ready voice is independent of the battle sound-effects toggle. You do
+  not need to enable battle sound effects to hear the ready announcement.
+
+TEST WITHOUT POSTING TO CHAT
+Voyager Control > Voyager Versus > the game's Stream setup tab >
+Versus ready alert > Test ready alert in OBS.
+This plays the actual OBS source's banner and WAV. It does not post chat,
+change the cooldown, consume viewer entries or award points.
+“Preview with audio” opens a separate local preview, not the live OBS source.
+Close the preview during your stream so only OBS is playing the voice.
+
+HOW IT TRIGGERS
+The existing ready announcement runs once per available window: cooldown
+expired, lobby idle, entries open, not paused, and Twitch/Streamer.bot/rewards
+connected. When Streamer.bot's saved receipt says the message was sent, the
+host emits one short-lived visual/audio cue. Confirmation can take a few
+seconds if the action is queued. Streamer.bot confirms its send call; this
+is not a delivery receipt from each Twitch viewer.
+
+The overlay remembers the last cue it played. Refreshes and reconnects do
+not replay it. Old receipts after a host restart do not trigger the sound.
+A source loaded more than five seconds after a cue starts skips that cue;
+there is no backlog of old announcements to play later. Use the test button
+to check your source without resetting the game or re-posting a ready message.
+Use one copy of this source (or Add Existing in another OBS scene).
+
+IF THE BANNER SHOWS BUT AUDIO IS SILENT
+Check the OBS mixer first. Right-click the source > Interact, click inside,
+and press D. The diagnostics card reports a missing WAV or blocked autoplay.
+If it says audio is blocked, click Enable audio, hide the card, and send a
+fresh test from Stream setup. No missed announcement is played late.
+The WAV must be beside versuscall.html inside Voyager_Versus/dist.
+You can lower just this clip's level with ?volume=0.7 on the OBS URL, or use
+OBS's mixer. The volume parameter accepts 0 to 1.
+
+If you open versuscall.html as a local file, it is a preview and shows controls.
+Automatic chat timing requires the OBS URL above. The full preview URL is
+http://127.0.0.1:8740/versuscall.html?preview=1 and must not be used as the live source.
+
+RULES RETAINED
+45-minute cooldown, 50 Voyager points for the winner, 0 for the runner-up,
+one initiator entry and one challenger entry per viewer per stream.
+Other overlays, Fleet alerts, saved points, game history and rewards are retained.

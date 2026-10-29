@@ -1,0 +1,16 @@
+/* Same document address keeps existing file-based browser/OBS data in place. */
+(()=>{'use strict';
+const query=new URLSearchParams(location.search),page=['live','reporting'].includes(query.get('page'))?query.get('page'):'home',demo=query.get('demo')==='1';
+window.VOYAGER_PAGE=page;
+const titles={home:'Home dashboard',live:'Live dashboard',reporting:'Reporting'},content=document.getElementById('dashboard-content');
+document.title='Voyager • '+titles[page];document.body.dataset.dashboard=page;document.getElementById('page-title').textContent=titles[page];
+content.append(document.getElementById('dashboard-'+page).content.cloneNode(true));
+for(const id of ['settings',...(page==='live'?['leaderboard-settings','lp-dialog']:page==='reporting'?['performance-settings','ta-dialog']:[])])document.body.append(document.getElementById('dialog-template-'+id).content.cloneNode(true));
+document.getElementById('dashboard-footer-note').textContent=page==='live'?'Viewers are platform-reported; people watching on several platforms may be counted more than once.':page==='reporting'?'Reporting periods and retrieval times are shown with their sources. Imported CSV data updates when you upload reports.':'Open Live dashboard for current activity, or Reporting for performance and history.';
+const liveLink=document.querySelector('#demo-banner a');const liveURL=new URL(location.href);liveURL.searchParams.delete('demo');liveLink.href=liveURL.href;
+const base=['config.js','stream-command-settings.js','giveaway-connection.js','stream-command-model.js','stream-command-connection.js'];
+const chat=['twitch-analytics-connection.js','twitch-chat.js'];
+const features={home:['stream-overview.js'],live:['leaderboard-panel-model.js?v=shared-ticket-1','leaderboard-panel-connection.js?v=shared-ticket-1','ticket-giveaway-model.js?v=1.2','ticket-giveaway-connection.js','ticket-shared-panel.js?v=1','live-ticket-control.js?v=active-giveaways-1','active-giveaways-model.js?v=1','active-giveaways.js?v=1','live-overlay-model.js','live-overlay-control.js',...chat,'stream-leaderboards.js','leaderboard-panel-control.js?v=shared-ticket-1'],reporting:['stream-home-model.js','stream-home-data.js','external-analytics-model.js','external-analytics-connection.js','stream-home.js','stream-home-external.js','twitch-analytics-model.js','twitch-analytics-data.js','twitch-analytics.js?v=report-insights-1','report-insights-model.js?v=1','report-insights.js?v=1','reporting-chart-model.js','reporting-chart.js',...chat]};
+function script(src){return new Promise((resolve,reject)=>{const s=document.createElement('script');s.src=src;s.onload=resolve;s.onerror=()=>reject(Error('Could not load '+src+'. Copy all files listed in DASHBOARD_PAGES_UPDATE.txt, then reload.'));document.body.append(s);});}
+(async()=>{try{for(const src of [...base,...features[page],'stream-command.js?v=active-giveaways-1','voyager-launch-links.js','voyager-navigation.js'])await script(src);document.body.dataset.ready='true';if(location.hash==='#leaderboards'&&page==='live')document.querySelector('.leaderboard')?.scrollIntoView({block:'start'});}catch(e){const notice=document.getElementById('notice');notice.hidden=false;notice.textContent=e.message;document.body.dataset.ready='error';}})();
+})();

@@ -1,0 +1,90 @@
+{
+  "name": "voyager-desktop",
+  "productName": "Voyager",
+  "version": "2.9.0",
+  "description": "Voyager Control desktop app for the MDA009 Voyager program",
+  "private": true,
+  "main": "main.cjs",
+  "scripts": {
+    "start": "electron .",
+    "test": "node --test tests/*.test.mjs",
+    "dist": "electron-builder --win nsis --x64 --publish never",
+    "dist:dir": "electron-builder --win dir --x64 --publish never",
+    "smoke": "node scripts/smoke.mjs"
+  },
+  "engines": {
+    "node": ">=22.4.0"
+  },
+  "dependencies": {
+    "electron-updater": "^6.6.2"
+  },
+  "devDependencies": {
+    "electron": "^37.2.0",
+    "electron-builder": "^26.0.12"
+  },
+  "build": {
+    "appId": "com.mda009.voyager",
+    "productName": "Voyager",
+    "copyright": "MDA009 / Voyager",
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "main.cjs",
+      "core.mjs",
+      "build/icon.png",
+      "build/icon.ico",
+      "build/tray.png",
+      "build/tray@2x.png",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "..",
+        "to": "voyager",
+        "filter": [
+          "**/*",
+          "!desktop/**",
+          "!tools/**",
+          "!launcher-tests/**",
+          "!dist-release/**",
+          "!.git/**",
+          "!.github/**",
+          "!**/node_modules/**",
+          "!Voyager_Versus/local/data/**",
+          "!Voyager_Versus/tests/**",
+          "!**/* - Copy.*",
+          "!**/*.bat",
+          "!**/*.sh"
+        ]
+      }
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "shortcutName": "Voyager",
+      "deleteAppDataOnUninstall": false,
+      "artifactName": "Voyager-Setup-${version}.${ext}"
+    },
+    "publish": {
+      "provider": "github",
+      "releaseType": "release"
+    },
+    "asar": false,
+    "artifactName": "Voyager-Setup-${version}.${ext}"
+  }
+}

@@ -1,0 +1,92 @@
+VOYAGER LIVE OBS STRIP — 21 OCTOBER 2026
+
+WHAT IT SHOWS
+Three compact cards in one transparent strip: Twitch, YouTube and Kick.
+Live viewers, followers/channel subscribers, active subs/paid members,
+a combined audience count and one selectable goal bar per platform.
+Uses Voyager's existing live dashboard feed. No new C# compilation.
+
+INSTALL THIS UPDATE
+1. Stop the Voyager launcher.
+2. If you downloaded Voyager_Live_OBS_Update.zip, extract it directly into
+   your EXISTING Voyager_Giveaway folder (the one containing config.js).
+   If you downloaded the full Studio ZIP, extract it to a temporary folder
+   first, then open its included LIVE_OBS_UPDATE.zip and extract that smaller
+   ZIP into your EXISTING Voyager_Giveaway folder.
+   Allow it to replace matching files. The smaller update ZIP contains only
+   the files below and will not overwrite your connection/settings/data.
+   Alternatively, copy these files manually to their matching locations:
+     Voyager_Command_Center.html
+     stream-pages.js
+     stream-command.js
+     Voyager_Live_Overlay.html
+     live-overlay.css
+     live-overlay.js
+     live-overlay-model.js
+     live-overlay-control.css
+     live-overlay-control.js
+     LIVE_OBS_OVERLAY_SETUP.txt
+     Voyager_Versus/local/server.mjs
+     Voyager_Versus/local/live-overlay.mjs
+   Keep your existing config.js, stream-command-settings.js and all local/data.
+   These instructions assume the existing Voyager Versus v2.3 package.
+3. Start START-VOYAGER-CONTROL.bat and open Live dashboard.
+   Default: http://127.0.0.1:8740/control/Voyager_Command_Center.html?page=live
+4. Below the three platform cards, find Live OBS strip.
+   Open Appearance, preview & OBS setup, then click Copy OBS URL.
+5. In OBS add a Browser Source. Leave Local file UNCHECKED.
+   URL: http://127.0.0.1:8740/control/Voyager_Live_Overlay.html
+   Width: 1200   Height: 230
+   Move/resize the source to your preferred position. The source background
+   is transparent; the strip's background defaults to 35% opacity.
+6. Keep the launcher and Live dashboard open while streaming. An OBS Custom
+   Browser Dock pointed at the Live dashboard URL above is recommended.
+   Show in OBS / Hide strip controls visibility. The settings below them
+   adjust opacity and choose follower, paid-subscription, viewer, or no goals.
+   Changing the source browser's resolution scales the strip proportionally.
+
+DATA AND SETTINGS
+The strip mirrors the exact dashboard that publishes it, using the same
+Streamer.bot connection, counter mappings, manual totals and saved goals.
+It sends only aggregate counts and goals, not usernames, chat or credentials.
+Use a single Live dashboard as the publisher to avoid competing settings.
+Opening only Home or Reporting will not publish the live feed.
+
+Goals change in Live dashboard > Settings. Save there; the strip follows.
+Appearance/visibility are saved by the local launcher in local/data/live-overlay.json.
+The live feed is kept in memory and clears when the launcher restarts.
+Preview mode (?preview=1) uses clearly labelled fictional data and never
+publishes or connects to Streamer.bot. The dashboard preview can remain
+visible while the actual OBS strip is hidden.
+
+If moving from a local-file dashboard to the hosted URL loses your saved
+sources/goals, open Settings in your OLD dashboard, Export settings, then
+save stream-command-settings.js in your existing Voyager_Giveaway folder.
+Refresh the hosted dashboard. Keep the WebSocket password in config.js or
+enter it again in the hosted dashboard's Settings. Browser-local storage
+is separate between file URLs, browser profiles and OBS docks.
+
+ACCURATE STATUS
+— means not available, not zero. A real zero is displayed as 0.
+Current viewers expire after five minutes without platform updates.
+Counter snapshots older than 150 seconds are labelled LAST KNOWN.
+Manual totals are always labelled MANUAL and do not update themselves.
+If the dashboard feed stops for 30 seconds, current viewers disappear and
+the strip says DASHBOARD OFFLINE. Last-known channel totals remain labelled.
+If the launcher is unavailable, the strip says LOCAL HOST UNAVAILABLE.
+The three audience counts can include the same person on several platforms.
+
+Your existing Streamer.bot setup determines availability. In particular,
+YouTube viewer counts need a monitored live broadcast. YouTube subscriber/
+member totals and Kick follower/sub totals need your configured saved
+counters or labelled manual totals. This update does not invent those feeds.
+No new chat messages, points credits, giveaways or game actions are sent.
+
+TROUBLESHOOT
+Blank or old layout: refresh the OBS Browser Source cache and reload the
+Live dashboard. Make sure the launcher was restarted after copying files.
+Waiting for dashboard: open the HOSTED Live dashboard URL above and keep it
+open. An inactive browser tab may be throttled; use an OBS dock if this occurs.
+Waiting for viewers: check that the corresponding platform card in Live
+dashboard is receiving live viewer events. The strip cannot create missing data.
+Port changed: use Copy OBS URL from the hosted dashboard on your custom port.

@@ -1,0 +1,74 @@
+VOYAGER VERSUS 2.8.2 — AUTOMATIC READY ANNOUNCEMENT
+For your existing OBS Browser Source: versus onv
+
+INSTALL INTO YOUR EXISTING VOYAGER FOLDER
+1. Stop the Voyager launcher (Ctrl+C in its running window).
+2. Extract this ZIP. Open its Voyager_Giveaway folder.
+3. Copy the contained Voyager_Versus folder into your existing Voyager_Giveaway
+   folder. Merge folders and replace the matching files when Windows asks.
+   Do not delete your existing folder: this is an update, not a full installation.
+   The resulting path must be Voyager_Giveaway/Voyager_Versus/local/availability.mjs.
+   Avoid creating Voyager_Giveaway/Voyager_Giveaway by nesting the folders.
+4. In OBS, right-click your existing 'versus onv' Browser Source > Properties.
+   Local file: OFF
+   URL: http://127.0.0.1:8740/versuscall.html
+   Width: 1000     Height: 320     Custom frame rate: 60 FPS
+   Control audio via OBS: ON
+   Shutdown source when not visible: OFF
+   Refresh browser when scene becomes active: OFF
+   Click Refresh cache of current page, then OK.
+5. Keep the source's eye icon ON, in the scene you are broadcasting.
+   The page is transparent while idle and hides its own banner after 12 seconds.
+   Remove or disable old show/hide timers for this source that turn its eye off.
+   Use Add Existing to share the same source across scenes, rather than making
+   several independent copies that would each play the audio.
+6. Restart Voyager with your usual launcher. Refresh the Voyager Versus control
+   page; its heading should say V2.8.2. Connect chat in Stream setup as usual.
+   Keep Streamer.bot and the Voyager launcher running.
+7. Open Voyager Versus > Stream setup > Test ready alert in OBS.
+   The typed banner and your Are You Ready audio should play in 'versus onv'.
+   The test does not post to Twitch, start a battle or change points/cooldowns.
+
+AUTOMATIC BEHAVIOUR
+With the arena open, unpaused and Twitch chat connected, the banner and audio
+are sent automatically once per available battle window. That includes the
+first ready window after upgrading and each time the 45-minute cooldown ends.
+The chat announcement is still handled by your existing verified
+'Voyager Versus Rewards v2.5' action. A delayed or missing chat confirmation
+no longer blocks the on-screen alert. There is no new C# code to compile.
+
+The ready cue is saved as handled before it is broadcast. Restarting the host,
+refreshing OBS or reconnecting chat does not repeatedly announce the same
+ready window. Missed, expired announcements are not queued up for later.
+Use the test button to check playback without restarting an announcement.
+When a viewer calls !versus, the availability banner clears. The match still
+needs explicit viewer !versus calls; announcing availability never starts it.
+
+IF THE TEST DOES NOT APPEAR
+- Check the exact URL above, Local file OFF, and the source eye ON.
+- Select the scene containing the source. Check it is not behind another source
+  or positioned outside the canvas.
+- Keep the launcher running. Open the URL in a browser to check it connects.
+- For a visual/audio preview only, use:
+  http://127.0.0.1:8740/versuscall.html?preview=1
+  Do not use that preview URL or a local HTML file as the live OBS source.
+- Right-click source > Interact, click inside, and press D for diagnostics.
+  If it reports blocked audio, click Enable audio, then Hide controls and test
+  again. Check the OBS mixer is unmuted and the source is routed to your stream.
+- The WAV is included beside the HTML at Voyager_Versus/dist/Versus_AreYouReady.wav.
+- A sent-cue status means the host broadcast the event, not that OBS has confirmed
+  rendering it. The source must be loaded and visible to show it on your stream.
+
+PRESERVED
+Your 45-minute cooldown, 50/0 Voyager point rewards, per-stream role limits,
+upright challenger ship, saved history and current Streamer.bot payout code.
+This patch contains no config.js, saved account data, ticket ledger, C# installer
+or economy.json. Your other giveaways and overlays are not replaced.
+
+VALIDATION
+108 automated checks passed; one optional test was skipped by the existing suite.
+Checks cover cooldown timing, delayed chat receipts, reconnects/restarts, explicit
+command gating, overlay playback/deduplication, test delivery and audio serving.
+Your physical OBS and Streamer.bot installation must be checked using step 7.
+
+OBS source property reference: https://obsproject.com/kb/browser-source

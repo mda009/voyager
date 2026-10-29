@@ -1,0 +1,76 @@
+VISUAL UPDATE v1.11 — EXISTING INSTALLATIONS
+Merge the new Fleet patch into your current Voyager_Giveaway folder, replace
+matching files and refresh the Fleet Browser Source cache in OBS. No C# recompile
+is needed with the current Fleet v1.6 action. The enlarged base, illuminated
+THE UNPROFESSIONALS sign and twelve defensive turrets appear in 06 / Raid.
+Read FLEET_ALERTS_UPDATE.txt for current visual update instructions.
+The original first-installation instructions below are retained for reference.
+
+VOYAGER FLEET ALERTS v1.6 — RAID / BASE DEFENCE — 22 October 2026
+
+28-SECOND TRANSPARENT 3D RAID ALERT
+Five enemy capital ships attack The Unprofessionals' orbital base.
+Six defence turrets return fire; six interceptors launch from three hangars.
+62 guided missile launches, continuous opposing gunfire and 68 impact events
+build through the battle. Raider name and viewer count appear on screen.
+At 23 seconds the scene welcomes the raiders; 26–28 seconds fade to transparency.
+
+UPDATE YOUR EXISTING INSTALLATION
+1. Extract this ZIP. Merge Voyager_Giveaway into your existing folder.
+   Keep your current config.js; it is not included in this patch.
+2. In Streamer.bot open the EXISTING Voyager - Fleet Alerts action and its
+   Execute C# Code sub-action. Replace all code with Voyager_Fleet_Alerts.cs.
+   Compile, save and close. Keep the existing references, action name, running
+   Voyager Fleet blocking queue and Concurrent OFF. Do not add a duplicate action.
+3. On that SAME action, right-click Triggers and add:
+       Twitch > Raid > Raid
+   This is the INCOMING raid trigger. Leave Min / Max blank for every raid.
+   Add it once. Raid Start / Send are outgoing events and will not play this alert.
+   The supplied .sb is for first installations; its original six Twitch triggers
+   are included, but you must still add this incoming Raid trigger manually.
+4. OBS: refresh the cache of your existing Voyager_Fleet_Overlay.html Browser Source.
+   Reopen Voyager_Fleet_Control.html. No extra OBS source is required.
+5. Select 06 / Raid, enter a raiding channel display name and number of raiders,
+   then Send test to OBS. Confirm the full 28-second animation and final fade.
+   Use Clear queue if earlier alerts/tests are waiting. The raid shares the
+   existing serial alert queue; it waits for an earlier alert to finish.
+
+PREVIEW
+Open Preview_Raid_Alert.html for a muted, looping preview over a dark background.
+Fleet Control also previews it. These local previews never trigger live alerts.
+The live OBS test plays the synthesised alarm, missiles, guns and explosions at
+Fleet Control's existing sound volume. There is no baked video or external CDN.
+This is real-time 3D HTML with the existing 4K PBR maps and 60 FPS target; actual
+frame rate depends on the streaming GPU, source resolution and OBS settings.
+
+OPTIONAL LUMIA
+Fleet Control has a new Raid / base defence shortcut field. It starts blank.
+Enter an existing Lumia shortcut, save, then test if you want raid lighting.
+The five previous stage mappings are retained. Use a bounded 28-second effect.
+Your existing Lumia follower audio/video setup is separate and remains configured
+in Lumia. Raid sound effects come from the Fleet HTML source.
+
+TIMELINE
+00–03s  Enemy fleet enters; incoming raid warning.
+03–07s  Missile barrage, hull impacts and defensive guns.
+07–12s  Interceptors launch and accelerate into the fight.
+12–19s  Missiles cross the battlefield; both fleets exchange fire.
+19–23s  Heavy counterattack and explosions across the invading formation.
+23–26s  Enemy withdrawal; welcome and thank-you to the raiding channel.
+26–28s  Smooth fade back to complete transparency.
+
+NOTES
+Native automatic raid triggering is Twitch. YouTube/Kick supporter alerts from
+v1.5 remain supported; their native Streamer.bot integrations do not supply this
+Twitch Raid event. Raids do not grant Voyager points or change membership tiers.
+Tests and replays do not increase raid totals. Raid events count once by event ID
+when one is supplied; avoid duplicate Fleet actions or trigger assignments.
+
+TESTED
+C# compiled against a local Streamer.bot API adapter. Native raid arguments,
+28-second timing, replay, queue, totals, old-stage compatibility and optional
+Lumia cues were checked. Chromium rendered all battle phases with transparent
+output; missile endpoints, effect capacity and transition back to other stages
+were checked. Live Windows Streamer.bot, broadcaster accounts and OBS still need
+the local test in step 5. Open FLEET_ALERTS_SETUP.html for full instructions.
+

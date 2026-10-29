@@ -1,0 +1,18 @@
+VOYAGER BUCKET OVERLAY — GOALS HD
+
+1. Extract Voyager_Bucket_HD_Update.zip directly into your EXISTING
+   Voyager_Giveaway folder. Replace matching files. Keep config.js and data.
+2. In OBS, open the existing bucket Browser Source properties.
+   Continue loading Voyager_Bucket_Overlay.html from that same folder.
+3. Set Width 3840 and Height 480. Refresh cache of current page.
+4. Scale DOWN in the OBS scene. Suggested displayed size on a 1080p canvas:
+   960 x 120 (25% scale), centred at X 480, Y 24 with top-left alignment.
+   For a 4K canvas: display at 1920 x 240 (50%), X 960, Y 48.
+
+Native browser text and bars; original high-resolution logos; 35% opacity.
+The file name and live Points Ledger connection remain the same.
+No C# compilation, target changes or launcher restart required.
+
+Open BUCKET_OVERLAY_SETUP.html for the full guide.
+Open Preview_Bucket_Overlay.html for a labelled sample preview.
+The update contains no config.js, points ledger, user data or game files.

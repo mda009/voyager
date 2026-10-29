@@ -1,0 +1,52 @@
+VOYAGER LIVE DASHBOARD - TICKET GIVEAWAY PANEL
+23 October 2026
+
+INSTALL THIS SMALL UPDATE
+1. Close or refresh your Live dashboard after copying the files.
+2. Open the Voyager_Giveaway folder inside this ZIP.
+3. Copy its contents into your existing Voyager_Giveaway folder.
+   Replace the files with the same names. Do not create a second nested folder.
+4. Reopen Live dashboard, or reload its OBS browser dock.
+   Its address is Voyager_Command_Center.html?page=live.
+
+USE THE PANEL
+Below Live OBS strip, find Ticket giveaway panel.
+Show ticket panel displays your existing ticket giveaway OBS overlay.
+Hide ticket panel hides that overlay. Both work while entries are open or locked.
+The card shows the saved giveaway title, status, registered accounts and total tickets.
+Open ticket controls takes you to your existing ticketed giveaway management page.
+Expand Preview & OBS setup to see the panel, copy its URL or refresh ticket status.
+The preview stays visible while the actual overlay is hidden in OBS.
+
+OBS
+Keep your existing Voyager_Ticket_Overlay.html Browser Source enabled in the scene.
+Use Width 1920 and Height 1080. No new source is needed if it is already installed.
+Show/Hide changes the content of the browser source, not the OBS source's eye icon.
+Streamer.bot and the OBS source must remain running; the Live dashboard does not
+need to stay open after a Show/Hide command has been confirmed.
+
+CONNECTION
+These buttons use Live dashboard's Streamer.bot connection settings and the
+existing action named Voyager - Ticket Giveaway. That action must be enabled.
+If no giveaway exists, open Ticket controls and create one there.
+If disconnected, fix the connection in dashboard Settings, then Refresh ticket status.
+
+EXISTING INSTALLATION
+This update needs the ticketed giveaway files already installed (v1.2 recommended).
+No C# recompilation or Streamer.bot reimport is required for this dashboard addition.
+Keep your current config.js, giveaways, entrants, tickets and watchtime settings.
+Showing or hiding the panel does not pause collection, draw a winner or change tickets.
+Other giveaway and leaderboard panels remain independent.
+
+FILES IN THIS SMALL UPDATE
+Voyager_Command_Center.html
+stream-pages.js
+stream-command.js
+live-ticket-control.js
+live-ticket-control.css
+LIVE_TICKET_PANEL_UPDATE.txt
+
+VALIDATION
+Browser integration checks cover open/locked giveaways, guarded Show/Hide requests,
+unchanged balances, failed commands, reconnects, demo mode and desktop/dock layout.
+Live execution in your Streamer.bot/OBS installation still needs your local check.

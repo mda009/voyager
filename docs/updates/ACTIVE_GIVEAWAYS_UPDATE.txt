@@ -1,0 +1,60 @@
+VOYAGER LIVE DASHBOARD — ACTIVE GIVEAWAYS
+24 October 2026
+
+INSTALL THIS UPDATE
+1. Extract the ZIP.
+2. Open its Voyager_Giveaway folder. Copy the contents into your existing
+   Voyager_Giveaway folder, replacing matching files. Keep the rest of your
+   existing folder and config.js.
+3. Refresh Voyager Control / your OBS Live dashboard dock. Open Live dashboard.
+   Active giveaways is near the top, above Live pulse.
+
+If you already installed the shared ticket-panel update immediately before
+this update, no further Streamer.bot compilation or OBS changes are needed.
+This ZIP also retains that shared-panel update. If you have not installed it,
+follow SHARED_TICKET_PANEL_SETUP.txt once to enable its OBS panel switching.
+
+WHAT APPEARS
+- Your current tiered/group or impromptu giveaway, including an open group
+  preview that has not yet been locked.
+- Your independent ticketed campaign running alongside it.
+- Giveaway title, included membership groups or participating platforms,
+  registered entrants, eligible entrants/tickets and saved draw count.
+- Open, paused, locked, drawing, awaiting claim, claim expired, awaiting
+  confirmation and winner confirmed statuses where applicable.
+- Winner names appear after the 20-second reveal, not during the countdown.
+- Ticket closing date/time and time remaining. Times use Australia/Sydney.
+- Direct links to the relevant existing controls.
+- Completed ticket campaigns appear separately until archived. Archived or
+  cleared sessions disappear; older historical draws are not active giveaways.
+
+The existing Giveaway Engine saves one current tiered OR impromptu session.
+A combined Silver + Gold + Platinum pool is one giveaway with three groups,
+not three separate giveaways. The ticket engine has its own concurrent campaign.
+This dashboard lists those saved giveaways; it does not create extra sessions
+or turn unused membership groups into active giveaways.
+
+REFRESH AND CONNECTIONS
+The section listens for saved-state updates and reads the group/impromptu
+engine every 15 seconds. Tickets reuse the Live dashboard's existing ticket
+connection and its 30-second refresh. Timer labels update every second.
+Refresh status requests a new snapshot from both engines.
+
+Disconnected feeds retain their last received cards and explicitly say
+Last known. A missing connection is not reported as an empty giveaway list.
+Opening the dashboard, refreshing or reconnecting cannot create a giveaway,
+draw/reroll/confirm a winner, change entries, or change panel visibility.
+The ordinary engine's existing sync behavior still refreshes open membership
+previews; locked pools, saved winners, points and ticket balances are preserved.
+
+No new C# code, action, trigger, point rule or earning rate is required for
+the Active giveaways section. Keep these existing actions enabled:
+  Voyager - Giveaway Engine
+  Voyager - Ticket Giveaway
+Keep your working config.js beside the HTML files.
+
+CHECKS COMPLETED
+21 model checks cover statuses, deadlines, account identity and eligibility.
+Browser checks use the actual dashboard and simulated Streamer.bot responses,
+including live updates, reconnect/stale states, mobile layout and the previous
+shared ticket/leaderboard panel behavior. No tests access your live accounts.

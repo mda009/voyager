@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-160 -125 320 250" role="img" aria-labelledby="title"><title id="title">Sentinel — broad armoured gunship with four amber engines and heavy cannon pods</title><defs><linearGradient id="h" x2="0" y2="1"><stop stop-color="#c6ccca"/><stop offset=".42" stop-color="#737d85"/><stop offset="1" stop-color="#2a3543"/></linearGradient><linearGradient id="p" x2="1" y2="1"><stop stop-color="#9ba3a5"/><stop offset=".6" stop-color="#4a5867"/><stop offset="1" stop-color="#202e40"/></linearGradient><linearGradient id="glass" x2="1" y2="0"><stop stop-color="#753c0e"/><stop offset=".65" stop-color="#e4a44d"/><stop offset="1" stop-color="#fff2be"/></linearGradient><filter id="g" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="3"/></filter></defs>
+<g stroke-linejoin="round"><path d="M-99-50-79-100 20-100 55-65 98-41 114-22V22L98 41 55 65 20 100H-79L-99 50Z" fill="#111d2c" stroke="#9bafba" stroke-width="2"/>
+<path d="M-78-91H15L41-61-31-40-89-45Z M-78 91H15L41 61-31 40-89 45Z" fill="url(#p)" stroke="#bac6ce"/>
+<path d="M-55-85H11L23-71H-60Z M-55 85H11L23 71H-60Z" fill="#c0bd9f"/><path d="M-60-75H4L13-64-57-52Z M-60 75H4L13 64-57 52Z" fill="#394a5b" stroke="#7b8d9d"/>
+<path d="M-88-43-39-54 68-40 102-23V23L68 40-39 54-88 43Z" fill="url(#h)" stroke="#d0d9de" stroke-width="1.5"/>
+<path d="M-43-41 59-31 85-17H-45Z" fill="#b6c3cb"/><path d="M-43 41 59 31 85 17H-45Z" fill="#3a4b5d"/>
+<path d="M-15-31 31-27 52-12V12L31 27-15 31-32 15V-15Z" fill="#202f40" stroke="#9bafb9"/>
+<path d="M17-20 42-13 53 0 42 13 17 20 23 0Z" fill="url(#glass)" stroke="#ffdf9b"/>
+<path d="M68-24 97-17 111-9V9L97 17 68 24 80 0Z" fill="#8a969e" stroke="#d3dad9"/><path d="M90-12 104-6V6L90 12Z" fill="#263548"/>
+<path d="M-40-105H34L49-96V-78L34-69H-40L-56-79V-95Z M-40 105H34L49 96V78L34 69H-40L-56 79V95Z" fill="url(#p)" stroke="#b2c0c8" stroke-width="1.5"/>
+<path d="M35-97H100V-91H35Z M35-83H92V-77H35Z M35 97H100V91H35Z M35 83H92V77H35Z" fill="#25364a" stroke="#9dabb4"/><path d="M94-98H103V-90H94Z M86-84H95V-76H86Z M94 98H103V90H94Z M86 84H95V76H86Z" fill="#ffc977"/>
+<path d="M-46-94H21V-81H-46Z M-46 94H21V81H-46Z" fill="#223146"/><path d="M-27-94H-9V-81H-27Z M-27 94H-9V81H-27Z" fill="#e0af56"/>
+<g fill="#1c2c3e" stroke="#94a5b2"><path d="M-113-70H-74V-44H-113Z M-113-32H-78V-7H-113Z M-113 70H-74V44H-113Z M-113 32H-78V7H-113Z"/></g>
+<path d="M-115-65V-49 M-115-27V-12 M-115 65V49 M-115 27V12" stroke="#ffa63f" stroke-width="7" filter="url(#g)"/><path d="M-115-65V-49 M-115-27V-12 M-115 65V49 M-115 27V12" stroke="#ffdf9e" stroke-width="4"/>
+<g stroke="#17293d" stroke-width="3"><path d="M-70-32V32 M-59-35V35 M-48-36V36"/></g><path d="M-19-44 2-42 9-35-12-37Z M-19 44 2 42 9 35-12 37Z" fill="#f1be64"/></g></svg>

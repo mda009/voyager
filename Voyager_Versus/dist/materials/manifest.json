@@ -1,0 +1,53 @@
+{
+  "resolution": 4096,
+  "author": "Original Voyager material maps",
+  "workflow": "metallic roughness PBR",
+  "colorSpace": {
+    "basecolor": "sRGB",
+    "normal": "linear tangent space",
+    "orm": "linear; R=AO G=roughness B=metallic"
+  },
+  "tiers": {
+    "ultra": 4096,
+    "balanced": 2048,
+    "low": 1024
+  },
+  "files": [
+    {
+      "name": "hull-basecolor-1024.webp",
+      "bytes": 54398
+    },
+    {
+      "name": "hull-basecolor-2048.webp",
+      "bytes": 196560
+    },
+    {
+      "name": "hull-basecolor-4096.webp",
+      "bytes": 554042
+    },
+    {
+      "name": "hull-normal-1024.webp",
+      "bytes": 16386
+    },
+    {
+      "name": "hull-normal-2048.webp",
+      "bytes": 55874
+    },
+    {
+      "name": "hull-normal-4096.webp",
+      "bytes": 194956
+    },
+    {
+      "name": "hull-orm-1024.webp",
+      "bytes": 72878
+    },
+    {
+      "name": "hull-orm-2048.webp",
+      "bytes": 200072
+    },
+    {
+      "name": "hull-orm-4096.webp",
+      "bytes": 471430
+    }
+  ]
+}

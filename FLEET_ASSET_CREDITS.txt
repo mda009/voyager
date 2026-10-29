@@ -1,0 +1,112 @@
+VOYAGER FLEET ALERTS — ASSET CREDITS
+Version 1.11 / 23 October 2026
+
+SHIP GEOMETRY
+RSI Polaris, derived from the publicly accessible holoviewer asset linked by
+Cloud Imperium Games / Roberts Space Industries on its 2016 Polaris reveal.
+Star Citizen, Roberts Space Industries and Polaris are CIG/RSI properties.
+Original model copyright belongs to its respective rights holders.
+This is a fan-made stream overlay; it is not affiliated with or endorsed by CIG.
+
+Source page:
+https://robertsspaceindustries.com/en/comm-link/transmission/15546-The-2946-RSI-Polaris
+Original public model:
+https://robertsspaceindustries.com/media/l8fs5ivw36mdvr/source/RSI-Polaris.ctm
+Original model SHA-256: 7f03de5a897f4fde4f6385cf89c702cca4107638da55759689e4283333310ce5
+
+The source is concept-era holoviewer geometry. It is not the current in-game
+Polaris asset or the official high-resolution game texture set.
+Derived for this overlay: duplicate/collapsed triangle removal, welded topology, real-time mesh
+simplification, normal reconstruction, spatial assembly sections, normalised
+orientation, vertex colours and projected UV coordinates.
+Hero: 519,842 triangles / 259,882 quantised source vertices.
+Hero assembly wireframe LOD: 61,496 triangles / 29,931 quantised source vertices.
+Vertices are expanded/recomputed for creased normals at runtime.
+
+MATERIALS AND EFFECTS
+New original Voyager v1.3 material maps generated from a coherent armour layout:
+4096 x 4096 base colour, normal, and packed AO/roughness/metalness WebP maps.
+The packed map supplies cavity AO (red), roughness (green) and metalness (blue).
+Colour is sRGB; normal and packed material data are linear.
+Original added geometry: 40 surface fittings and three guided VX-09 torpedoes.
+These added fittings/weapons are Voyager designs, not extracted game assets.
+Textures are embedded in fleet-assets/surface-data.js for local OBS use.
+Hull paint, projected mapping, dock, engines, sparks, guided weapons, 3D impact shaders,
+shield and camera choreography are Voyager additions. Audio is synthesised
+locally from oscillator/noise effects; no third-party sound recording is used.
+
+BRANDING AND TYPE
+MDA009, The Unprofessionals and Voyager artwork reused from the supplied project.
+Rajdhani font and its OFL license are in brand-assets/.
+See brand-assets/ASSET_SOURCES.txt for the existing artwork provenance.
+
+RENDERING
+Three.js (including RoomEnvironment and BufferGeometryUtils), MIT license.
+Bundled from the Three.js version already included with Voyager Versus.
+https://threejs.org/
+License: fleet-assets/THREE-LICENSE.txt
+
+BUILD-ONLY TOOLS (NOT REQUIRED TO RUN THE OVERLAY)
+OpenCTM decoder and LZMA modules already included in Voyager Versus.
+Meshoptimizer v0.25, mesh simplification by Arseny Kapoulkine, MIT license.
+https://github.com/zeux/meshoptimizer
+esbuild v0.25.12 by Evan Wallace, MIT license.
+https://esbuild.github.io/
+
+BUILD / RUNTIME
+fleet-renderer.mjs, fleet-hull-details.mjs and fleet-ordnance.mjs are editable
+renderer sources; fleet-assets/hull-anchors.mjs stores baked attachment points. fleet-assets/fleet-renderer.js
+is its browser-ready IIFE bundle; OBS loads that bundle directly. Rebuilding the
+source requires the full Studio project's Voyager_Versus/dist/vendor modules
+and an esbuild installation. The delivered overlay does not require Node/npm,
+a web server, a CDN, a bundler or internet access for its visual assets.
+The Streamer.bot WebSocket server is required for live event playback.
+
+RAID / BASE DEFENCE — v1.6
+Original procedural Unprofessionals orbital base, hangars, turrets and interceptor
+geometry. As of v1.7, supporting and attacking ships use original procedural Voyager
+geometry and the existing Voyager PBR maps. The Polaris remains the hero only. Missiles and turbulent impact meshes reuse the custom
+Voyager ordnance system; all paths and combat choreography are original code.
+No background skybox is added; the OBS source remains alpha-transparent.
+
+VARIED FLEET AND WORKING SHIPYARD — v1.7
+Original Voyager vessel models: corvette, frigate, carrier, lancer, tender;
+siege ship, raider, marauder, destroyer, torpedo ship; needle, scout,
+interceptor, bomber, dart and raptor. These are original procedural designs,
+not official Star Citizen ship models. Each class has distinct geometry,
+engine layouts and fittings; material changes alone do not define a class.
+New original environments: two travelling gantry cranes with winches/cables,
+four articulated welders, service tugs, six release clamps, launch machinery,
+shield charging pods, animated base shutters, radar, pipework and radiators.
+New PulseBattery model: time-based finite-speed rounds, muzzle flashes,
+recoil, local light, impact flashes and hot fragments; generated cannon audio.
+Editable sources additionally include fleet-vessels.mjs, fleet-environments.mjs,
+fleet-gunfire.mjs and fleet-raid.mjs. All are compiled into the local IIFE.
+
+COLOUR / MINING / DAMAGE CONTROL — v1.8
+Original procedural asteroid shapes and generated rock surface texture, mining
+outpost, cranes, drill, utility modules and drone models. Original colour palettes
+for all supporting ship classes and blue accent changes to the Polaris paint.
+Original hull breach shader, recessed damage geometry, fire suppression particles,
+welding arcs, repair plates, departure choreography and extra combat effects.
+New editable source files: fleet-mining.mjs, fleet-repairs.mjs, fleet-combat.mjs.
+These assets are not official in-game models, textures or recorded game footage.
+
+GIFT-SUB FLEET FACE-OFF — v1.9
+Original enemy approach and opposing-fleet choreography in fleet-faceoff.mjs.
+Uses the five existing original enemy ship classes and coloured escort classes.
+The hero retains its Polaris geometry. The mining outpost is no longer loaded
+or rendered; fleet-mining.mjs remains as unused legacy source.
+
+RAID SCALE AND WELCOME — v1.10
+Original procedural hull sizing, wider launch bays and flight choreography in
+fleet-raid.mjs. No new third-party models or assets. Timed welcome caption
+in fleet-overlay.js; existing transparent styling and fonts retained.
+
+FORTRESS RAID — v1.11
+Original procedural fortress extensions, rooftop and perimeter batteries,
+illuminated canvas signage and raid choreography. No new third-party assets.
+The existing Rajdhani font is used for the 4096-pixel base sign texture.
+
+Fleet visuals v1.12: stable damage-light topology, indexed shot/audio timelines,
+reusable noise/geometry and resolution changes between alerts. Existing assets retained.

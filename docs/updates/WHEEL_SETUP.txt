@@ -1,0 +1,134 @@
+VOYAGER GIVEAWAY SEQUENCE UPDATE 2.1.1 — 25 OCTOBER 2026
+Giveaway Engine 8 / Ticket Giveaway 1.4
+
+SHOW POOL NOT VISIBLE?
+This version includes SHOW_POOL_FIX.txt. Copy the files and refresh the existing
+OBS browser source; keep the current giveaway. No C# recompilation is needed
+when updating from sequence 2.0 or 2.1.
+
+ALREADY INSTALLED SEQUENCE 2.0?
+Read WHEEL_EFFECTS_UPDATE.txt for the short visual-update instructions.
+Copy the updated files and refresh OBS; no C# recompilation is needed.
+
+NEW IN 2.1
+The wheel gently rumbles while fireworks, ship collisions, explosions and
+debris play around it. Its countdown and progress bar have been removed.
+Effects stop at the winner reveal. All saved timing and winner logic is unchanged.
+
+Applies to impromptu giveaways, every member-group giveaway (including combined
+tiers and VIP), and the monthly watchtime-ticket giveaway. Use these instructions
+for this sequence update. Older ticket setup documents describe initial setup.
+
+WHAT PLAYS
+  0–10 seconds    Your existing 10-second countdown.
+  10–20 seconds   Your existing rumble, buildup and GOOD LUCK animation.
+  20–50 seconds   The wheel spins for 30 seconds, slowing onto the saved winner.
+  50–60 seconds   Your existing winner announcement, after the wheel lands.
+  60–120 seconds  A full 60-second claim timer.
+  At 120 seconds  RE-ROLL appears if unclaimed, then fades after 10 seconds.
+  Claim/Confirm   Your existing congratulations animation plays.
+
+Expiration does not draw another account automatically. Press your existing
+Re-roll control when you want the next draw. Every new draw repeats the sequence.
+Streamer.bot selects the winner. The wheel displays that same saved result.
+Ticket segment sizes use the saved ticket weights; member/impromptu accounts
+have equal-sized segments. Previously selected accounts are excluded on rerolls.
+
+INSTALL INTO YOUR EXISTING WORKING FOLDER
+
+1. Finish any draw currently playing, then close the giveaway control docks.
+   Extract this ZIP with Windows Extract All or your normal ZIP application.
+   Open the extracted Voyager_Giveaway folder. Copy its CONTENTS into your
+   EXISTING Voyager_Giveaway folder and replace matching files.
+   Do not delete your existing folder or create Voyager_Giveaway inside itself.
+   Keep your existing config.js, connection settings and voyager-brand.css.
+   This is an update patch; your existing giveaway-connection.js,
+   giveaway-control.js, giveaway-demo.js and other installed files are required.
+
+2. Update BOTH existing Streamer.bot actions. Copy each entire .cs file into
+   its existing Execute C# Code sub-action, replacing all previous code:
+
+      EXISTING ACTION                    FILE TO COPY
+      Voyager - Giveaway Engine          Voyager_Giveaway_Engine.cs
+      Voyager - Ticket Giveaway          Voyager_Ticket_Giveaway.cs
+
+   Click Compile, then Save/OK for each. Copying a .cs file into your overlay
+   folder alone does not update the code stored in Streamer.bot.
+   Keep both actions enabled, their existing triggers, and their existing
+   dedicated blocking queues with Concurrent OFF. No new action or trigger
+   is needed for the wheel, claim timer or congratulations animation.
+
+3. Reload your Giveaway Control, Ticket Giveaway and live dashboard docks.
+   Refresh cache of the current page in your existing OBS giveaway browser
+   source and the shared leaderboard/ticket browser source. If you use the
+   legacy separate ticket overlay, refresh that browser source too.
+   Keep their current local paths or server URLs and 1920×1080 canvas settings.
+   Use 60 FPS for the browser sources if available.
+
+4. Disable the OLD separate Voyager Giveaway Wheel browser source in OBS.
+   The wheel now plays INSIDE your existing animation source. Leaving the
+   separate wheel visible would draw a duplicate wheel over the new sequence.
+   Keep your existing giveaway and shared leaderboard/ticket sources visible.
+
+5. Open Voyager_Sequence_Preview.html from the merged folder in your browser.
+   Choose Impromptu, Tiered or Monthly tickets and press Play full sequence.
+   This preview uses fictional accounts and never connects to Streamer.bot.
+   Audio is muted until you tick Play audio. The stage buttons let you check
+   the wheel, winner, RE-ROLL and congratulations without waiting two minutes.
+   Then use Test reveal in the existing Giveaway Control for an OBS test.
+   Test reveal uses fictional wheel names and does not select a real winner.
+
+LIVE OPERATION
+
+Use the same controls as before: open/load the pool, lock entries and Draw.
+The wheel is hidden while entries are open and during the original buildup.
+It appears after GOOD LUCK, spins for 30 seconds and hands back to the existing
+winner screen. The operator can Claim/Confirm once the winner is revealed.
+The timed 60-second claim period begins after the winner's 10-second reveal.
+
+For the monthly ticket giveaway, use Show ticket panel to select tickets in
+the shared on-screen slot before drawing. The shared panel runs the complete
+sequence and returns to the ticket list afterward. Continue using the existing
+shared-panel setup; do not add another OBS source for the wheel.
+
+Reloading or reconnecting resumes the saved timeline instead of choosing a
+new winner. Replay reveal retains the original claim deadline. A replay is
+not a new claim window; use Re-roll to select a new eligible winner.
+
+PRESERVED DATA AND SETTINGS
+
+Existing entrants, ticket balances, partial tracked watchtime, manual ticket
+allocations, groups, points and saved draw history remain in Streamer.bot.
+The latest Kick !entry/!entergiveaway fixes are retained. Ticket earning rates
+are unchanged. No cross-platform accounts are merged by display name.
+New draws receive the new sequence and claim timer. Historical draws keep
+their original timestamps and deadlines. No new giveaway is required simply
+to install this update; a new Draw/Re-roll uses the new timing.
+
+Your original buildup and winner effects are retained. The soundtrack keeps
+its original lead-in and adds a 30-second music bed before the winner impact.
+Your installed voyager-brand.css remains the styling source. A small fallback
+stylesheet is used only when that file is missing, so the isolated preview
+can still size the logos and load the bundled fonts.
+
+IF THE WHEEL OR CLAIM TIMER DOES NOT APPEAR
+
+- Confirm that BOTH C# actions were compiled and saved, then refresh OBS.
+- Ticket controls should show Ticket engine 1.4. The main state reports engine 8.
+- Confirm GiveawayOS_Wheel_Soundtrack.mp3, Voyager_Giveaway_Sequence.html,
+  giveaway-sequence-*.js and wheel-assets are beside your existing config.js.
+- Keep the exact existing OBS paths. Do not point an OBS source at the preview.
+- If using the shared ticket panel, verify Voyager_Leaderboard_Panel.html and
+  leaderboard-panel.js were replaced too; they now use the common sequence.
+- A live wheel uses the saved locked pool. It never invents a different winner
+  if the pool is unavailable. Refresh the connection to retrieve that state.
+- After RE-ROLL, manually use Re-roll. A claim after the deadline is rejected.
+
+VERIFICATION
+
+Both C# scripts compile in a local Streamer.bot API test harness. Tests cover
+early/expired claims, duplicate confirmations, rerolls, ticket weights and
+unchanged accrual on Twitch, YouTube and Kick. Browser checks cover all three
+giveaway types, all overlay routes, source refresh and the full claim window.
+The supplied code has not been installed or tested against your live OBS and
+Streamer.bot instance from this workspace.

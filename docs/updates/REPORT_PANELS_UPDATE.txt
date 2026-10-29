@@ -1,0 +1,61 @@
+VOYAGER REPORTING - AVAILABLE DATA PANELS
+
+This replaces the empty Viewer countries, Devices and Discovery sources panels
+on the Reporting page with:
+
+1. Viewing time - hours watched, daily bars, hours streamed and average viewers
+   where supplied. If watched time is absent, it shows hours streamed instead.
+2. Follower growth - reported follows, daily bars and best reported day.
+3. Subscriptions - reported total with paid, Prime and gifted categories where
+   supplied. If the total is missing, the headline names the supplied category.
+
+INSTALL THIS REPORTING CHANGE
+
+1. Close the Voyager Command Center page/dock.
+2. Extract this ZIP. Copy the files inside Voyager_Giveaway into your existing
+   Voyager_Giveaway folder, accepting replacement of matching files.
+   Merge into the folder; do not delete your existing folder first.
+3. Reopen Voyager_Command_Center.html?page=reporting, or use Reporting in the
+   Voyager navigation. Refresh the OBS dock/browser if an old page remains.
+
+No new Streamer.bot action or C# compilation is needed for this reporting change.
+No CSV re-upload is needed when your reports are already saved in this browser.
+Use the existing page location and browser/OBS profile to retain saved reports.
+
+The seven files required specifically for this change are:
+  Voyager_Command_Center.html
+  stream-pages.js
+  twitch-analytics.js
+  report-insights-model.js
+  report-insights.js
+  report-insights.css
+  REPORT_PANELS_UPDATE.txt
+
+This ZIP also retains the previous Active giveaways and shared ticket panel
+updates. Their setup notes are for those earlier features; do not repeat a
+completed setup just to install the reporting panels.
+
+HOW THE FIGURES WORK
+
+- Uses the existing Previous 30 days (default), Previous 14 days, Previous 7 days,
+  Latest stream and individual saved report controls.
+- Refreshes after report imports, saved edits and reporting-window changes.
+- Imported figures are historical. These panels do not fetch new Twitch CSVs.
+- Rolling windows end yesterday in the source report's time zone.
+- Exact whole-period source totals take precedence over daily sums. A missing
+  metric may use available daily reports; coverage is shown per metric.
+- Daily dates are deduplicated using the existing reporting rules. Source,
+  time zone and currency sets stay separate.
+- Missing dates are crosses, not zero. A dot indicates an explicitly reported
+  zero. Signed follower and subscription adjustments retain their signs.
+- Minutes are converted to hours per date. Hours and minutes are not counted
+  twice. Viewer-hours are not estimated from averages.
+- Subscription categories may overlap, so they are not added to invent a total.
+- Large individual periods chart their last 60 dates; totals cover the selection.
+- Latest stream follows the existing daily-report logic; it cannot split multiple
+  streams within one exported date.
+- Existing manual country/device/discovery data is retained in saved reports,
+  the manual editor and exports.
+
+Your config.js, twitch-analytics-data.js and saved points/ticket/giveaway data
+are not included or replaced by this update.

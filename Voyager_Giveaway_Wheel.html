@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Voyager • Giveaway wheel</title><link rel="stylesheet" href="wheel-assets/wheel.css?v=2.1.0"></head>
+<body>
+<main id="stage" hidden aria-label="Voyager giveaway wheel">
+ <header class="header">
+  <div class="eyebrow"><span class="brand-word">VOYAGER</span><span class="divider"></span>GIVEAWAY<span id="demo-label" hidden>PREVIEW</span></div>
+  <div class="title-row"><h1 id="title">Community giveaway</h1><span id="status"><i></i><span id="status-text">Entries open</span></span></div>
+  <div class="meta"><span><b id="count">0</b> <span id="count-label">ENTRANTS</span></span><span id="platforms"></span></div>
+ </header>
+ <div class="wheel-shell" id="wheel-shell">
+  <svg class="instrument" viewBox="0 0 880 880" aria-hidden="true"><circle class="outer-ring" cx="440" cy="440" r="422"/><circle class="inner-ring" cx="440" cy="440" r="406"/><g id="ticks"></g><path class="arc arc-blue" d="M 87 211 A 422 422 0 0 1 440 18"/><path class="arc arc-white" d="M 440 862 A 422 422 0 0 1 142 738"/></svg>
+  <canvas id="wheel" width="1680" height="1680" aria-label="Entrant wheel; segments reflect the saved giveaway pool and ticket weights"></canvas>
+  <svg id="selected-wedge" viewBox="0 0 840 840" aria-hidden="true"><path id="selected-path"/></svg>
+  <div class="hub"><div class="hub-rim"></div><img src="wheel-assets/brand/voyager.png" alt="Voyager"><span id="hub-label">GOOD LUCK</span><strong id="hub-value">ENTER TO WIN</strong></div>
+  <div class="pointer" aria-hidden="true"><svg viewBox="0 0 70 80"><path d="M4 40 59 8 53 40 59 72Z"/><path class="pointer-core" d="M15 40 50 20 46 40 50 60Z"/></svg></div>
+  <div id="empty"><strong>Your seat awaits.</strong><span>Enter in chat to join the wheel.</span></div>
+ </div>
+ <section class="result" id="result" aria-live="polite"><span class="result-kicker" id="result-kicker">THE NEXT WINNER COULD BE YOU</span><strong id="result-name">!ticket <em>or</em> !enter</strong><span id="result-detail">TWITCH · YOUTUBE · KICK</span></section>
+ <footer><span class="partner mda"><img src="wheel-assets/brand/mda009.png" alt="MDA009"></span><span class="footer-copy">THE UNPROFESSIONALS<span>YOUR COMMUNITY. YOUR CHANCE.</span></span><span class="partner upr"><img src="wheel-assets/brand/unprofessionals.png" alt="The Unprofessionals"></span></footer>
+ <div id="connection-note" hidden>RECONNECTING · LAST RECEIVED POOL</div>
+</main>
+<aside id="diagnostics" hidden><strong>VOYAGER WHEEL · 2.1.0</strong><p id="diagnostic-status">Starting…</p><p id="diagnostic-state">Waiting for the saved giveaway.</p><small>D: toggle diagnostics. Live draws use Giveaway Control.</small></aside>
+<script src="wheel-assets/wheel-model.js?v=2.1.0"></script><script src="wheel-assets/wheel.js?v=2.1.0"></script>
+</body></html>

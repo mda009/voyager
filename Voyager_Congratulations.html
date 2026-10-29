@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>MDA009 Congratulations Alert</title>
+
+<style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --ui-blue: #4169e1;
+            --ui-cyan: #00d8ff;
+            --ui-pale: #c9f0ff;
+            --panel-bg: rgba(8, 15, 24, 0.92);
+        }
+
+        body {
+            background: transparent;
+            font-family: 'Rajdhani', 'Segoe UI', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            color: #fff;
+            padding: 28px;
+        }
+
+        #overlay-container {
+            position: relative;
+            isolation: isolate;
+            text-align: center;
+            width: min(100%, 980px);
+            padding: clamp(28px, 5vw, 58px) clamp(24px, 6vw, 72px);
+            background: linear-gradient(135deg, rgba(8, 15, 24, 0.94), rgba(15, 30, 45, 0.96));
+            border-left: 8px solid var(--ui-blue);
+            box-shadow: 0 0 28px rgba(0, 216, 255, 0.28), inset 0 0 22px rgba(0, 216, 255, 0.10);
+            z-index: 10;
+        }
+
+        #overlay-container::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.22) 50%),
+                        linear-gradient(90deg, rgba(65, 105, 225, 0.035), rgba(0, 216, 255, 0.045), rgba(65, 105, 225, 0.035));
+            background-size: 100% 4px, 100% 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .winner-box {
+            position: relative;
+            z-index: 2;
+        }
+
+        .title {
+            font-size: clamp(1.7rem, 4.5vw, 3.2rem);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: clamp(3px, 0.7vw, 8px);
+            margin-bottom: 16px;
+            color: var(--ui-pale);
+            text-shadow: 0 0 14px rgba(0, 216, 255, 0.55);
+            animation: pulse 1.8s ease-in-out infinite alternate;
+        }
+
+        .hidden { display: none !important; }
+
+        .winner-box {
+            animation: popIn 0.55s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        .alert-banner {
+            font-size: clamp(1.25rem, 3vw, 2.2rem);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: clamp(3px, 0.8vw, 8px);
+            color: #fff;
+            background: linear-gradient(90deg, transparent, rgba(65, 105, 225, 0.62), rgba(0, 216, 255, 0.42), transparent);
+            padding: 10px 24px;
+            margin: 0 auto 24px;
+            display: table;
+            text-shadow: 0 0 12px rgba(0, 216, 255, 0.75);
+            animation: signal 1.8s ease-in-out infinite;
+        }
+
+        .winner-name {
+            font-size: clamp(2.8rem, 9vw, 6.6rem);
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: 2px;
+            text-shadow: 0 0 12px rgba(0, 216, 255, 0.95), 0 0 36px rgba(65, 105, 225, 0.75);
+            margin-bottom: 18px;
+            overflow-wrap: anywhere;
+        }
+
+        .prize {
+            font-size: clamp(1.1rem, 2.5vw, 1.7rem);
+            font-weight: 600;
+            color: var(--ui-pale);
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+
+        /* Winner reveal opens out of the countdown panel into the entire canvas. */
+        #overlay-container.revealed { background: transparent; border-left-color: transparent; box-shadow: none; }
+        #overlay-container.revealed::after { display: none; }
+        .revealed .winner-box { animation: winnerArrival .8s cubic-bezier(.16,1,.3,1) both; }
+        .revealed .winner-name { animation: unmaskWinner .75s cubic-bezier(.16,1,.3,1) both; font-size: clamp(3rem,10vw,8rem); text-shadow: 0 3px 6px #020914, 0 0 25px #00d8ff, 0 0 65px #4169e1; }
+        .revealed .prize, .revealed .winner-clock { text-shadow: 0 2px 5px #020914, 0 0 12px #020914; }
+        .revealed .alert-banner { font-size: clamp(1.5rem,3.8vw,2.8rem); }
+        #effectsCanvas { z-index: 5; }
+        @keyframes unmaskWinner {
+            from { clip-path: inset(0 50% 0 50%); filter: blur(8px); transform: scale(1.15); }
+            to { clip-path: inset(0); filter: blur(0); transform: scale(1); }
+        }
+        @keyframes winnerArrival {
+            from { opacity: 0; transform: translateY(24px) scale(.9); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        canvas {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        @keyframes pulse {
+            from { opacity: 0.82; }
+            to { opacity: 1; }
+        }
+
+        @keyframes signal {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.72; }
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.82); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        @media (max-width: 520px) {
+            body { padding: 16px; }
+            #overlay-container { border-left-width: 5px; padding: 32px 18px; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
+        }
+    
+#overlay-container { pointer-events:none; }
+.revealed .prize { font-size:clamp(1.4rem,3vw,2.3rem); text-transform:none; letter-spacing:3px; }
+
+.thankyou-frame { position:relative; padding:24px 20px; margin:10px auto 24px; }
+.revealed .thankyou-frame .winner-name { margin:0; position:relative; animation:unmaskWinner .75s cubic-bezier(.16,1,.3,1) both, thankyouGlow 2.4s ease-in-out .75s infinite alternate; }
+.light-track { position:absolute; inset:0; width:100%; height:100%; overflow:visible; pointer-events:none; }
+.light-track rect { fill:none; vector-effect:non-scaling-stroke; }
+.track-base { stroke:rgba(90,195,255,.2); stroke-width:1; }
+.track-light { stroke:#00d8ff; stroke-width:5; stroke-dasharray:13 87; filter:drop-shadow(0 0 7px #00d8ff) drop-shadow(0 0 14px #4169e1); animation:orbitLight 3s linear infinite; }
+.track-core { stroke:#fff; stroke-width:2; stroke-dasharray:3 97; filter:drop-shadow(0 0 4px #fff); animation:orbitLight 3s linear infinite; }
+@keyframes orbitLight { from { stroke-dashoffset:0; } to { stroke-dashoffset:-100; } }
+@keyframes thankyouGlow {
+ from { text-shadow:0 3px 6px #020914,0 0 16px #00d8ff,0 0 35px #4169e1; }
+ to { text-shadow:0 3px 6px #020914,0 0 8px #fff,0 0 30px #00d8ff,0 0 65px #4169e1,0 0 100px #4169e1; }
+}
+@media(prefers-reduced-motion:reduce) { .revealed .thankyou-frame .winner-name,.light-track rect { animation:none !important; } }
+
+.revealed .thankyou-frame .winner-name { font-size:clamp(1rem,5.2vw,4.8rem); letter-spacing:1px; white-space:nowrap; overflow-wrap:normal; }
+</style><link rel="stylesheet" href="voyager-brand.css" onerror="this.onerror=null;this.href='giveaway-sequence-fallback.css'"><link rel="icon" href="brand-assets/voyager.png" type="image/png"></head><body class="voyager-onair reveal-surface">
+<canvas id="effectsCanvas" aria-hidden="true"></canvas>
+<div id="overlay-container" class="revealed hidden" role="status" aria-live="polite"><div class="reveal-branding"><span class="brand-image brand-image-mda "><img src="brand-assets/mda009.png" alt="MDA009"></span><img class="logo-voyager " src="brand-assets/voyager.png" alt="Voyager membership program" width="68" height="68"><span class="brand-image brand-image-upr "><img src="brand-assets/unprofessionals.png" alt="The Unprofessionals"></span></div>
+<div class="winner-box">
+<div id="banner" class="alert-banner">MDA009 COMMUNITY</div>
+<div class="thankyou-frame"><svg class="light-track" viewBox="0 0 1000 200" preserveAspectRatio="none" aria-hidden="true"><rect class="track-base" x="4" y="4" width="992" height="192" rx="25" pathLength="100"/><rect class="track-light" x="4" y="4" width="992" height="192" rx="25" pathLength="100"/><rect class="track-core" x="4" y="4" width="992" height="192" rx="25" pathLength="100"/></svg><h1 class="winner-name">CONGRATULATIONS!</h1></div>
+<p class="prize">you are a legend</p>
+</div></div>
+<script>
+// Plays once on load. Refresh the OBS browser source to replay.
+// Optional ?name=Username personalizes the banner; ?at=UNIX_MILLISECONDS
+// prevents an expired event from replaying on refresh. ?preview=1 replays.
+const params = new URLSearchParams(location.search);
+const container = document.getElementById('overlay-container');
+const canvas = document.getElementById('effectsCanvas');
+const ctx = canvas.getContext('2d');
+let sparks = [], rings = [], ships = [], rockets = [];
+let particles = [], active = false, clock;
+const burstTimers = [];
+const startedAt = params.get('preview') === '1' || !params.has('at') ? Date.now() : Number(params.get('at'));
+const expiresAt = startedAt + 8000;
+const name = (params.get('name') || '').trim().slice(0,100);
+if (name) document.getElementById('banner').textContent = name;
+function resizeCanvas() { canvas.width = innerWidth; canvas.height = innerHeight; }
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+// Blue, silver and white confetti: frame-rate independent and capped.
+        const palette = ['#4169e1', '#00d8ff', '#c9f0ff', '#ffffff', '#aebed5', '#76a7ff'];
+        class Particle {
+            constructor(x, y, angle, speed) {
+                this.x = x; this.y = y;
+                this.vx = Math.cos(angle) * speed;
+                this.vy = Math.sin(angle) * speed;
+                this.color = palette[Math.floor(Math.random() * palette.length)];
+                this.width = 5 + Math.random() * 9;
+                this.height = 4 + Math.random() * 13;
+                this.rotation = Math.random() * Math.PI * 2;
+                this.spin = (Math.random() - .5) * 14;
+                this.age = 0; this.life = 4 + Math.random() * 4;
+                this.phase = Math.random() * Math.PI * 2;
+            }
+            update(dt) {
+                this.age += dt;
+                this.vx *= Math.pow(.65, dt);
+                this.vy += 230 * dt;
+                this.x += this.vx * dt;
+                this.y += this.vy * dt;
+                this.rotation += this.spin * dt;
+            }
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = Math.max(0, Math.min(1, (this.life - this.age) / 1.2));
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.rotation);
+                ctx.scale(1, .25 + .75 * Math.abs(Math.cos(this.age * 8 + this.phase)));
+                ctx.fillStyle = this.color;
+                ctx.fillRect(-this.width / 2, -this.height / 2, this.width, this.height);
+                ctx.restore();
+            }
+        }
+        function burst(x, y, count, angle, spread) {
+            if (Date.now() >= startedAt + 4000) return;
+            for (let i = 0; i < count && particles.length < 1800; i++) {
+                particles.push(new Particle(x, y, angle + (Math.random() - .5) * spread, 300 + Math.random() * 1050));
+            }
+        }
+        function celebrationWave() {
+            if (Date.now() >= startedAt + 4000) return;
+            const w = canvas.width, h = canvas.height;
+            // Corner cannons and side cannons surround the whole screen.
+            burst(0, h, 90, -Math.PI / 3, 1.1);
+            burst(w, h, 90, -2 * Math.PI / 3, 1.1);
+            burst(0, h * .35, 45, -.25, 1.8);
+            burst(w, h * .35, 45, Math.PI + .25, 1.8);
+            // A curtain across the top fills the centre and wide canvases too.
+            for (let i = 0; i < 100 && particles.length < 1800; i++) {
+                particles.push(new Particle(Math.random() * w, -30, Math.PI / 2 + (Math.random() - .5), 100 + Math.random() * 220));
+            }
+        }
+        let previousFrame = null;
+        function animate(timestamp) {
+            const dt = previousFrame === null || !Number.isFinite(timestamp) ? 1 / 60 : Math.min(.05, (timestamp - previousFrame) / 1000);
+            previousFrame = Number.isFinite(timestamp) ? timestamp : null;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let i = particles.length - 1; i >= 0; i--) {
+                particles[i].update(dt);
+                if (particles[i].age >= particles[i].life || particles[i].y > canvas.height + 100) {
+                    particles.splice(i, 1);
+                } else particles[i].draw();
+            }
+            drawAction(dt);
+            if (active) requestAnimationFrame(animate);
+        }
+
+
+
+// Lightweight vector spacecraft and capped particle effects; no external assets.
+const random = (a,b) => a + Math.random()*(b-a);
+function explode(x,y,fire=false) {
+    rings.push({x,y,age:0,life:1.3,fire});
+    for(let i=0;i<120 && sparks.length<1600;i++) {
+        const a=random(0,Math.PI*2), speed=random(60,480);
+        sparks.push({x,y,vx:Math.cos(a)*speed,vy:Math.sin(a)*speed,age:0,life:random(.6,2),color:fire?(i%3?'#ffb34d':'#fff2cd'):palette[i%palette.length],size:random(1.5,4)});
+    }
+}
+function launchFirework() {
+    const x=random(.08,.92)*canvas.width;
+    rockets.push({x,y:canvas.height+10,target:random(.08,.32)*canvas.height,speed:random(450,650),color:palette[Math.floor(random(0,palette.length))]});
+}
+function flyby() {
+    const dir=Math.random()<.5?1:-1, y=(Math.random()<.5?random(.08,.27):random(.75,.92))*canvas.height;
+    ships.push({x:dir>0?-100:canvas.width+100,y,vx:dir*random(360,600),vy:random(-25,25),age:0,scale:random(.65,1.15),crash:false});
+}
+function crashPair() {
+    const y=(Math.random()<.5?.2:.82)*canvas.height, target=canvas.width*random(.3,.7), speed=canvas.width/2;
+    for(const dir of [1,-1]) ships.push({x:target-dir*canvas.width*.5,y,vx:dir*speed,vy:0,age:0,scale:1.25,crash:true,target});
+}
+function drawShip(s) {
+    ctx.save();ctx.translate(s.x,s.y);ctx.rotate(Math.atan2(s.vy,s.vx));ctx.scale(s.scale,s.scale);
+    const flame=45+Math.random()*35;
+    const glow=ctx.createLinearGradient(-35,0,-35-flame,0);glow.addColorStop(0,'#e8fcff');glow.addColorStop(.25,'#00d8ff');glow.addColorStop(1,'transparent');
+    ctx.fillStyle=glow;ctx.beginPath();ctx.moveTo(-30,-8);ctx.lineTo(-35-flame,0);ctx.lineTo(-30,8);ctx.fill();
+    ctx.fillStyle='#273e62';ctx.strokeStyle='#8deaff';ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.moveTo(48,0);ctx.lineTo(8,-12);ctx.lineTo(-23,-37);ctx.lineTo(-34,-35);ctx.lineTo(-26,-9);ctx.lineTo(-39,-7);ctx.lineTo(-39,7);ctx.lineTo(-26,9);ctx.lineTo(-34,35);ctx.lineTo(-23,37);ctx.lineTo(8,12);ctx.closePath();ctx.fill();ctx.stroke();
+    ctx.fillStyle='#d9e7f4';ctx.beginPath();ctx.moveTo(46,0);ctx.lineTo(-23,-7);ctx.lineTo(-32,0);ctx.lineTo(-23,7);ctx.closePath();ctx.fill();
+    ctx.fillStyle='#00d8ff';ctx.beginPath();ctx.ellipse(14,0,11,4,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#fff';ctx.fillRect(-27,-31,7,3);ctx.fillRect(-27,28,7,3);ctx.restore();
+}
+function drawAction(dt) {
+    for(let i=rockets.length-1;i>=0;i--) {
+        const r=rockets[i];r.y-=r.speed*dt;
+        ctx.strokeStyle=r.color;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(r.x,r.y+35);ctx.lineTo(r.x,r.y);ctx.stroke();
+        if(r.y<=r.target){explode(r.x,r.y);rockets.splice(i,1);}
+    }
+    for(let i=ships.length-1;i>=0;i--) {
+        const s=ships[i];s.age+=dt;s.x+=s.vx*dt;s.y+=s.vy*dt;
+        if(s.crash && s.age>=1) {if(s.vx>0){explode(s.target,s.y,true);burst(s.target,s.y,90,-Math.PI/2,Math.PI*2);}ships.splice(i,1);continue;}
+        if(s.age>10 || s.x < -200 || s.x>canvas.width+200){ships.splice(i,1);continue;}
+        drawShip(s);
+    }
+    ctx.save();ctx.globalCompositeOperation='lighter';
+    for(let i=rings.length-1;i>=0;i--) {
+        const r=rings[i];r.age+=dt;if(r.age>=r.life){rings.splice(i,1);continue;}
+        const t=r.age/r.life;ctx.globalAlpha=(1-t)*.8;ctx.strokeStyle=r.fire?'#ffb34d':'#8eefff';ctx.lineWidth=4*(1-t)+1;
+        ctx.beginPath();ctx.ellipse(r.x,r.y,10+t*240,5+t*110,0,0,Math.PI*2);ctx.stroke();
+        const radius=8+95*t, glow=ctx.createRadialGradient(r.x,r.y,0,r.x,r.y,radius);
+        glow.addColorStop(0,r.fire?'#fff1c4':'#e0ffff');glow.addColorStop(.25,r.fire?'#ff8533':'#00aaff');glow.addColorStop(1,'transparent');ctx.fillStyle=glow;ctx.fillRect(r.x-radius,r.y-radius,radius*2,radius*2);
+    }
+    for(let i=sparks.length-1;i>=0;i--) {
+        const p=sparks[i];p.age+=dt;if(p.age>=p.life){sparks.splice(i,1);continue;}
+        const ox=p.x,oy=p.y;p.vx*=Math.pow(.5,dt);p.vy+=75*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;
+        ctx.globalAlpha=Math.max(0,1-p.age/p.life);ctx.strokeStyle=p.color;ctx.lineWidth=p.size;ctx.beginPath();ctx.moveTo(ox,oy);ctx.lineTo(p.x,p.y);ctx.stroke();
+    }
+    ctx.restore();
+}
+
+function hideAlert() {
+    active = false;
+    container.classList.add('hidden');
+    clearInterval(clock);
+    burstTimers.forEach(clearTimeout);
+    particles = []; sparks = []; rings = []; ships = []; rockets = [];
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+}
+function updateAlert() {
+    const remaining = expiresAt - Date.now();
+    if (remaining <= 0) { hideAlert(); return; }
+    // Final four-second fade begins at 4 seconds, within the 8-second total.
+    const opacity = String(Math.min(1, remaining / 4000));
+    container.style.opacity = opacity;
+    canvas.style.opacity = opacity;
+}
+if (Number.isFinite(startedAt) && startedAt > 0 && startedAt <= Date.now()+5000 && Date.now()<expiresAt) {
+    active = true;
+    container.classList.remove('hidden');
+    if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        const schedule = (seconds, fn) => {
+            const delay = startedAt + seconds * 1000 - Date.now();
+            if (delay >= -150) burstTimers.push(setTimeout(() => { if(active) fn(); }, Math.max(0,delay)));
+        };
+        for(let t=0;t<4;t+=1.2) schedule(t, celebrationWave);
+        for(let t=.3;t<4;t+=.7) schedule(t, launchFirework);
+        for(let t=.5;t<3;t+=1.3) schedule(t, flyby);
+        for(const t of [1,2.5]) schedule(t, crashPair);
+        schedule(0,()=>{explode(canvas.width*.15,canvas.height*.25);explode(canvas.width*.85,canvas.height*.25);});
+        schedule(3.5,()=>{for(let i=0;i<5;i++) explode(canvas.width*(i+1)/6,canvas.height*(i%2?.8:.2)); celebrationWave();});
+    }
+    updateAlert();
+    clock = setInterval(updateAlert,50);
+    requestAnimationFrame(animate);
+}
+</script></body></html>

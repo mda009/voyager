@@ -1,0 +1,68 @@
+VOYAGER — REPORTING CHART DATE UPDATE
+
+INSTALL (if Home, Live dashboard and Reporting are already installed)
+1. Close your Voyager page/OBS dock. Extract this ZIP into a temporary folder.
+2. Copy these EIGHT files from its Voyager_Giveaway folder into the EXISTING
+   Voyager_Giveaway folder you use for OBS, replacing those files:
+      Voyager_Command_Center.html
+      stream-pages.js
+      stream-home.js
+      stream-home.css
+      twitch-analytics-model.js
+      twitch-analytics.js
+      reporting-chart-model.js
+      reporting-chart.js
+
+3. Reopen your existing Voyager address and choose Reporting. Refresh the
+   browser with Ctrl+F5, or refresh the OBS dock.
+
+Keep config.js, stream-command-settings.js, stream-home-data.js and
+twitch-analytics-data.js. Keep using the same folder, address and browser.
+No new Streamer.bot action, import or C# compilation is needed for this fix.
+If the three dashboard pages are not installed yet, use the full file list
+in DASHBOARD_PAGES_SETUP.html instead; it includes these chart dependencies.
+
+WHAT CHANGED
+- Daily stream performance uses a calendar axis ending yesterday for the
+  default Previous 30 days view. Previous 14 and 7 days work the same way.
+  On 21 October 2026, in the selected report time zone, this includes the
+  19th and 20th. The window advances automatically when the date changes.
+- Reporting window and Report source are now above the chart. They also
+  control the uploaded Twitch report cards and audience breakdowns below.
+- Automatic chart source prefers daily Twitch CSV rows in that window.
+  If none contain viewer figures, it uses the saved public stream log.
+  The chart labels the source; public and CSV values are never blended.
+- Uploaded reports with October 19/20 rows appear immediately after import.
+  The chart updates after imports, external refreshes and saved-data updates
+  from another dock using the same browser storage.
+- Missing dates have an amber cross and no invented value. Reported zero is
+  a small blue dot. Explore chart dates lists the figures and gaps by day.
+- Latest chart data, selected window and coverage are displayed separately.
+  Selecting an older public snapshot no longer clips the daily chart.
+- Public summary cards/ranking retain their own provider dates. A new source
+  check does not make old daily rows current or create unavailable figures.
+
+IF OCTOBER 19/20 STILL HAVE NO FIGURES
+Click Reporting > Upload Twitch CSV. Choose a daily Twitch analytics export
+that includes those dates, check its time zone/currency, review, then Import
+reports. A whole-period summary cannot supply individual daily bar values.
+If using public data, click Refresh external data. The existing External
+Analytics action must be installed/running; see EXTERNAL_ANALYTICS_SETUP.html.
+Public feeds may supply newer summaries before their individual stream logs.
+When their log stops at the 18th, the 19th/20th stay explicitly unavailable.
+An absent date does not prove that no stream took place.
+
+If you import in a regular browser but view reports in OBS, use Manage Twitch
+reports > Export for OBS, copy twitch-analytics-data.js into the existing
+Voyager folder, and refresh the OBS dock. Browsers and OBS can store data
+separately. Do not clear saved reports or browser storage during this update.
+
+Latest stream means the latest recorded stream DAY; daily CSV exports cannot
+separate multiple streams on one day. Individual saved reports retain their
+original dates. Country/device/discovery graphics require a source report
+covering exactly the selected period; their percentages are not extrapolated.
+
+Verification: October 19/20 fixtures, 30/14/7/latest and individual windows,
+missing versus zero, source isolation, CSV uploads, external-response events,
+Sydney midnight rollover, desktop/mobile layout and existing page navigation.
+Live Streamer.bot/OBS data on your streaming PC was not available for this check.

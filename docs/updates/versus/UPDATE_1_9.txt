@@ -1,0 +1,56 @@
+ARCHIVED VERSION GUIDE — superseded by the v2.0 points repair.
+Follow VERSUS_POINTS_REPAIR.txt (main folder) or UPDATE_2_0.txt (game folder).
+The current rewards action must be Voyager Versus Rewards v2.0.
+
+VOYAGER VERSUS — 3D FLEET UPDATE v1.9.0
+
+WHAT CHANGED
+All three ships are now real-time 3D models with detailed armour, metallic
+surface shading, reflective cockpit glass, panel seams, engine nozzles and
+animated exhaust. Includes smooth flight, banking, weapon recoil and eased
+barrel rolls. The battle arena, challenger screen and ship hangar share the
+same models. The OBS background remains transparent.
+
+INSTALL ON YOUR STREAMING PC
+1. Stop the Voyager launcher by closing its terminal window.
+2. Extract the downloaded MDA009_Voyager_Giveaway_Studio.zip.
+3. Open the extracted Voyager_Giveaway/Voyager_Versus folder. Copy its CONTENTS
+   into your EXISTING Voyager_Versus folder and allow matching program files
+   to be replaced. Copy the full dist folder, including vendor and ships.
+   KEEP your existing local/data folder; do not delete or replace it.
+   This preserves rankings, cooldowns, payout history and connection settings.
+   For a standalone install, copy into your existing Voyager-Versus folder.
+   The updated standalone package is also at dist/Voyager-Versus.zip.
+4. Start your normal START-VOYAGER.bat once. Reload Voyager Control and Versus.
+5. OBS: right-click the Versus Browser Source, open Properties, then use
+   Refresh cache of current page. Keep the same live URL:
+   http://127.0.0.1:8740/?overlay=1&hideIdle=1
+   Use 1920 x 1080, with Local file unchecked and custom frame rate 60 FPS.
+6. In Voyager Versus, check that '3D ships ready' appears near the top, open
+   Ship hangar to inspect the three designs, then launch a demo. Training
+   pilots do not affect real points, rankings or the global cooldown.
+
+STREAMER.BOT
+If Voyager Versus Rewards v1.8 is already installed and working, there is
+nothing to compile or rename for this visual update. Keep that action.
+The global cooldown is still 45 minutes, the winner receives 50 points, and
+runner-up receives 0 points. An open call still accepts its challenger at once.
+If you have not installed the preceding rules update, follow UPDATE_1_8.txt
+in the game folder first.
+
+IF 3D DOES NOT APPEAR
+Check that dist/vendor, dist/ships and the new .mjs files were copied, and
+refresh the Browser Source cache. Use a current hardware-accelerated browser
+or OBS build supporting WebGL 2. The control panel explicitly reports
+'Compatibility ships' when WebGL is unavailable; it uses rendered ship images
+so the arena remains usable. Graphics automatically return after a recovered
+WebGL context. No public CDN or additional npm install is needed.
+
+If animation is slow, set the browser source to 1920 x 1080 and try:
+http://127.0.0.1:8740/?overlay=1&hideIdle=1&quality=low
+This lowers the internal 3D resolution while retaining the transparent overlay.
+Actual frame rate depends on your GPU and streaming workload.
+
+Verification: 56 game/host/motion tests, browser rendering checks, pause/resume,
+context recovery, and transparent output. Your actual OBS GPU setup still
+needs the demo check in step 6.

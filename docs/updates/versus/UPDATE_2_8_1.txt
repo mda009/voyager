@@ -1,0 +1,35 @@
+VOYAGER VERSUS v2.8.1 - UPRIGHT CHALLENGER SHIP
+24 October 2026
+
+INSTALL INTO YOUR EXISTING VOYAGER GIVEAWAY FOLDER
+1. Stop the Voyager launcher using Ctrl+C in its terminal window.
+2. Extract this ZIP. Open its Voyager_Giveaway folder and copy the
+   Voyager_Versus folder into your existing Voyager_Giveaway folder.
+   Merge the folders and replace the supplied files when Windows asks.
+   Do not delete your existing folder or its local/data subfolder.
+3. Run your usual START-VOYAGER.bat again and reconnect Streamer.bot.
+4. Refresh Voyager Control. The game badge should show V2.8.1.
+5. In OBS, right-click your main Voyager Versus battle Browser Source,
+   open Properties and click Refresh cache of current page.
+   Use the battle source, not the separate versuscall readiness alert.
+6. To inspect the ships without affecting live play, use Open training
+   preview, then Launch training demo in the separate preview window.
+
+WHAT CHANGED
+The challenger now turns around the model's upright axis to face left,
+instead of rotating the entire ship upside down in the image plane.
+This applies to the Gladius, Paladin and Sabre. Compatibility artwork
+flips horizontally so its top remains at the top. Gun and missile mounts
+follow the corrected 3D transform. Dodge rolls still return to upright.
+Cache versions are updated so OBS loads the corrected renderer.
+The embedded standalone game download is also updated to v2.8.1.
+
+This patch contains only changed files. Keep config.js and local/data.
+There is no Streamer.bot import or C# compilation for this visual fix.
+The v2.8.0 !versus command requirement, 45-minute cooldown, 50/0 points,
+ready chat/audio announcements and per-stream entry limits are retained.
+
+VALIDATION
+100 automated checks passed; one full-dashboard-only check is not
+applicable to the standalone game. Actual WebGL meshes and the fallback
+artwork were checked in Chromium. Your Windows OBS setup was not accessed.

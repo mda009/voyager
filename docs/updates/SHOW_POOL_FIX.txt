@@ -1,0 +1,43 @@
+VOYAGER SHOW POOL FIX 2.1.1 — 25 OCTOBER 2026
+
+This repairs the live entrant panel introduced by the giveaway sequence update.
+The overlay was showing the panel frame without forwarding the live pool data.
+It now sends the saved state on every update and again when the panel loads.
+
+INSTALL — KEEP YOUR CURRENT GIVEAWAY
+
+1. Extract this ZIP. Copy the CONTENTS of Voyager_Giveaway into your existing
+   Voyager_Giveaway folder and replace matching files. Keep your config.js.
+   Do not delete the existing folder or make another folder inside it.
+2. In OBS, open Properties for your EXISTING giveaway Browser Source and click
+   Refresh cache of current page. Its path remains Voyager_Giveaway_Overlay.html.
+   If you use a local server, keep the existing URL ending in that filename.
+3. Click Show pool in Giveaway Control. Open entries can stay open; you do not
+   need to lock, draw, clear entrants, or start a new giveaway.
+
+No Streamer.bot code change or recompilation is required for this fix if the
+previous sequence update is installed. Your 30 current entrants and saved
+giveaway remain in Streamer.bot. Existing wheel effects, timing, winner
+selection, claim timer and congratulations are unchanged.
+
+The compact panel appears on the right, with five rows and continuous scrolling.
+It shows the title, Open/Locked/Drawn/Claimed status, names, platform icons,
+available avatars, and tier labels for member pools. Open member previews work
+before the pool is locked. The embedded panel uses the overlay's connection;
+it does not open a second connection or submit any giveaway commands.
+
+For a source pointed directly at Voyager_Entrant_Panel.html, refresh that source
+too. This page can also read the existing connection when used on its own.
+The main Voyager_Giveaway_Overlay.html source is required for the full wheel
+and winner animation. Leave the old separate wheel source disabled.
+
+FILES REPAIRED/ADDED
+Voyager_Giveaway_Overlay.html
+giveaway-sequence-overlay.js
+Voyager_Entrant_Panel.html
+giveaway-pool-panel.js
+giveaway-pool-panel.css
+
+Verified locally with an open 30-person pool, live additions, all three platform
+labels, scrolling, Hide/Show, locked pools, open tier previews, child-frame
+refresh, direct panel use, and the existing countdown/wheel/claim sequence.

@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="voyager-feed" content="feed.json">
+<title>Voyager · Giveaways and community</title>
+<meta name="description" content="Live giveaways, winners, community goals and leaderboards for the Voyager community.">
+<meta name="theme-color" content="#070d16">
+<link rel="icon" href="assets/icon.png" type="image/png">
+<style>
+@font-face{font-family:Rajdhani;src:url(assets/Rajdhani-600.ttf) format('truetype');font-weight:600;font-display:swap}
+@font-face{font-family:Rajdhani;src:url(assets/Rajdhani-700.ttf) format('truetype');font-weight:700;font-display:swap}
+:root{
+ --bg:#070d16;--panel:#0e1a2a;--panel-2:#122238;--line:#24384f;--line-strong:#35557a;
+ --text:#e8f1fb;--muted:#9db1c8;--faint:#6f849b;
+ --cyan:#00d8ff;--blue:#4169e1;--green:#3fd08a;--amber:#f2b84b;--rose:#ff709b;--violet:#b9a8ff;
+ --twitch:#a970ff;--youtube:#ff4e45;--kick:#53fc18;
+ --display:Rajdhani,'Segoe UI',system-ui,sans-serif;--body:'Segoe UI',system-ui,-apple-system,Roboto,sans-serif;
+ color-scheme:dark}
+*{box-sizing:border-box}
+html{background:var(--bg);-webkit-text-size-adjust:100%}
+body{margin:0;background:radial-gradient(ellipse 90% 40% at 50% -5%,#1a3b6a66,transparent 70%),var(--bg);color:var(--text);font:16px/1.55 var(--body);min-height:100vh}
+a{color:#92d0ff}
+.wrap{max-width:1080px;margin:0 auto;padding-top:max(20px,env(safe-area-inset-top,0px));padding-bottom:64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header.top{display:flex;align-items:center;gap:14px;padding:6px 0 18px}
+header.top img{width:52px;height:52px;object-fit:contain;filter:drop-shadow(0 0 10px #00d8ff40)}
+.brandname{font:700 22px/1 var(--display);letter-spacing:4px}
+.brandsub{font:600 11px/1.6 var(--display);letter-spacing:2.4px;color:#8abbd8;text-transform:uppercase}
+.hero h1{font:700 clamp(34px,7vw,54px)/1.02 var(--display);margin:8px 0 10px;letter-spacing:.3px}
+.hero p{color:var(--muted);margin:0 0 16px;max-width:680px;font-size:17px}
+.status{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:6px 12px 6px 10px;font-size:13px;color:var(--muted)}
+.status i{width:9px;height:9px;border-radius:50%;background:var(--faint)}
+.status[data-state=live] i{background:var(--green);box-shadow:0 0 0 0 #3fd08a88;animation:ping 2s infinite}
+.status[data-state=stale] i{background:var(--amber)}
+@keyframes ping{70%{box-shadow:0 0 0 8px #3fd08a00}100%{box-shadow:0 0 0 0 #3fd08a00}}
+.links{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.links a{display:inline-flex;align-items:center;gap:8px;text-decoration:none;color:var(--text);border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:8px 12px;font-weight:600;font-size:14px}
+.links a:hover{border-color:var(--line-strong)}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex:none}
+.dot.twitch{background:var(--twitch)}.dot.youtube{background:var(--youtube)}.dot.kick{background:var(--kick)}.dot.discord{background:#7289ff}.dot.website{background:var(--cyan)}
+nav.jump{position:sticky;top:0;z-index:5;margin:22px -16px 0;padding:10px 16px;background:#070d16e6;backdrop-filter:blur(8px);border-bottom:1px solid #1a2a3d;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
+nav.jump::-webkit-scrollbar{display:none}
+nav.jump a{flex:none;text-decoration:none;color:var(--muted);font:700 14px/1 var(--display);letter-spacing:1.2px;text-transform:uppercase;padding:8px 12px;border-radius:8px}
+nav.jump a:hover,nav.jump a:focus-visible{color:var(--text);background:var(--panel)}
+section{scroll-margin-top:64px;margin-top:34px}
+h2{font:700 26px/1.1 var(--display);letter-spacing:.6px;margin:0 0 4px}
+.lede{color:var(--muted);margin:0 0 16px;font-size:15px}
+.banner{margin-top:18px;border:1px solid #6b4f1c;background:#2a200d99;color:#f3dcae;border-radius:12px;padding:12px 14px;font-size:14px}
+.grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
+.card{border:1px solid var(--line);background:linear-gradient(170deg,var(--panel-2),var(--panel) 55%);border-radius:14px;padding:18px}
+.gw-top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}
+.kind{font:700 12px/1 var(--display);letter-spacing:1.6px;text-transform:uppercase;color:#8abbd8}
+.badge{font:700 12px/1 var(--body);border-radius:999px;padding:5px 10px;white-space:nowrap;background:#1d2c40;color:var(--muted)}
+.badge.s-open{background:#103a28;color:#7ff0b5}.badge.s-drawing{background:#3d2f12;color:#ffd27a}.badge.s-winner,.badge.s-ended{background:#2d1f4d;color:#d9ccff}.badge.s-paused{background:#2a2f3a;color:#c9d3df}
+.gw h3{font:700 22px/1.15 var(--display);margin:0 0 6px;overflow-wrap:anywhere}
+.gw .who{color:var(--muted);font-size:14px;margin:0 0 14px}
+.enter{display:flex;align-items:center;gap:10px;border:1px dashed #2f6b52;background:#0b2a1f;border-radius:10px;padding:10px 12px;margin-bottom:12px}
+.enter{flex-wrap:wrap}
+.enter span{color:#a8e8c8;font-size:13px;white-space:nowrap}
+.enter code{font:700 20px/1 ui-monospace,Consolas,monospace;color:#eafff4;letter-spacing:.5px}
+.enter button{margin-left:auto;font:600 13px/1 var(--body);background:#173f2f;color:#c9f5df;border:1px solid #2f6b52;border-radius:8px;padding:8px 10px;cursor:pointer}
+.enter button:focus-visible,.tabs button:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+.stats{display:flex;flex-wrap:wrap;gap:8px 18px;color:var(--muted);font-size:14px}
+.stats b{color:var(--text);font-variant-numeric:tabular-nums}
+.winner{margin-top:12px;border-top:1px solid var(--line);padding-top:12px;display:flex;align-items:center;gap:10px}
+.winner small{display:block;color:var(--faint);font-size:12px;letter-spacing:1px;text-transform:uppercase}
+.winner strong{font:700 22px/1.1 var(--display);overflow-wrap:anywhere}
+.empty{border:1px dashed var(--line);border-radius:14px;padding:22px;color:var(--muted);text-align:center}
+.goal{margin-bottom:14px}
+.goal:last-child{margin-bottom:0}
+.goal-head{display:flex;justify-content:space-between;gap:10px;font-size:14px;margin-bottom:6px}
+.goal-head b{font:700 17px/1.2 var(--display);letter-spacing:.4px}
+.goal-head span{color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.bar{height:12px;border-radius:999px;background:#0a1421;border:1px solid var(--line);overflow:hidden}
+.bar i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--blue),var(--cyan));transition:width .6s ease}
+.goal.silver .bar i{background:linear-gradient(90deg,#7f93a8,#e3edf7)}.goal.gold .bar i{background:linear-gradient(90deg,#b8862b,#f2cd73)}.goal.platinum .bar i{background:linear-gradient(90deg,#7b6fd6,#c6baff)}
+.goal.met .goal-head span{color:#7ff0b5}
+.two{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+ol.rows{list-style:none;margin:0;padding:0}
+ol.rows li{display:grid;grid-template-columns:34px 1fr auto;align-items:center;gap:10px;padding:10px 4px;border-top:1px solid #1b2b3f}
+ol.rows li:first-child{border-top:0}
+.rank{font:700 18px/1 var(--display);color:var(--faint);text-align:center}
+li:nth-child(1) .rank{color:#f2cd73}li:nth-child(2) .rank{color:#d4dfeb}li:nth-child(3) .rank{color:#e3a36c}
+.name{display:flex;align-items:center;gap:8px;min-width:0}
+.name span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.value{font-variant-numeric:tabular-nums;font-weight:700;text-align:right}
+.value small{display:block;color:var(--faint);font-weight:400;font-size:12px}
+.tabs{display:flex;gap:6px;margin-bottom:10px}
+.tabs button{font:700 14px/1 var(--display);letter-spacing:1px;text-transform:uppercase;background:transparent;color:var(--muted);border:1px solid var(--line);border-radius:8px;padding:9px 12px;cursor:pointer}
+.tabs button[aria-selected=true]{background:#17304f;color:var(--text);border-color:var(--line-strong)}
+.when{color:var(--faint);font-size:13px;white-space:nowrap}
+.versus-state{font:700 30px/1.05 var(--display);margin:4px 0 6px}
+.versus-state.ready{color:#7ff0b5}.versus-state.cooldown{color:#ffd27a}.versus-state.live{color:var(--rose)}
+.tiers{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0 4px}
+.tier{border:1px solid var(--line);border-left:4px solid var(--c,#59baff);background:var(--panel);border-radius:10px;padding:10px 14px;min-width:150px;flex:1 1 150px}
+.tier b{font:700 18px/1.1 var(--display);letter-spacing:.6px}
+.tier p{margin:4px 0 0;color:var(--muted);font-size:14px}
+table{width:100%;border-collapse:collapse;font-size:15px}
+td{padding:11px 8px;border-top:1px solid #1b2b3f;vertical-align:top}
+td:first-child{white-space:nowrap;width:1%}
+td code{font:700 15px/1.3 ui-monospace,Consolas,monospace;color:#dcecff;background:#15263b;border-radius:6px;padding:3px 7px}
+td:last-child{color:var(--muted)}
+footer{margin-top:48px;color:var(--faint);font-size:13px;border-top:1px solid #1a2a3d;padding-top:16px}
+[hidden]{display:none!important}
+/* Embedded in another site (e.g. a Fourthwall page via ?embed=1): that page supplies the header. */
+.embed body{min-height:0;background:var(--bg)}
+.embed .wrap{padding-top:16px;padding-bottom:24px}
+.embed header.top,.embed .hero h1,.embed nav.jump,.embed footer p:last-child{display:none}
+.embed .hero p{display:none}
+.embed section{margin-top:26px}
+.embed .open-full{display:inline-flex}
+.open-full{display:none;margin-left:8px;font-size:13px}
+@media (max-width:520px){.grid,.two{grid-template-columns:1fr}.card{padding:16px}.enter code{font-size:18px}h2{font-size:24px}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+ <header class="top"><img src="assets/voyager.png" alt="" width="52" height="52"><div><div class="brandname" id="channel">VOYAGER</div><div class="brandsub">Voyager community</div></div></header>
+ <div class="hero">
+  <h1>Giveaways, goals and leaderboards</h1>
+  <p id="tagline">Everything happening in the Voyager community, live from the stream.</p>
+  <span class="status" id="status" data-state="loading" role="status"><i></i><span>Connecting…</span></span><a class="open-full" id="open-full" href="./" target="_blank" rel="noopener">Open full page ↗</a>
+  <div class="links" id="links"></div>
+  <div class="banner" id="offline" hidden></div>
+ </div>
+ <nav class="jump" aria-label="Sections" id="jump"></nav>
+
+ <section id="giveaways" aria-labelledby="h-giveaways">
+  <h2 id="h-giveaways">Giveaways</h2><p class="lede">Join from chat while the stream is live. Winners are announced on stream.</p>
+  <div class="grid" id="giveaway-list"></div>
+ </section>
+
+ <section id="goals" aria-labelledby="h-goals" hidden>
+  <h2 id="h-goals">Community goals</h2><p class="lede">Voyager points pooled by the community toward the next giveaways.</p>
+  <div class="card" id="goal-list"></div>
+ </section>
+
+ <section id="winners" aria-labelledby="h-winners" hidden>
+  <h2 id="h-winners">Recent winners</h2><p class="lede">Congratulations to everyone who won.</p>
+  <div class="card"><ol class="rows" id="winner-list"></ol></div>
+ </section>
+
+ <section id="leaderboards" aria-labelledby="h-leaders" hidden>
+  <h2 id="h-leaders">Leaderboards</h2><p class="lede" id="leader-lede">Top of the Voyager community.</p>
+  <div class="two">
+   <div class="card">
+    <div class="tabs" role="tablist" id="tabs"></div>
+    <ol class="rows" id="leader-list" role="tabpanel"></ol>
+   </div>
+   <div class="card" id="versus" hidden>
+    <span class="kind">Voyager Versus</span>
+    <div class="versus-state" id="versus-state"></div>
+    <p class="lede" id="versus-detail" style="margin:0 0 12px"></p>
+    <div class="enter" id="versus-enter"><span>Type in Twitch chat</span><code id="versus-cmd"></code><button type="button" data-copy="">Copy</button></div>
+    <p class="lede" style="margin:0">Two viewers each type the command to start a battle. The winning pilot earns Voyager points.</p>
+   </div>
+  </div>
+ </section>
+
+ <section id="program" aria-labelledby="h-program" hidden>
+  <h2 id="h-program">How Voyager works</h2><p class="lede" id="program-intro"></p>
+  <div class="tiers" id="tier-list"></div>
+  <div class="card" id="command-card" style="margin-top:14px"><table><tbody id="command-list"></tbody></table></div>
+ </section>
+
+ <footer><p id="updated">Updates every few minutes while the stream tools are running.</p><p>Voyager community site. Giveaway entry happens in stream chat only; this site never asks for passwords or payment.</p></footer>
+</div>
+<script>
+(()=>{'use strict';
+// ?embed=1: shown inside another site. Report our height so the host page can size its frame.
+const EMBED=new URLSearchParams(location.search).get('embed')==='1'&&window.parent!==window;
+if(EMBED){
+ document.documentElement.classList.add('embed');
+ // Measure the content, not the document: the document is never shorter than the frame, so it could only grow.
+ let last=0;const report=()=>{const w=document.querySelector('.wrap');const h=Math.ceil(w.getBoundingClientRect().bottom+window.scrollY);if(Math.abs(h-last)>2){last=h;try{window.parent.postMessage({type:'voyager:height',height:h},'*');}catch{}}};
+ new ResizeObserver(report).observe(document.querySelector('.wrap'));window.addEventListener('load',report);setInterval(report,2000);
+}
+const FEED=document.querySelector('meta[name=voyager-feed]').content||'feed.json';
+const $=id=>document.getElementById(id);
+const el=(tag,cls,text)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(text!==undefined&&text!==null)e.textContent=String(text);return e;};
+const PLATFORM={twitch:'Twitch',youtube:'YouTube',kick:'Kick'};
+const TIER_COLOUR={blue:'#59baff',silver:'#d4dfeb',gold:'#f2cd73',platinum:'#c6baff',vip:'#ff709b',custom:'#00d8ff'};
+const fmt=n=>Number(n||0).toLocaleString();
+const STALE_MS=15*60*1000;
+let feed=null,lastOk=0,tab='points';
+
+function ago(t){const s=Math.max(0,Math.round((Date.now()-t)/1000));if(s<60)return 'just now';const m=Math.round(s/60);if(m<60)return m+' min ago';const h=Math.round(m/60);if(h<48)return h+' hour'+(h===1?'':'s')+' ago';return new Date(t).toLocaleDateString(undefined,{day:'numeric',month:'short'});}
+function left(t){const s=Math.max(0,Math.round((t-Date.now())/1000));if(s<=0)return 'closing now';const d=Math.floor(s/86400),h=Math.floor(s%86400/3600),m=Math.floor(s%3600/60);return d?d+'d '+h+'h left':h?h+'h '+m+'m left':m?m+'m '+(s%60)+'s left':s+'s left';}
+function platformTag(p){const w=el('span','name');if(PLATFORM[p]){const d=el('i','dot '+p);d.setAttribute('aria-hidden','true');w.append(d);}return w;}
+function copyButton(btn,text){btn.dataset.copy=text;btn.onclick=async()=>{try{await navigator.clipboard.writeText(text);btn.textContent='Copied';setTimeout(()=>btn.textContent='Copy',1500);}catch{btn.textContent=text;}};}
+function fresh(){return feed&&feed.online&&Date.now()-feed.generatedAt<STALE_MS;}
+
+function renderHeader(){
+ $('channel').textContent=(feed.channel?.name||'Voyager').toUpperCase();
+ if(feed.channel?.tagline)$('tagline').textContent=feed.channel.tagline;
+ document.title=(feed.channel?.name||'Voyager')+' · Giveaways and community';
+ const links=$('links');links.textContent='';
+ const labels={twitch:'Twitch',youtube:'YouTube',kick:'Kick',discord:'Discord',website:'Website'};
+ for(const [k,url] of Object.entries(feed.channel?.links||{})){if(!/^https:\/\//.test(url))continue;const a=el('a');a.href=url;a.rel='noopener noreferrer';a.target='_blank';const d=el('i','dot '+k);d.setAttribute('aria-hidden','true');a.append(d,labels[k]||k);links.append(a);}
+ const st=$('status'),txt=st.querySelector('span'),off=$('offline');
+ if(fresh()){st.dataset.state='live';txt.textContent='Live info · updated '+ago(feed.generatedAt);off.hidden=true;}
+ else{st.dataset.state='stale';txt.textContent='Last updated '+ago(feed.generatedAt);off.hidden=false;off.textContent='The stream tools are offline right now, so this is the latest information we have. Giveaways open and close during the stream; check back when the stream is live.';}
+}
+function renderGiveaways(){
+ const box=$('giveaway-list');box.textContent='';
+ const list=(feed.giveaways||[]);
+ $('giveaways').hidden=feed.sections?.giveaways===false;
+ if(!list.length){box.append(el('div','empty','No giveaway is running right now. Follow the stream so you catch the next one.'));return;}
+ const live=fresh();
+ for(const g of list){
+  const c=el('article','card gw');
+  const top=el('div','gw-top');
+  top.append(el('span','kind',{impromptu:'Chat giveaway',members:'Members giveaway',tickets:'Ticket giveaway'}[g.kind]||'Giveaway'));
+  const status=live?g.status:(g.status==='open'?'closed':g.status);
+  const label=live?g.label:(g.status==='open'?'Open at last update':g.label);
+  top.append(el('span','badge s-'+status,label||status));c.append(top);
+  c.append(el('h3','',g.title));
+  if(g.eligibility)c.append(el('p','who',g.eligibility));
+  if(g.enter&&live&&g.status==='open'){const e=el('div','enter');e.append(el('span','',g.kind==='tickets'?'Join in chat':'Enter in chat'),el('code','',g.enter));const b=el('button','','Copy');b.type='button';copyButton(b,g.enter);e.append(b);c.append(e);}
+  const s=el('div','stats');
+  const stat=(label,value)=>{const p=el('span');p.append(el('b','',value),' '+label);s.append(p);};
+  stat(g.entrants===1?'entrant':'entrants',fmt(g.entrants));
+  if(g.kind==='tickets'&&g.tickets!==null)stat('tickets in the pool',fmt(g.tickets));
+  if(g.closesAt&&['open','paused'].includes(g.status)){const p=el('span','',left(g.closesAt));p.dataset.closes=g.closesAt;s.append(p);}
+  c.append(s);
+  if(g.status==='drawing')c.append(el('p','who','A winner is being drawn on stream. Tune in to see who it is!'));
+  if(g.winner){const w=el('div','winner');const t=el('div');t.append(el('small','','Winner'),el('strong','',g.winner.name));w.append(t);if(PLATFORM[g.winner.platform])w.append(el('span','badge',PLATFORM[g.winner.platform]));c.append(w);}
+  box.append(c);
+ }
+}
+function renderGoals(){
+ const goals=feed.goals||[],box=$('goal-list');$('goals').hidden=!goals.length;box.textContent='';
+ for(const g of goals){
+  const pct=g.target?Math.min(100,g.points/g.target*100):0,met=g.points>=g.target;
+  const row=el('div','goal '+g.key+(met?' met':''));const head=el('div','goal-head');
+  head.append(el('b','',g.name),el('span','',met?'Goal reached!':fmt(g.points)+' / '+fmt(g.target)+' pts'));
+  const bar=el('div','bar');bar.setAttribute('role','progressbar');bar.setAttribute('aria-label',g.name);bar.setAttribute('aria-valuemin','0');bar.setAttribute('aria-valuemax',String(g.target));bar.setAttribute('aria-valuenow',String(Math.min(g.points,g.target)));
+  const fill=el('i');fill.style.width=(met?100:Math.min(99.5,pct)).toFixed(1)+'%';bar.append(fill);
+  row.append(head,bar);box.append(row);
+ }
+}
+function renderWinners(){
+ const w=feed.winners||[],box=$('winner-list');$('winners').hidden=!w.length;box.textContent='';
+ for(const x of w){const li=el('li');const n=platformTag(x.platform);n.append(el('span','',x.name));const icon=el('span','rank','★');const info=el('div');info.append(n,el('div','when',x.title));li.append(icon,info,el('span','when',ago(x.at)));box.append(li);}
+}
+function renderLeaders(){
+ const boards={points:feed.leaderboards?.points||[],pilots:feed.leaderboards?.pilots||[]};
+ const names={points:'Voyager points',pilots:'Versus pilots'};
+ const available=Object.keys(boards).filter(k=>boards[k].length);
+ const v=feed.versus;
+ $('leaderboards').hidden=!available.length&&!v;
+ const tabs=$('tabs');tabs.textContent='';
+ if(!available.includes(tab))tab=available[0]||'points';
+ for(const k of available){const b=el('button','',names[k]);b.type='button';b.setAttribute('role','tab');b.setAttribute('aria-selected',String(k===tab));b.onclick=()=>{tab=k;renderLeaders();};tabs.append(b);}
+ tabs.parentElement.hidden=!available.length;
+ const list=$('leader-list');list.textContent='';
+ for(const r of boards[tab]||[]){
+  const li=el('li');const n=platformTag(r.platform);n.append(el('span','',r.name));
+  const val=el('span','value');
+  if(tab==='points'){val.append(fmt(r.value),el('small','','points'));}
+  else{val.append(fmt(r.wins)+' W',el('small','',r.losses+' L · '+r.battles+' battles'));}
+  li.append(el('span','rank',r.rank),n,val);list.append(li);
+ }
+ const card=$('versus');card.hidden=!v;
+ if(v){
+  const st=$('versus-state'),d=$('versus-detail');st.className='versus-state '+v.status;
+  const live=fresh();
+  if(!live||v.status==='offline'){st.textContent='Offline';d.textContent='Battles run during the stream.';}
+  else if(v.status==='cooldown'&&v.cooldownUntil){st.textContent='Recharging';d.dataset.until=v.cooldownUntil;d.textContent='Next battle in '+left(v.cooldownUntil).replace(' left','');}
+  else if(v.status==='live'){st.textContent='Battle in progress';d.textContent='Watch the stream to see who wins.';}
+  else{st.textContent='Ready for battle';d.textContent='The arena is open. Start a battle from chat.';}
+  if(v.status!=='cooldown')delete d.dataset.until;
+  $('versus-cmd').textContent=v.command;copyButton($('versus-enter').querySelector('button'),v.command);
+  $('versus-enter').hidden=!(live&&v.status==='ready');
+ }
+ $('leader-lede').textContent=v?.winnerPoints?'Top of the Voyager community. Voyager Versus winners earn '+v.winnerPoints+' points.':'Top of the Voyager community.';
+}
+function renderProgram(){
+ const p=feed.program;$('program').hidden=!p;if(!p)return;
+ $('program-intro').textContent=p.intro||'';
+ const tiers=$('tier-list');tiers.textContent='';
+ for(const t of p.tiers||[]){const d=el('div','tier');d.style.setProperty('--c',TIER_COLOUR[t.key]||TIER_COLOUR.custom);d.append(el('b','',t.name));if(t.description)d.append(el('p','',t.description));tiers.append(d);}
+ tiers.hidden=!(p.tiers||[]).length;
+ const body=$('command-list');body.textContent='';
+ for(const c of p.commands||[]){const tr=el('tr');const a=el('td');a.append(el('code','',c.command));tr.append(a,el('td','',c.description));body.append(tr);}
+ $('command-card').hidden=!(p.commands||[]).length;
+}
+function renderJump(){
+ const nav=$('jump');nav.textContent='';
+ for(const [id,label] of [['giveaways','Giveaways'],['goals','Goals'],['winners','Winners'],['leaderboards','Leaderboards'],['program','How it works']]){if($(id).hidden)continue;const a=el('a','',label);a.href='#'+id;nav.append(a);}
+}
+function render(){if(!feed)return;renderHeader();renderGiveaways();renderGoals();renderWinners();renderLeaders();renderProgram();renderJump();$('updated').textContent='Updated '+ago(feed.generatedAt)+'. This page refreshes itself every minute.';}
+
+async function load(){
+ try{
+  const r=await fetch(FEED+(FEED.includes('?')?'&':'?')+'t='+Math.floor(Date.now()/60000),{cache:'no-store'});
+  if(!r.ok)throw new Error('HTTP '+r.status);
+  const data=await r.json();
+  if(!data||data.schema!==1||!Number.isFinite(data.generatedAt))throw new Error('Unexpected data');
+  feed=data;lastOk=Date.now();render();
+ }catch(e){
+  if(!feed){const st=$('status');st.dataset.state='stale';st.querySelector('span').textContent='Live info unavailable right now';$('giveaway-list').replaceChildren(el('div','empty','We could not load the latest giveaway information. Please try again in a few minutes.'));}
+ }
+}
+// Countdowns tick every second without refetching.
+setInterval(()=>{
+ for(const n of document.querySelectorAll('[data-closes]'))n.textContent=left(Number(n.dataset.closes));
+ const d=$('versus-detail');if(d.dataset.until){const t=Number(d.dataset.until);if(t>Date.now())d.textContent='Next battle in '+left(t).replace(' left','');else{delete d.dataset.until;$('versus-state').textContent='Ready for battle';d.textContent='The arena is open. Start a battle from chat.';}}
+},1000);
+load();setInterval(load,60000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&Date.now()-lastOk>30000)load();});
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,74 @@
+VOYAGER VERSUS v2.2 — CINEMATIC FLEET UPDATE
+21 October 2026
+
+WHAT CHANGED
+- Interceptor: Gladius-inspired narrow fighter, swept wings, forward canards,
+  twin drives, three gun mounts and underwing missile racks.
+- Sentinel: Paladin-inspired armoured gunship, four-barrel dorsal battery,
+  separate engine sponsons and a raised crew cockpit.
+- Phantom: Sabre-inspired stealth fighter, swept diamond wings, canted fins,
+  four guns and twin engine housings.
+- Native 4096 x 4096 base-colour, normal and packed material maps with panel
+  seams, fasteners, scratches and differing surface roughness. All assets
+  are supplied locally. These are original inspired models and authored
+  PBR materials, not official Star Citizen exports or photographic scans.
+- Warm key light, cool rim light, soft shadows, reflective glass and metal,
+  reactive muzzle/impact lights, smooth banking/recoil/rolls, animated engine
+  exhaust and manoeuvring jets.
+- Gunfire starts at the modelled barrels. 3D missiles launch from racks,
+  accelerate along curved paths and leave a fading exhaust trail. Impacts
+  include shield ripples and sparks; destruction uses layered fire glows.
+- Updated transparent compatibility artwork for browsers without WebGL.
+
+INSTALL THIS GRAPHICS UPDATE
+1. Stop the Voyager launcher and close the game/control tab.
+2. Keep a backup of your current Voyager_Versus folder.
+3. Open the new package's Voyager_Giveaway folder. Copy ONLY its
+   Voyager_Versus folder into your existing Voyager_Giveaway folder.
+   Merge the folders and replace matching program files.
+   KEEP your existing Voyager_Versus/local/data folder and all its files.
+   Do not delete or replace the entire old game folder first.
+   This update contains no local/data files.
+4. Start your usual START-VOYAGER-CONTROL.bat or START-VOYAGER.bat again.
+5. Reload the Voyager Versus tab. Check V2.2.0 beside the title.
+6. In OBS, open the Voyager Versus Browser Source properties and choose
+   Refresh cache of current page. Reopen the properties if needed.
+7. Launch a demo and check motion, weapons and frame rate on your stream PC.
+
+No Streamer.bot C# recompilation is needed for this graphics update if your
+v2.0 reward action is already installed. The existing points and entry rules
+are retained: 50 Voyager points for a winner, 0 for runner-up, 45-minute
+cooldown, one initiator plus one challenger entry per Twitch account per stream.
+Existing reward setup/repair issues still require the v2.0 instructions.
+
+4K OBS SETUP
+In the game's Stream setup, choose OBS graphics quality and copy the resulting
+URL into your OBS Browser Source. Keep Local file unchecked.
+
+Ultra (default): 4096px maps; up to 3840px rendering width.
+http://127.0.0.1:8740/?overlay=1&hideIdle=1&quality=ultra
+For native 4K output, set source Width 3840 and Height 2160. Start at 30 FPS;
+try 60 FPS if the streaming GPU has sufficient headroom.
+
+Balanced: 2048px maps; 1920px rendering cap.
+http://127.0.0.1:8740/?overlay=1&hideIdle=1&quality=balanced
+Use a 1920 x 1080 source. Recommended if recording or gameplay already uses
+most of the GPU. This mode scales up if the OBS source is larger.
+
+Low: 1024px maps; 1280px rendering cap.
+http://127.0.0.1:8740/?overlay=1&hideIdle=1&quality=low
+
+Changing the quality selector changes the generated OBS URL. It does not
+change an already-open OBS source until you paste that URL there. To change
+the control page quality too, open http://127.0.0.1:8740/?quality=balanced
+(or quality=low). The embedded control defaults to Ultra.
+
+4K textures describe the material resolution. A 1920 x 1080 OBS source still
+outputs 1080p even with Ultra selected. Your OBS canvas/output resolution
+also determines the final stream resolution. The overlay stays transparent.
+
+CHECKS
+75 automated checks cover gameplay, payouts, role limits, host asset serving,
+flight and projectile timing. Browser WebGL rendering, actual texture sizes,
+transparent corners and graphics quality caps were checked locally.
+Streaming-PC OBS frame rate and live chat need a demo on your own hardware.

@@ -1,0 +1,14 @@
+{
+  "name": "voyager",
+  "version": "2.9.0",
+  "private": true,
+  "description": "Voyager Control, Voyager Versus and Streamer.bot actions for the MDA009 Voyager program",
+  "scripts": {
+    "test": "node --test --test-concurrency=1 \"Voyager_Versus/tests/*.test.mjs\" \"launcher-tests/*.test.mjs\" \"desktop/tests/*.test.mjs\" \"tools/*.test.mjs\"",
+    "release": "node tools/build-release.mjs",
+    "start": "node voyager-launcher.mjs --home"
+  },
+  "engines": {
+    "node": ">=22.4.0"
+  }
+}

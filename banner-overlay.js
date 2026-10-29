@@ -1,0 +1,6 @@
+(()=>{'use strict';const preview=new URLSearchParams(location.search).get('preview')==='1',renderer=new window.VoyagerBannerRenderer(document.getElementById('banner-stage'));let current=null,client=null;const key='VoyagerBannerOverlayCacheV1';
+function apply(raw,authoritative=false){const next=window.VoyagerBannerModel.state(raw);if(current&&!authoritative&&next.epoch===current.epoch&&next.revision<current.revision)return;const changed=!current||!window.VoyagerBannerModel.same(current.settings,next.settings);current=next;if(changed)renderer.render(next.settings);if(!preview)try{localStorage.setItem(key,JSON.stringify(next));}catch{}}
+if(preview){renderer.render(window.VOYAGER_BANNER_DEFAULTS);window.addEventListener('message',e=>{if(e.source!==window.parent||e.data?.type!=='voyager.banner.preview')return;try{renderer.render(e.data.settings);}catch{}});window.parent.postMessage({type:'voyager.banner.preview.ready'},'*');}
+else{try{const cached=localStorage.getItem(key);if(cached)apply(JSON.parse(cached),true);}catch{}client=new window.VoyagerBannerConnection({readOnly:true});client.addEventListener('banner',e=>{try{apply(e.detail.state,e.detail.authoritative);}catch{}});client.connect();}
+window.addEventListener('pagehide',()=>{renderer.destroy();client?.stop();});window.addEventListener('pageshow',e=>{if(e.persisted)location.reload();});
+})();

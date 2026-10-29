@@ -1,0 +1,31 @@
+SHIP GEOMETRY ATTRIBUTION
+Star Citizen ship designs and RSI holoviewer geometry: Cloud Imperium Games
+and its respective rights holders. All respective rights remain with them.
+Voyager is a fan-made stream overlay and is not an official CIG product.
+These public website-viewer meshes are not offered as full game assets.
+
+Local rendering adaptation: orientation, scale normalisation, duplicate-face
+cleanup, rebuilt normals, Voyager materials and engine/weapon effect mounts.
+Original CTM downloads are bundled unchanged. Retrieved 21 October 2026.
+
+Gladius
+ships/gladius.ctm
+https://robertsspaceindustries.com/media/oibvdxxco2narr/source/AEGIS-Gladius2.ctm
+SHA-256: ef7cde675e1a99c7e3ec23300963d7afb0f3e1471f3709a4a12c99373d311e2d
+
+Paladin
+ships/paladin.ctm
+https://media.robertsspaceindustries.com/0c0ww0zksw4gc/source.ctm
+SHA-256: 33982c256fdd036b3a3e43eecab3b03aa1b2eca8eea8633f8c9a0e9470acc93f
+
+Sabre
+ships/sabre.ctm
+https://robertsspaceindustries.com/media/u504isq8qo05fr/source/Citcon_concept.ctm
+SHA-256: 10bb9a410f6eb01f47e24c896c8852622afa0b4c7f35b1d179e9fd823b391ac7
+
+DECODERS
+CTM decoder: Copyright (c) 2011 Juan Mellado, MIT license retained in
+vendor/ctm.mjs. LZMA decoder and CTM integration sourced from Three.js r88:
+https://github.com/mrdoob/three.js/tree/r88/examples/js/loaders/ctm
+Three.js license: vendor/THREE-LICENSE.txt.
+Voyager-authored 4K PBR surface maps: materials/manifest.json.

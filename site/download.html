@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Download Voyager</title>
+<meta name="description" content="Voyager Control for the MDA009 Voyager program: giveaways, points, Voyager Versus and OBS overlays, driven by Streamer.bot.">
+<link rel="icon" href="assets/icon.png" type="image/png">
+<style>
+@font-face{font-family:Rajdhani;src:url(assets/Rajdhani-600.ttf) format('truetype');font-weight:600;font-display:swap}
+@font-face{font-family:Rajdhani;src:url(assets/Rajdhani-700.ttf) format('truetype');font-weight:700;font-display:swap}
+:root{--bg:#070d16;--panel:#0f1b2b;--line:#2a3d57;--text:#e6f0fb;--muted:#9fb2c9;--accent:#00d8ff;--blue:#4169e1;--btn:#91d0ff;--btn-text:#08182a;--display:Rajdhani,'Segoe UI',sans-serif;color-scheme:dark}
+*{box-sizing:border-box}
+html{background:var(--bg)}
+body{margin:0;background:radial-gradient(ellipse 80% 50% at 50% -10%,#1b3c6a55,transparent 70%),var(--bg);color:var(--text);font:16px/1.6 'Segoe UI',system-ui,-apple-system,sans-serif;min-height:100vh}
+main{max-width:920px;margin:0 auto;padding:56px 24px 72px}
+.brand{display:flex;align-items:center;gap:16px;margin-bottom:40px}
+.brand img{width:64px;height:64px;object-fit:contain;filter:drop-shadow(0 0 12px #00d8ff33)}
+.brand strong{display:block;font:700 26px/1 var(--display);letter-spacing:4px}
+.brand span{font:600 11px/1.6 var(--display);letter-spacing:2.6px;color:#8abbd8}
+h1{font:700 52px/1.02 var(--display);letter-spacing:.5px;margin:0 0 14px}
+.lead{font-size:18px;color:var(--muted);max-width:640px;margin:0 0 32px}
+.download{border:1px solid var(--line);border-top-color:var(--blue);background:linear-gradient(160deg,#122340,#0d1828 60%);border-radius:14px;padding:28px;display:grid;grid-template-columns:1fr auto;gap:20px;align-items:center}
+.download h2{margin:0 0 4px;font:700 24px/1.2 var(--display);letter-spacing:.5px}
+.meta{color:var(--muted);font-size:14px;margin:0}
+.button{display:inline-flex;align-items:center;gap:10px;background:var(--btn);color:var(--btn-text);font-weight:700;text-decoration:none;border-radius:10px;padding:14px 22px;white-space:nowrap}
+.button:hover{background:#b5e0ff}
+.button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.button[aria-disabled=true]{opacity:.55;pointer-events:none}
+.button svg{width:18px;height:18px}
+.secondary{display:flex;flex-wrap:wrap;gap:8px 22px;margin:16px 4px 0;font-size:14px}
+a{color:#92d0ff}
+.notice{margin:28px 0 0;padding:14px 18px;border-left:3px solid #f2b84b;background:#2a200d66;border-radius:0 10px 10px 0;color:#f3dcae;font-size:14px}
+h3{font:700 20px/1.2 var(--display);letter-spacing:.6px;margin:44px 0 12px;color:#f0f6ff}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.card{border:1px solid var(--line);background:var(--panel);border-radius:12px;padding:18px 20px}
+.card strong{display:block;margin-bottom:4px}
+.card p{margin:0;color:var(--muted);font-size:14px}
+ol{padding-left:22px;color:var(--muted)}li{margin:8px 0}li strong{color:var(--text)}
+.notes{border:1px solid var(--line);background:var(--panel);border-radius:12px;padding:6px 22px 14px;color:var(--muted);font-size:15px}
+.notes h4{color:var(--text);margin:18px 0 6px;font-size:15px}
+.notes code{background:#18283d;border-radius:4px;padding:1px 5px;color:#dcecff;font-size:.9em;overflow-wrap:anywhere}
+footer{margin-top:56px;color:#6f8299;font-size:13px}
+@media (max-width:640px){main{padding:36px 16px 56px}h1{font-size:38px}.download{grid-template-columns:1fr;padding:22px}.button{justify-content:center}}
+</style>
+</head>
+<body>
+<main>
+<div class="brand"><img src="assets/voyager.png" alt="" width="64" height="64"><div><strong>VOYAGER</strong><span>MDA009 / COMMUNITY OPERATIONS</span></div></div>
+<h1>Voyager Control for Windows</h1>
+<p class="lead">Giveaways, points and membership, Voyager Versus and your OBS overlays in one app. It runs alongside Streamer.bot and OBS on your streaming PC.</p>
+
+<section class="download" aria-labelledby="dl-title">
+ <div>
+  <h2 id="dl-title">Voyager <span id="version">for Windows</span></h2>
+  <p class="meta" id="meta">Finding the latest version…</p>
+ </div>
+ <a class="button" id="installer" href="https://github.com/__REPO__/releases/latest" aria-disabled="false">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M12 3v12m0 0-5-5m5 5 5-5M4 20h16" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  <span id="installer-label">Download</span>
+ </a>
+</section>
+<div class="secondary">
+ <a id="zip" href="https://github.com/__REPO__/releases/latest">Folder version (.zip, no installer)</a>
+ <a href="https://github.com/__REPO__/releases">All versions</a>
+</div>
+<p class="notice">Windows may show <strong>"Windows protected your PC"</strong> the first time, because the installer is not code-signed yet. Choose <strong>More info</strong>, then <strong>Run anyway</strong>.</p>
+
+<h3>Before you install</h3>
+<div class="grid">
+ <div class="card"><strong>Windows 10 or 11 (64-bit)</strong><p>Install it on the same PC that runs OBS.</p></div>
+ <div class="card"><strong>Streamer.bot</strong><p>Turn on its WebSocket server. A password is recommended.</p></div>
+ <div class="card"><strong>OBS Studio</strong><p>Overlays use <code>http://127.0.0.1:8740</code>, the same addresses as before.</p></div>
+</div>
+
+<h3>Install</h3>
+<ol>
+ <li><strong>Run the installer</strong> and choose where to put Voyager.</li>
+ <li>On first start, <strong>choose your existing Voyager folder</strong> to bring over rankings, rewards and <code>config.js</code>. Your old folder is not changed.</li>
+ <li>The <strong>System check</strong> opens. Fix anything red, then you are ready to stream.</li>
+ <li>Closing the window keeps Voyager running for OBS. Use the <strong>tray icon</strong> to reopen or quit it. Updates install automatically when you quit.</li>
+</ol>
+
+<h3>What's new</h3>
+<div class="notes" id="notes"><p>Loading release notes…</p></div>
+
+<footer>Voyager for the MDA009 Voyager program. Hosted on GitHub: <a href="https://github.com/__REPO__">__REPO__</a></footer>
+</main>
+<script>
+(()=>{'use strict';
+const repo='__REPO__',$=id=>document.getElementById(id);
+const size=b=>b>1048576?(b/1048576).toFixed(0)+' MB':Math.max(1,Math.round(b/1024))+' KB';
+const date=s=>new Date(s).toLocaleDateString(undefined,{day:'numeric',month:'long',year:'numeric'});
+// Release notes are shown as plain text with light formatting; nothing from GitHub is inserted as HTML.
+function renderNotes(md){
+ const box=$('notes');box.textContent='';let list=null;
+ const inline=(el,text)=>{for(const part of text.split(/(`[^`]+`|\*\*[^*]+\*\*)/)){if(!part)continue;
+  if(part.startsWith('`')&&part.endsWith('`'))el.append(Object.assign(document.createElement('code'),{textContent:part.slice(1,-1)}));
+  else if(part.startsWith('**')&&part.endsWith('**'))el.append(Object.assign(document.createElement('strong'),{textContent:part.slice(2,-2)}));
+  else el.append(part);}return el;};
+ for(const raw of md.split(/\r?\n/)){
+  const line=raw.trimEnd();
+  if(/^#{2,4}\s/.test(line)){list=null;box.append(inline(document.createElement('h4'),line.replace(/^#+\s*/,'')));}
+  else if(/^\s*([-*]|\d+\.)\s/.test(line)){if(!list){list=document.createElement(/^\s*\d/.test(line)?'ol':'ul');box.append(list);}list.append(inline(document.createElement('li'),line.replace(/^\s*([-*]|\d+\.)\s/,'')));}
+  else if(line.trim()&&line.trim()!=='---'){list=null;box.append(inline(document.createElement('p'),line));}
+  else list=null;
+ }
+}
+fetch('https://api.github.com/repos/'+repo+'/releases/latest',{headers:{Accept:'application/vnd.github+json'}})
+ .then(r=>{if(!r.ok)throw new Error(r.status===404?'No release has been published yet.':'GitHub returned '+r.status+'.');return r.json();})
+ .then(rel=>{
+  const exe=rel.assets.find(a=>/^Voyager-Setup-.*\.exe$/i.test(a.name)),zip=rel.assets.find(a=>/^Voyager_Giveaway-.*\.zip$/i.test(a.name));
+  const v=String(rel.tag_name||'').replace(/^v/,'');
+  $('version').textContent=v;document.title='Download Voyager '+v;
+  if(exe){$('installer').href=exe.browser_download_url;$('installer-label').textContent='Download for Windows';$('meta').textContent='Released '+date(rel.published_at)+' · '+size(exe.size)+' · Windows 10/11, 64-bit';}
+  else $('meta').textContent='Released '+date(rel.published_at)+'. The installer is not attached to this release; see all files on GitHub.';
+  if(zip){$('zip').href=zip.browser_download_url;$('zip').textContent='Folder version (.zip, '+size(zip.size)+')';}
+  renderNotes(rel.body||'');
+ })
+ .catch(e=>{$('meta').textContent=e.message+' The button opens the release page on GitHub.';$('notes').textContent='See the release page on GitHub for what is new.';});
+})();
+</script>
+</body>
+</html>

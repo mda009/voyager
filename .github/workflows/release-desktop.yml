@@ -1,0 +1,109 @@
+# Builds the Voyager Windows app on GitHub's Windows machines, self-tests it,
+# and publishes the installer and folder zip as a GitHub Release with a download page.
+#
+# Run it: Actions tab > "Desktop release" > Run workflow (publish = true),
+# or push a tag that matches desktop/package.json, e.g.  git tag v2.9.0 && git push --tags
+name: Desktop release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: 'Publish a GitHub Release (untick to only build and test)'
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: desktop-release
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: windows-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      published: ${{ steps.publish.outputs.published }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Read version
+        id: version
+        shell: bash
+        run: |
+          v=$(node -p "require('./desktop/package.json').version")
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+          if [[ "$GITHUB_REF" == refs/tags/v* && "$GITHUB_REF_NAME" != "v$v" ]]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match desktop/package.json version $v"; exit 1
+          fi
+
+      - name: Run all tests
+        run: npm test
+
+      - name: Build folder release zip
+        run: npm run release
+
+      - name: Install desktop build tools
+        working-directory: desktop
+        run: npm install --no-audit --no-fund
+
+      - name: Build Windows installer
+        working-directory: desktop
+        shell: bash
+        run: >
+          npx electron-builder --win nsis --x64 --publish never
+          -c.publish.provider=github
+          -c.publish.owner=${{ github.repository_owner }}
+          -c.publish.repo=${{ github.event.repository.name }}
+
+      - name: Self-test the built app
+        working-directory: desktop
+        run: node scripts/smoke.mjs release/win-unpacked/Voyager.exe
+
+      - name: Keep build files (downloadable from this run for 30 days)
+        uses: actions/upload-artifact@v4
+        with:
+          name: voyager-${{ steps.version.outputs.version }}
+          retention-days: 30
+          path: |
+            desktop/release/Voyager-Setup-*.exe
+            desktop/release/Voyager-Setup-*.exe.blockmap
+            desktop/release/latest.yml
+            dist-release/*.zip
+
+      - name: Publish GitHub Release
+        id: publish
+        if: startsWith(github.ref, 'refs/tags/v') || inputs.publish
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          v="${{ steps.version.outputs.version }}"
+          if gh release view "v$v" >/dev/null 2>&1; then
+            echo "::error::Release v$v already exists. Raise the version in desktop/package.json, Voyager_Versus/package.json and CHANGELOG.md, then run again."; exit 1
+          fi
+          node tools/release-notes.mjs "$v" > release-notes.md
+          gh release create "v$v" --target "$GITHUB_SHA" --title "Voyager $v" --notes-file release-notes.md \
+            desktop/release/Voyager-Setup-$v.exe \
+            desktop/release/Voyager-Setup-$v.exe.blockmap \
+            desktop/release/latest.yml \
+            dist-release/Voyager_Giveaway-$v.zip
+          echo "published=true" >> "$GITHUB_OUTPUT"
+
+  website:
+    needs: build
+    if: needs.build.outputs.published == 'true'
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/public-site.yml
+    secrets: inherit

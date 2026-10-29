@@ -1,0 +1,28 @@
+CURRENT DASHBOARD LAYOUT: Reporting controls have moved to Reporting. Install the current webpage files using DASHBOARD_PAGES_SETUP.html before following the feature-specific instructions below.
+
+VOYAGER — REPORTING WINDOWS
+
+INSTALL
+Follow REPORTING_FRESHNESS_UPDATE.txt for the current chart/reporting files,
+or DASHBOARD_PAGES_SETUP.html if the three dashboard pages are not installed.
+Keep your existing config.js and exported settings/data files. No new C# compile
+is required for this reporting update.
+
+USE
+Reporting → Daily stream performance → Reporting window.
+Previous 30 days is the default whenever Reporting opens. You can choose
+Previous 14 days, Previous 7 days, Latest stream, or any individual report.
+30/14/7 days are complete calendar days ending yesterday; exact dates and
+data coverage are shown. Uploading a CSV refreshes the selected window.
+
+Latest stream uses the latest reported day with streaming time above zero.
+Daily CSVs do not separate multiple streams on a day or a stream crossing
+midnight; the interface identifies this as a recorded stream day.
+
+Totals retain negative revenue, subscriptions and follower changes.
+Average viewers are weighted by streaming time; peak viewers use the peak.
+Unique viewers/chatters are not added across days. Cards show daily averages
+unless an exact whole-period source report supplies unique counts.
+Missing data stays unavailable, with coverage shown. Different currencies
+and time zones stay in separate report sets. The original reports are not
+modified by changing the reporting window.

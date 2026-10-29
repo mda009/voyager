@@ -1,0 +1,22 @@
+Voyager Control stream branding — 19 October 2026
+
+Original logo files supplied by MDA009, copied byte-for-byte:
+  voyager.png        <- ChatGPT Image Jul 10, 2026, 02_55_32 PM(1).png
+  mda009.png         <- shutterstock_2560007191_edited(1).png
+  unprofessionals.png <- Aviation(55)(1).png
+
+The supplied PNG files retain their original transparency and proportions.
+CSS image frames hide transparent margins without changing the source images.
+
+Design reference: supplied futuristic_ticker.html.
+Rajdhani typography, navy surfaces, royal blue #4169e1 and cyan #00d8ff.
+The reference ticker is not included as an active data source.
+
+Rajdhani Medium, SemiBold and Bold are included for offline use.
+Source stylesheet:
+  https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&display=swap
+Font binary source: fonts.gstatic.com/s/rajdhani/v17/
+License: SIL Open Font License 1.1, included in Rajdhani-OFL.txt.
+License source: https://github.com/google/fonts/tree/main/ofl/rajdhani
+
+Existing tier colours, member identity text, controls and data sources are retained.

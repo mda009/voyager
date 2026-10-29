@@ -1,0 +1,39 @@
+VOYAGER WHEEL EFFECTS 2.1 — 25 OCTOBER 2026
+
+For every impromptu, member-group/combined-tier, VIP and ticketed giveaway:
+- Subtle wheel rumble during the spin, easing out as it lands.
+- Blue, white and gold fireworks throughout the spin.
+- Detailed spacecraft with engine trails and weapons fire, colliding in bursts
+  of fire, sparks, debris and expanding shockwaves around the wheel.
+- GOOD LUCK in the wheel hub. No wheel countdown or elapsed-progress bar.
+
+The effects use the same saved spin time, including after an OBS refresh.
+They clear when the wheel lands so the existing winner announcement can play.
+The original countdown, buildup/GOOD LUCK, 30-second spin, saved winner,
+ticket weighting, 60-second claim timer, RE-ROLL and congratulations stay intact.
+The background remains transparent. Reduced-motion mode disables rumble and
+fast battle effects. The soundtrack is unchanged from sequence update 2.0.
+
+IF YOU INSTALLED THE PREVIOUS GIVEAWAY SEQUENCE UPDATE
+
+1. Extract this ZIP. Copy the contents of its Voyager_Giveaway folder INTO
+   your existing Voyager_Giveaway folder, replacing matching files.
+2. Refresh the cache/current page of the existing giveaway OBS browser source
+   and the shared leaderboard/ticket browser source. Reload the control previews.
+3. Keep the old separate wheel OBS source disabled. The wheel and its effects
+   play inside the existing giveaway source; no additional OBS source is needed.
+
+No Streamer.bot C# recompilation is required for these visual changes if you
+already have Giveaway Engine 8 and Ticket Giveaway 1.4 from sequence update 2.0.
+
+IF YOU HAVE NOT INSTALLED THE PREVIOUS SEQUENCE UPDATE
+
+This download includes it. Follow GIVEAWAY_SEQUENCE_SETUP.txt, including the
+two C# action replacements. Your existing config.js and saved data are retained.
+Do not delete or replace your entire existing Voyager_Giveaway folder.
+
+PREVIEW
+
+Open Voyager_Sequence_Preview.html. Choose a giveaway type and Play full
+sequence, or use Wheel spin to see the effects immediately. The preview uses
+fictional entrants and does not connect to Streamer.bot or draw real winners.

@@ -1,0 +1,60 @@
+ARCHIVED VERSION GUIDE — superseded by the v2.0 points repair.
+Follow VERSUS_POINTS_REPAIR.txt (main folder) or UPDATE_2_0.txt (game folder).
+The current rewards action must be Voyager Versus Rewards v2.0.
+
+VOYAGER VERSUS v1.8 — 45 MINUTES / 50 WINNER POINTS / 0 RUNNER-UP
+
+UPDATED RULES
+- One new live battle call every 45 minutes, globally across all viewers.
+- The second pilot can still join the currently open call immediately.
+- A completed live battle awards 50 Voyager points to the winner.
+- The runner-up receives 0 points; no runner-up payment is queued.
+- Draws, training, cancellations and pre-launch forfeits receive no rewards.
+
+UPDATE AN EXISTING VOYAGER CONTROL INSTALLATION
+1. Stop the running Voyager game launcher (Ctrl+C in its console).
+2. Extract this ZIP into a temporary folder. From Voyager_Giveaway, copy:
+     the Voyager_Versus subfolder (all program files)
+     Voyager_Versus.html
+     Voyager_Versus_Rewards.cs
+     VERSUS_SETUP.html
+     VERSUS_RULES_UPDATE.txt
+   into your existing Voyager_Giveaway folder, accepting file replacement.
+   KEEP your existing Voyager_Versus/local/data folder, including economy.json,
+   rankings.json and saved connection files. Keep config.js and your other
+   Voyager settings/data exports. Do not remove the existing working folder.
+3. In Streamer.bot, open your existing Voyager Versus Rewards v1.5 action
+   (or the earlier Voyager Versus Rewards action if that is what you use).
+   Open its Execute C# Code sub-action. Replace the WHOLE code with the content
+   of the updated Voyager_Versus_Rewards.cs, then click Compile and save.
+   Rename that action exactly:
+      Voyager Versus Rewards v1.8
+   Keep it enabled on its dedicated BLOCKING queue, with no chat trigger.
+   Update the existing action; do not leave duplicate enabled v1.8 actions.
+4. Start Voyager again using START-VOYAGER.bat or your existing Control button.
+   No launch-link setup is required again if you keep the same folder.
+5. Refresh Voyager Versus in Control and both OBS browser sources (battle and
+   cooldown timer) using Refresh cache of current page.
+
+This change DOES require the C# update in step 3. The new host only calls the
+v1.8 action; new points payments wait in the saved queue until it is available.
+The same action's availability chat message now states 50 / 0 and 45 minutes.
+
+An existing cooldown extends to 45 minutes measured from its ORIGINAL live
+call time, not 45 minutes from restarting. Reopening pages or restarting does
+not reset it again. The OBS timer uses that same saved deadline.
+Previously earned pending rewards retain their original recorded amounts;
+new battles use 50 / 0. Existing balances are not recalculated or deducted.
+Do not delete economy.json or payment receipts to retry rewards.
+
+For a standalone Versus installation, copy the program files from the nested
+Voyager_Versus folder while keeping your local/data, and use the identical
+code in dist/Voyager-Versus-Rewards.cs for step 3. The downloadable standalone
+Voyager-Versus.zip included in dist has also been updated.
+
+VERIFICATION
+Game/host checks cover the 45-minute limit, second-pilot joining, queue starts,
+restart persistence, migration from the 30-minute deadline, winner-only
+payments and duplicate protection. The C# script compiles in a stub harness
+and verifies +50 once with no zero-point write. Compile/save it in your actual
+Streamer.bot before starting live play; your streaming PC was not accessed.

@@ -1,0 +1,79 @@
+VOYAGER VERSUS v2.4 — TWITCH CHAT UPDATES
+21 October 2026
+
+WHAT VIEWERS SEE
+Ready: “Voyager Versus is ready! Type !versus to call for a challenger.”
+Initiator: “Voyager Versus | INITIATOR: @alpha. Challenger wanted! The next
+eligible viewer to type !versus joins the battle.”
+Challenger: “Voyager Versus | INITIATOR: @alpha | CHALLENGER: @bravo.
+Launch in 10 seconds! Use !fire, !missile, !shield and !dodge.”
+Result: “Voyager Versus | WINNER: @alpha defeats @bravo | Hull destroyed |
+25s | Winner hull: 42%. 50 Voyager points earned; credit pending.
+Runner-up: 0 points.”
+Payment: “Voyager Versus | Reward confirmed: @alpha +50 Voyager points
+credited for the win.”
+
+Names, countdown, duration, reason and hull percentage use the actual match.
+If the reward is already verified when the result posts, it says credited.
+An uncertain payment says credit needs review. The follow-up confirmation
+requires a verified payment receipt; it never changes the reward itself.
+Draws, host cancellations and forfeits before launch say no points awarded.
+Demo matches and simulated control-panel commands do not post match messages.
+The ready announcement still describes the real live arena's availability.
+
+INSTALL — EXISTING VOYAGER CONTROL
+1. Stop the Voyager launcher and back up your current Voyager_Giveaway folder.
+2. Extract Voyager_Versus_Chat_Update.zip. Open its Voyager_Giveaway folder
+   and copy the contents into your existing Voyager_Giveaway folder.
+   Merge folders and replace matching files. This is a patch for the current
+   installation; keep the rest of your files, config.js and local/data.
+3. In Streamer.bot > Actions, open your existing action named exactly:
+       Voyager Versus Rewards v2.0
+   Keep this action name. v2.4 is the game/chat update version; the existing
+   reward protocol and action name stay v2.0 for payment compatibility.
+4. Open its Execute C# Code sub-action. Replace ALL code with the contents of:
+       Voyager_Giveaway/Voyager_Versus_Rewards.cs
+   Compile and save. An identical copy is at:
+       Voyager_Versus/dist/Voyager-Versus-Rewards.cs
+   Use one enabled rewards action on its existing dedicated blocking queue.
+   Do not add a second rewards action or a !versus command trigger.
+5. Start your usual Voyager launcher. Reload the game/control page and check
+   the game version shows V2.4.0. Connect Streamer.bot in Stream setup.
+6. Under Stream setup > Voyager rewards, wait for “Rewards v2.0 verified”
+   and “Match chat ready · initiator, challenger and results enabled.”
+   If it says the v2.4 C# update is needed, recheck steps 3 and 4 and reconnect.
+7. Refresh the OBS Browser Source cache. Existing overlay URLs still work.
+
+Keep Streamer.bot and one Voyager launcher running. Twitch must be connected
+in Streamer.bot. Messages use the bot account with broadcaster fallback.
+No new Twitch token or OBS WebSocket configuration is required.
+
+WHEN READY IS ANNOUNCED
+Once per available window: cooldown expired, lobby idle, entries open, arena
+unpaused and Twitch connected. New Twitch stream detection or Start new
+stream allows a fresh ready message once the arena is eligible. Refreshing
+the dashboard or restarting the host does not repeat a sent ready message.
+An existing sent ready message is not replayed just because this patch was
+installed. The next genuine ready window will announce normally.
+
+DELIVERY AND RECONNECTS
+Both the host and Streamer.bot record message IDs to prevent repeats after a
+lost response or restart. Obsolete calls/countdowns are dropped. Recent match
+results can resume after reconnecting for up to 10 minutes; older messages
+expire. Ambiguous sends are flagged for review rather than repeated.
+Streamer.bot's send receipt confirms its SendMessage call returned; Twitch
+does not provide a viewer-delivery receipt through that method.
+Keep local/data/chat-announcements.json alongside your existing saved data.
+
+RULES RETAINED
+45-minute global cooldown. One initiator and one challenger entry per viewer
+per stream. Winner earns 50 Voyager points; runner-up earns 0. Existing points,
+receipts, history repair, ship models and OBS overlays are retained.
+
+VERIFICATION
+53 automated checks passed for game rules, match chat, availability, rewards
+and host integration. The updated C# compiled and passed 36 assertions using
+an isolated Streamer.bot test double, including duplicate/expired chat sends
+and existing payment safeguards. Live Twitch delivery and compilation in your
+installed Streamer.bot still need checking on your streaming PC. No messages
+or real point credits were sent during this update.

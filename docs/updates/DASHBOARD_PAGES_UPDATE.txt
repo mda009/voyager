@@ -1,0 +1,59 @@
+VOYAGER DASHBOARD PAGES UPDATE
+
+Open DASHBOARD_PAGES_SETUP.html for installation and OBS dock URLs.
+
+HOME: readiness, shortcuts, memberships and giveaway status.
+LIVE DASHBOARD: live pulse, platform totals and goals, live chat, community leaderboards, OBS leaderboard controls and activity.
+REPORTING: public statistics, external refresh, charts, CSV uploads, 30/14/7/latest reporting windows and captured chat history.
+
+No new C# action or compilation is required for this layout update.
+Keep your config.js and exported settings/data files.
+
+Copy these files into your EXISTING Voyager_Giveaway folder:
+BANNER_STYLE_UPDATE.txt
+COMMAND_CENTER_SETUP.html
+CSV_UPLOAD_UPDATE.txt
+DASHBOARD_PAGES_SETUP.html
+DASHBOARD_PAGES_UPDATE.txt
+EXTERNAL_ANALYTICS_SETUP.html
+EXTERNAL_REFRESH_UPDATE.txt
+Giveaway_Control.html
+LEADERBOARD_PANEL_SETUP.html
+NATIVE_COMMUNITY_SETUP.html
+Preview_Live_Dashboard.html
+Preview_Reporting.html
+Preview_Voyager_Control.html
+REPORTING_FRESHNESS_UPDATE.txt
+REPORTING_WINDOW_UPDATE.txt
+START_HERE.html
+TWITCH_ANALYTICS_SETUP.html
+Voyager_Banner_Control.html
+Voyager_Command_Center.html
+Voyager_Live_Dashboard.html
+Voyager_Points.html
+Voyager_Reporting.html
+Voyager_Security.html
+Voyager_Versus.html
+banner-control.css
+banner-renderer.css
+banner-renderer.js
+leaderboard-panel-control.js
+reporting-chart-model.js
+reporting-chart.js
+stream-command-connection.js
+stream-command.js
+stream-home-external.js
+stream-home.css
+stream-home.js
+stream-overview.js
+stream-pages.css
+stream-pages.js
+twitch-analytics-model.js
+twitch-analytics.js
+twitch-chat.js
+voyager-navigation.js
+
+Refresh your existing Home page/dock and use the new sidebar links.
+Entry files: Voyager_Live_Dashboard.html and Voyager_Reporting.html.
+
+For the chart/date fix alone, follow REPORTING_FRESHNESS_UPDATE.txt.

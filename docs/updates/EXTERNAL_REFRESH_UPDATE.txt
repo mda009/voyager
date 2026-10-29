@@ -1,0 +1,28 @@
+CURRENT DASHBOARD LAYOUT: Reporting controls have moved to Reporting. Install the current webpage files using DASHBOARD_PAGES_SETUP.html before following the feature-specific instructions below.
+
+VOYAGER - AUTOMATIC EXTERNAL ANALYTICS
+
+Open EXTERNAL_ANALYTICS_SETUP.html for the complete update instructions.
+
+Checks run on Home page load/reload and every 30 minutes while open.
+This update requires the new Voyager - External Analytics action in Streamer.bot.
+Import Voyager_External_Analytics_Install.sb once; open its C# sub-action, click Find Refs, then Save and Compile. No triggers are needed.
+
+Copy these files into your existing Voyager_Giveaway folder:
+Voyager_Command_Center.html
+stream-command.js
+stream-home-model.js
+stream-home.js
+stream-home.css
+external-analytics-model.js
+external-analytics-connection.js
+stream-home-external.js
+Voyager_External_Analytics.cs
+Voyager_External_Analytics_Install.sb
+EXTERNAL_ANALYTICS_SETUP.html
+COMMAND_CENTER_SETUP.html
+EXTERNAL_REFRESH_UPDATE.txt
+
+KEEP your config.js, stream-command-settings.js, stream-home-data.js and twitch-analytics-data.js.
+Reload the existing Home page or OBS dock after setup.
+Successful source reads have a shared five-minute cache; failures retain the previous data and use a retry cooldown.

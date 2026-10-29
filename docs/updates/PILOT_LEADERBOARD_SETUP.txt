@@ -1,0 +1,106 @@
+VOYAGER PILOT LEADERBOARD UPDATE
+21 October 2026 · Voyager Versus host 2.6.0
+
+WHAT IT ADDS
+Live dashboard > Community leaderboards > Pilots.
+Ranks saved Voyager Versus pilots by all-time wins, then fewest losses.
+Shows wins, battles played and win rate. Twitch pilots only: Voyager Versus
+currently receives live battle commands from Twitch.
+
+Use Show in OBS, Hide panel and Panel settings & preview exactly as with
+Voyager points. The same transparent panel displays five rows at a time and
+scrolls through up to ten ranked pilots. The current panel source is reused;
+you do not need a second OBS Browser Source.
+
+INSTALL THIS UPDATE
+1. Finish any active battle, stop the Voyager launcher and close the Voyager
+   dashboard/game tabs. Back up your current Voyager_Giveaway folder.
+
+2. Extract Voyager_Pilot_Leaderboard_Update.zip. Copy the contents of its
+   Voyager_Giveaway folder INTO your existing Voyager_Giveaway folder.
+   Merge folders and replace the supplied files. Do not delete the old folder.
+   Keep your existing config.js, exported dashboard settings and the entire
+   Voyager_Versus/local/data folder. Your saved rankings.json is essential.
+   This patch contains no connection settings, rankings or payment data.
+
+3. Open Streamer.bot > Import and select Voyager_Pilot_Leaderboard_Update.sb
+   from your Voyager_Giveaway folder. Import both actions and their queues.
+   Update the existing actions with these exact names; avoid duplicates:
+     Voyager - Stream Stats
+     Voyager - Leaderboard Panel
+   The import retains the existing action IDs and adds no triggers.
+
+4. In Actions, open each action's Execute C# Code sub-action and click Compile.
+   Verify the first line says:
+     Voyager - Stream Stats:       Voyager Stream Stats v5
+     Voyager - Leaderboard Panel:  Voyager Leaderboard Panel v1.2
+   Keep both actions and their C# sub-actions enabled, with Concurrent OFF.
+   In Action Queues, keep Voyager Stats and Voyager Leaderboard Panel unpaused.
+   If you prefer updating code manually, replace the ENTIRE C# body with the
+   matching .cs file included in this update, then Compile. Keep Stream Stats'
+   existing Get Follower Count and Get Subscriber Count sub-actions before it.
+   No new timers, group triggers or chat commands are needed.
+
+5. Start your usual Voyager launcher from the updated folder. Open Voyager
+   Versus > Stream setup and connect to Streamer.bot. Keep the host running.
+   Open Pilot rankings in the game: its sync status should report how many
+   pilots were synced. Existing saved rankings sync without playing a match.
+   A new completed live match syncs after its rankings have been saved.
+
+6. Reload Voyager Control and open Live dashboard > Community leaderboards.
+   Select Pilots. The platform automatically switches to Twitch.
+   Press the dashboard's Refresh button if the first sync is not visible yet;
+   otherwise stats refresh every 60 seconds.
+
+7. Refresh your existing OBS leaderboard Browser Source, then press Show in OBS
+   on the Live dashboard. Panel settings & preview controls width, position,
+   transparency, scroll speed and list size. Hide panel hides it again.
+
+FIRST-TIME OBS SETUP (ONLY IF YOU DO NOT ALREADY HAVE THE LEADERBOARD SOURCE)
+Add a Browser Source, enable Local file and select Voyager_Leaderboard_Panel.html
+from this same folder. Width 1920, Height 1080. Use the same working config.js
+as your other Voyager overlays. Then select Pilots and press Show in OBS.
+For a host-served source you may instead use:
+http://127.0.0.1:8740/control/Voyager_Leaderboard_Panel.html
+with Local file unchecked, while the bundled Voyager host is running.
+The source is transparent and the panel defaults to the right of the canvas.
+
+HOW THE NUMBERS WORK
+- Uses existing saved rankings in Voyager_Versus/local/data/rankings.json.
+- Wins determine rank. Fewest losses breaks a win tie; remaining ties use name.
+- Battles include recorded wins, losses and draws. Win rate = wins / battles.
+- Demo, simulated and cancelled battles are excluded by the existing game.
+- Existing game rankings can include forfeits. This update preserves those
+  results; leaderboard totals are separate from payment eligibility.
+- This does not reconstruct missing rankings from points or reward receipts.
+- Keep one active Versus host. The host publishes its top 100 valid saved
+  pilots; dashboard/OBS show the top 10 after your leaderboard exclusions.
+- Sync runs on connection, after saved matches and every 60 seconds.
+  Dashboard/OBS reads refresh every 60 seconds, so allow up to one minute
+  after a match. Closing the dashboard does not stop the OBS board updating.
+- If the host is offline, the last saved rankings remain visible. After three
+  minutes without sync, the source is marked as last saved/offline.
+- No Voyager points, spending, balances, payment receipts or rewards are
+  modified. The existing Rewards v2.5 action remains compatible and unchanged.
+
+TROUBLESHOOTING
+"Install the Pilot Leaderboard update": update and compile both C# actions.
+"Pilot sync not confirmed": compile Leaderboard Panel v1.2, enable it and
+  resume its dedicated queue. The host retries automatically after 30 seconds.
+"No saved rankings in this host folder": use the original Voyager host folder
+  or restore its original local/data/rankings.json from your backup. An empty
+  new installation is not used to erase previously published rankings.
+"No records to display": check that real battles exist and that Leaderboard
+  settings exclusions have not hidden the pilots.
+Old layout in OBS: reload/refresh that Browser Source and confirm it points to
+  the updated Voyager_Giveaway folder. Updating HTML alone is insufficient;
+  the host and both Streamer.bot C# actions must also be updated.
+
+VALIDATION
+C# compiled in a local compatibility harness; 55 assertions passed.
+45 Node tests passed, including existing game and reward tests.
+Browser checks covered pilot/points tabs, Twitch-only selection, Show/Hide
+controls, preview, five visible rows, scrolling, updates and mobile layout.
+Integration used the real local host/WebSocket client with compiled C# actions
+in a Streamer.bot mock, including a saved live battle. Your actual Streamer.bot
+and OBS installation still needs the update above.

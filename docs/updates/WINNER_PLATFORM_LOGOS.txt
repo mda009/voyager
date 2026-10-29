@@ -1,0 +1,49 @@
+VOYAGER WINNER PLATFORM LOGOS 2.1.3 — 27 OCTOBER 2026
+
+INSTALL THIS DISPLAY UPDATE
+
+1. Extract Voyager_Winner_Platform_Logos_Update.zip. Copy the CONTENTS of its
+   Voyager_Giveaway folder into your existing Voyager_Giveaway folder.
+   Replace matching files. Keep your config.js and all other existing files.
+2. In OBS, open Properties for the existing giveaway Browser Source and click
+   Refresh cache of current page. Refresh your shared ticket/leaderboard
+   Browser Source too if you use it for ticketed giveaway draws.
+3. Run your next draw as normal. Keep the existing OBS paths and current
+   giveaway; no C# recompilation, cleared entrants, or new giveaway is needed.
+
+The four updated files must stay together:
+  GiveawayOS_Reveal.html
+  Voyager_Giveaway_Sequence.html
+  giveaway-sequence-model.js
+  giveaway-sequence-player.js
+
+The small update is sufficient if the existing giveaway sequence is installed.
+Do not delete the existing folder or create a nested Voyager_Giveaway folder.
+
+WHAT YOU WILL SEE
+
+When the wheel stops and the winner is revealed, a coloured platform logo and
+name appear beneath their username: purple Twitch, red YouTube with a white
+play symbol, or green Kick. The badge remains during the claim countdown.
+It is hidden during the buildup/wheel, and when RE-ROLL replaces the winner.
+
+The badge uses the winner saved for that exact draw. This works for impromptu,
+member-group and ticketed giveaways, and for replayed draws. Display names
+are never used to guess the platform. If no supported platform was saved,
+the badge stays hidden. The generic Test reveal event may have no platform;
+Voyager_Sequence_Preview.html uses fictional entrants with platform details.
+
+The vector logos are included in the HTML and need no external image service.
+The existing buildup, 30-second wheel, winner announcement, 60-second claim
+timer, RE-ROLL and congratulations sequence are unchanged. No changes were
+made to points, ticket balances, winner selection, or chat announcements.
+
+This update is also included in the full Sequence and Ticket update ZIPs.
+Only install one package; the small update contains everything for this change.
+
+TESTING
+
+Verified locally for Twitch, YouTube and Kick across all three giveaway types,
+plus saved-draw replay, refresh, missing platform data, claim countdown,
+RE-ROLL, congratulations, and direct legacy reveal URLs. Not installed or
+tested against your live OBS/Streamer.bot instance from this workspace.

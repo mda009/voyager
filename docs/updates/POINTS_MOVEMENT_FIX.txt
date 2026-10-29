@@ -1,0 +1,128 @@
+VOYAGER POINTS — MOVEMENT TRACKING FIX v4.4.1
+24 October 2026
+
+This update fixes the “Where the points go” section. It repairs audit history;
+it does not award points, change balances, or change earning and upgrade rules.
+Your native balance and group listeners should remain enabled.
+
+COMPILE FIX v4.4.1
+
+Replaces the HashSet used by the repair index with Dictionary, which the ledger
+already uses. This removes the new System.Core reference requirement. If you
+already installed the v4.4 page files, only replace the code in your existing
+Voyager Points Ledger Execute C# Code sub-action with this v4.4.1 source, then
+Compile and save. Reopen the Points page and run Repair saved movements.
+
+INSTALL
+
+1. Close the Voyager Points browser page/dock. Extract this ZIP using Extract All.
+   Open its Voyager_Giveaway folder, select the files inside, and copy them into
+   your EXISTING Voyager_Giveaway folder. Replace the matching files.
+   This is a small update, not a complete standalone Voyager installation.
+   Your existing config.js, other dashboards, overlays and data stay in place.
+
+2. In Streamer.bot, open the action “Voyager - Points Ledger”. Open its EXISTING
+   Execute C# Code sub-action, whose Name is “Voyager Points Ledger”.
+   Open the updated Voyager_Points_Engine.cs in Notepad and copy all its contents.
+   Replace all code inside that SAME Execute C# Code sub-action. Keep its Name.
+   Do not create a second ledger code instance: your existing hooks call this one.
+
+3. If you previously customized PointsFields, GroupNames or DataFolderOverride,
+   carry those settings into the replacement code before compiling. Defaults are
+   persisted “points” on Twitch/YouTube/Kick, BLUE GROUP, SILVER GROUP, GOLD GROUP,
+   PLATINUM GROUP and VIP GROUP. Bucket targets remain 72,000 / 120,000 / 200,000.
+   Click Compile, then save. The first and last comments identify v4.4.1.
+   Keep the existing references; if a missing reference is reported, use Find Refs
+   in the editor’s References tab, then compile again.
+
+4. Keep “Voyager - Points Ledger” and “Voyager - Points Capture” enabled on the
+   existing Voyager Points queue: Blocking ON, Concurrent OFF, queue unpaused.
+   Keep Run on UI Thread OFF. The Capture action must call the existing named
+   code “Voyager Points Ledger”, method RecordMovement. Its trigger remains
+   Core > Global Variables > User Global Variable Updated, Persisted Yes,
+   Platform Any, Variable Name and User Login blank. Keep the 120-second scan.
+   No currency action, watchtime code or earning rate needs changing.
+
+5. Reopen Voyager_Points.html. In a normal browser press Ctrl+F5. For an OBS dock,
+   close and reopen the dock if it keeps the old page. Connect and click Refresh.
+   Under “Where the points go”, click “Repair saved movements” once.
+   It creates a dated backup in the ledger’s repair-backups folder before adding
+   repair entries. Let it finish; the supplied sample took about eight seconds.
+   Larger histories may take longer. If the page times out, Refresh and check the
+   saved repair result before retrying. The completed repair is repeat-safe.
+
+6. Check the repair result below the button. Future normal currency changes should
+   update the dashboard at the next refresh (automatically every two minutes).
+   Native deliveries and verified hook deliveries are counted once. No test points
+   need to be awarded to check the repair result.
+
+IF THE BUTTON IS DISABLED
+
+The page needs a live connection to the updated ledger. Check Compile succeeded,
+the named code is still “Voyager Points Ledger”, the queue is unpaused, and the
+new HTML/JS files replaced the files at the path your browser/dock actually opens.
+Demo mode intentionally disables the live repair button.
+
+WHAT WAS WRONG
+
+The old matching key compared full DateTime ticks from native events with the
+millisecond timestamps returned to currency hooks. Even the same write could not
+match. The supplied files also contain many verified writes whose native events
+were not captured. The old panel waited indefinitely for those native deliveries.
+The files do not establish why those native deliveries were absent.
+
+v4.4 matches equal account, variable, before/after values and millisecond timestamp,
+with ambiguity checks. Future validated currency hooks can record the already
+completed balance change even without a native delivery. A later native delivery
+is deduplicated. Nearby but different timestamps are retained for review instead
+of being guessed into a match. Historic repair also requires an identical saved
+balance snapshot when recovering a movement that lacks a native event.
+
+The badge now distinguishes disconnection, unmatched records, recent capture and
+no recent activity. An idle listener does not by itself prove a fault when offline.
+Historical repair does not pretend a new live hook just occurred. “Other credits”
+shows manual incoming adjustments separately from earned rewards.
+
+RESULTS ON THE TWO FILES YOU SUPPLIED
+
+157 existing native events relabelled.
+3,995 additional audit movements recovered from matching hooks and snapshots.
+257 labels remain unresolved; they are not guessed or counted again.
+16,070 recorded movements after repair, versus 12,075 before.
+
+Member breakdown after repair:
+  Earned rewards:             5,342
+  !upgrade spent:                 0
+  Fast-track credits:             0
+  Fast-track purchases:           0
+  Other credits:                305
+  Other purchases / debits:     450
+  Unclassified movement:    326,831 (+19,205 in / -307,626 out)
+
+Recovered audit movements describe points already credited or deducted. They are
+not an instruction to credit them again. The zeros and remaining unclassified
+amounts do not mean no upgrades happened: these two files do not contain sufficient
+matching evidence to label those amounts safely. The repair reads all available
+ledger-*.jsonl files on your streaming PC, so your full live history can produce
+different counts from this two-file sample.
+
+VALIDATION
+
+The complete C# source compiled against a Streamer.bot API test double. Tests used
+copies of your uploaded checkpoint/journal, verified that all balances, tiers,
+buckets and opening balances stayed unchanged, verified a second run made no
+further counter changes, and replayed the repair journal from the original
+checkpoint. Twitch, YouTube and Kick tests covered native-first/hook-first order,
+duplicate deliveries, timestamp collisions, fast-track credit/debit pairs, upgrades
+and manual adjustments. Browser checks verified the repaired cards, repair button,
+disconnected state, demo mode and narrower layout. Your actual Streamer.bot/OBS
+installation still needs the update and local check above.
+
+BACKUPS / RECOVERY
+
+The repair appends audit records and keeps the original journal entries. It never
+replaces your current ledger with the uploaded checkpoint. The exact backup path
+appears after repair. Keep the full ledger folder and its backups.
+If restoring a pre-repair backup, close Streamer.bot first and restore the complete
+matching checkpoint AND journal set together. Restoring only checkpoint.json would
+replay the later repair entries. Keep the current folder as a separate backup.

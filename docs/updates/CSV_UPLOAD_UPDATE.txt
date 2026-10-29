@@ -1,0 +1,43 @@
+CURRENT DASHBOARD LAYOUT: Reporting controls have moved to Reporting. Install the current webpage files using DASHBOARD_PAGES_SETUP.html before following the feature-specific instructions below.
+
+VOYAGER — TWITCH REPORT UPLOAD FIX — 21 OCTOBER 2026
+
+Fixes: Tier 3 subscriptions (row 30, 2026-10-20): value "-1".
+
+INSTALL IF YOU ALREADY HAVE THE CHOOSE FILES UPLOAD SCREEN
+
+1. Extract this ZIP.
+2. Copy these TWO files from Voyager_Giveaway into your existing Voyager
+   folder, beside the Voyager_Command_Center.html you actually open:
+      twitch-analytics-model.js
+      twitch-analytics.js
+   Choose Replace when prompted.
+3. Refresh Voyager Home with Ctrl+F5 in your browser, or refresh the OBS dock.
+4. Click Upload Twitch CSV and choose the original CSV again.
+5. Check the preview, then click Import reports.
+
+Keep config.js and twitch-analytics-data.js. No Streamer.bot import or C#
+compilation is needed. Copy into the same existing folder to retain the
+browser's saved-report location.
+
+WHAT CHANGED
+
+Subscription totals, Tier 1/2/3, Prime, gifted/multi-month subscriptions,
+subscription points and Follows now accept signed source values. A reported
+-1 stays -1; it is not skipped, made positive or replaced with zero.
+The existing support for negative revenue and scientific notation remains.
+Preview, saved-report reloads, manual editing and JSON restores all use the
+same validation. Viewer counts and percentages still require non-negative
+values; subscription counts must remain whole numbers.
+
+Checked against the exact screenshot value and all three earlier uploaded
+Twitch report types (Analytics and Revenue, Viewer Engagement, Revenue
+Earnings). Their 30 daily reports merge without duplicated dates.
+
+IF INSTALLING THE SIMPLER UPLOADER FOR THE FIRST TIME
+
+Also copy Voyager_Command_Center.html, twitch-analytics.css and
+TWITCH_ANALYTICS_SETUP.html from this ZIP into your existing folder.
+The initial report settings are UTC / USD; change these to match the export.
+Successful import settings are remembered. Paste CSV remains available
+if the file browser cannot be used.

@@ -1,0 +1,74 @@
+VOYAGER POINTS LEADERBOARD — 21 OCTOBER 2026
+
+Adds a Voyager points tab to Live dashboard > Community leaderboards and
+the existing OBS leaderboard panel. Shows each account's CURRENT Voyager
+points balance, highest first, from the saved Streamer.bot user variable
+named points. This is not Twitch Channel Points or lifetime points earned.
+
+1. COPY THE UPDATE FILES
+Back up your working Voyager folder. Extract the update ZIP and copy the
+CONTENTS of its Voyager_Giveaway folder into your existing Voyager folder,
+replacing matching files. Do not nest a second Voyager_Giveaway folder.
+The update ZIP does not contain config.js or your saved data files.
+
+2. UPDATE TWO STREAMER.BOT ACTIONS
+Open Import in Streamer.bot and load Voyager_Points_Leaderboard_Update.sb.
+Review and import the two actions and their queues:
+  - Voyager - Stream Stats (C# v4)
+  - Voyager - Leaderboard Panel (C# v1.1)
+Existing supplied action IDs are preserved. Update the existing actions;
+keep exactly ONE enabled action with each of those names.
+Open each action's Execute C# Code sub-action, then Compile and Save.
+Keep the actions enabled, Concurrent off, and their queues unpaused.
+The Leaderboard Panel queue must be Blocking. No new triggers are needed.
+
+MANUAL ALTERNATIVE — especially if you originally created actions manually:
+In the existing Voyager - Stream Stats action, replace the entire C# code
+with Voyager_Stream_Stats.cs, then Compile and Save. Keep its existing
+Get Follower Count and Get Subscriber Count sub-actions before the C#.
+In the existing Voyager - Leaderboard Panel action, replace the entire C#
+code with Voyager_Leaderboard_Panel.cs, then Compile and Save.
+Use either the import method or the manual method, not both.
+Copying the .cs files into the folder alone does not update Streamer.bot.
+
+3. DISPLAY POINTS
+Reload your Voyager Control dock/browser. Open Live dashboard.
+Under Community leaderboards, choose Voyager points.
+Choose Twitch, YouTube, Kick or All platforms, then Show in OBS.
+Panel settings & preview lets you choose the top 5–10 accounts, scroll
+speed, title, opacity and position. Five rows remain visible at a time.
+Hide panel removes it from the overlay.
+
+4. REFRESH THE OBS SOURCE
+For your existing Voyager leaderboard Browser source, use Properties >
+Refresh cache of current page. It must use Voyager_Leaderboard_Panel.html
+from the working folder. Keep its eye enabled.
+If you have not added that source: add a Browser source, tick Local file,
+select Voyager_Leaderboard_Panel.html, width 1920, height 1080, X 0, Y 0.
+The panel is transparent until Show in OBS is pressed.
+
+HOW THE NUMBERS WORK
+- The balances are read automatically; no new points-variable mapping.
+- Persisted points are used even if watch time uses temporary variables
+  or custom source mappings. Watch time/months/gifts keep their settings.
+- All platforms ranks individual accounts together; accounts are not
+  merged or linked just because they have the same name.
+- Twitch bucket accounts mdavoyagersilver, mdavoyagergold and
+  mdavoyagerplatinum are excluded. Existing account exclusions also apply.
+- Balances reflect spending, upgrades, awards and manual adjustments once
+  those transactions have actually been saved in Streamer.bot.
+- The OBS panel refreshes every 60 seconds while visible, including when
+  the Live dashboard is closed. Streamer.bot must remain running.
+- This update only reads points. It does not award, deduct or repair them.
+
+IF POINTS ARE BLANK
+Open Leaderboard settings on Live dashboard and expand the platform.
+The Voyager points status shows how many saved account balances were read.
+If it asks for Stream Stats v4, repeat step 2 for that action.
+If Show reports "Choose a leaderboard", update the Panel action as well.
+"No saved Voyager points balances" means that platform has no eligible
+persisted points records; other-platform balances are not duplicated.
+
+Local checks cover the C# actions with a simulated Streamer.bot API,
+ranking/filtering, dashboard controls and browser rendering. Your running
+Streamer.bot instance and OBS installation were not accessed during testing.

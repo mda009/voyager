@@ -1,0 +1,90 @@
+VOYAGER VERSUS v2.5 — WINNER CREDIT DELIVERY UPDATE
+21 October 2026
+
+WHAT YOUR SCREENSHOT SHOWS
+The host has three pending 50-point credits and 18 history records awaiting
+repair. Streamer.bot accepted an action request, but the host received no
+confirmation that the rewards C# executed. This does not prove a points
+write succeeded or failed. A paused/busy queue, disabled C# sub-action,
+outdated code or missing response can cause this message.
+
+This update supplies a complete rewards action on a dedicated queue and
+adds two execution-response paths: direct broadcast and temporary global.
+The new Check rewards action button confirms execution and the installed
+code version without making a test payment.
+
+INSTALL ON YOUR STREAMING PC
+1. Stop your Voyager launcher. Back up Voyager_Giveaway, especially:
+       Voyager_Versus/local/data
+   Keep economy.json, rankings, stream entries and chat announcements.
+
+2. Extract Voyager_Versus_Points_Fix.zip. Copy the CONTENTS of its
+   Voyager_Giveaway folder into your existing Voyager_Giveaway folder.
+   Merge folders and replace matching files. Do not create a second nested
+   Voyager_Giveaway folder. Your config.js and local/data are not included
+   in this patch and must remain in your working installation.
+
+3. In Streamer.bot > Actions, DISABLE the old Versus rewards actions
+   (for example Voyager Versus Rewards v2.0 or v1.8). Keep their data.
+   Do not disable your Voyager points engine, ledger or watch-time actions.
+
+4. In Streamer.bot, click Import and load:
+       Voyager_Versus_Rewards_Install.sb
+   Import its ONE action and ONE queue, both named:
+       Voyager Versus Rewards v2.5
+   Keep the new action enabled, Concurrent off, with no triggers.
+   It contains one enabled Execute C# Code sub-action. Open it, Compile,
+   then Save. Keep exactly one enabled v2.5 rewards action.
+   Under Action Queues, make sure its queue is Blocking and NOT paused.
+   If global queue processing is paused, resume it before checking.
+
+5. Start your usual Voyager launcher. Reload Voyager Control and refresh
+   the OBS Browser Source cache. The game should show V2.5.0.
+   Open Stream setup, reconnect Streamer.bot, and click Check rewards action.
+   If it says a check is already running, wait for that check to finish.
+   Look for: Rewards v2.5 verified · 50 Voyager points per win.
+   The diagnostic underneath shows which action/code actually replied.
+
+6. Once verified, the three pending wins retry automatically. Each eligible
+   unpaid win adds 50 to that Twitch account's existing persisted points
+   variable (Voyager points). Successful rows become credited.
+
+STANDALONE GAME INSTALLATIONS
+If you run the standalone game rather than the copy inside Voyager Control,
+merge the update ZIP's Voyager_Giveaway/Voyager_Versus contents into the
+folder containing your existing START-VOYAGER.bat, preserving local/data.
+For step 4, import dist/Voyager-Versus-Rewards-Install.sb instead.
+
+REPAIR THE 18 OLDER HISTORY RECORDS
+Open Rewards & repair > Check saved history.
+Review the accounts and amounts, then click Apply eligible credits.
+Unpaid wins are worth 50 points each. Runner-up awards are 0.
+18 records does not necessarily mean 18 wins: both outcomes are recorded.
+Verified receipts are never credited twice. An ambiguous older receipt or
+unverified identity remains Needs review. Use Review unpaid claim only after
+checking that account's original movement and confirming it was unpaid.
+Genuine earlier payments are retained; this update does not claw them back.
+
+IF CHECK REWARDS ACTION STILL FAILS
+- Missing action: check the exact v2.5 name and Enabled checkbox.
+- No sub-actions: import the complete action, not just an empty action name.
+- Older code: replace the entire C# with Voyager_Versus_Rewards.cs and compile.
+- Accepted but no execution confirmation: check the NEW queue is unpaused,
+  Concurrent is off, and Execute C# Code is enabled and compiles successfully.
+  Inspect Streamer.bot's Action History and Log for that new action at the
+  time of the check. Send the full error text and the diagnostic shown in
+  Voyager; the screenshot alone cannot identify which of these occurred.
+- Needs review after a write: open Check saved history for the exact reason.
+  Do not manually add 50 while a pending credit can still retry.
+
+The same installer and code are also in Voyager_Versus/dist, under the
+hyphenated names Voyager-Versus-Rewards-Install.sb / Voyager-Versus-Rewards.cs.
+
+RETAINED RULES
+Winner: 50 Voyager points. Runner-up: 0. Global cooldown: 45 minutes.
+One initiator and one challenger entry per viewer per stream.
+Demo matches do not award points. Existing receipts and history are reused.
+
+Verification uses an isolated Streamer.bot test API and browser checks.
+Your running Streamer.bot instance, Twitch chat and real points were not
+accessed or changed while preparing this update.

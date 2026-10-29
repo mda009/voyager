@@ -1,0 +1,58 @@
+VOYAGER VERSUS v2.1 — ONE INITIATOR + ONE CHALLENGER PER STREAM
+
+Each Twitch account can use:
+- ONE initiator entry: their accepted !versus opens the calling screen.
+- ONE challenger entry: their accepted !versus joins another pilot's call.
+They can use these in either order. Two initiator entries or two challenger
+entries are not allowed. The 45-minute global cooldown still applies to calls.
+Winner reward remains 50 VOYAGER points; runner-up remains 0.
+
+INSTALL
+1. Close the Voyager launcher window.
+2. Copy the contents of this updated Voyager_Versus folder into the same existing
+   installation, replacing matching program files. KEEP the entire local/data
+   folder, including economy.json, rankings.json and stream-entries.json if present.
+3. Start your usual launcher once, refresh Voyager Control and connect Streamer.bot.
+4. Open Voyager Versus > Stream setup > Per-stream entries to see the session and
+   each viewer's initiator/challenger usage.
+
+No C# change is required for this entry-limit update. Keep the rewards action named
+Voyager Versus Rewards v2.0. Its execution/compilation problem, if still present,
+is separate: follow VERSUS_POINTS_REPAIR.txt to restore verified payouts.
+
+HOW A NEW STREAM IS RECOGNISED
+Keep Voyager connected before going live. A valid Twitch StreamOnline event for
+your connected broadcaster automatically starts tracking the new broadcast.
+Duplicate notifications and reconnects do not grant extra entries. A delayed
+notification preserves entries accepted since that stream actually started.
+
+If Voyager was closed/disconnected when you went live, or the stream-start event
+was missed, use Stream setup > Per-stream entries > Start new stream ONCE before
+accepting entries. Confirm the reset. This button is available only when the arena
+is idle and there are no waiting entries or invitations. It clears entry allowances
+only; it does not change points, rewards, rankings, or the 45-minute cooldown.
+
+Restarting the launcher, refreshing OBS, reopening the control page, reconnecting
+chat, crossing midnight, or cancelling a battle does not reset entry allowances.
+Offline events do not reset them. Usage is saved by stable Twitch account ID in
+local/data/stream-entries.json. A renamed account retains its used entries.
+
+COUNTING RULES
+An accepted call/seat consumes that role immediately. Cancelling, leaving,
+forfeiting, a draw, or an unanswered/expired invitation does not refund it.
+Rejected commands (cooldown, paused/closed arena, invalid target, already playing)
+do not consume an entry. Demo and Sandbox Comms never consume live allowances.
+The limit starts tracking when this update is installed; earlier role use cannot
+be reconstructed reliably from winner-only payout records.
+
+Other entry commands share the allowance:
+- !duel consumes the initiator entry when a valid invitation is sent.
+- !accept consumes the challenger entry when a valid invitation is accepted.
+- !join reserves the next queue role (initiator or challenger); its reply and the
+  combat feed identify that role. Pairing requires one of each role.
+These commands cannot provide additional entries beyond the same two-role limit.
+When a viewer is blocked, the combat feed explains which role has already been used.
+
+All live entry attempts need a valid Twitch account ID from Streamer.bot. Missing
+IDs are rejected without using an allowance. A damaged usage file stops startup
+instead of silently resetting limits; restore its backup if that occurs.

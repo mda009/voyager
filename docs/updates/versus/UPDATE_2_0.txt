@@ -1,0 +1,119 @@
+VOYAGER VERSUS v2.0 — VERIFIED PAYMENTS & RETROSPECTIVE 50 / 0 REPAIR
+
+This update replaces the rewards action AND the local host code.
+Historical win entitlement: 50 points. Historical runner-up entitlement: 0.
+The 45-minute cooldown and the new 3D ships are unchanged.
+
+1. STOP AND KEEP YOUR LIVE HISTORY
+Close the Voyager launcher terminal window. Keep a backup of your existing
+Voyager_Versus/local/data folder. In particular, KEEP economy.json and
+rankings.json from your installed copy. The downloaded ZIP intentionally does
+not contain your live balances, payout history or connection settings.
+Do not delete Streamer.bot points variables or any Voyager Versus receipts.
+
+2. UPDATE THE FILES
+Extract MDA009_Voyager_Giveaway_Studio.zip. Inside Voyager_Giveaway, open the
+Voyager_Versus folder. Copy its CONTENTS into the same Voyager_Versus folder
+you already run, replacing matching program files. Keep your local/data folder.
+Standalone installation: merge into your existing Voyager-Versus folder.
+The updated standalone ZIP is at Voyager_Versus/dist/Voyager-Versus.zip.
+All three 3D ship models and their local dependencies remain included.
+
+3. REPLACE AND COMPILE THE STREAMER.BOT REWARDS ACTION
+Open Streamer.bot > Actions. Find the existing Voyager Versus Rewards action.
+Rename that action exactly:
+    Voyager Versus Rewards v2.0
+Open its Execute C# Code sub-action. Replace ALL code with the entire contents
+of the updated file:
+    Voyager_Giveaway/Voyager_Versus_Rewards.cs
+The identical file is also at:
+    Voyager_Giveaway/Voyager_Versus/dist/Voyager-Versus-Rewards.cs
+Click Compile, then Save. Keep ONE enabled action with this exact name and one
+Execute C# Code sub-action for rewards. Disable old duplicate rewards actions.
+Use a dedicated BLOCKING action queue; ensure it is enabled and not paused.
+Do not add a Twitch chat trigger or a command cooldown to the rewards action.
+This is a complete code replacement. Renaming the old action alone will not work.
+If Newtonsoft.Json is not already listed in the editor references, use the
+Streamer's installed Newtonsoft.Json assembly through the editor's references;
+this is the same JSON dependency used by your existing Voyager Points Ledger.
+Do not add a missing Windows System.dll path.
+
+4. START AND CHECK THE CONNECTION
+Start your normal Voyager launcher once. Open Voyager Control > Voyager Versus.
+In Stream setup, connect to Streamer.bot as usual. The rewards status must say:
+    Rewards v2.0 verified - credits require a saved balance check.
+(The display may use a middle dot in place of the dash.)
+If it says the action was accepted but there was no execution response, check
+that the full C# code compiled and that the action queue is running. The update
+checks actual C# execution, rather than treating DoAction acknowledgement as a
+payment. Refresh the Voyager page and OBS Browser Source cache after updating.
+
+5. PREVIEW THE HISTORICAL PAYOUTS
+Open the new Rewards & repair tab inside Voyager Versus.
+Click 1. Check saved history.
+The first startup automatically saves an untouched economy-before-reward-repair-
+TIMESTAMP.json backup and normalizes each saved win to 50 and runner-up to 0.
+This migration does not itself credit accounts. The preview checks Streamer.bot
+receipts and shows totals per viewer plus each individual saved battle payout:
+  Original = the old configured amount, retained for audit.
+  Revised = 50 for a win / 0 for a runner-up.
+  Recorded paid = what the receipt records; legacy receipts lack balance proof.
+  To add = the verified eligible unpaid amount.
+  Needs review = ambiguous receipt, missing identity or failed verification.
+Missing Twitch IDs are looked up, shown for review and never silently paid to
+a newly resolved account. Check it is the original participant.
+
+6. APPLY ELIGIBLE RETROSPECTIVE CREDITS
+Click 2. Apply eligible credits.
+Unpaid historical wins are credited at 50 each, irrespective of whether the old
+record said 100 or 200. Unpaid runner-up awards are closed at 0.
+The new code validates the Twitch ID, increments that user's existing persisted
+points balance using a 64-bit number, and reads the resulting balance back.
+Only an exact verified increase receives a successful durable v2 receipt.
+The result reports how many wins were credited and how many points were added.
+Click Check saved history again, then Export audit CSV if you want a record.
+A repeat preview/apply cannot pay the same verified v2 reward again.
+
+7. HANDLE INCORRECT OLD 'CREDITED' OR PENDING RECEIPTS
+The old action could record credited without checking whether the balance
+actually increased. The new update cannot infer that past movement from the
+current balance, because people may have earned or spent other points since.
+For a payout whose old receipt is wrong, first check the original account's
+Voyager Points history / Streamer.bot variables and logs. Then use Review unpaid
+claim on that exact reward, enter the evidence, tick the account/payment check,
+and submit Credit verified unpaid win (+50). A recovered ID is displayed for
+checking before you proceed. The original receipt and your note are retained.
+An uncertain interrupted v2 payment also requires this evidence check. An already
+verified successful v2 receipt cannot be overridden for another payment.
+Do not use this control merely because a viewer's current balance is low.
+
+EXISTING GENUINE PAYMENTS
+Revised historical entitlement is shown as 50 / 0, but an actual old payment of
+100/200 or 25/50 is retained as a separate paid figure. This fix does not silently
+deduct genuine previous credits or overwrite the real movement ledger. An old
+receipt remains reviewable; bulk repair does not turn unverified legacy evidence
+into a verified v2 payment.
+
+POINTS DASHBOARD
+The destination remains Twitch's persisted user variable points, by Twitch ID.
+No separate Versus currency is created. When your existing named Execute C# Code
+Voyager Points Ledger is active, credits use its reward category with the action
+label Voyager Versus win / history repair. Refresh Points & membership after a
+repair; the normal periodic scan also picks up the balances. No ledger recompile
+is required for these labels. YouTube/Kick balances are not merged with Twitch.
+
+IF THE HISTORY IS EMPTY
+You may be running a fresh extracted copy without the original local/data folder.
+Stop the launcher and use your original economy.json. Do not reconstruct payouts
+by multiplying the battle leaderboard: some wins can be pre-launch forfeits and
+are not payable, and rankings do not prove whether a payment already happened.
+If the saved history is missing, provide the original economy.json (and
+rankings.json if available) for a targeted recovery review. Do not erase receipt
+variables or revert to an older reward action after backfilling.
+
+WHAT WAS VERIFIED
+61 automated game/host/reward/motion checks, 28 C# payout/recovery assertions,
+and a browser test through a simulated Streamer.bot connection: preview, apply,
+manual resolution, no duplicate legacy payout, per-viewer totals and CSV export.
+The code and package are updated; actual live account credits occur on your
+streaming PC when you run the repair steps above.

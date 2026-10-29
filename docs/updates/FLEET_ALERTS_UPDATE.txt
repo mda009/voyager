@@ -1,0 +1,429 @@
+VOYAGER FLEET VISUALS v1.12 - SMOOTHER BATTLE PLAYBACK
+24 October 2026
+
+INSTALL INTO YOUR EXISTING VOYAGER FOLDER
+1. Close Fleet control and preview pages.
+2. Extract this ZIP. Copy the contents of its Voyager_Giveaway folder into
+   your existing Voyager_Giveaway folder. Replace the matching files.
+   Merge the files; do not delete or replace your entire working folder.
+3. In OBS, right-click the Fleet alerts Browser Source, open Properties,
+   and click Refresh cache of current page. Keep the same local HTML path
+   or URL. Enable Use custom frame rate and set it to 60 FPS.
+4. Reopen Fleet controls. Test 04 / Resubscription and 06 / Raid using
+   Send test to OBS. In OBS Interact, press D: the build should read 1.12.
+5. Close extra preview windows while streaming so OBS does not compete
+   with another copy of the 3D scene.
+
+No Streamer.bot import, C# recompile, new trigger or Lumia change is needed.
+Your config.js, saved alerts, points and Voyager Versus are not included.
+This is an update for an existing Fleet installation, not a replacement
+for the entire Voyager Giveaway folder.
+
+WHAT WAS FIXED
+- Battle damage lamps previously appeared/disappeared with each hull breach,
+  forcing new lighting shaders to compile in the middle of combat. Their
+  positions and light effects are retained, but the lamps stay loaded and
+  brightness changes as damage appears. The renderer prepares the effect
+  variants before reporting graphics ready.
+- Gunfire now looks up only shots near the current time. Turret recoil has
+  its own per-gun index instead of rescanning thousands of rounds.
+- Explosion and cannon noise buffers are generated before weapon playback
+  and reused. Audio cues are indexed instead of repeatedly sorting the
+  whole combat schedule during each frame.
+- Temporary debris transforms and immutable explosion geometry are reused.
+- Auto quality starts at up to 1920 pixels wide, retains 4K material maps,
+  and applies resolution changes between alerts instead of during battle.
+  Native-resolution Ultra remains available through the existing settings.
+
+The hero/escort designs, effects, 20-second resub battle, 28-second raid,
+5,549 raid rounds, 204 missile launches, 264 explosion events, transparent
+background, captions and raider welcome are retained.
+
+VERIFICATION
+Actual WebGL battle/raid frames were checked for shader compilation,
+transparent rendering and stage transitions. The tested combat frames
+created no new shader programs after loading. 1,190 timestamp comparisons
+matched the original gunfire/recoil results, including backwards seeks.
+The full raid timeline was checked for missing rounds/impacts and pool
+capacity. Noise reuse and deferred resolution changes were checked too.
+Tests ran in Chromium with software graphics. Actual frame rate still
+varies with OBS settings and the streaming PC's workload.
+
+PREVIOUS RELEASE NOTES
+======================
+
+VOYAGER FLEET VISUALS v1.11 — 23 October 2026
+
+FORTRESS RAID / HEAVIER DEFENCE / THE UNPROFESSIONALS
+The base structure is scaled up 30%, with a wider armoured foundation, forward
+apron, six perimeter bastions and detailed hangar roofs. A large illuminated
+THE UNPROFESSIONALS sign is mounted across the front of the base.
+
+The 28-second raid now includes:
+- 12 defensive turrets: six on the perimeter and six on the hangar roofs.
+- 5,549 timed gun rounds, including 4,335 defensive/interceptor rounds.
+- 204 guided missile launches across attackers, base and interceptors.
+- 264 explosion events, with overlapping roof hits, hull impacts and secondary
+  detonations. Debris, sparks, shield flashes and denser weapon sounds follow.
+- Full-size interceptors and the final welcome from the v1.10 update.
+
+The caption at 23 seconds remains:
+  Welcome in raiders!
+  Welcome to The Unprofessionals!
+The channel name and thank-you remain visible. The scene fades at 26–28 seconds.
+The canvas stays transparent outside the actual base, ships and effects.
+
+INSTALL
+1. Close Fleet control and preview pages. Extract this ZIP.
+2. Merge the enclosed Voyager_Giveaway contents into your existing folder,
+   replacing matching files. Keep your current config.js and saved settings.
+3. OBS > Fleet Browser Source > Properties > Refresh cache of current page.
+   Keep the same Voyager_Fleet_Overlay.html Local file path.
+4. Reopen Voyager_Fleet_Control.html, select 06 / Raid and Send test to OBS.
+   Interact > D should show visual build 1.11.
+5. The existing Fleet v1.6 Streamer.bot action is compatible. No C# recompile
+   or trigger changes are required. Other alert stages retain their behaviour.
+
+The effect pools are sized for the actual scheduled overlap. Native 4K output
+is supported; actual FPS depends on OBS resolution, hardware and workload.
+
+PREVIOUS RELEASE NOTES
+======================
+
+VOYAGER FLEET VISUALS v1.10 — 23 October 2026
+
+RAID / FULL-SIZE INTERCEPTORS AND RAIDER WELCOME
+All six interceptors now match the attacking fleet's average physical hull
+length. The six different designs and colours are retained. Wider hangars,
+lifting doors and separated launch waves give the larger ships clearance.
+Interceptor missiles and gunfire now originate ahead of the enlarged hulls.
+
+At 23 seconds the caption changes to two lines:
+  Welcome in raiders!
+  Welcome to The Unprofessionals!
+The raiding channel, raider count and thank-you stay visible below. The message
+appears gently, then fades with the scene from 26 to 28 seconds. The sequence
+remains 28 seconds, with the existing transparent background and audio.
+
+INSTALL THIS VISUAL UPDATE
+1. Close Fleet control and preview pages. Extract this ZIP.
+2. Merge the enclosed Voyager_Giveaway contents into your existing folder,
+   replacing matching files. Keep your existing config.js and saved settings.
+3. OBS > existing Fleet Browser Source > Properties > Refresh cache of current
+   page. Keep the same Voyager_Fleet_Overlay.html Local file path.
+4. Reopen Voyager_Fleet_Control.html, select 06 / Raid, preview and Send test to
+   OBS. Interact > D should show visual build 1.10.
+5. Your current Fleet v1.6 Streamer.bot action is compatible. No C# recompile
+   or trigger changes are needed. Existing gift-sub fleet face-off is retained.
+
+SOURCE
+fleet-raid.mjs contains hull sizing and flight paths. fleet-overlay.js contains
+the timed welcome. fleet-assets/fleet-renderer.js is the bundled OBS build.
+
+PREVIOUS RELEASE NOTES
+======================
+
+VOYAGER FLEET VISUALS v1.9 — 23 October 2026
+
+INSTALL THIS VISUAL UPDATE
+1. Close the Fleet control and preview pages. Extract this ZIP.
+2. Merge the enclosed Voyager_Giveaway contents into your existing folder and
+   replace matching files. Keep your config.js and saved settings.
+3. In OBS, open the existing Fleet Browser Source properties and select
+   Refresh cache of current page. Keep the same Voyager_Fleet_Overlay.html path.
+4. Reopen Voyager_Fleet_Control.html and preview 03 / Fleet, then Send test to OBS.
+   OBS Interact > D should report visual build 1.9.
+5. The existing Fleet v1.6 Streamer.bot action remains compatible. No C# recompile
+   or trigger changes are needed for this visual update.
+
+GIFT SUBSCRIPTIONS / FLEET FACE-OFF (18 seconds)
+The mining outpost has been replaced by five approaching enemy ship classes:
+siege, raider, marauder, destroyer and torpedo ships. The hero and its coloured
+escorts gather from the left, turn towards the enemy and settle into a defensive
+formation. The enemies close from the far side and line up opposite the hero.
+
+00–03s  Hero arrival and escort assembly.
+03–11s  Enemy fleet approaches while the coloured escorts gather.
+11–14.5s Both sides turn and settle into opposing battle lines.
+14.5–18s Weapons ready; the two fleets hold position, ready to face off.
+
+The stage ends before firing starts. Gift-sub quantity and thank-you captions,
+18-second duration, transparency, event queue and saved Lumia cues are retained.
+All other stages retain their existing behaviour. Native 4K output is supported;
+actual FPS depends on OBS, source resolution and the GPU workload.
+
+SOURCE
+fleet-faceoff.mjs holds the new choreography; fleet-assets/fleet-renderer.js is
+its bundled OBS-compatible build. The old fleet-mining.mjs may remain in your
+folder but is no longer imported or rendered.
+
+PREVIOUS RELEASE NOTES
+======================
+
+VOYAGER FLEET VISUALS v1.8 — 22 October 2026
+LAUNCH INTO THE VERSE / COLOURED FLEET / DRONE REPAIRS / INTENSE BATTLES
+
+INSTALL THIS UPDATE
+1. Extract this ZIP. Merge the CONTENTS of Voyager_Giveaway into your existing
+   Voyager_Giveaway folder, replacing matching files. Avoid a nested folder.
+2. Keep your existing config.js. This update patch does not include it.
+3. OBS > existing Fleet Browser Source > Properties > Refresh cache of current
+   page. Keep the same Voyager_Fleet_Overlay.html Local file path.
+4. Reopen Voyager_Fleet_Control.html, preview the six stages, then use Send test
+   to OBS. OBS Interact > D should show visual build 1.8.
+5. Your current Fleet v1.6 Streamer.bot action remains compatible. No C# compile,
+   action import, additional trigger or changed queue is needed for this update.
+
+WHAT YOU WILL SEE
+Launch / subscription (16 s)
+  Clamps release, the ship lifts, pitches upward and accelerates out of the top
+  of the frame. The camera stays with the dry dock, making the departure clear.
+Fleet / gift subscriptions (18 s)
+  Cobalt, copper, violet, teal and gold escort liveries. Enemies and interceptors
+  also have different paint schemes. The blue-and-white Polaris remains the hero.
+  An asteroid mining outpost appears behind the formation: a textured rocky body,
+  cranes, ore container, processing modules, tanks, solar arrays, radar, drill,
+  shuttle and nearby asteroids. The surrounding canvas stays transparent.
+Repair / bits and other support (14 s)
+  The hero starts with three breached hull areas and fires. Five drones fly in,
+  spray suppressant, then weld patches over the openings. The breaches are cut
+  into the rendered hull with recessed interiors and damaged rims. Fires stop,
+  the hull seals, and the drones depart. Status text describes the work.
+  This replaces the old overcharge animation for stage 5. Existing bits, Supers,
+  Kicks and Jewels triggers and the saved stage-5 Lumia shortcut still work.
+Battle / resubscription (20 s)
+  Three hostile ships and three escorts trade much denser gun volleys. Eight
+  guided torpedoes, secondary hull explosions, fragments, muzzle flashes and
+  damage to the hero make the battle more intense.
+Raid / base defence (28 s)
+  114 guided missiles and 132 explosion events across the full sequence, plus
+  faster defensive, enemy and interceptor gun bursts. Effects use bounded pools.
+  The base and formation remain visible through the action.
+
+SOUND / PERFORMANCE
+Weapon and explosion sounds follow the new visual event times. A shared audio
+compressor controls overlapping effects; the existing sound volume still applies.
+Follower audio and your Lumia command values are unchanged. Previews stay muted.
+
+Transparent OBS output, 4096 x 4096 hull PBR maps and the 60 FPS target remain.
+The mining backdrop is geometry, not a full-screen opaque background. Native 4K
+rendering is supported; actual frame rate depends on OBS, source size and GPU load.
+Use Auto quality for adaptive resolution or Balanced quality for heavier scenes.
+
+VALIDATION
+Local-file Chromium checks cover launch departure, all stage transitions, colour
+variety, fire suppression and complete hull repair, replay reset, alpha output,
+4K rendering, gun/missile timing and effect pool capacity. Live Windows OBS frame
+rate should be checked on the streaming PC. Existing C# and config are preserved.
+
+Previous release notes follow as historical reference.
+
+VOYAGER FLEET VISUALS v1.7 — 22 October 2026
+VARIED SHIPS / WORKING SHIPYARD / TIMED WEAPONS
+
+UPDATE YOUR EXISTING INSTALLATION
+1. Close the Fleet preview/control tabs. Extract this ZIP.
+2. Copy the CONTENTS of Voyager_Giveaway into your existing Voyager_Giveaway
+   folder and replace matching files. Keep your current config.js: the patch
+   does not contain it. Do not create a second nested Voyager_Giveaway folder.
+3. OBS > your existing Fleet Browser Source > Properties > Refresh cache of
+   current page. Keep its existing Voyager_Fleet_Overlay.html Local file path.
+4. Reopen Voyager_Fleet_Control.html. Use Local preview to inspect each stage,
+   then Send test to OBS. Diagnostics (OBS Interact > D) should show build 1.7.
+5. Your existing Fleet v1.6 Streamer.bot action remains compatible. This is a
+   visual update: NO C# replacement, compilation, extra trigger or .sb import
+   is needed if v1.6 is already installed. Existing Lumia cues/audio remain set.
+
+WHAT CHANGED
+Follow / Build (16 s): sequential hull assembly, two travelling gantry cranes,
+  suspended sections, articulated welders and sparks, open truss maintenance
+  decks, work lights, cable drums, service tugs and retracting support clamps.
+Subscription / Launch (16 s): release machinery and dock departure; the same
+  Polaris hero ship launches with its existing transparent engine effects.
+Gift subs / Fleet (18 s): five distinct escort classes with layered side armour,
+  recessed bays, glazed canopies, radiators, engines and physical gun fittings.
+Resub / Battle (20 s): distinct enemy hull; articulated hero gun batteries,
+  short travelling rounds, recoil, timed muzzle light, hit flashes and fragments;
+  existing guided 3D torpedoes and turbulent explosions continue to play.
+Bits / Support (14 s): detailed generator pods, moving emitter collars and
+  charging filaments accompany the hero's shield charge.
+Raid / Defence (28 s): five enemy classes, six different interceptor designs,
+  opening hangar shutters, rotating radar dishes, pipework and surface panels;
+  defence turrets recoil and fire timed rounds amid the existing missile barrage.
+
+The Polaris hero retains its identity across the story. Supporting ships are
+original Voyager designs, not copies of the hero or official game assets.
+The 4096 x 4096 PBR maps and transparent background are retained. The renderer
+supports 3840 x 2160 and targets 60 FPS; actual frame rate depends on your GPU,
+OBS source resolution, scene load and quality setting. Auto quality can reduce
+render resolution under load. Balanced quality is available for heavier scenes.
+
+CHECKS
+All six stages render in Chromium with alpha transparency. Model variety,
+shot travel timing, muzzle flashes, impact/instance capacities, stage changes,
+dock and hangar animation, map resolution and 4K output are checked locally.
+Live OBS / Windows performance must be checked on your streaming PC.
+Chat messages, names, platform mapping, durations, saved settings, queues,
+points and giveaway behaviour are unchanged by this visual update.
+
+Older install and platform instructions follow for reference only.
+
+VOYAGER FLEET ALERTS v1.6 — RAID / BASE DEFENCE — 22 October 2026
+
+28-SECOND TRANSPARENT 3D RAID ALERT
+Five enemy capital ships attack The Unprofessionals' orbital base.
+Six defence turrets return fire; six interceptors launch from three hangars.
+62 guided missile launches, continuous opposing gunfire and 68 impact events
+build through the battle. Raider name and viewer count appear on screen.
+At 23 seconds the scene welcomes the raiders; 26–28 seconds fade to transparency.
+
+UPDATE YOUR EXISTING INSTALLATION
+1. Extract this ZIP. Merge Voyager_Giveaway into your existing folder.
+   Keep your current config.js; it is not included in this patch.
+2. In Streamer.bot open the EXISTING Voyager - Fleet Alerts action and its
+   Execute C# Code sub-action. Replace all code with Voyager_Fleet_Alerts.cs.
+   Compile, save and close. Keep the existing references, action name, running
+   Voyager Fleet blocking queue and Concurrent OFF. Do not add a duplicate action.
+3. On that SAME action, right-click Triggers and add:
+       Twitch > Raid > Raid
+   This is the INCOMING raid trigger. Leave Min / Max blank for every raid.
+   Add it once. Raid Start / Send are outgoing events and will not play this alert.
+   The supplied .sb is for first installations; its original six Twitch triggers
+   are included, but you must still add this incoming Raid trigger manually.
+4. OBS: refresh the cache of your existing Voyager_Fleet_Overlay.html Browser Source.
+   Reopen Voyager_Fleet_Control.html. No extra OBS source is required.
+5. Select 06 / Raid, enter a raiding channel display name and number of raiders,
+   then Send test to OBS. Confirm the full 28-second animation and final fade.
+   Use Clear queue if earlier alerts/tests are waiting. The raid shares the
+   existing serial alert queue; it waits for an earlier alert to finish.
+
+PREVIEW
+Open Preview_Raid_Alert.html for a muted, looping preview over a dark background.
+Fleet Control also previews it. These local previews never trigger live alerts.
+The live OBS test plays the synthesised alarm, missiles, guns and explosions at
+Fleet Control's existing sound volume. There is no baked video or external CDN.
+This is real-time 3D HTML with the existing 4K PBR maps and 60 FPS target; actual
+frame rate depends on the streaming GPU, source resolution and OBS settings.
+
+OPTIONAL LUMIA
+Fleet Control has a new Raid / base defence shortcut field. It starts blank.
+Enter an existing Lumia shortcut, save, then test if you want raid lighting.
+The five previous stage mappings are retained. Use a bounded 28-second effect.
+Your existing Lumia follower audio/video setup is separate and remains configured
+in Lumia. Raid sound effects come from the Fleet HTML source.
+
+TIMELINE
+00–03s  Enemy fleet enters; incoming raid warning.
+03–07s  Missile barrage, hull impacts and defensive guns.
+07–12s  Interceptors launch and accelerate into the fight.
+12–19s  Missiles cross the battlefield; both fleets exchange fire.
+19–23s  Heavy counterattack and explosions across the invading formation.
+23–26s  Enemy withdrawal; welcome and thank-you to the raiding channel.
+26–28s  Smooth fade back to complete transparency.
+
+NOTES
+Native automatic raid triggering is Twitch. YouTube/Kick supporter alerts from
+v1.5 remain supported; their native Streamer.bot integrations do not supply this
+Twitch Raid event. Raids do not grant Voyager points or change membership tiers.
+Tests and replays do not increase raid totals. Raid events count once by event ID
+when one is supplied; avoid duplicate Fleet actions or trigger assignments.
+
+TESTED
+C# compiled against a local Streamer.bot API adapter. Native raid arguments,
+28-second timing, replay, queue, totals, old-stage compatibility and optional
+Lumia cues were checked. Chromium rendered all battle phases with transparent
+output; missile endpoints, effect capacity and transition back to other stages
+were checked. Live Windows Streamer.bot, broadcaster accounts and OBS still need
+the local test in step 5. Open FLEET_ALERTS_SETUP.html for full instructions.
+
+
+PREVIOUS UPDATE / YOUTUBE AND KICK SETUP
+
+VOYAGER FLEET ALERTS v1.5 — 22 October 2026
+YOUTUBE + KICK SUPPORTER ALERTS THROUGH THE SAME HTML OBS SOURCE
+
+UPDATE YOUR EXISTING INSTALLATION
+1. Extract this ZIP and merge Voyager_Giveaway into your existing folder.
+   Keep config.js; it is deliberately excluded from this patch.
+2. In Streamer.bot open your EXISTING Voyager - Fleet Alerts action, then
+   Execute C# Code. Replace all code with Voyager_Fleet_Alerts.cs.
+   Click Compile, save and close. No additional DLL references are needed.
+   Keep the Voyager Fleet queue running and Blocking; Concurrent OFF.
+   Do not import a second action. The .sb is for FIRST installations only.
+3. Connect the YouTube and Kick broadcaster accounts in Streamer.bot Platforms.
+   Ensure the active YouTube broadcast is monitored for live chat events.
+   Streamer.bot 1.0.5+ supports the full list including YouTube Jewels.
+4. On that existing Fleet action, right-click Triggers and add these ONCE each,
+   leaving optional filters and ranges unrestricted:
+
+   YouTube → General → New Subscriber  => Build
+   YouTube → General → New Sponsor  => Launch
+   YouTube → Membership → Gift  => Fleet
+   YouTube → Membership → Gift Membership Received  => Launch
+   YouTube → Membership → Member Milestone  => Battle
+   YouTube → Chat → Super Chat  => Overcharge
+   YouTube → Chat → Super Sticker  => Overcharge
+   YouTube → Chat → Jewels Gifted  => Overcharge
+   Kick → Channel → Follow  => Build
+   Kick → Subscriptions → Subscription  => Launch
+   Kick → Subscriptions → Gift Subscription  => Fleet
+   Kick → Subscriptions → Mass Gift Subscription  => Fleet
+   Kick → Subscriptions → Resubscription  => Battle
+   Kick → Kicks → Gifted  => Overcharge
+
+   The C# recognises the events; these triggers connect them to the action.
+   The first-install .sb contains updated C# and its original Twitch triggers.
+   It does NOT automatically add the YouTube/Kick triggers. Add this list after
+   either updating an existing installation or importing for the first time.
+5. OBS > existing Fleet Browser Source > Properties > Refresh cache.
+   Keep Voyager_Fleet_Overlay.html. Reopen Voyager_Fleet_Control.html.
+6. Choose Platform: YouTube / Kick, then choose Alert event and click
+   Send test to OBS. Local preview only plays inside the control page.
+   Test each stage. Native emulated events marked isTest are intentionally
+   ignored; use the Voyager test button. Real events use the native triggers.
+
+ANIMATION MAPPING
+Build: YouTube free channel subscribers; Kick followers.
+Launch: YouTube paid memberships/upgrades and gifted-member welcomes; Kick subs.
+Fleet: YouTube gifted memberships; Kick single/mass gifted subs.
+Battle: YouTube member milestones; Kick resubscriptions.
+Overcharge: YouTube Super Chats, Super Stickers, Jewels; Kick Kicks.
+Platform, display name, thank-you text and native amount/months appear on screen.
+
+YOUTUBE GIFT RECIPIENTS
+Gift Membership Received welcomes each recipient in addition to the giver alert.
+For one Fleet sequence per bundle, disable only that recipient trigger.
+Keep Membership > Gift enabled. Large bundles otherwise queue many welcomes.
+
+YOUTUBE AVAILABILITY
+Private subscribers and Google accounts without a YouTube channel cannot create
+New Subscriber events. Member Milestone depends on the platform milestone event;
+it does not guarantee an alert for every silent renewal. Ordinary chat messages,
+moderation and stream lifecycle changes are not supporter alerts.
+
+LUMIA / EXISTING FOLLOWER AUDIO
+Keep your current Twitch follower audio and replacement Fleet video in Lumia.
+If Lumia is already playing that follower visual, leave the Twitch Follow trigger
+on the Fleet action disabled; YouTube and Kick triggers can remain enabled.
+This update does not copy that audio into other events. HTML synthesised effects
+remain available, and your five saved optional Lumia commands work for all three
+platforms according to animation stage. No Lumia command names are changed.
+
+RECORDS
+Accounts stay separate by platform and user ID. Bits, Kicks and Jewels are separate
+units; Super Chat/Sticker original amounts/currencies are retained per event.
+Tests/replays do not count twice. Existing history, roster and Lumia settings stay
+in VoyagerFleetAlertsV1. Gift recipients and membership upgrades have their own
+exported counters and appear in the activity log, rather than adding paid subs.
+
+DETAILS / TROUBLESHOOTING
+Open FLEET_ALERTS_SETUP.html for the trigger table and full setup.
+OBS Interact > D opens diagnostics; build should read 1.5. Idle is transparent.
+A working test confirms the HTML/Streamer.bot path; a missing real event means
+check platform connection, trigger assignment and the Streamer.bot event log.
+
+VALIDATION
+Compiled C# with a local API adapter; verified all native mappings, quantities,
+account separation, replay, tests, queue and Lumia cue behaviour. Browser tests
+verify captions and the three-platform control-to-action-to-HTML path.
+Live broadcaster accounts and your Windows Streamer.bot/OBS require local tests.

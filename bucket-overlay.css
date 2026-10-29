@@ -1,0 +1,38 @@
+/* Voyager Goals HD — native browser rendering at 3840 x 480.
+   Every dimension follows the source viewport. Text is rasterised at that
+   resolution; the strip itself is never enlarged with a CSS transform. */
+:root{color-scheme:dark;font-family:Rajdhani,'Segoe UI',sans-serif;font-synthesis:none;--u:min(.0833333333vw,.6666666667vh);--surface-opacity:.35}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:transparent!important}
+body{pointer-events:none;font-family:Rajdhani,'Segoe UI',sans-serif;font-weight:600;font-variant-numeric:tabular-nums}
+.goal-strip{position:absolute;left:calc((100vw - 1184 * var(--u))/2);top:calc(8 * var(--u));width:calc(1184 * var(--u));margin:0;padding:0;overflow:hidden;border:calc(.8 * var(--u)) solid #b6dfff52;border-radius:calc(8 * var(--u));background:linear-gradient(110deg,rgba(13,28,43,var(--surface-opacity)),rgba(5,12,21,var(--surface-opacity)));color:#f0f7ff;box-shadow:0 calc(3 * var(--u)) calc(12 * var(--u)) #0002;text-shadow:0 calc(1 * var(--u)) calc(1.5 * var(--u)) #0007}
+/* Clean edges and open space match the Live OBS strip. No scanline texture,
+   soft text glow, max-width cap, bitmap background or oversized blur filter. */
+.strip-heading{display:flex;align-items:center;gap:calc(18 * var(--u));height:calc(35 * var(--u));margin:0;padding:0 calc(20 * var(--u));border-bottom:calc(.7 * var(--u)) solid #b6dfff30;background:linear-gradient(90deg,#65c8ff0c,transparent);white-space:nowrap}
+.strip-heading>.brand{display:flex;align-items:center;gap:calc(9 * var(--u));font:700 calc(14 * var(--u))/1 Rajdhani,'Segoe UI',sans-serif;letter-spacing:calc(2 * var(--u));color:#f0f7ff}
+.strip-voyager{display:block;width:calc(28 * var(--u));height:calc(28 * var(--u));object-fit:contain;filter:none}
+.brand-divider{padding:0 calc(3 * var(--u));color:#91b2c9;font-size:calc(13 * var(--u));font-weight:500}
+#strip-title{font-size:calc(12 * var(--u));font-weight:600;color:#c0d5e4;letter-spacing:calc(1.6 * var(--u))}
+.strip-logos{display:flex;align-items:center;gap:calc(18 * var(--u));margin-left:auto;padding-right:calc(18 * var(--u));border-right:calc(.7 * var(--u)) solid #b6dfff35}
+.strip-logos .brand-image-mda{width:calc(76 * var(--u))}.strip-logos .brand-image-upr{width:calc(54 * var(--u))}
+.feed-status{display:flex;align-items:center;gap:calc(7 * var(--u));font:600 calc(10 * var(--u))/1 Rajdhani,'Segoe UI',sans-serif;letter-spacing:calc(1 * var(--u));color:#c0d2df}
+.feed-status i{display:block;width:calc(5 * var(--u));height:calc(5 * var(--u));border-radius:50%;background:#a6b5c1;flex:none}
+.feed-status[data-state=live] i{background:#9de3bd}.feed-status[data-state=stale]{color:#f0d49a}.feed-status[data-state=stale] i{background:#e8c783}.feed-status[data-state=preview] i{background:#92c9f0}
+.goals{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0}
+.goal{position:relative;min-width:0;padding:calc(8 * var(--u)) calc(22 * var(--u)) calc(9 * var(--u));--tier:#e1ebf4;--tier-start:#a5bdcf;--tier-wash:#dceeff12}
+.goal.gold{--tier:#f2ce77;--tier-start:#bf9240;--tier-wash:#f2ce7712}.goal.platinum{--tier:#c8c8ff;--tier-start:#899fdf;--tier-wash:#c8c8ff12}
+.goal+.goal{border-left:calc(.7 * var(--u)) solid #b6dfff30}
+.goal:before{content:'';position:absolute;top:0;left:calc(22 * var(--u));right:calc(22 * var(--u));height:calc(1.4 * var(--u));background:linear-gradient(90deg,var(--tier),transparent 85%);opacity:.85}
+.goal-heading{display:flex;align-items:center;justify-content:space-between;gap:calc(12 * var(--u));height:calc(42 * var(--u))}
+.goal-heading h1{display:flex;align-items:center;gap:calc(9 * var(--u));margin:0;font:700 calc(18 * var(--u))/1 Rajdhani,'Segoe UI',sans-serif;letter-spacing:calc(1.2 * var(--u));color:var(--tier)}
+.goal-heading h1:before{content:'';width:calc(4 * var(--u));height:calc(13 * var(--u));border-radius:calc(1 * var(--u));background:var(--tier)}
+.percentage{font:700 calc(44 * var(--u))/1 Rajdhani,'Segoe UI',sans-serif;letter-spacing:calc(-.6 * var(--u));color:var(--tier);font-variant-numeric:tabular-nums;text-shadow:0 calc(1 * var(--u)) calc(1.5 * var(--u)) #0006;white-space:nowrap}
+.track{height:calc(5 * var(--u));margin-top:calc(7 * var(--u));border-radius:calc(3 * var(--u));background:#b9d7ee26;overflow:hidden}
+.fill{display:block;width:100%;height:100%;transform:scaleX(0);transform-origin:left center;background:linear-gradient(90deg,var(--tier-start),var(--tier));border-radius:inherit;transition:transform .7s cubic-bezier(.22,1,.36,1)}
+.goal-detail{display:flex;align-items:center;justify-content:space-between;gap:calc(10 * var(--u));min-height:calc(18 * var(--u));margin-top:calc(6 * var(--u));font-variant-numeric:tabular-nums}
+.balance{font:600 calc(16 * var(--u))/1.125 Rajdhani,'Segoe UI',sans-serif;letter-spacing:calc(.2 * var(--u));color:#dfebf4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.goal-note{font:700 calc(10 * var(--u))/1 Rajdhani,'Segoe UI',sans-serif;letter-spacing:calc(1 * var(--u));color:var(--tier);white-space:nowrap;flex:none;padding:calc(3 * var(--u)) calc(6 * var(--u));border:calc(.7 * var(--u)) solid currentColor;border-radius:calc(3 * var(--u))}.goal-note:empty{display:none}
+.goal.complete{background:linear-gradient(90deg,var(--tier-wash),transparent)}.goal.complete .fill{background:var(--tier)}
+.goal.unavailable .percentage{color:#9eaebd}.goal.unavailable .balance{color:#b0c2d1}
+.goal-strip[data-fresh=false] .goals{opacity:.72}
+@media(prefers-reduced-motion:reduce){.fill{transition:none}}

@@ -1,0 +1,106 @@
+VOYAGER TICKET ENTRY FIX v1.3 - 24 OCTOBER 2026
+
+Keep the current giveaway. This update reads the existing ticket ledger and
+preserves entrants, earned/manual tickets, partial tracked time and draw history.
+It does not change Voyager points, tier groups or the impromptu giveaway.
+
+WHAT WAS REPRODUCED AND FIXED
+
+- v1.2 did not recognise !entry. v1.3 accepts !entry, !entergiveaway and
+  !voyagerenter on Twitch, YouTube and Kick.
+- v1.2 could silently reject entry for 15 seconds after the same account used
+  !tickets. v1.3 processes registration independently of chat-reply cooldowns.
+- Repeated entry and duplicate native/command deliveries keep one account and
+  one join record. Duplicate confirmation replies are limited separately.
+- Case and surrounding whitespace are accepted. The first word is the command.
+- Kick chat reception, entry result and presence matching now have separate
+  diagnostics. A running presence timer alone does not prove chat is arriving.
+
+INSTALL INTO YOUR EXISTING SETUP
+
+1. Extract this ZIP. Copy the files inside Voyager_Giveaway into your EXISTING
+   Voyager_Giveaway folder. Replace matching files. Do not delete that folder.
+   Your config.js and saved report data are not included or overwritten.
+
+2. In Streamer.bot -> Actions, select the EXISTING enabled action named exactly:
+      Voyager - Ticket Giveaway
+   Open its Execute C# Code sub-action. Replace ALL its code with the complete
+   contents of the included Voyager_Ticket_Giveaway.cs. Click Compile, then
+   Save/OK. Merely copying the .cs file into your overlay folder does not update
+   the code already stored inside Streamer.bot.
+
+3. On that SAME action, check that these two triggers are present AND enabled:
+      Kick -> Chat -> Chat Message
+      Kick -> General -> Present Viewers
+   Add either missing trigger directly to this action. Do not add a duplicate.
+   Keep the existing Twitch and YouTube triggers.
+
+   Use exactly one enabled Voyager - Ticket Giveaway action, with Concurrent
+   off, on the existing unpaused, blocking Voyager Tickets queue. A presence
+   trigger on a different points/watchtime action does not invoke this action.
+   Test from real Kick chat; simulated/test/internal bot messages are ignored.
+
+   With the native Chat Message trigger, no separate Streamer.bot command is
+   required. If you use Core -> Commands -> Command Triggered instead, its
+   command must include your desired aliases, permit Everyone, enable Kick as
+   a source and have no points cost. Prefer the direct native trigger above.
+
+4. Reopen/refresh Voyager_Ticket_Giveaway.html. Under Tracking Health, verify:
+      Ticket engine 1.3
+   If it still says 1.2, the old C# action is still running. Check the action you
+   edited, compile/save it, confirm only one copy is enabled, then click Refresh.
+
+5. Keep your existing campaign Open and ensure Entry platforms includes Kick.
+   Have a real Kick viewer send !entry. Registration should be immediate and
+   should be confirmed in Kick chat. Do not wait ten minutes for registration.
+
+WHAT YOU SHOULD SEE
+
+- Last chat reaching ticket action: a fresh timestamp.
+- Last ticket command: !entry, the viewer's Kick login and user ID.
+- Entry registered, or Entry already registered.
+- Registered Kick accounts in this giveaway: the saved total, separate from
+  how many registered users are currently found in the presence sample.
+- After consecutive live presence samples: matched entrant and gained time.
+  600,000 ms of accumulated tracked presence earns one ticket. No joining bonus.
+
+IF AN ENTRY IS STILL NOT ACCEPTED
+
+- No fresh chat timestamp: the new action has not received Kick chat. Check the
+  direct Chat Message trigger, enabled action/queue and Kick event delivery.
+  Presence timer updates alone are insufficient. This code cannot create a
+  chat event that Kick/Streamer.bot never delivers.
+- Missing user ID: preserve the native incoming arguments. Do not overwrite
+  userId, message or command with Set Argument steps or generic Run Action.
+- Platform disabled / collection closed / no giveaway: correct the indicated
+  campaign setting. Do not create a replacement campaign to repair routing.
+- Entry registered but reply failed: registration is saved. Check the chat-send
+  error in Streamer.bot's log. A submitted reply is not a delivery receipt.
+- Entry registered but no matching presence: compare the ID shown for the entry
+  with the sample unmatched IDs and the exported registered accounts.
+
+Click Download tracking diagnostics and attach the JSON if further diagnosis
+is needed. It includes engine version, campaign status, chat reception/result,
+presence diagnostics and registered platform account IDs. It excludes passwords,
+connection configuration and ordinary chat message bodies.
+
+WATCHTIME LIMIT
+
+Kick and YouTube presence reflects recent chat activity, not an actual viewer
+list. Silent viewers can leave that list. This entry fix does not invent viewing
+time, merge accounts by display name or backfill unobserved time. Previously
+earned tickets and partial tracked minutes remain intact.
+
+PREVIOUS FEATURES
+
+This package retains the current shared ticket/leaderboard OBS panel, Live
+dashboard active giveaways and Reporting panel updates. No extra OBS source or
+new giveaway is required. Earlier setup notes are background; use these v1.3
+steps for this fix. No .sb installer is supplied: update the existing action.
+
+VERIFICATION
+
+The old alias and entry-after-balance failures were reproduced in a C# harness.
+The updated action was compiled and exercised against a Streamer.bot API test
+double; browser controls were tested with simulated state. The user's live
+Streamer.bot instance and Kick session are not accessible from this workspace.

@@ -1,0 +1,50 @@
+VOYAGER FLEET VISUALS v1.12 - SMOOTHER BATTLE PLAYBACK
+24 October 2026
+
+INSTALL INTO YOUR EXISTING VOYAGER FOLDER
+1. Close Fleet control and preview pages.
+2. Extract this ZIP. Copy the contents of its Voyager_Giveaway folder into
+   your existing Voyager_Giveaway folder. Replace the matching files.
+   Merge the files; do not delete or replace your entire working folder.
+3. In OBS, right-click the Fleet alerts Browser Source, open Properties,
+   and click Refresh cache of current page. Keep the same local HTML path
+   or URL. Enable Use custom frame rate and set it to 60 FPS.
+4. Reopen Fleet controls. Test 04 / Resubscription and 06 / Raid using
+   Send test to OBS. In OBS Interact, press D: the build should read 1.12.
+5. Close extra preview windows while streaming so OBS does not compete
+   with another copy of the 3D scene.
+
+No Streamer.bot import, C# recompile, new trigger or Lumia change is needed.
+Your config.js, saved alerts, points and Voyager Versus are not included.
+This is an update for an existing Fleet installation, not a replacement
+for the entire Voyager Giveaway folder.
+
+WHAT WAS FIXED
+- Battle damage lamps previously appeared/disappeared with each hull breach,
+  forcing new lighting shaders to compile in the middle of combat. Their
+  positions and light effects are retained, but the lamps stay loaded and
+  brightness changes as damage appears. The renderer prepares the effect
+  variants before reporting graphics ready.
+- Gunfire now looks up only shots near the current time. Turret recoil has
+  its own per-gun index instead of rescanning thousands of rounds.
+- Explosion and cannon noise buffers are generated before weapon playback
+  and reused. Audio cues are indexed instead of repeatedly sorting the
+  whole combat schedule during each frame.
+- Temporary debris transforms and immutable explosion geometry are reused.
+- Auto quality starts at up to 1920 pixels wide, retains 4K material maps,
+  and applies resolution changes between alerts instead of during battle.
+  Native-resolution Ultra remains available through the existing settings.
+
+The hero/escort designs, effects, 20-second resub battle, 28-second raid,
+5,549 raid rounds, 204 missile launches, 264 explosion events, transparent
+background, captions and raider welcome are retained.
+
+VERIFICATION
+Actual WebGL battle/raid frames were checked for shader compilation,
+transparent rendering and stage transitions. The tested combat frames
+created no new shader programs after loading. 1,190 timestamp comparisons
+matched the original gunfire/recoil results, including backwards seeks.
+The full raid timeline was checked for missing rounds/impacts and pool
+capacity. Noise reuse and deferred resolution changes were checked too.
+Tests ran in Chromium with software graphics. Actual frame rate still
+varies with OBS settings and the streaming PC's workload.

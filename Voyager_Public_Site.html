@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Voyager • Public website</title>
+<link rel="icon" href="brand-assets/voyager.png">
+<link rel="stylesheet" href="stream-command.css">
+<link rel="stylesheet" href="voyager-brand.css">
+<link rel="stylesheet" href="public-site.css">
+</head>
+<body class="voyager-console voyager-public">
+<div class="shell">
+<aside class="rail"><a class="brand" href="Voyager_Command_Center.html"><img class="logo-voyager" src="brand-assets/voyager.png" alt="Voyager membership program" width="68" height="68"><span>VOYAGER<small>MDA009 / MISSION CONTROL</small></span></a>
+<nav aria-label="Voyager pages"><a href="Voyager_Command_Center.html">◈ &nbsp; Home dashboard</a><a href="Voyager_Points.html">◇ &nbsp; Points &amp; membership</a><a href="Giveaway_Control.html">✦ &nbsp; Giveaway control</a><a href="Voyager_Security.html">◉ &nbsp; Security</a><a href="Voyager_Banner_Control.html">▰ &nbsp; Stream banner</a><a href="Voyager_Versus.html">⚔ &nbsp; Voyager Versus</a><a class="active" aria-current="page" href="Voyager_Public_Site.html">◎ &nbsp; Public website</a></nav>
+<div class="rail-bottom"><span class="eyebrow">YOUR STREAM, TOGETHER</span><p>Three platforms.<br>One community.</p><span class="orbit"><i></i><i></i><i></i></span><small>VOYAGER / STREAM OPERATIONS</small></div></aside>
+<main>
+<header class="top"><div><span class="eyebrow">MDA009 / COMMUNITY WEBSITE</span><h1>Public website</h1></div>
+<div class="toolbar"><span id="publish-pill" class="ps-pill" role="status">Not published</span><a class="button" id="open-site" href="#" target="_blank" rel="noopener" hidden>Open public site ↗</a></div></header>
+
+<p class="ps-notice" id="not-hosted" hidden>Open this page from Voyager (START-VOYAGER-CONTROL.bat or the Voyager app) so it can prepare and publish the website.</p>
+<p class="ps-notice" id="feedback" role="status" hidden></p>
+
+<section class="ps-intro"><div><span class="eyebrow">FOR YOUR VIEWERS</span><h2>A website your community can check any time.</h2>
+<p>It shows active giveaways and how to enter, recent winners, community goals, leaderboards, Voyager Versus and how the program works. It never shows stream statistics.</p></div></section>
+
+<div class="ps-grid">
+<section class="card ps-preview"><div class="card-heading"><div><span class="eyebrow">EXACTLY WHAT VIEWERS SEE</span><h2>Preview</h2></div><button type="button" id="reload-preview">↻ Refresh</button></div>
+<div class="ps-sources" id="sources" aria-label="Data sources"></div>
+<div class="ps-frame"><iframe id="preview" title="Public website preview" src="about:blank"></iframe></div>
+<details class="ps-data"><summary>Show the exact data that is published</summary><pre id="feed-json">Waiting for data…</pre></details>
+</section>
+
+<div class="ps-side">
+<section class="card"><div class="card-heading"><div><span class="eyebrow">PRIVACY</span><h2>What is shared</h2></div></div>
+<form id="sections-form" class="ps-checks">
+<label><input type="checkbox" name="giveaways"> Active giveaways and how to enter</label>
+<label><input type="checkbox" name="winners"> Recent winners (confirmed only)</label>
+<label><input type="checkbox" name="goals"> Community goals (Silver, Gold, Platinum pools)</label>
+<label><input type="checkbox" name="points"> Voyager points leaderboard</label>
+<label><input type="checkbox" name="pilots"> Voyager Versus pilot leaderboard</label>
+<label><input type="checkbox" name="versus"> Voyager Versus status</label>
+<label><input type="checkbox" name="program"> How Voyager works (tiers and commands)</label>
+<label class="ps-sep"><input type="checkbox" name="showNames"> Show viewer names (off shows "N•••••")</label>
+<label class="ps-inline">Leaderboard size <input type="number" name="leaderboardSize" min="3" max="10" step="1"></label>
+</form>
+<div class="ps-never"><strong>Never shared</strong><p>Viewer, follower and subscriber counts · watch time · bits, subs and revenue · user IDs and logins · chat messages · security reports · audit logs · each viewer's ticket balance · winners before you confirm them.</p></div>
+</section>
+
+<section class="card"><div class="card-heading"><div><span class="eyebrow">PUBLISHING</span><h2>Put it online</h2></div></div>
+<form id="publish-form" class="ps-form">
+<label>GitHub repository<input name="repo" placeholder="your-name/voyager" autocomplete="off" spellcheck="false"></label>
+<label>Your own web address (optional)<input name="siteUrl" type="url" placeholder="https://voyagercommand.com" autocomplete="off" spellcheck="false"></label>
+<label>GitHub token<input name="token" type="password" autocomplete="off" spellcheck="false" placeholder="github_pat_…"></label>
+<p class="ps-hint" id="token-hint">Use a fine-grained token for this one repository with <b>Contents: Read and write</b>. It is saved only on this PC. Steps: <a href="PUBLISHING.md" target="_blank">PUBLISHING.md</a> › Public website.</p>
+<label class="ps-toggle"><input type="checkbox" name="enabled"> Publish while Voyager is running</label>
+<div class="ps-actions"><button type="submit" class="primary">Save publishing</button><button type="button" id="publish-now">Publish now</button><button type="button" id="clear-token" class="link">Remove saved token</button></div>
+<p class="ps-hint" id="publish-status"></p>
+</form>
+</section>
+</div>
+</div>
+
+<section class="card" id="embed-card" hidden><div class="card-heading"><div><span class="eyebrow">YOUR WEBSITE</span><h2>Add it to your Fourthwall store</h2></div><button type="button" id="copy-embed" class="primary">Copy code</button></div>
+<ol class="ps-steps">
+<li>In Fourthwall, open <b>Site design</b> › <b>Layout</b>, open the page drop-down and choose <b>Create page</b>. Name it <b>Voyager</b>.</li>
+<li>Click <b>Add page section</b> › <b>Custom code</b>, paste the code below, tick <b>Full width</b> and save.</li>
+<li>Add the Voyager page to your store menu so viewers can find it.</li>
+</ol>
+<textarea id="embed-code" class="ps-code" rows="12" readonly aria-label="Code for your website"></textarea>
+<p class="ps-hint">If Fourthwall removes the script part, the page still works at a fixed height. Fourthwall's <b>Embedded Section</b> with the address <code id="embed-src"></code> also works.</p>
+</section>
+
+<section class="card"><div class="card-heading"><div><span class="eyebrow">YOUR CHANNEL</span><h2>Channel, links and program</h2></div><button type="submit" form="channel-form" class="primary">Save</button></div>
+<form id="channel-form" class="ps-form ps-columns">
+<fieldset><legend>Channel</legend>
+<label>Name<input name="channelName" maxlength="60"></label>
+<label>Tagline<input name="tagline" maxlength="160"></label>
+<label>Twitch URL<input name="twitch" type="url" placeholder="https://twitch.tv/…"></label>
+<label>YouTube URL<input name="youtube" type="url" placeholder="https://youtube.com/@…"></label>
+<label>Kick URL<input name="kick" type="url" placeholder="https://kick.com/…"></label>
+<label>Discord invite<input name="discord" type="url" placeholder="https://discord.gg/…"></label>
+<label>Website<input name="website" type="url" placeholder="https://…"></label>
+</fieldset>
+<fieldset><legend>Chat commands shown to viewers</legend>
+<label>Chat giveaway entry<input name="cmd-impromptu" maxlength="31"></label>
+<label>Ticket giveaway entry<input name="cmd-tickets" maxlength="31"></label>
+<label>Voyager Versus<input name="cmd-versus" maxlength="31"></label>
+<legend class="ps-sub">Goal names</legend>
+<label>Silver<input name="goal-silver" maxlength="60"></label>
+<label>Gold<input name="goal-gold" maxlength="60"></label>
+<label>Platinum<input name="goal-platinum" maxlength="60"></label>
+</fieldset>
+<fieldset class="ps-wide"><legend>How Voyager works</legend>
+<label>Introduction<textarea name="intro" rows="3" maxlength="600"></textarea></label>
+<div class="ps-tiers" id="tier-fields"></div>
+<label>Commands list · one per line as <code>!command - what it does</code><textarea name="commands" rows="5"></textarea></label>
+</fieldset>
+</form>
+</section>
+</main>
+</div>
+<script src="config.js"></script>
+<script src="giveaway-connection.js"></script>
+<script src="ticket-giveaway-connection.js"></script>
+<script src="points-model.js?v=4.4"></script>
+<script src="points-connection.js?v=4.4"></script>
+<script src="voyager-navigation.js"></script>
+<script type="module" src="public-site.js"></script>
+</body>
+</html>

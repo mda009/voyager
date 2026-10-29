@@ -1,0 +1,26 @@
+:root{font-family:Rajdhani,Arial,sans-serif;color:#eff7ff;background:transparent!important;font-synthesis:none}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;min-height:100%;background:transparent!important;overflow:hidden}
+[hidden]{display:none!important}
+#cooldown{--accent:#73ddff;width:640px;max-width:100vw;height:240px;padding:16px 24px 14px;background:transparent;text-shadow:0 2px 5px #030916,0 0 12px #030916}
+header{height:36px;display:flex;align-items:center;gap:10px;letter-spacing:3px;font-size:21px;font-weight:700}
+header img{object-fit:contain;filter:drop-shadow(0 2px 4px #030916)}
+header b{color:var(--accent)}
+header small{font-size:12px;letter-spacing:1.5px;color:#c0d2e5;margin-left:auto}
+.readout{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-top:13px}
+.time-block{min-width:0}
+#timer-label{margin:0;color:#b6cee6;font-size:15px;font-weight:700;letter-spacing:2.4px}
+#timer-value{display:block;font-size:70px;font-weight:700;line-height:1.06;letter-spacing:2px;font-variant-numeric:tabular-nums;color:#eff7ff;white-space:nowrap}
+.command{text-align:right;padding-top:20px;flex-shrink:0}
+.command span{display:block;font-size:12px;letter-spacing:1.6px;color:#b6cee6}
+.command strong{display:block;font-size:34px;line-height:1.15;color:var(--accent)}
+.progress{margin:12px 0 12px;height:2px;background:transparent}
+.progress span{display:block;width:100%;height:100%;background:var(--accent);box-shadow:0 0 7px #4169e1;transform:scaleX(0);transform-origin:left}
+footer{display:flex;align-items:center;gap:9px;color:#d6e7f6;font-size:19px;font-weight:500;line-height:1.2}
+.status-dot{width:6px;height:6px;flex-shrink:0;border-radius:50%;background:var(--accent);box-shadow:0 0 8px var(--accent)}
+#cooldown[data-mode=ready],#cooldown[data-mode=join]{--accent:#8fe9ff}
+#cooldown[data-mode=ready] #timer-value,#cooldown[data-mode=join] #timer-value{color:var(--accent);font-size:66px}
+#cooldown[data-mode=offline],#cooldown[data-mode=hold]{--accent:#b8c8dc}
+#cooldown[data-mode=offline] .command{visibility:hidden}
+#cooldown[data-mode=hold] #timer-value,#cooldown[data-mode=busy] #timer-value{font-size:56px}
+@media(max-width:520px){#cooldown{padding:14px 16px}header{font-size:18px;letter-spacing:2px}#timer-value{font-size:62px}.command strong{font-size:28px}.command span{font-size:10px;letter-spacing:1px}#timer-label{font-size:13px;letter-spacing:1.4px}footer{font-size:17px}#cooldown[data-mode=hold] #timer-value,#cooldown[data-mode=busy] #timer-value{font-size:40px}}

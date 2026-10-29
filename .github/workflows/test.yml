@@ -1,0 +1,26 @@
+name: Tests
+on:
+  push:
+    # The public-data branch only holds the live website feed uploaded by Voyager.
+    branches-ignore: [public-data]
+  pull_request:
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm test
+      - name: Build release zip (checks for drift, secrets and live data)
+        run: npm run release
+      - uses: actions/upload-artifact@v4
+        if: matrix.os == 'ubuntu-latest'
+        with:
+          name: voyager-release
+          path: dist-release/*.zip

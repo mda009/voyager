@@ -1,0 +1,78 @@
+# Publishes the public website (viewer site at / and the app download page at /download/).
+#
+# Where it goes:
+#   - Cloudflare, when the repository has the secrets CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID
+#     (recommended, for your own domain such as voyagercommand.com; see PUBLISHING.md)
+#   - otherwise GitHub Pages (https://<owner>.github.io/<repo>/)
+#
+# Live giveaway data is NOT built here: the Voyager app uploads it to the public-data branch
+# while you stream, and the site reads it from there.
+name: Public website
+on:
+  push:
+    branches: [main, master]
+    paths: ['site/**', 'brand-assets/**', '.github/workflows/public-site.yml']
+  workflow_dispatch:
+  workflow_call:
+permissions:
+  contents: read
+concurrency:
+  group: public-website
+  cancel-in-progress: false
+jobs:
+  target:
+    runs-on: ubuntu-latest
+    outputs:
+      cloudflare: ${{ steps.pick.outputs.cloudflare }}
+    steps:
+      - id: pick
+        env:
+          TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          if [ -n "$TOKEN" ] && [ -n "$ACCOUNT" ]; then echo "cloudflare=true" >> "$GITHUB_OUTPUT"; echo "Publishing to Cloudflare"; else echo "cloudflare=false" >> "$GITHUB_OUTPUT"; echo "Publishing to GitHub Pages"; fi
+
+  cloudflare:
+    needs: target
+    if: needs.target.outputs.cloudflare == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Build the website
+        run: node site/build-site.mjs "${{ github.repository }}" _site
+      - name: Add Cloudflare settings and security headers
+        env:
+          VOYAGER_EMBED_ORIGINS: ${{ vars.VOYAGER_EMBED_ORIGINS }}
+        run: node site/cloudflare.mjs _site
+      - name: Deploy to Cloudflare
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy
+
+  github-pages:
+    needs: target
+    if: needs.target.outputs.cloudflare != 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node site/build-site.mjs "${{ github.repository }}" _site
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deploy
+        uses: actions/deploy-pages@v4

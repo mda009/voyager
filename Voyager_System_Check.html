@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Voyager • System Check</title>
+<link rel="icon" href="brand-assets/voyager.png" type="image/png">
+<link rel="stylesheet" href="voyager-brand.css">
+<style>
+:root{color-scheme:dark}*{box-sizing:border-box}
+body{background:#090f19;color:#e5effc;font:16px/1.6 'Segoe UI',Arial,sans-serif;margin:0}
+main{max-width:980px;margin:48px auto;padding:0 24px 70px}
+h1{font-size:38px;line-height:1.15;letter-spacing:-1px;margin:6px 0 8px}
+h2{font-size:20px;margin:34px 0 10px;color:#f0f6ff}
+p{color:#acbdd3}a{color:#92d0ff}
+code{background:#17263a;border-radius:4px;padding:2px 6px;color:#dcecff;font-size:.9em;overflow-wrap:anywhere}
+.eyebrow{font-size:11px;letter-spacing:3px;color:#8abde4}
+.checks{list-style:none;padding:0;margin:0;border:1px solid #30425c;border-radius:12px;overflow:hidden;background:#101c2c}
+.checks li{display:grid;grid-template-columns:28px 1fr;gap:12px;padding:14px 18px;border-top:1px solid #22324a}
+.checks li:first-child{border-top:0}
+.checks strong{color:#e0ecfa;display:block}
+.checks .detail{color:#9fb2c9;font-size:14px;overflow-wrap:anywhere}
+.dot{width:14px;height:14px;border-radius:50%;margin-top:5px;background:#5a6b80}
+.ok .dot{background:#3fd08a}.warn .dot{background:#f2b84b}.fail .dot{background:#ff6070}.wait .dot{background:#5a6b80;animation:pulse 1s infinite alternate}
+@keyframes pulse{to{opacity:.35}}
+form{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;align-items:end;margin:12px 0}
+label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:#9fb2c9}
+input{font:inherit;padding:8px 10px;border-radius:8px;border:1px solid #30425c;background:#0b1522;color:#e5effc}
+button{font:700 15px/1 'Segoe UI',Arial,sans-serif;background:#91d0ff;color:#0a1a2c;border:0;border-radius:8px;padding:11px 18px;cursor:pointer}
+button.secondary{background:#263b55;color:#d9ecff}
+table{border-collapse:collapse;width:100%;font-size:14px}
+td,th{padding:10px 12px;text-align:left;border-bottom:1px solid #29394f}th{color:#9bcff8;font-weight:600}
+.tag{display:inline-block;padding:1px 8px;border-radius:999px;font-size:12px;font-weight:700}
+.tag.ok{background:#123d2a;color:#7ff0b5}.tag.warn{background:#3d2f12;color:#ffd27a}.tag.fail{background:#3d1219;color:#ff9aa6}
+.summary{font-weight:700;font-size:18px;margin:18px 0}
+@media (max-width:600px){h1{font-size:30px}main{margin-top:28px;padding:0 16px 50px}td,th{padding:8px 6px}}
+</style>
+</head>
+<body>
+<main>
+<div class="eyebrow">VOYAGER CONTROL / SYSTEM CHECK</div>
+<h1>Is everything ready to stream?</h1>
+<p>This page checks the Voyager host, where your live data is saved, and your Streamer.bot connection. It only reads. It never runs a giveaway, points or Versus action.</p>
+<p class="summary" id="summary">Running checks…</p>
+<ul class="checks" id="checks"></ul>
+
+<h2>Streamer.bot connection</h2>
+<p>These start from <code>config.js</code>. Changes here are for this check only and are not saved.</p>
+<form id="sb-form">
+<label>Host<input name="host" autocomplete="off"></label>
+<label>Port<input name="port" type="number" min="1" max="65535"></label>
+<label>Password<input name="password" type="password" autocomplete="off"></label>
+<button type="submit">Check again</button>
+</form>
+
+<h2>Voyager actions in Streamer.bot</h2>
+<p>Each feature needs its action imported and enabled once. Missing actions only matter for the features you use.</p>
+<table><thead><tr><th>Action</th><th>Used by</th><th>Status</th></tr></thead><tbody id="actions"><tr><td colspan="3">Waiting for Streamer.bot…</td></tr></tbody></table>
+
+<p style="margin-top:34px"><a href="Voyager_Guide.html">Setup guides and update history</a> · <a href="Voyager_Command_Center.html">Command Center</a></p>
+</main>
+<script src="config.js"></script>
+<script>
+(()=>{'use strict';
+const ACTIONS=[
+ ['Voyager - Giveaway Engine','Giveaway Control, overlays'],
+ ['Voyager - Broadcast Members','Member groups, entrant panels'],
+ ['Voyager - Ticket Giveaway','Ticket giveaways'],
+ ['Voyager - Points Ledger','Points dashboard'],
+ ['Voyager Versus Rewards v2.5','Voyager Versus winner points'],
+ ['Voyager - Security Monitor','Security'],
+ ['Voyager - Stream Stats','Command Center'],
+ ['Voyager - Leaderboard Panel','Leaderboard OBS panel'],
+ ['Voyager - Banner','Stream banner'],
+ ['Voyager - Twitch Analytics','Reporting'],
+ ['Voyager - External Analytics','Reporting'],
+ ['Voyager - Fleet Alerts','Fleet alerts']
+];
+const cfg={host:'127.0.0.1',port:8080,password:'',path:'/',secure:false,...(window.VOYAGER_CONFIG||{})};
+const $=id=>document.getElementById(id);
+const rows=new Map();
+function row(key,title){
+ let li=rows.get(key);
+ if(!li){li=document.createElement('li');li.innerHTML='<span class="dot" aria-hidden="true"></span><div><strong></strong><span class="detail"></span></div>';rows.set(key,li);$('checks').append(li);}
+ li.querySelector('strong').textContent=title;return li;
+}
+function set(key,state,title,detail){const li=row(key,title);li.className=state;li.querySelector('.detail').textContent=detail||'';li.dataset.state=state;summarise();}
+function summarise(){
+ const states=[...rows.values()].map(li=>li.dataset.state);
+ const s=$('summary');
+ if(states.includes('wait'))s.textContent='Running checks…';
+ else if(states.includes('fail'))s.textContent='Something needs fixing before you go live. See the red items.';
+ else if(states.includes('warn'))s.textContent='Ready, with warnings. See the amber items.';
+ else s.textContent='All checks passed.';
+}
+async function hash(text){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(text));return btoa(String.fromCharCode(...new Uint8Array(b)));}
+
+async function checkHost(){
+ const served=location.protocol==='http:'&&['127.0.0.1','localhost'].includes(location.hostname);
+ if(!served){
+  set('host','warn','Voyager host','This page was opened as a file. Start Voyager (START-VOYAGER-CONTROL.bat or the desktop app) to check the host and data folder.');
+  set('data','warn','Live data folder','Not checked. Open this page from the running Voyager host.');
+  return;
+ }
+ set('host','wait','Voyager host','Checking…');set('data','wait','Live data folder','Checking…');
+ try{
+  const health=await(await fetch('/api/health',{cache:'no-store'})).json();
+  set('host','ok','Voyager host','Running version '+health.version+' on '+location.host+'.');
+  const {token}=await(await fetch('/api/admin',{cache:'no-store'})).json();
+  const sys=await fetch('/api/system',{headers:{'X-Voyager-Token':token},cache:'no-store'});
+  if(!sys.ok){set('data','warn','Live data folder','This Voyager host is older than 2.9.0, so it still saves data inside the program folder. Install the current package.');return;}
+  const s=await sys.json();
+  if(!s.dataWritable)set('data','fail','Live data folder','Voyager cannot write to '+s.dataDir+'. Rankings and rewards will not save. Check folder permissions or free disk space.');
+  else if(s.legacyDataPresent&&!s.importedFrom)set('data','warn','Live data folder','Saving to '+s.dataDir+'. An older copy of your data is still in the program folder (Voyager_Versus/local/data). It was copied over on first start and is now only a backup.');
+  else set('data','ok','Live data folder','Saving to '+s.dataDir+(s.importedFrom?' (copied from '+s.importedFrom+' on this start)':'')+'.');
+  const [maj,min]=String(s.node).split('.').map(Number);
+  set('node',maj>22||maj===22&&min>=4?'ok':'fail','Node.js',(maj>22||maj===22&&min>=4?'Version ':'Version ')+s.node+(maj>22||maj===22&&min>=4?'.':' is too old. Install Node.js 22.4 or newer.'));
+ }catch(e){set('host','fail','Voyager host','Voyager is not responding. Restart it from START-VOYAGER-CONTROL.bat or the desktop app.');set('data','fail','Live data folder','Unknown until the host responds.');}
+}
+
+let socket=null,run=0;
+function checkStreamerBot(settings){
+ const mine=++run;if(socket){socket.onclose=null;try{socket.close();}catch{}}
+ set('sb','wait','Streamer.bot WebSocket','Connecting…');set('auth','wait','Streamer.bot password','Waiting for Streamer.bot…');set('actions','wait','Voyager actions','Waiting for Streamer.bot…');
+ $('actions').innerHTML='<tr><td colspan="3">Waiting for Streamer.bot…</td></tr>';
+ let host=String(settings.host).trim();if(host.includes(':')&&!host.startsWith('['))host='['+host+']';
+ const path=String(settings.path||'/');const url=(settings.secure?'wss://':'ws://')+host+':'+settings.port+(path.startsWith('/')?path:'/'+path);
+ let ws;try{ws=socket=new WebSocket(url);}catch{set('sb','fail','Streamer.bot WebSocket','The address '+url+' is not valid. Check host and port.');set('auth','fail','Streamer.bot password','Not checked.');set('actions','fail','Voyager actions','Not checked.');return;}
+ const pending=new Map();let seq=0;
+ const request=(name,body={})=>new Promise((resolve,reject)=>{const id='check-'+(++seq);const t=setTimeout(()=>{pending.delete(id);reject(Error(name+' timed out.'));},10000);pending.set(id,{resolve,reject,t});ws.send(JSON.stringify({request:name,id,...body}));});
+ const timer=setTimeout(()=>{if(mine===run){set('sb','fail','Streamer.bot WebSocket','No greeting from '+url+'. In Streamer.bot open Servers/Clients > WebSocket Server and make sure it is started on this address and port.');set('auth','fail','Streamer.bot password','Not checked.');set('actions','fail','Voyager actions','Not checked.');try{ws.close();}catch{}}},8000);
+ ws.onclose=()=>{if(mine!==run)return;clearTimeout(timer);if(rows.get('sb')?.dataset.state==='wait'){set('sb','fail','Streamer.bot WebSocket','Could not connect to '+url+'. Is Streamer.bot running with its WebSocket server started?');set('auth','fail','Streamer.bot password','Not checked.');set('actions','fail','Voyager actions','Not checked.');}else if(rows.get('auth')?.dataset.state==='wait'){set('auth','fail','Streamer.bot password','Streamer.bot closed the connection during sign-in. This usually means the password in config.js is wrong.');set('actions','fail','Voyager actions','Not checked.');}};
+ ws.onmessage=async e=>{
+  if(mine!==run)return;let msg;try{msg=JSON.parse(e.data);}catch{return;}
+  if(msg.id&&pending.has(msg.id)){const p=pending.get(msg.id);pending.delete(msg.id);clearTimeout(p.t);msg.status==='error'?p.reject(Error(msg.error||'Request failed.')):p.resolve(msg);return;}
+  if(msg.request!=='Hello')return;
+  clearTimeout(timer);
+  set('sb','ok','Streamer.bot WebSocket','Connected to '+url+(msg.info?.version?' (Streamer.bot '+msg.info.version+')':'')+'.');
+  try{
+   if(msg.authentication){
+    if(!settings.password){set('auth','fail','Streamer.bot password','Streamer.bot asks for a password, but config.js has none. Add the same password to config.js.');set('actions','fail','Voyager actions','Not checked until the password works.');return;}
+    const secret=await hash(settings.password+msg.authentication.salt);
+    await request('Authenticate',{authentication:await hash(secret+msg.authentication.challenge)});
+    set('auth','ok','Streamer.bot password','Authentication is on and the password in config.js works.');
+   }else{
+    set('auth','warn','Streamer.bot password','Authentication is off. Any web page open on this PC could ask Streamer.bot to run Voyager actions such as points changes or draws. Turn on Authentication in Streamer.bot (Servers/Clients > WebSocket Server), put the same password in config.js, then set requireAuthentication: true.');
+   }
+   const actions=(await request('GetActions')).actions||[];
+   renderActions(actions);
+  }catch(err){if(rows.get('auth').dataset.state==='wait')set('auth','fail','Streamer.bot password',err.message.includes('Authenticate')?'Streamer.bot rejected the password in config.js.':err.message);set('actions','fail','Voyager actions','Could not read the action list: '+err.message);}
+  finally{try{ws.close();}catch{}}
+ };
+}
+function renderActions(actions){
+ const body=$('actions');body.textContent='';let core=0,missing=0;
+ for(const [name,usedBy] of ACTIONS){
+  const found=actions.filter(a=>a.name===name),enabled=found.filter(a=>a.enabled!==false);
+  let state='ok',label='Installed';
+  if(!found.length){state='warn';label='Not installed';missing++;}
+  else if(enabled.length>1){state='fail';label='Duplicate: '+enabled.length+' enabled copies';}
+  else if(!enabled.length){state='warn';label='Installed but disabled';}
+  else core++;
+  const tr=document.createElement('tr');
+  for(const text of [name,usedBy])tr.append(Object.assign(document.createElement('td'),{textContent:text}));
+  const td=document.createElement('td');td.append(Object.assign(document.createElement('span'),{className:'tag '+state,textContent:label}));tr.append(td);body.append(tr);
+ }
+ const dupes=[...body.querySelectorAll('.tag.fail')].length;
+ set('actions',dupes?'fail':core?'ok':'warn','Voyager actions',dupes?'Some actions are enabled more than once, which makes pages refuse to connect. Disable the older copy.':core+' of '+ACTIONS.length+' Voyager actions are installed and enabled'+(missing?'; features that use the missing ones will not connect.':'.'));
+}
+
+const form=$('sb-form');
+form.host.value=cfg.host;form.port.value=cfg.port;form.password.value=cfg.password||'';
+form.addEventListener('submit',e=>{e.preventDefault();checkStreamerBot({...cfg,host:form.host.value||'127.0.0.1',port:Number(form.port.value)||8080,password:form.password.value});});
+row('host','Voyager host');row('data','Live data folder');row('sb','Streamer.bot WebSocket');row('auth','Streamer.bot password');row('actions','Voyager actions');
+for(const li of rows.values()){li.className='wait';li.dataset.state='wait';}
+checkHost();checkStreamerBot(cfg);
+})();
+</script>
+</body>
+</html>
