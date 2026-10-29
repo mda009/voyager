@@ -38,7 +38,7 @@ test('Live data defaults to the user data folder and old local/data is copied on
     const base='http://127.0.0.1:'+port,{token}=await(await fetch(base+'/api/admin')).json();
     assert.equal((await fetch(base+'/api/system')).status,403);
     const system=await(await fetch(base+'/api/system',{headers:{'X-Voyager-Token':token}})).json();
-    assert.equal(system.dataDir,target);assert.equal(system.dataWritable,true);assert.equal(system.version,'2.9.0');
+    assert.equal(system.dataDir,target);assert.equal(system.dataWritable,true);assert.equal(system.version,'2.9.1');
   }finally{if(child)await stop(child);await rm(dir,{recursive:true,force:true});}
 });
 

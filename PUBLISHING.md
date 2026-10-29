@@ -15,7 +15,7 @@ When it's set up you get the following. For your own domain such as voyagercomma
    - Name it, for example `voyager`.
    - Choose **Public**. Public is needed for free downloads, the download page, and updates without signing in.
    - Leave every "Add …" option unticked.
-3. **Upload a fresh copy of this package**, not your live streaming folder. Unzip `Voyager_Giveaway-2.9.0.zip` into a new folder such as `Documents\Voyager-source`. Your live folder holds your real `config.js` password. The easiest way to upload is GitHub Desktop (https://desktop.github.com):
+3. **Upload a fresh copy of this package**, not your live streaming folder. Unzip `Voyager_Giveaway-<version>.zip` into a new folder such as `Documents\Voyager-source`. Your live folder holds your real `config.js` password. The easiest way to upload is GitHub Desktop (https://desktop.github.com):
    - File > **Add local repository** > choose this `Voyager_Giveaway` folder.
    - When it says this isn't a Git repository, choose **create a repository**.
    - Commit everything, then **Publish repository** to the repository you created.
@@ -31,7 +31,7 @@ When it's set up you get the following. For your own domain such as voyagercomma
    - run all of Voyager's tests;
    - build the folder zip and the Windows installer;
    - start the built app on a Windows machine and check that it works;
-   - publish release `v2.9.0` with the installer, the zip and the update files;
+   - publish release `v<version>` with the installer, the zip and the update files;
    - update the download page.
 3. When the run shows a green tick, your download page and release are live.
 
@@ -141,7 +141,10 @@ From now on, website changes and new releases publish to Cloudflare automaticall
 
 ### 3. Connect voyagercommand.com (about 2 minutes)
 1. In Cloudflare, open **Workers & Pages** > **voyager-site** > **Settings** > **Domains & Routes** > **Add** > **Custom domain**. Enter `voyagercommand.com` and add it.
-2. Repeat for `www.voyagercommand.com`.
+2. For `www.voyagercommand.com`, Cloudflare may refuse a second custom domain. Instead:
+   - In **DNS** > **Records**, add a **CNAME** record: name `www`, target `voyagercommand.com`, **Proxied** (orange cloud).
+   - In **Workers & Pages** > **voyager-site** > **Settings** > **Domains & Routes** > **Add** > **Route**, choose zone `voyagercommand.com` and enter `www.voyagercommand.com/*`.
+   - Without the route, www shows Cloudflare **Error 522**.
 3. Cloudflare creates the DNS records and the HTTPS certificate itself. This usually takes a few minutes.
 
 ### 4. Point Voyager at it

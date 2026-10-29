@@ -69,6 +69,17 @@ function startPublisher(){
   publisher.loadURL(core.pageUrl(PORT,'publisher'));
 }
 
+// Opens the live viewer site (your own web address, or the GitHub Pages address) in the normal browser.
+// If no address is set yet, opens the Public website page instead so it can be set up.
+async function openPublicSite(){
+  try{
+    const r=await fetch(`http://127.0.0.1:${PORT}/api/public-site`,{signal:AbortSignal.timeout(4000)});
+    const url=r.ok?(await r.json()).siteUrl:'';
+    if(url&&/^https:\/\//.test(url))return shell.openExternal(url);
+  }catch{}
+  show('public');
+}
+
 function buildTray(){
   const image=nativeImage.createFromPath(join(__dirname,'build','tray.png'));
   tray=new Tray(image);tray.setToolTip('Voyager');
@@ -78,6 +89,7 @@ function buildTray(){
     {label:'System check',click:()=>show('check')},
     {label:'Setup guide',click:()=>show('guide')},
     {label:'Public website',click:()=>show('public')},
+    {label:'View my public website in browser',click:()=>openPublicSite()},
     {type:'separator'},
     {label:'Open data folder',click:()=>shell.openPath(paths.dataDir)},
     {label:'Edit config.js (Streamer.bot settings)',click:()=>shell.openPath(join(paths.userFiles,'config.js'))},
