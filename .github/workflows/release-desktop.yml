@@ -81,7 +81,7 @@ jobs:
 
       - name: Publish GitHub Release
         id: publish
-        if: startsWith(github.ref, 'refs/tags/v') || inputs.publish
+        if: startsWith(github.ref, 'refs/tags/v') || github.event.inputs.publish == 'true' || inputs.publish == true
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
