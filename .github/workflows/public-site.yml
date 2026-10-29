@@ -28,9 +28,19 @@ jobs:
       - id: pick
         env:
           TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          ACCOUNT_SECRET: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          ACCOUNT_VAR: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          TOKEN_VAR: ${{ vars.CLOUDFLARE_API_TOKEN }}
         run: |
-          if [ -n "$TOKEN" ] && [ -n "$ACCOUNT" ]; then echo "cloudflare=true" >> "$GITHUB_OUTPUT"; echo "Publishing to Cloudflare"; else echo "cloudflare=false" >> "$GITHUB_OUTPUT"; echo "Publishing to GitHub Pages"; fi
+          # Reports which settings are present (never their values) so a misplaced one is easy to spot.
+          state(){ if [ -n "$1" ]; then echo found; else echo missing; fi; }
+          echo "::notice title=Cloudflare settings::CLOUDFLARE_API_TOKEN secret: $(state "$TOKEN"). CLOUDFLARE_ACCOUNT_ID secret: $(state "$ACCOUNT_SECRET"), variable: $(state "$ACCOUNT_VAR")."
+          if [ -n "$TOKEN_VAR" ]; then echo "::warning title=Token saved as a variable::CLOUDFLARE_API_TOKEN is saved under Variables, where anyone can read it. Delete it there and add it under Secrets instead."; fi
+          if [ -n "$TOKEN" ] && { [ -n "$ACCOUNT_SECRET" ] || [ -n "$ACCOUNT_VAR" ]; }; then
+            echo "cloudflare=true" >> "$GITHUB_OUTPUT"; echo "Publishing to Cloudflare"
+          else
+            echo "cloudflare=false" >> "$GITHUB_OUTPUT"; echo "Publishing to GitHub Pages"
+          fi
 
   cloudflare:
     needs: target
@@ -51,7 +61,7 @@ jobs:
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID || vars.CLOUDFLARE_ACCOUNT_ID }}
           command: deploy
 
   github-pages:
