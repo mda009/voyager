@@ -61,7 +61,7 @@ test('Availability distinguishes waiting challengers, battles, training and queu
 });
 
 async function runClient(search=''){
-  const code=(await readFile(new URL('../dist/cooldown.mjs',import.meta.url),'utf8')).replace(/^import .*;\n/,'');
+  const code=(await readFile(new URL('../dist/cooldown.mjs',import.meta.url),'utf8')).replace(/^import .*;\r?\n/,'');
   const elements=new Map();const element=id=>{if(!elements.has(id))elements.set(id,{textContent:'',hidden:true,dataset:{},style:{}});return elements.get(id);};
   const events=[],intervals=[];
   const sandbox={cooldownView,URLSearchParams,location:{hostname:'127.0.0.1',search},performance:{now:()=>1000},document:{getElementById:element,addEventListener:()=>{}},setInterval:fn=>intervals.push(fn),EventSource:class{constructor(url){assert.equal(url,'/api/events');events.push(this);}}};

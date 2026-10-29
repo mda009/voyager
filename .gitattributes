@@ -1,0 +1,13 @@
+# Keep Unix line endings on every checkout (including Windows build machines),
+# so tests and release packages match exactly what was committed.
+* text=auto eol=lf
+*.bat text eol=crlf
+*.png binary
+*.webp binary
+*.ttf binary
+*.ico binary
+*.wav binary
+*.mp3 binary
+*.zip binary
+*.sb binary
+*.ctm binary
