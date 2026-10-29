@@ -6,7 +6,8 @@
   "scripts": {
     "test": "node --test --test-concurrency=1 \"Voyager_Versus/tests/*.test.mjs\" \"launcher-tests/*.test.mjs\" \"desktop/tests/*.test.mjs\" \"tools/*.test.mjs\"",
     "release": "node tools/build-release.mjs",
-    "start": "node voyager-launcher.mjs --home"
+    "start": "node voyager-launcher.mjs --home",
+    "test:ci": "node --test --test-concurrency=1 --test-reporter=spec --test-reporter-destination=stdout --test-reporter=./tools/github-reporter.mjs --test-reporter-destination=stdout \"Voyager_Versus/tests/*.test.mjs\" \"launcher-tests/*.test.mjs\" \"desktop/tests/*.test.mjs\" \"tools/*.test.mjs\""
   },
   "engines": {
     "node": ">=22.4.0"

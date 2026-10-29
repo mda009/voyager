@@ -46,7 +46,7 @@ jobs:
           fi
 
       - name: Run all tests
-        run: npm test
+        run: npm run test:ci
 
       - name: Build folder release zip
         run: npm run release
