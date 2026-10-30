@@ -2,6 +2,31 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.13.0 (30 October 2026)
+
+Missions and seasons. **No Streamer.bot changes** and nothing to import: both work from data Voyager already has (Points Ledger and Voyager Versus). Installed apps update themselves.
+
+### Missions (Community > Missions)
+- Weekly missions, reset every Monday at 12:00 am on your PC. Three are ready to go, and you can edit, switch off, remove or add up to eight:
+  - **Regular Pilot**: earn points on 3 different stream days (250 points),
+  - **Point Collector**: earn 500 Voyager points this week (150 points),
+  - **Ace of the Arena**: win a Voyager Versus battle (400 points).
+- Each mission shows how many viewers have started and finished it, with progress bars for the leaders.
+- **Points owed** lists everyone who finished a mission this week or last week. **Pay all owed** pays them one by one through your Points Ledger's own audited adjustment (the same preview-and-apply as Points > member controls), so every payment appears in Points history. Payments are recorded so nobody is paid twice.
+- Versus missions count Twitch pilots and pay to the matching Twitch points account.
+
+### Seasons (Community > Seasons)
+- Standings rank **points earned this season** plus Versus wins. They are separate from balances: spending points never lowers a standing, and nobody loses saved points.
+- Seasons last 13 weeks by default (change the name and length any time). When a season ends, automatically or with **End season now**, its top five go into the **Hall of Fame** and the next season starts from zero.
+
+### Public website
+- New **This week's missions** section (mission names, rewards and how many viewers finished; no names) and a **Season** section with the top-10 standings and the Hall of Fame.
+- Both can be switched off under Public website > What is shared. Names follow **Show viewer names**.
+
+### Notes
+- Progress needs Voyager running (the app keeps the Public website publisher going in the background). Points earned while Voyager was closed are counted the next time it runs, but stream days are only seen while it runs.
+- Badges and a chat message on completion are planned for a later update; for now, payments show in Points history.
+
 ## 2.12.0 (30 October 2026)
 
 Fairer, clearer giveaways. **One Streamer.bot update:** paste the new `Voyager_Giveaway_Engine.cs` into your existing **Voyager - Giveaway Engine** action (see below). Everything else updates itself.

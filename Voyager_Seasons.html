@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Voyager • Seasons</title>
+<link rel="icon" href="brand-assets/voyager.png">
+<link rel="stylesheet" href="stream-command.css">
+<link rel="stylesheet" href="voyager-brand.css">
+<link rel="stylesheet" href="settings.css?v=2.13">
+<link rel="stylesheet" href="community.css?v=2.13">
+<link rel="stylesheet" href="voyager-glass.css?v=2.13">
+</head>
+<body class="voyager-console voyager-settings voyager-community">
+<div class="shell">
+<aside class="rail"><a class="brand" href="Voyager_Command_Center.html"><img class="logo-voyager" src="brand-assets/voyager.png" alt="Voyager membership program" width="68" height="68"><span>VOYAGER<small>MDA009 · MISSION CONTROL</small></span></a></aside>
+<main>
+<header class="top"><div><span class="eyebrow">COMMUNITY</span><h1 id="season-title">Season</h1></div><div class="toolbar"><span class="st-note" id="season-dates"></span></div></header>
+<p class="st-notice" id="notice" hidden></p>
+<p class="st-notice" id="not-hosted" hidden>Open this page from the Voyager app (or START-VOYAGER-CONTROL.bat). Seasons are worked out by the Voyager host.</p>
+<div class="cs-layout">
+<section class="card cs-standings">
+<div class="card-heading"><div><span class="eyebrow">SEASON STANDINGS</span><h2>Points earned this season</h2></div><span class="st-note" id="standings-note"></span></div>
+<div class="cm-table"><table><thead><tr><th>#</th><th>Viewer</th><th>Platform</th><th class="num">Points earned</th><th class="num">Versus wins</th></tr></thead><tbody id="standings"></tbody></table></div>
+<p class="st-hint">Season standings are separate from points balances: spending points never lowers them, and nobody loses saved points when a season ends.</p>
+</section>
+<div class="cs-side">
+<section class="card cs-progress">
+<span class="eyebrow">SEASON PROGRESS</span>
+<div class="cs-week"><b id="week-num">Week 1</b><span id="week-of"></span></div>
+<div class="cm-bar big"><i id="season-bar"></i></div>
+<form id="season-form" class="cs-form">
+<label>Name<input name="name" maxlength="40"></label>
+<label>Length (weeks)<input name="weeks" type="number" min="1" max="52"></label>
+<div class="st-actions"><button type="submit">Save</button><button type="button" class="primary" id="end-season">End season now…</button></div>
+</form>
+<p class="st-hint">When a season ends (automatically on its end date, or now), its top five go into the Hall of Fame, it's shown on voyagercommand.com, and the next season starts from zero.</p>
+</section>
+<section class="card cs-hall"><span class="eyebrow">HALL OF FAME</span><ol id="hall" class="cs-hall-list"></ol></section>
+</div>
+</div>
+</main>
+</div>
+<script src="seasons.js?v=2.13"></script>
+<script src="voyager-shell.js?v=2.13"></script>
+<script src="voyager-navigation.js"></script>
+</body>
+</html>

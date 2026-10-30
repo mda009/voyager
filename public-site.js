@@ -60,12 +60,22 @@ async function send(){
   clearTimeout(collectTimer);collectTimer=setTimeout(send,30000);
   if(!token)return;
   if(Object.values(settled).includes(false)&&Date.now()-startedAt<20000)return;
+  sendMembers();
   const body=collect(),json=JSON.stringify(body);
   try{
     const r=await api('/api/public-site/feed',body);view=r.status;renderStatus();
     if(!background){$('feed-json').textContent=JSON.stringify(r.feed,null,2);if(json!==lastSent&&Date.now()-previewAt>20000)reloadPreview();}
     lastSent=json;
   }catch(e){if(!background)feedback(e.message,true);}
+}
+// Missions and seasons (2.13): the host needs each member's points to work out weekly and season progress.
+// This stays on this PC (127.0.0.1); only counts and top-10 standings ever reach the public site.
+let lastMembers='';
+async function sendMembers(){
+  const users=states.points?.users;if(!Array.isArray(users)||!users.length)return;
+  const members=users.filter(u=>u&&u.key&&u.pointsFresh!==false).map(u=>({key:u.key,name:u.name||u.login||'',login:u.login||'',capturedIn:Number.isFinite(Number(u.capturedIn))?Number(u.capturedIn):null,points:Number.isFinite(Number(u.points))?Number(u.points):null}));
+  const json=JSON.stringify(members);if(json===lastMembers&&Date.now()-(sendMembers.at||0)<300000)return;
+  try{await api('/api/community/members',{members});lastMembers=json;sendMembers.at=Date.now();}catch{}
 }
 function reloadPreview(){previewAt=Date.now();const f=$('preview');f.src='/public/?preview='+previewAt;}
 

@@ -23,6 +23,8 @@ const PAGES=[
  {file:'Voyager_Banner_Control.html',label:'Stream banner',ico:'▰',group:'Live',keys:'banner message ticker',help:'BANNER_SETUP.html'},
  {file:'Voyager_Command_Center.html',page:'live',label:'Live dashboard',ico:'◉',group:'Live',keys:'live dashboard audiences viewers obs strip',help:'DASHBOARD_PAGES_SETUP.html'},
  {file:'Voyager_Points.html',label:'Points & members',ico:'★',group:'Community',keys:'points members membership tiers silver gold platinum ledger',help:'POINTS_SETUP.html'},
+ {file:'Voyager_Missions.html',label:'Missions',ico:'◆',group:'Community',live:true,keys:'missions weekly rewards badges streak',help:'Voyager_Guide.html'},
+ {file:'Voyager_Seasons.html',label:'Seasons',ico:'⟳',group:'Community',live:true,keys:'season seasons standings hall of fame champion',help:'Voyager_Guide.html'},
  {file:'Voyager_Public_Site.html',label:'Public website',ico:'◎',group:'Community',keys:'public website site viewers voyagercommand fourthwall',live:true,help:'Voyager_Guide.html'},
  {file:'Voyager_Security.html',label:'Security',ico:'⛨',group:'Community',keys:'security reports signals accounts',help:'SECURITY_SETUP.html'},
  {file:'Voyager_Command_Center.html',page:'reporting',label:'Reporting',ico:'▥',group:'Community',keys:'reporting reports twitch statistics analytics',help:'TWITCH_ANALYTICS_SETUP.html'},

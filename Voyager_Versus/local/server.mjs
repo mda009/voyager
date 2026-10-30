@@ -15,6 +15,7 @@ import {PilotLeaderboard} from './pilot-leaderboard.mjs';
 import {LiveOverlay} from './live-overlay.mjs';
 import {PublicSite} from './public-site.mjs';
 import {readConnection,updateConnection} from './connection-config.mjs';
+import {Community} from './community.mjs';
 let VERSION='unknown';try{VERSION=JSON.parse(await readFile(new URL('../package.json',import.meta.url),'utf8')).version;}catch{}
 const major=Number(process.versions.node.split('.')[0]);
 if(major<22||typeof WebSocket==='undefined'){console.error('Voyager Versus requires Node.js 22.4 or newer. Install it from https://nodejs.org/');process.exit(1);}
@@ -51,7 +52,8 @@ const importedFrom=await importLegacyData();
 if(importedFrom)console.log('Copied existing Voyager data from '+importedFrom+' to '+dataDir);
 const liveOverlay=await new LiveOverlay(dataDir).load();
 // Public website feed (needs the Voyager Control bundle for the shared allow-list model).
-let publicSite=null;
+let publicSite=null,community=null;
+if(hasControl){try{community=await new Community({dataDir}).load();}catch(e){console.warn('Missions and seasons unavailable: '+e.message);}}
 if(hasControl){try{publicSite=await new PublicSite({dataDir,model:await import(pathToFileURL(resolve(controlRoot,'public-feed-model.mjs')).href)}).load();}catch(e){console.warn('Public website feed unavailable: '+e.message);}}
 let saved=[],savedRankings=null;try{saved=JSON.parse(await readFile(resolve(dataDir,'rankings.json'),'utf8'));if(!Array.isArray(saved))throw Error("Invalid rankings format");savedRankings=structuredClone(saved);}catch(e){saved=[];savedRankings=null;if(e.code!=='ENOENT')console.warn('Rankings could not be loaded. Existing file will be retained as rankings-backup.json.');try{await rename(resolve(dataDir,'rankings.json'),resolve(dataDir,'rankings-backup.json'));}catch{}}
 const clients=new Set(),adminToken=randomBytes(32).toString('hex');let saving=Promise.resolve(),storageMessage='';
@@ -83,6 +85,7 @@ const pilots=new PilotLeaderboard({bot,records:()=>savedRankings});
 publicSite?.setVersus(()=>{const now=Date.now(),cooldown=Number(economy.data.cooldownUntil)||0;
   const status=cooldown>now?'cooldown':['calling','countdown','battle','result'].includes(game.phase)?'live':bot.status.connected?'ready':'offline';
   return {pilots:savedRankings||[],versus:{status,cooldownUntil:cooldown,winnerPoints:REWARDS.winner}};});
+community?.setPilots(()=>savedRankings||[]);publicSite?.setCommunity(()=>community?.publicView()||null);
 const rewards=new RewardDispatcher({store:economy,bot,onCredit:r=>{game.note(`${r.name}: +${r.amount} Voyager points credited.`, 'reward');matchChat.credit(r);}});
 const announcements=new AvailabilityAnnouncer({store:economy,bot,game,action:()=>rewards.ready?rewards.action:null});
 const matchChat=new MatchChat({directory:dataDir,game,bot,action:()=>rewards.ready?rewards.action:null,protocol:()=>rewards.chatProtocol,reward:id=>economy.data.rewards.find(r=>r.id===id)});
@@ -105,6 +108,21 @@ const server=http.createServer(async(req,res)=>{
     if(url.pathname==='/api/health'&&req.method==='GET'){response(res,200,{ok:true,version:VERSION,voyagerControl:hasControl});return;}
     if(url.pathname==='/api/shutdown'&&req.method==='POST'){if(!validToken(req)||!req.headers['content-type']?.startsWith('application/json')){response(res,403,{message:'Open the local control panel.'});return;}response(res,200,{ok:true,message:'Saving and stopping Voyager.'});setImmediate(()=>void stop());return;}
     if(url.pathname==='/api/system'&&req.method==='GET'){if(!validToken(req)){response(res,403,{message:'Open the local control panel.'});return;}let writable=true;try{const probe=join(dataDir,'.write-test');await writeFile(probe,'ok');await unlink(probe);}catch{writable=false;}response(res,200,{version:VERSION,node:process.versions.node,platform:process.platform,dataDir,dataWritable:writable,importedFrom,legacyDataPresent:await hasJson(legacyDataDir)&&legacyDataDir!==dataDir,controlBundled:hasControl});return;}
+    if(url.pathname.startsWith('/api/community')){
+      if(!community){response(res,404,{message:'Missions and seasons need the full Voyager Control package.'});return;}
+      if(!validToken(req)){response(res,403,{message:'Open the local Missions or Seasons page.'});return;}
+      if(url.pathname==='/api/community'&&req.method==='GET'){community.roll(Date.now());response(res,200,community.view());return;}
+      if(req.method!=='POST'||!req.headers['content-type']?.startsWith('application/json')){response(res,405,{message:'Method not allowed.'});return;}
+      try{
+        const input=await body(req,url.pathname==='/api/community/members'?8*1024*1024:65536);
+        if(url.pathname==='/api/community/members'){community.receive(input?.members);response(res,200,{ok:true});return;}
+        if(url.pathname==='/api/community/missions'){response(res,200,{ok:true,...community.setMissions(input?.missions)});return;}
+        if(url.pathname==='/api/community/season'){response(res,200,{ok:true,...(input?.action==='end'?community.endSeason():community.configureSeason(input||{}))});return;}
+        if(url.pathname==='/api/community/payout'){response(res,200,community.recordPayout(input||{}));return;}
+        response(res,404,{message:'Not found.'});
+      }catch(e){response(res,400,{ok:false,message:e.message});}
+      return;
+    }
     if(url.pathname==='/api/settings/connection'){
       if(!hasControl){response(res,404,{message:'Settings need the full Voyager Control package.'});return;}
       if(!validToken(req)){response(res,403,{message:'Open the local Settings page.'});return;}
@@ -193,7 +211,7 @@ const server=http.createServer(async(req,res)=>{
 });
 let ticks=0;const timer=setInterval(()=>{
   try{game.tick(.1);}catch{game.paused=true;game.note('Host storage error. Check the game folder before restarting.');}ticks++;
-  if(ticks%10===0){void publicSite?.tick();void pilots.tick();void rewards.tick();void announcements.tick();void matchChat.tick();}
+  if(ticks%10===0){community?.roll(Date.now());void publicSite?.tick();void pilots.tick();void rewards.tick();void announcements.tick();void matchChat.tick();}
   if(ticks%300===0){for(const [key,t] of failures)if(Date.now()-t>120000)failures.delete(key);}
   const update='data: '+JSON.stringify(packet())+'\n\n';
   for(const client of clients){if(client.writableLength>1024*1024){client.destroy();clients.delete(client);}else client.write(update);}

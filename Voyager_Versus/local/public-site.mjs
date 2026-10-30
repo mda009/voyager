@@ -76,10 +76,11 @@ export class PublicSite{
     this.rebuild();return {ok:true,feed:this.feed};
   }
   setVersus(fn){this.versusSource=fn;}
+  setCommunity(fn){this.communitySource=fn;}
   rebuild(online=true){
     const v=this.versusSource?.()||{};
     const live=online&&this.now()-this.collectedAt<COLLECT_STALE_MS;
-    this.feed=this.model.buildFeed({collected:this.collected||{},settings:this.settings,pilots:v.pilots||[],versus:v.versus||null,winners:this.winners,online:live,now:this.now(),proofIds:new Set(Object.keys(this.proofs))});
+    this.feed=this.model.buildFeed({collected:this.collected||{},settings:this.settings,pilots:v.pilots||[],versus:v.versus||null,winners:this.winners,online:live,now:this.now(),proofIds:new Set(Object.keys(this.proofs)),community:this.communitySource?.()||null});
     const comparable=JSON.stringify({...this.feed,generatedAt:0,proofs:this.proofsChangedAt||0});
     this.feedJson=JSON.stringify(this.feed);this.rebuiltAt=this.now();
     if(comparable!==this.comparable||this.now()-(this.writtenAt||0)>=60000){

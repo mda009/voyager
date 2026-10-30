@@ -16,7 +16,7 @@ export const DEFAULT_SETTINGS=Object.freeze({
   channelName:'MDA009',
   tagline:'Explore · Earn · Excel. Giveaways, points and Voyager Versus for the MDA009 community.',
   links:{twitch:'',youtube:'',kick:'',discord:'',website:''},
-  sections:{giveaways:true,winners:true,goals:true,points:true,pilots:true,versus:true,program:true},
+  sections:{giveaways:true,winners:true,goals:true,points:true,pilots:true,versus:true,program:true,missions:true,season:true},
   showNames:true,
   leaderboardSize:10,
   commands:{impromptu:'!enter',tickets:'!entergiveaway',versus:'!versus'},
@@ -213,12 +213,12 @@ export function sanitizeCollected(raw){
   return {giveaways,points:{available:r.points?.available===true,leaders,goals},sources:{giveaway:r.sources?.giveaway===true,tickets:r.sources?.tickets===true,points:r.sources?.points===true}};
 }
 
-export function buildFeed({collected,settings,pilots=[],versus=null,winners=[],online=true,now=Date.now(),proofIds=new Set()}){
+export function buildFeed({collected,settings,pilots=[],versus=null,winners=[],online=true,now=Date.now(),proofIds=new Set(),community=null}){
   const s=normalizeSettings(settings),c=sanitizeCollected(collected),show=s.sections;
   const name=n=>s.showNames?n:initials(n);
   const feed={schema:SCHEMA,generatedAt:now,online:online===true,
     channel:{name:s.channelName,tagline:s.tagline,links:Object.fromEntries(Object.entries(s.links).filter(([,v])=>v))},
-    sections:{...show},giveaways:[],winners:[],goals:[],leaderboards:{points:[],pilots:[]},versus:null,program:null};
+    sections:{...show},giveaways:[],winners:[],goals:[],leaderboards:{points:[],pilots:[]},versus:null,program:null,missions:null,season:null};
   // The full proof is uploaded as its own file (proofs/<id>.json); the feed carries a short summary.
   if(show.giveaways)feed.giveaways=c.giveaways.map(({proof,...g})=>({...g,winner:g.winner?{...g.winner,name:name(g.winner.name)}:null,
     fairDraw:proof?{id:g.id,commitment:proof.commitment,committedAt:proof.committedAt,size:proof.size}:null}));
@@ -228,6 +228,14 @@ export function buildFeed({collected,settings,pilots=[],versus=null,winners=[],o
   if(show.points)feed.leaderboards.points=c.points.leaders.slice(0,s.leaderboardSize).map((l,i)=>({rank:i+1,name:name(l.name),platform:l.platform,value:l.value}));
   if(show.pilots)feed.leaderboards.pilots=projectPilots(pilots,s.leaderboardSize).map((p,i)=>({rank:i+1,...p,name:name(p.name)}));
   if(show.versus&&versus){const st=oneOf(versus.status,VERSUS,'offline');feed.versus={status:st,cooldownUntil:st==='cooldown'?time(versus.cooldownUntil):null,command:s.commands.versus,winnerPoints:int(versus.winnerPoints,0,1e6)};}
+  // Missions and seasons (2.13): counts and top-10 standings only; names follow "Show viewer names".
+  if(community&&typeof community==='object'){
+    const person=p=>p&&clean(p.name,LIMITS.name)?{name:name(clean(p.name,LIMITS.name)),platform:oneOf(p.platform,Object.keys(PLATFORMS),'')}:null;
+    if(show.missions&&Array.isArray(community.missions))feed.missions={endsAt:time(community.weekEndsAt),list:community.missions.slice(0,8).map(m=>({title:clean(m.title,40),type:oneOf(m.type,['streamDays','earnPoints','versusWins'],'earnPoints'),target:int(m.target,1,1e7)??1,reward:int(m.reward,0,1e6)??0,completed:int(m.completed,0,1e7)??0})).filter(m=>m.title)};
+    if(show.season&&community.season)feed.season={name:clean(community.season.name,40),endsAt:time(community.season.endsAt),
+      standings:list(community.season.standings).slice(0,10).map((r,i)=>({rank:i+1,...person(r),points:int(r.points,0,1e12)??0,wins:int(r.wins,0,1e9)??0})).filter(r=>r.name),
+      hall:list(community.hall).slice(0,6).map(h=>({name:clean(h.name,40),endedAt:time(h.endedAt),champion:h.champion?{...person(h.champion),points:int(h.champion.points,0,1e12)??0}:null,topPilot:h.topPilot?{name:name(clean(h.topPilot.name,LIMITS.name)),wins:int(h.topPilot.wins,0,1e9)??0}:null}))};
+  }
   if(show.program)feed.program={intro:s.program.intro,tiers:s.program.tiers.map(t=>({key:t.key,name:t.name,description:t.description})),commands:s.program.commands.map(c=>({...c}))};
   return feed;
 }

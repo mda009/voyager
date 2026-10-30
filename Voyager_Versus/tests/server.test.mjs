@@ -57,7 +57,7 @@ test('Local host serves assets, rejects unauthorized controls and shares authori
 test('Bundled Voyager Control and the game share one host without exposing game runtime files',async()=>{
   const dir=await mkdtemp(join(tmpdir(),'voyager-control-test-')),bundle=join(dir,'Voyager_Versus'),port=18744,base=`http://127.0.0.1:${port}`;
   await mkdir(join(bundle,'local'),{recursive:true});await mkdir(join(bundle,'dist'),{recursive:true});
-  for(const file of ['server.mjs','rewards.mjs','availability.mjs','streamerbot.mjs','stream-entries.mjs','live-overlay.mjs','match-chat.mjs','pilot-leaderboard.mjs','public-site.mjs','connection-config.mjs'])await copyFile(fileURLToPath(new URL('../local/'+file,import.meta.url)),join(bundle,'local',file));
+  for(const file of ['server.mjs','rewards.mjs','availability.mjs','streamerbot.mjs','stream-entries.mjs','live-overlay.mjs','match-chat.mjs','pilot-leaderboard.mjs','public-site.mjs','connection-config.mjs','community.mjs'])await copyFile(fileURLToPath(new URL('../local/'+file,import.meta.url)),join(bundle,'local',file));
   await copyFile(fileURLToPath(new URL('../dist/engine.mjs',import.meta.url)),join(bundle,'dist/engine.mjs'));
   await writeFile(join(bundle,'dist/index.html'),'<h1>Game</h1>');
   await writeFile(join(dir,'Voyager_Command_Center.html'),'<a href="Voyager_Versus.html">Voyager Versus</a>');
