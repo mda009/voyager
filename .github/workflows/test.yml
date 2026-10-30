@@ -36,6 +36,6 @@ jobs:
         with:
           dotnet-version: 8.0.x
       - name: Prepare actions
-        run: node tools/csharp-check/prepare.mjs Voyager_Giveaway_Engine.cs Voyager_Command_Manager.cs
+        run: node tools/csharp-check/prepare.mjs Voyager_Giveaway_Engine.cs Voyager_Command_Manager.cs Voyager_Stream_Stats.cs
       - name: Compile and run checks
         run: dotnet run --project tools/csharp-check/csharp-check.csproj

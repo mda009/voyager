@@ -67,6 +67,19 @@ public static class Program
         Run(engine, "reopenEntries", new { });
         Check(State(cph)["session"]["proof"].Type == JTokenType.Null, "reopening discards the proof");
         Check(cph.Errors.Count == 0, "no engine errors: " + String.Join(" | ", cph.Errors));
+        // Voyager Stream Stats v6: the subscriber export used by Missions and Seasons.
+        var stats = new CPHInline_2(); var sc = stats.CPH; long nowMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        sc.SetGlobalVar("VoyagerCommunityStateV1", new JObject { ["schema"] = 1, ["platforms"] = new JObject {
+            ["twitch"] = new JObject { ["users"] = new JObject { ["111"] = new JObject { ["name"] = "Nova", ["login"] = "nova", ["months"] = 7, ["monthsUpdatedAt"] = nowMs - 3600000 }, ["222"] = new JObject { ["name"] = "Old", ["months"] = 2, ["monthsUpdatedAt"] = nowMs - 200L * 86400000 } } },
+            ["kick"] = new JObject { ["users"] = new JObject { ["9"] = new JObject { ["name"] = "Orion", ["gifts"] = 5, ["giftsUpdatedAt"] = nowMs - 60000 } } } } }.ToString(Newtonsoft.Json.Formatting.None));
+        sc.Args = new System.Collections.Generic.Dictionary<string, object> { ["requestId"] = "r1", ["includeSupport"] = "1" };
+        stats.Execute(); var snap = JObject.Parse(sc.Broadcasts.Last()); var support = snap["support"] as JArray;
+        Check((bool)snap["ok"] && (int)snap["supportVersion"] == 1, "stats v6 snapshot ok: " + (string)snap["error"]);
+        Check(support != null && support.Count == 2, "support export keeps the last 90 days only");
+        Check(support != null && support.Count > 0 && (string)support[0]["key"] == "kick:9" && (long)support[0]["gifts"] == 5, "newest supporter first, gifts included");
+        Check(support != null && support.Any(r => (string)r["key"] == "twitch:111" && (long)r["months"] == 7), "twitch months included");
+        sc.Args = new System.Collections.Generic.Dictionary<string, object> { ["requestId"] = "r2" };
+        stats.Execute(); Check(JObject.Parse(sc.Broadcasts.Last())["support"] == null, "support is only sent when asked for");
         Console.WriteLine(failures == 0 ? "::notice title=Streamer.bot actions::Compiled; all " + checks + " Giveaway Engine checks passed." : "::error title=Streamer.bot actions::" + failures + " of " + checks + " checks failed.");
         return failures == 0 ? 0 : 1;
     }

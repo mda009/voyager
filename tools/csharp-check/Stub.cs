@@ -33,6 +33,9 @@ public class FakeCph
     public bool EnableCommandById(string id) { return true; }
     public bool DisableCommandById(string id) { return true; }
     public void EnableCommand(string id) { }
+    public T GetTwitchUsersVar<T>(string name, bool persisted = true) { return (T)(object)new List<object>(); }
+    public T GetYouTubeUsersVar<T>(string name, bool persisted = true) { return (T)(object)new List<object>(); }
+    public T GetKickUsersVar<T>(string name, bool persisted = true) { return (T)(object)new List<object>(); }
     public void DisableCommand(string id) { }
 }
 public class CphBase { public FakeCph CPH = new FakeCph(); }

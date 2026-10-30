@@ -135,3 +135,14 @@ test('Your own web address is kept as a site root and the website code only trus
   assert.match(code,/e\.origin!=='https:\/\/voyager\.theunprofessionalsgroup\.com'/);
   assert.equal(M.embedSnippet('javascript:alert(1)'),'');assert.equal(M.embedSnippet('https://a.com/"><script>'),M.embedSnippet('https://a.com/%22%3E%3Cscript%3E'));
 });
+
+test('Season sub goals and subscriber missions publish totals and counts only, never who helped',()=>{
+  const community={weekEndsAt:NOW+86400000,missions:[{title:'Crew Supporter',type:'subscribe',platform:'kick',target:1,reward:500,completed:2},{title:'Odd',type:'hack',platform:'myspace',target:1,reward:1,completed:0}],
+    season:{name:'Season 1',endsAt:NOW+86400000,supportBonus:100,standings:[{name:'Nova',platform:'twitch',points:900,support:3,wins:0,key:'twitch:SECRET_USER_ID_9911'}],
+      goals:[{title:'Grow the Crew',metric:'support',platform:'all',target:50,total:12,reward:300,reached:false,helpers:4,helperList:[{key:'twitch:SECRET_USER_ID_9911',name:'secretlogin_77'}]}]},hall:[]};
+  const feed=M.buildFeed({collected:collect(),settings:{},community,now:NOW}),text=JSON.stringify(feed);
+  assert.deepEqual(feed.season.goals,[{title:'Grow the Crew',metric:'support',platform:'all',target:50,total:12,reward:300,reached:false,helpers:4}]);
+  assert.equal(feed.season.standings[0].support,3);assert.equal(feed.season.supportBonus,100);
+  assert.deepEqual(feed.missions.list.map(m=>[m.type,m.platform]),[['subscribe','kick'],['earnPoints','all']]);
+  for(const s of SECRET)assert.ok(!text.includes(s),'leaked '+s);
+});

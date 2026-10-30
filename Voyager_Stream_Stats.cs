@@ -1,4 +1,5 @@
-// Voyager Stream Stats v5 - native community ledger and optional stored user sources.
+// Voyager Stream Stats v6 - native community ledger, optional stored user sources, and (on request)
+// recent subscriber/member and gifted-sub records for Voyager Missions and Seasons.
 // Action: Voyager - Stream Stats (dedicated Voyager Stats queue).
 // Sub-actions, in this order:
 // 1. Twitch > Followers > Get Follower Count
@@ -78,11 +79,39 @@ public class CPHInline
                 catch (Exception ex) { members[key] = Missing(ex.Message); }
             }
             payload["metrics"] = metrics; payload["boards"] = boards; payload["members"] = members;
-            payload["giveaway"] = Giveaway(); payload["ok"] = true;
+            payload["giveaway"] = Giveaway();
+            // v6: only the Public website publisher asks for this (includeSupport=1), so other docks stay small.
+            payload["supportVersion"] = 1;
+            if (Read("includeSupport") == "1") payload["support"] = Support(community, communityError);
+            payload["ok"] = true;
         }
         catch (Exception ex) { payload["ok"] = false; payload["error"] = ex.Message; CPH.LogWarn("[Voyager Stream Stats] " + ex.Message); }
         CPH.WebsocketBroadcastJson(payload.ToString(Formatting.None));
         return (bool?)payload["ok"] == true;
+    }
+    // Subscriber/member and gifted-sub records written by Voyager - Community Tracker in the last 90 days,
+    // newest first (at most 2000). Read-only: months and gift totals exactly as the tracker saved them.
+    private static JArray Support(JObject community, string error)
+    {
+        var rows = new List<JObject>();
+        if (community == null || error.Length > 0) return new JArray();
+        long since = Now() - 90L * 86400000L;
+        foreach (string platform in Platforms)
+        {
+            JObject users = community["platforms"]?[platform]?["users"] as JObject;
+            if (users == null) continue;
+            foreach (JProperty property in users.Properties())
+            {
+                JObject u = property.Value as JObject; if (u == null) continue;
+                double months, gifts, monthsAt, giftsAt;
+                if (!Number(u["months"] ?? 0, out months) || !Number(u["gifts"] ?? 0, out gifts)) continue;
+                if (!Number(u["monthsUpdatedAt"] ?? 0, out monthsAt)) monthsAt = 0;
+                if (!Number(u["giftsUpdatedAt"] ?? 0, out giftsAt)) giftsAt = 0;
+                if ((months <= 0 && gifts <= 0) || Math.Max(monthsAt, giftsAt) < since) continue;
+                rows.Add(new JObject { ["key"] = platform + ":" + property.Name, ["platform"] = platform, ["name"] = (string)u["name"] ?? (string)u["login"] ?? property.Name, ["login"] = (string)u["login"] ?? "", ["months"] = (long)months, ["monthsAt"] = (long)monthsAt, ["gifts"] = (long)gifts, ["giftsAt"] = (long)giftsAt });
+            }
+        }
+        return new JArray(rows.OrderByDescending(x => Math.Max((long)x["monthsAt"], (long)x["giftsAt"])).Take(2000));
     }
     private JObject Pilots()
     {

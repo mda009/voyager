@@ -2,6 +2,27 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.15.0 (30 October 2026)
+
+Subscriber goals for Missions and Seasons, for Twitch subs, YouTube memberships and Kick subs. **One Streamer.bot change:** paste the new `Voyager_Stream_Stats.cs` (v6) into **Voyager - Stream Stats** and compile (see `NATIVE_COMMUNITY_SETUP.html`). **Voyager - Community Tracker** must be enabled.
+
+### New weekly missions (Community › Missions)
+- Three subscriber missions are added and switched on (switch any off, edit or remove them):
+  - **Crew Supporter**: subscribe or renew this week (500 points),
+  - **Fleet Gifter**: gift 3 subs or memberships this week (750 points),
+  - **Veteran Crew**: renew this week with 6+ months subscribed (300 points).
+- Every mission now has a **Platform** option (All, Twitch, YouTube or Kick), so you can run a Kick-only or YouTube-only push.
+- Subscriber rewards go through **Points owed** and **Pay all owed** like the other missions. Subscribers without a points account show as "No points account" until they earn their first points.
+
+### Season sub goals (Community › Seasons)
+- Up to four **community sub goals** per season, counting subs and renewals, gifted subs, or both, on all platforms or one. Two are ready: **Grow the Crew** (50 subs, renewals and gifted subs, 300 points each helper) and **Gift Fleet** (25 gifted subs, 200 points each helper).
+- When a goal is reached, everyone who helped earns its reward. It appears in **Missions › Points owed** and stays payable after the season ends.
+- **Supporter bonus**: each sub, renewal or gifted sub this season adds 100 to a viewer's **season score** (change it or set 0). Standings now show points earned, subs and gifts, and the score.
+- New OBS panel view: **Season sub goals** with progress bars (Seasons › Show on stream).
+- voyagercommand.com shows the sub goals with progress and how many supporters helped (never who), and the subscriber missions.
+
+Rewards are always Voyager points, never giveaway tickets. Anonymous gifts can't be credited.
+
 ## 2.14.0 (30 October 2026)
 
 Season and missions on stream. **No Streamer.bot changes** and nothing to import.

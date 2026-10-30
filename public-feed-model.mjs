@@ -231,9 +231,12 @@ export function buildFeed({collected,settings,pilots=[],versus=null,winners=[],o
   // Missions and seasons (2.13): counts and top-10 standings only; names follow "Show viewer names".
   if(community&&typeof community==='object'){
     const person=p=>p&&clean(p.name,LIMITS.name)?{name:name(clean(p.name,LIMITS.name)),platform:oneOf(p.platform,Object.keys(PLATFORMS),'')}:null;
-    if(show.missions&&Array.isArray(community.missions))feed.missions={endsAt:time(community.weekEndsAt),list:community.missions.slice(0,8).map(m=>({title:clean(m.title,40),type:oneOf(m.type,['streamDays','earnPoints','versusWins'],'earnPoints'),target:int(m.target,1,1e7)??1,reward:int(m.reward,0,1e6)??0,completed:int(m.completed,0,1e7)??0})).filter(m=>m.title)};
+    if(show.missions&&Array.isArray(community.missions))feed.missions={endsAt:time(community.weekEndsAt),list:community.missions.slice(0,8).map(m=>({title:clean(m.title,40),type:oneOf(m.type,['streamDays','earnPoints','versusWins','subscribe','giftSubs','loyalSub'],'earnPoints'),platform:oneOf(m.platform,['all','twitch','youtube','kick'],'all'),target:int(m.target,1,1e7)??1,reward:int(m.reward,0,1e6)??0,completed:int(m.completed,0,1e7)??0})).filter(m=>m.title)};
     if(show.season&&community.season)feed.season={name:clean(community.season.name,40),endsAt:time(community.season.endsAt),
-      standings:list(community.season.standings).slice(0,10).map((r,i)=>({rank:i+1,...person(r),points:int(r.points,0,1e12)??0,wins:int(r.wins,0,1e9)??0})).filter(r=>r.name),
+      standings:list(community.season.standings).slice(0,10).map((r,i)=>({rank:i+1,...person(r),points:int(r.points,0,1e12)??0,support:int(r.support,0,1e9)??0,wins:int(r.wins,0,1e9)??0})).filter(r=>r.name),
+      supportBonus:int(community.season.supportBonus,0,1e5)??0,
+      // Sub goals: community totals and how many people helped (never who).
+      goals:list(community.season.goals).slice(0,4).map(g=>({title:clean(g.title,40),metric:oneOf(g.metric,['support','subs','gifts'],'support'),platform:oneOf(g.platform,['all','twitch','youtube','kick'],'all'),target:int(g.target,1,1e5)??1,total:int(g.total,0,1e9)??0,reward:int(g.reward,0,1e6)??0,reached:g.reached===true,helpers:int(g.helpers,0,1e7)??0})).filter(g=>g.title),
       hall:list(community.hall).slice(0,6).map(h=>({name:clean(h.name,40),endedAt:time(h.endedAt),champion:h.champion?{...person(h.champion),points:int(h.champion.points,0,1e12)??0}:null,topPilot:h.topPilot?{name:name(clean(h.topPilot.name,LIMITS.name)),wins:int(h.topPilot.wins,0,1e9)??0}:null}))};
   }
   if(show.program)feed.program={intro:s.program.intro,tiers:s.program.tiers.map(t=>({key:t.key,name:t.name,description:t.description})),commands:s.program.commands.map(c=>({...c}))};

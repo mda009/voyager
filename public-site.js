@@ -37,6 +37,24 @@ function startReaders(){
   watch('giveaway',new GiveawayReader({}),'state',d=>d?.state||null);
   if(window.VoyagerTicketConnection)watch('tickets',new window.VoyagerTicketConnection({}),'tickets',d=>d?.state||null);
   if(window.VoyagerPointsConnection)watch('points',new window.VoyagerPointsConnection(window.VOYAGER_CONFIG||{}),'points',d=>d||null);
+  startSupport();
+}
+// Subscriber missions and season sub goals (2.15): ask Voyager - Stream Stats (v6) once a minute for recent
+// Twitch subs, YouTube memberships, Kick subs and gifted subs, and pass them to the host on this PC only.
+// Nothing here is published; the site only gets goal totals and counts.
+function startSupport(){
+  if(!window.VoyagerStreamConnection)return;
+  let name='Voyager - Stream Stats';try{const saved=JSON.parse(localStorage.getItem('VoyagerStreamCommandSettingsV1')||'{}');if(typeof saved.statsActionName==='string'&&saved.statsActionName.trim())name=saved.statsActionName.trim();}catch{}
+  const client=new window.VoyagerStreamConnection({...(window.VOYAGER_CONFIG||{}),statsActionName:name});
+  client.extraArgs={includeSupport:'1'};client.sources={};
+  client.addEventListener('stats',e=>{const d=e.detail;if(d?.supportVersion===1&&Array.isArray(d.support))sendSupport(d.support);});
+  client.connect();
+}
+let lastSupport='';
+async function sendSupport(rows){
+  const support=rows.slice(0,2000).map(r=>({key:r.key,name:r.name,login:r.login,months:r.months,monthsAt:r.monthsAt,gifts:r.gifts,giftsAt:r.giftsAt}));
+  const json=JSON.stringify(support);if(!token||json===lastSupport&&Date.now()-(sendSupport.at||0)<300000)return;
+  try{await api('/api/community/support',{support});lastSupport=json;sendSupport.at=Date.now();}catch{}
 }
 function renderSources(){
   if(background)return;

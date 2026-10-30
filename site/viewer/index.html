@@ -141,6 +141,9 @@ dialog.proof::backdrop{background:#020913cc;backdrop-filter:blur(4px)}
 .mission h3{font:700 22px/1.15 var(--display);margin:6px 0 4px}
 .mission .reward{font:700 18px/1 var(--display);color:#f2cd73}
 .mission .done{color:var(--muted);font-size:14px;margin-top:10px}
+.mission.sub{border-color:rgba(242,205,115,.35)}
+.goal-bar{height:8px;border-radius:4px;background:rgba(151,223,255,.12);overflow:hidden;margin-top:10px}.goal-bar i{display:block;height:100%;background:linear-gradient(90deg,#97dfff,#f2cd73)}
+#sub-goal-list{margin-bottom:18px}
 ol.hall li{grid-template-columns:34px 1fr}
 ol.rows li.empty{display:block;border:0;color:var(--muted);padding:10px 4px}
 #season .two{align-items:start}
@@ -175,8 +178,9 @@ ol.rows li.empty{display:block;border:0;color:var(--muted);padding:10px 4px}
 
  <section id="season" aria-labelledby="h-season" hidden>
   <h2 id="h-season">Season</h2><p class="lede" id="season-lede"></p>
+  <div class="grid" id="sub-goal-list" hidden></div>
   <div class="two">
-   <div class="card"><span class="kind">Standings · points earned this season</span><ol class="rows" id="season-list"></ol></div>
+   <div class="card"><span class="kind">Standings · season score</span><ol class="rows" id="season-list"></ol></div>
    <div class="card" id="hall-card"><span class="kind">Hall of Fame</span><ol class="rows hall" id="hall-list"></ol></div>
   </div>
  </section>
@@ -366,17 +370,25 @@ async function openProof(id,title){
 }
 $('proof-close').onclick=()=>$('proof-dialog').close();
 $('proof-dialog').addEventListener('click',e=>{if(e.target===$('proof-dialog'))$('proof-dialog').close();});
-const MISSION_TEXT={streamDays:(n)=>'Earn points on '+n+' different stream day'+(n===1?'':'s')+' this week',earnPoints:(n)=>'Earn '+fmt(n)+' Voyager points this week',versusWins:(n)=>'Win '+(n===1?'a Voyager Versus battle':n+' Voyager Versus battles')+' this week'};
+const ON={all:'',twitch:' on Twitch',youtube:' on YouTube',kick:' on Kick'};
+const MISSION_TEXT={streamDays:(n)=>'Earn points on '+n+' different stream day'+(n===1?'':'s')+' this week',earnPoints:(n)=>'Earn '+fmt(n)+' Voyager points this week',versusWins:(n)=>'Win '+(n===1?'a Voyager Versus battle':n+' Voyager Versus battles')+' this week',
+ subscribe:(n,p)=>(p==='youtube'?'Join or renew your YouTube membership':p==='all'||!p?'Subscribe or renew (Twitch sub, YouTube membership or Kick sub)':'Subscribe or renew'+ON[p])+' this week',
+ giftSubs:(n,p)=>'Gift '+(n===1?'a sub':fmt(n)+' subs')+(ON[p]||'')+' this week',loyalSub:(n,p)=>'Renew'+(ON[p]||'')+' this week with '+n+'+ months subscribed'};
+const GOAL_TEXT={support:'subs, renewals and gifted subs',subs:'subs and renewals',gifts:'gifted subs'};
 function renderMissions(){
  const m=feed.missions,box=$('mission-list');box.textContent='';$('missions').hidden=!m||!m.list?.length;if(!m)return;
  $('missions-lede').textContent='Finish a mission to earn Voyager points. New missions every Monday'+(m.endsAt?' · this week ends '+new Date(m.endsAt).toLocaleDateString(undefined,{weekday:'long'}):'')+'.';
- for(const x of m.list){const c=el('article','card mission');const top=el('div','gw-top');top.append(el('span','kind','Weekly mission'),el('span','reward','+'+fmt(x.reward)+' pts'));c.append(top,el('h3','',x.title),el('p','who',(MISSION_TEXT[x.type]||(()=>''))(x.target)),el('p','done',x.completed?fmt(x.completed)+(x.completed===1?' viewer has':' viewers have')+' finished it':'Be the first to finish it'));box.append(c);}
+ for(const x of m.list){const c=el('article','card mission'+(['subscribe','giftSubs','loyalSub'].includes(x.type)?' sub':''));const top=el('div','gw-top');top.append(el('span','kind','Weekly mission'),el('span','reward','+'+fmt(x.reward)+' pts'));c.append(top,el('h3','',x.title),el('p','who',(MISSION_TEXT[x.type]||(()=>''))(x.target,x.platform)),el('p','done',x.completed?fmt(x.completed)+(x.completed===1?' viewer has':' viewers have')+' finished it':'Be the first to finish it'));box.append(c);}
 }
 function renderSeason(){
  const s=feed.season;$('season').hidden=!s;if(!s)return;
- $('h-season').textContent=s.name;$('season-lede').textContent=s.endsAt?'Ends '+new Date(s.endsAt).toLocaleDateString(undefined,{day:'numeric',month:'long'})+'. Earn points to climb the standings; the champion joins the Hall of Fame.':'';
+ $('h-season').textContent=s.name;$('season-lede').textContent=s.endsAt?'Ends '+new Date(s.endsAt).toLocaleDateString(undefined,{day:'numeric',month:'long'})+'. Earn points'+(s.supportBonus?', or sub, renew and gift subs (+'+fmt(s.supportBonus)+' each),':'')+' to climb the standings; the champion joins the Hall of Fame.':'';
+ const gl=$('sub-goal-list');gl.textContent='';gl.hidden=!(s.goals||[]).length;
+ for(const g of s.goals||[]){const c=el('article','card mission sub');const top=el('div','gw-top');top.append(el('span','kind','Community sub goal'+(ON[g.platform]||'')),el('span','reward','+'+fmt(g.reward)+' pts each'));
+  const bar=el('div','goal-bar');const fill=el('i');fill.style.width=Math.min(100,g.total/g.target*100).toFixed(1)+'%';bar.append(fill);
+  c.append(top,el('h3','',g.title),el('p','who',fmt(g.total)+' of '+fmt(g.target)+' '+GOAL_TEXT[g.metric]+' this season'),bar,el('p','done',g.reached?'Reached! Everyone who helped earns the reward.':g.helpers?fmt(g.helpers)+(g.helpers===1?' supporter has':' supporters have')+' helped so far':'Be the first to help'));gl.append(c);}
  const list=$('season-list');list.textContent='';
- for(const r of s.standings||[]){const li=el('li');const n=platformTag(r.platform);n.append(el('span','',r.name));li.append(el('span','rank',r.rank),n,el('span','val',fmt(r.points)+' pts'+(r.wins?' · '+r.wins+' W':'')));list.append(li);}
+ for(const r of s.standings||[]){const li=el('li');const n=platformTag(r.platform);n.append(el('span','',r.name));li.append(el('span','rank',r.rank),n,el('span','val',fmt(r.points)+(r.support?' · '+r.support+' ♥':'')+(r.wins?' · '+r.wins+' W':'')));list.append(li);}
  if(!(s.standings||[]).length)list.append(el('li','empty','The season has just begun. Be the first on the board!'));
  const hall=$('hall-list');hall.textContent='';$('hall-card').hidden=!(s.hall||[]).length;
  for(const h of s.hall||[]){const li=el('li');const info=el('div');info.append(el('b','',h.champion?h.champion.name:'—'),el('div','when',h.name+(h.champion?' champion · '+fmt(h.champion.points)+' pts':'')+(h.topPilot?' · top pilot '+h.topPilot.name:'')));li.append(el('span','rank','★'),info);hall.append(li);}

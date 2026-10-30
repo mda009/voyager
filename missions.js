@@ -27,11 +27,15 @@ function render(){
     const row=el('div','cm-fields');
     const type=el('select');for(const [k,t] of Object.entries(view.types)){const o=el('option','',t.label);o.value=k;o.selected=k===m.type;type.append(o);}type.onchange=()=>{m.type=type.value;render();};
     const lt=el('label','','What to do');lt.append(type);
-    const goal=el('input');goal.type='number';goal.min='1';goal.max=m.type==='earnPoints'?'10000000':'7';goal.value=m.target;goal.oninput=()=>{m.target=Number(goal.value);};
+    const t=view.types[m.type]||{},max=m.type==='earnPoints'?10000000:t.max||7;if(t.max===1)m.target=1;
+    const goal=el('input');goal.type='number';goal.min='1';goal.max=String(max);goal.value=m.target;goal.disabled=max===1;goal.oninput=()=>{m.target=Number(goal.value);};
     const lg=el('label','','Goal ('+(view.types[m.type]?.unit||'')+')');lg.append(goal);
     const reward=el('input');reward.type='number';reward.min='0';reward.max='1000000';reward.value=m.reward;reward.oninput=()=>{m.reward=Number(reward.value);};
     const lr=el('label','','Reward (points)');lr.append(reward);
-    row.append(lt,lg,lr);card.append(row);
+    const plat=el('select');for(const [k,label] of Object.entries(view.platforms||{all:'All platforms'})){const o=el('option','',label);o.value=k;o.selected=k===(m.platform||'all');plat.append(o);}plat.onchange=()=>{m.platform=plat.value;};
+    const lp=el('label','','Platform');lp.append(plat);
+    row.append(lt,lg,lr,lp);card.append(row);
+    if(t.support)card.append(el('p','st-hint cm-sub-hint',m.type==='subscribe'?'Counts a new sub, a renewal (resub / membership milestone) or a gifted sub received this week.':m.type==='giftSubs'?'Counts subs or memberships gifted this week. Anonymous gifts can\'t be credited.':'Counts anyone who renews this week with at least this many months.'));
     if(live){
       const stat=el('div','cm-stat');stat.append(el('b','',String(live.completed)),' finished · '+live.started+' started');card.append(stat);
       const ul=el('ul','cm-progress');
@@ -46,26 +50,29 @@ function render(){
   const rows=view.payables.slice().sort((a,b)=>(a.status==='paid')-(b.status==='paid')||b.week-a.week);
   for(const p of rows){
     const li=el('li','cm-owe');li.dataset.status=p.status;
-    const who=el('div');who.append(el('b','',p.name),el('span','',p.title+' · '+(p.week===view.week.id?'this week':'last week')));
+    const who=el('div');who.append(el('b','',p.name),el('span','',p.title+' · '+(p.label||(p.week===view.week.id?'this week':'last week'))));
     li.append(who,el('span','cm-amt','+'+p.reward.toLocaleString()),el('span','cm-st',p.status==='paid'?'Paid':!p.payable?'No points account':p.status==='failed'?'Failed':'Owed'));
     if(p.note)li.title=p.note;owed.append(li);
   }
   if(!rows.length)owed.append(el('li','cm-empty','Nothing owed yet.'));
+  const sup=view.support||{},subTypes=missions.some(m=>view.types[m.type]?.support);
+  $('sub-status').hidden=!subTypes;
+  $('sub-status').textContent=!sup.updatedAt?'Subscriber missions are waiting for data. Install Voyager - Community Tracker, update Voyager - Stream Stats to v6 and keep Voyager running (it reads subs through the Public website publisher).':sup.tracked+' recent subscribers and gifters tracked · last read '+new Date(sup.updatedAt).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'})+'.';
   const due=rows.filter(p=>p.status!=='paid'&&p.payable);
   $('pay-summary').textContent=due.length?due.length+' payments · '+due.reduce((a,p)=>a+p.reward,0).toLocaleString()+' points':'All paid';
   $('pay-all').disabled=paying||!due.length||!points?.transportReady;
 }
-async function load(){try{view=await api('/api/community');if(!missions.length||!document.querySelector('.cm-missions input:focus'))missions=view.missions.map(({id,title,type,target,reward,enabled})=>({id,title,type,target,reward,enabled}));render();}catch(e){notice(e.message,true);}}
+async function load(){try{view=await api('/api/community');if(!missions.length||!document.querySelector('.cm-missions input:focus'))missions=view.missions.map(({id,title,type,target,reward,platform,enabled})=>({id,title,type,target,reward,platform,enabled}));render();}catch(e){notice(e.message,true);}}
 $('show-missions').onclick=async()=>{try{const showing=view?.panel?.visible&&view.panel.config.kind==='missions';const r=await api('/api/community/panel',showing?{visible:false}:{config:{...(view?.panel?.config||{}),kind:'missions'},visible:true});view.panel=r.panel;notice(showing?'Missions panel hidden.':'Missions panel is on stream. Change its size and position in Seasons › Show on stream.');renderShow();}catch(e){notice(e.message,true);}};
 function renderShow(){const on=view?.panel?.visible&&view.panel.config.kind==='missions';$('show-missions').textContent=on?'Hide from stream':'Show on stream';}
 $('add-mission').onclick=()=>{missions.push({id:'m'+Date.now().toString(36),title:'New mission',type:'earnPoints',target:300,reward:100,enabled:true});render();};
-$('save-missions').onclick=async()=>{try{view=await api('/api/community/missions',{missions});missions=view.missions.map(({id,title,type,target,reward,enabled})=>({id,title,type,target,reward,enabled}));notice('Missions saved.');render();}catch(e){notice(e.message,true);}};
+$('save-missions').onclick=async()=>{try{view=await api('/api/community/missions',{missions});missions=view.missions.map(({id,title,type,target,reward,platform,enabled})=>({id,title,type,target,reward,platform,enabled}));notice('Missions saved.');render();}catch(e){notice(e.message,true);}};
 $('pay-all').onclick=async()=>{
   const due=view.payables.filter(p=>p.status!=='paid'&&p.payable);if(!due.length)return;
   if(!confirm('Pay '+due.length+' mission rewards ('+due.reduce((a,p)=>a+p.reward,0).toLocaleString()+' points)?'))return;
   paying=true;render();let ok=0,bad=0;
   for(const p of due){
-    const reason=('Mission: '+p.title+' (week of '+new Date(p.week).toLocaleDateString()+')').slice(0,200);
+    const reason=(p.scope==='season'?p.title+' ('+p.label+')':'Mission: '+p.title+' (week of '+new Date(p.week).toLocaleDateString()+')').slice(0,200);
     try{
       const plan=await points.call('admin_preview',{adminTask:'points',adminUserKey:p.key,adminTwitchLogin:'',adminDelta:String(p.reward),adminReason:reason});
       if(!plan?.planId)throw new Error(plan?.error||'No preview returned.');

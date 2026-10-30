@@ -7,9 +7,9 @@
 <link rel="icon" href="brand-assets/voyager.png">
 <link rel="stylesheet" href="stream-command.css">
 <link rel="stylesheet" href="voyager-brand.css">
-<link rel="stylesheet" href="settings.css?v=2.14">
-<link rel="stylesheet" href="community.css?v=2.14">
-<link rel="stylesheet" href="voyager-glass.css?v=2.14">
+<link rel="stylesheet" href="settings.css?v=2.15">
+<link rel="stylesheet" href="community.css?v=2.15">
+<link rel="stylesheet" href="voyager-glass.css?v=2.15">
 </head>
 <body class="voyager-console voyager-settings voyager-community">
 <div class="shell">
@@ -17,6 +17,7 @@
 <main>
 <header class="top"><div><span class="eyebrow">COMMUNITY</span><h1>Missions</h1></div><div class="toolbar"><span class="st-note" id="week-note"></span><button type="button" id="show-missions">Show on stream</button><button type="button" id="add-mission">+ Add mission</button><button type="button" class="primary" id="save-missions">Save missions</button></div></header>
 <p class="st-notice" id="notice" hidden></p>
+<p class="st-hint cm-sub-status" id="sub-status" hidden></p>
 <p class="st-notice" id="not-hosted" hidden>Open this page from the Voyager app (or START-VOYAGER-CONTROL.bat). Missions are worked out by the Voyager host.</p>
 <div class="cm-layout">
 <section class="cm-missions" id="missions" aria-label="This week's missions"></section>
@@ -27,15 +28,15 @@
 <ul class="cm-owed" id="owed"></ul>
 </aside>
 </div>
-<p class="st-hint cm-foot">Progress uses data Voyager already has: points earned (Points Ledger) and Voyager Versus wins. Weeks start Monday 12:00 am on this PC. Keep Voyager running (or the Public website page open) so progress updates.</p>
+<p class="st-hint cm-foot">Progress uses data Voyager already has: points earned (Points Ledger), Voyager Versus wins, and Twitch subs, YouTube memberships and Kick subs (Voyager - Community Tracker). Rewards are always points, never giveaway tickets. Weeks start Monday 12:00 am on this PC. Keep Voyager running (or the Public website page open) so progress updates.</p>
 </main>
 </div>
 <script src="config.js"></script>
 <script src="giveaway-connection.js"></script>
 <script src="points-model.js?v=4.4"></script>
 <script src="points-connection.js?v=4.4"></script>
-<script src="missions.js?v=2.14"></script>
-<script src="voyager-shell.js?v=2.14"></script>
+<script src="missions.js?v=2.15"></script>
+<script src="voyager-shell.js?v=2.15"></script>
 <script src="voyager-navigation.js"></script>
 </body>
 </html>

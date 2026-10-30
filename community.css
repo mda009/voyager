@@ -62,3 +62,19 @@
 .cs-preview{border-radius:14px;overflow:hidden;border:1px dashed rgba(151,223,255,.2);background:repeating-conic-gradient(#0f1a28 0 25%,#0b1420 0 50%) 0 0/20px 20px}
 .cs-preview iframe{display:block;width:100%;height:420px;border:0}
 .cs-url{display:flex;gap:8px;align-items:center}.cs-url code{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:12px ui-monospace,Consolas,monospace;padding:8px 10px;border-radius:10px;background:rgba(8,15,24,.6);border:1px solid rgba(151,223,255,.15)}
+
+/* 2.15 subscriber missions and season sub goals */
+.cm-fields label:nth-child(4){grid-column:1/-1}
+.cm-sub-hint{margin:0;font-size:12px}
+.cm-sub-status{margin:0 0 12px}
+.cs-main{display:flex;flex-direction:column;gap:16px;min-width:0}
+.cs-goals{padding:18px 22px;display:flex;flex-direction:column;gap:6px}
+.cs-goals .card-heading .st-actions{margin:0}
+.cs-goal-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;margin:12px 0}
+.cs-goal{display:flex;flex-direction:column;gap:10px;padding:14px;border:1px solid rgba(151,223,255,.14);background:rgba(8,15,24,.35)}
+.cs-goal-head{display:flex;gap:10px;align-items:center}.cs-goal-head .cm-title{flex:1}
+.cs-goal-fields label:first-child{grid-column:auto}.cs-goal-fields label:nth-child(4){grid-column:auto}
+.cs-goal-num{font:700 18px var(--brand-display);color:#97dfff}
+.cs-bonus{display:flex;flex-direction:column;gap:5px;font-size:12px;color:#9ab0c5;max-width:360px}
+.cs-bonus input{height:38px;padding:0 10px;border:1px solid rgba(151,223,255,.18);background:rgba(8,15,24,.55);color:#e6eef7;font:14px 'Segoe UI',sans-serif}
+td.cs-score{color:#97dfff;font-weight:700}

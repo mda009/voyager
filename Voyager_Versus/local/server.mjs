@@ -116,8 +116,9 @@ const server=http.createServer(async(req,res)=>{
       if(url.pathname==='/api/community'&&req.method==='GET'){community.roll(Date.now());response(res,200,community.view());return;}
       if(req.method!=='POST'||!req.headers['content-type']?.startsWith('application/json')){response(res,405,{message:'Method not allowed.'});return;}
       try{
-        const input=await body(req,url.pathname==='/api/community/members'?8*1024*1024:65536);
+        const input=await body(req,['/api/community/members','/api/community/support'].includes(url.pathname)?8*1024*1024:65536);
         if(url.pathname==='/api/community/members'){community.receive(input?.members);response(res,200,{ok:true});return;}
+        if(url.pathname==='/api/community/support'){community.receiveSupport(input?.support);response(res,200,{ok:true});return;}
         if(url.pathname==='/api/community/missions'){response(res,200,{ok:true,...community.setMissions(input?.missions)});return;}
         if(url.pathname==='/api/community/season'){response(res,200,{ok:true,...(input?.action==='end'?community.endSeason():community.configureSeason(input||{}))});return;}
         if(url.pathname==='/api/community/panel'){response(res,200,{ok:true,panel:community.setPanel(input||{})});return;}

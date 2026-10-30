@@ -36,7 +36,7 @@ class StreamConnection extends VoyagerConnection{
   return new Promise((resolve,reject)=>{
    const deadline={timer:setTimeout(()=>this.finishResult(requestId,'stats',null,Error('No stats snapshot received. Check the Voyager Stats queue and compile the new stats action.')),30000)};
    this.waiters.set(requestId,{kind:'stats',deadline,resolve,reject});
-   this.request('DoAction',{action:{id:this.engine},args:{requestId,ccSources:JSON.stringify(this.sources)}},gen).catch(e=>{if(e.code!=='TIMEOUT')this.finishResult(requestId,'stats',null,e);});
+   this.request('DoAction',{action:{id:this.engine},args:{...(this.extraArgs||{}),requestId,ccSources:JSON.stringify(this.sources)}},gen).catch(e=>{if(e.code!=='TIMEOUT')this.finishResult(requestId,'stats',null,e);});
   });
  }
  sync(){
