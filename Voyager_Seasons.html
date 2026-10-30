@@ -7,9 +7,9 @@
 <link rel="icon" href="brand-assets/voyager.png">
 <link rel="stylesheet" href="stream-command.css">
 <link rel="stylesheet" href="voyager-brand.css">
-<link rel="stylesheet" href="settings.css?v=2.13">
-<link rel="stylesheet" href="community.css?v=2.13">
-<link rel="stylesheet" href="voyager-glass.css?v=2.13">
+<link rel="stylesheet" href="settings.css?v=2.14">
+<link rel="stylesheet" href="community.css?v=2.14">
+<link rel="stylesheet" href="voyager-glass.css?v=2.14">
 </head>
 <body class="voyager-console voyager-settings voyager-community">
 <div class="shell">
@@ -36,13 +36,30 @@
 </form>
 <p class="st-hint">When a season ends (automatically on its end date, or now), its top five go into the Hall of Fame, it's shown on voyagercommand.com, and the next season starts from zero.</p>
 </section>
+<section class="card cs-panel" aria-labelledby="panel-h">
+<div class="card-heading"><div><span class="eyebrow">OBS PANEL</span><h2 id="panel-h">Show on stream</h2></div><span class="st-pill" id="panel-state" data-state="wait">Hidden</span></div>
+<form id="panel-form" class="cs-form cs-panel-form">
+<label class="wide">Show<select name="kind"><option value="season">Season standings</option><option value="hall">Hall of Fame</option><option value="missions">This week's missions</option></select></label>
+<label>Rows<input name="limit" type="number" min="3" max="10"></label>
+<label>Show for (seconds, 0 = until hidden)<input name="duration" type="number" min="0" max="600"></label>
+<label class="wide">Title (optional)<input name="title" maxlength="80" placeholder="Uses the season name"></label>
+<details class="wide"><summary>Position and look</summary><div class="cs-form">
+<label>From top (px)<input name="top" type="number" min="0" max="600"></label><label>From right (px)<input name="right" type="number" min="0" max="1440"></label>
+<label>Width (px)<input name="width" type="number" min="320" max="480"></label><label>Background (%)<input name="opacity" type="number" min="0" max="95"></label>
+<label>Scroll speed<input name="speed" type="number" min="0" max="40"></label></div></details>
+<div class="st-actions wide"><button type="button" class="primary" id="panel-show">Show on stream</button><button type="button" id="panel-hide">Hide</button><button type="submit">Save</button></div>
+</form>
+<div class="cs-preview"><iframe id="panel-preview" title="Panel preview" src="Voyager_Community_Panel.html?preview=1&amp;compact=1"></iframe></div>
+<p class="st-hint">OBS: add a <b>Browser</b> source, 1920 × 1080, with this address. Leave "Local file" unticked.</p>
+<div class="cs-url"><code id="panel-url"></code><button type="button" id="panel-copy">Copy</button></div>
+</section>
 <section class="card cs-hall"><span class="eyebrow">HALL OF FAME</span><ol id="hall" class="cs-hall-list"></ol></section>
 </div>
 </div>
 </main>
 </div>
-<script src="seasons.js?v=2.13"></script>
-<script src="voyager-shell.js?v=2.13"></script>
+<script src="seasons.js?v=2.14"></script>
+<script src="voyager-shell.js?v=2.14"></script>
 <script src="voyager-navigation.js"></script>
 </body>
 </html>

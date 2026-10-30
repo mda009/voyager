@@ -110,6 +110,8 @@ const server=http.createServer(async(req,res)=>{
     if(url.pathname==='/api/system'&&req.method==='GET'){if(!validToken(req)){response(res,403,{message:'Open the local control panel.'});return;}let writable=true;try{const probe=join(dataDir,'.write-test');await writeFile(probe,'ok');await unlink(probe);}catch{writable=false;}response(res,200,{version:VERSION,node:process.versions.node,platform:process.platform,dataDir,dataWritable:writable,importedFrom,legacyDataPresent:await hasJson(legacyDataDir)&&legacyDataDir!==dataDir,controlBundled:hasControl});return;}
     if(url.pathname.startsWith('/api/community')){
       if(!community){response(res,404,{message:'Missions and seasons need the full Voyager Control package.'});return;}
+      // The OBS panel reads this without the control token (local only, no member keys), like /api/live-overlay.
+      if(url.pathname==='/api/community/overlay'&&req.method==='GET'){res.setHeader('Cache-Control','no-store');response(res,200,community.overlay());return;}
       if(!validToken(req)){response(res,403,{message:'Open the local Missions or Seasons page.'});return;}
       if(url.pathname==='/api/community'&&req.method==='GET'){community.roll(Date.now());response(res,200,community.view());return;}
       if(req.method!=='POST'||!req.headers['content-type']?.startsWith('application/json')){response(res,405,{message:'Method not allowed.'});return;}
@@ -118,6 +120,7 @@ const server=http.createServer(async(req,res)=>{
         if(url.pathname==='/api/community/members'){community.receive(input?.members);response(res,200,{ok:true});return;}
         if(url.pathname==='/api/community/missions'){response(res,200,{ok:true,...community.setMissions(input?.missions)});return;}
         if(url.pathname==='/api/community/season'){response(res,200,{ok:true,...(input?.action==='end'?community.endSeason():community.configureSeason(input||{}))});return;}
+        if(url.pathname==='/api/community/panel'){response(res,200,{ok:true,panel:community.setPanel(input||{})});return;}
         if(url.pathname==='/api/community/payout'){response(res,200,community.recordPayout(input||{}));return;}
         response(res,404,{message:'Not found.'});
       }catch(e){response(res,400,{ok:false,message:e.message});}

@@ -2,6 +2,18 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.14.0 (30 October 2026)
+
+Season and missions on stream. **No Streamer.bot changes** and nothing to import.
+
+- New OBS panel, **Voyager_Community_Panel.html**, in the same style and position options as the leaderboard panel. It shows one of:
+  - **Season standings** (top 3–10, points earned this season and Versus wins),
+  - **Hall of Fame** (past season champions),
+  - **This week's missions** (rewards and how many viewers finished).
+- Control it from **Seasons › Show on stream**: choose what to show, rows, an optional title, how long it stays up (or until hidden), and position, width, background and scroll speed. A live preview shows exactly what OBS will show.
+- **Missions** has a **Show on stream** button that puts the missions panel up (or takes it down) in one click.
+- Add it once in OBS: a **Browser** source, 1920 × 1080, address `http://127.0.0.1:8740/control/Voyager_Community_Panel.html` (Copy button on the Seasons page). Leave "Local file" unticked. It reads from Voyager, so Voyager must be running.
+
 ## 2.13.0 (30 October 2026)
 
 Missions and seasons. **No Streamer.bot changes** and nothing to import: both work from data Voyager already has (Points Ledger and Voyager Versus). Installed apps update themselves.

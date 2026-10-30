@@ -51,3 +51,14 @@
 .cs-hall-list li{display:flex;flex-direction:column;gap:3px;padding:12px 14px;border-radius:14px;background:rgba(232,195,114,.06);border:1px solid rgba(232,195,114,.25)}
 .cs-hall-list li b{font:700 18px var(--brand-display)}
 @media(max-width:1100px){.cm-layout,.cs-layout{grid-template-columns:1fr}.cm-pay{position:static}}
+
+/* On-stream panel card (2.14) */
+.cs-panel{padding:18px 22px;display:flex;flex-direction:column;gap:12px}
+.cs-panel-form .wide{grid-column:1/-1}
+.cs-panel-form select{height:38px;padding:0 10px;border:1px solid rgba(151,223,255,.18);background:rgba(8,15,24,.55);color:#e6eef7}
+.cs-panel-form details{border:1px solid rgba(151,223,255,.12);border-radius:12px;padding:8px 12px}
+.cs-panel-form summary{cursor:pointer;font-size:13px;color:#c9d8e8}
+.cs-panel-form details .cs-form{margin-top:10px;grid-template-columns:1fr 1fr}
+.cs-preview{border-radius:14px;overflow:hidden;border:1px dashed rgba(151,223,255,.2);background:repeating-conic-gradient(#0f1a28 0 25%,#0b1420 0 50%) 0 0/20px 20px}
+.cs-preview iframe{display:block;width:100%;height:420px;border:0}
+.cs-url{display:flex;gap:8px;align-items:center}.cs-url code{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:12px ui-monospace,Consolas,monospace;padding:8px 10px;border-radius:10px;background:rgba(8,15,24,.6);border:1px solid rgba(151,223,255,.15)}

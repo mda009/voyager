@@ -13,6 +13,7 @@ async function api(path,body){
 const when=t=>new Date(t).toLocaleString(undefined,{weekday:'short',day:'numeric',month:'short',hour:'numeric',minute:'2-digit'});
 function render(){
   if(!view)return;
+  renderShow();
   $('week-note').textContent='This week ends '+when(view.week.endsAt)+' · '+view.members+' members tracked';
   const box=$('missions');box.textContent='';
   missions.forEach((m,i)=>{
@@ -55,6 +56,8 @@ function render(){
   $('pay-all').disabled=paying||!due.length||!points?.transportReady;
 }
 async function load(){try{view=await api('/api/community');if(!missions.length||!document.querySelector('.cm-missions input:focus'))missions=view.missions.map(({id,title,type,target,reward,enabled})=>({id,title,type,target,reward,enabled}));render();}catch(e){notice(e.message,true);}}
+$('show-missions').onclick=async()=>{try{const showing=view?.panel?.visible&&view.panel.config.kind==='missions';const r=await api('/api/community/panel',showing?{visible:false}:{config:{...(view?.panel?.config||{}),kind:'missions'},visible:true});view.panel=r.panel;notice(showing?'Missions panel hidden.':'Missions panel is on stream. Change its size and position in Seasons › Show on stream.');renderShow();}catch(e){notice(e.message,true);}};
+function renderShow(){const on=view?.panel?.visible&&view.panel.config.kind==='missions';$('show-missions').textContent=on?'Hide from stream':'Show on stream';}
 $('add-mission').onclick=()=>{missions.push({id:'m'+Date.now().toString(36),title:'New mission',type:'earnPoints',target:300,reward:100,enabled:true});render();};
 $('save-missions').onclick=async()=>{try{view=await api('/api/community/missions',{missions});missions=view.missions.map(({id,title,type,target,reward,enabled})=>({id,title,type,target,reward,enabled}));notice('Missions saved.');render();}catch(e){notice(e.message,true);}};
 $('pay-all').onclick=async()=>{

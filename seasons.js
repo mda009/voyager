@@ -25,9 +25,31 @@ function render(){
   for(const h of view.hall){const li=el('li');li.append(el('span','eyebrow',h.name),el('b','',h.champion?h.champion.name+' · '+h.champion.points.toLocaleString()+' pts':'No champion'),el('span','st-hint',(h.topPilot?'Top pilot: '+h.topPilot.name+' ('+h.topPilot.wins+' wins) · ':'')+'ended '+date(h.endedAt)));hall.append(li);}
   if(!view.hall.length)hall.append(el('li','cm-empty','Champions appear here when a season ends.'));
 }
-async function load(){try{view=await api('/api/community');render();}catch(e){notice(e.message,true);}}
+async function load(){try{view=await api('/api/community');render();renderPanel();}catch(e){notice(e.message,true);}}
 const form=$('season-form');form.addEventListener('focusin',()=>{editing=true;});
 form.onsubmit=async e=>{e.preventDefault();try{view=await api('/api/community/season',{name:form.elements.name.value,weeks:Number(form.elements.weeks.value)});editing=false;notice('Season saved.');render();}catch(err){notice(err.message,true);}};
 $('end-season').onclick=async()=>{if(!view||!confirm('End '+view.season.name+' now? Its top five go into the Hall of Fame and the next season starts from zero. Points balances are not changed.'))return;try{view=await api('/api/community/season',{action:'end'});notice('Season ended. Welcome to '+view.season.name+'.');render();}catch(e){notice(e.message,true);}};
+// On-stream panel (2.14)
+const pf=$('panel-form'),FIELDS=['kind','limit','duration','title','top','right','width','opacity','speed'];let panelEditing=false,previewReady=false;
+pf.addEventListener('focusin',()=>{panelEditing=true;});pf.addEventListener('input',()=>sendPreview());
+$('panel-url').textContent=location.origin+location.pathname.replace(/[^/]*$/,'')+'Voyager_Community_Panel.html';
+$('panel-copy').onclick=async()=>{try{await navigator.clipboard.writeText($('panel-url').textContent);$('panel-copy').textContent='Copied';setTimeout(()=>$('panel-copy').textContent='Copy',1500);}catch{}};
+function formConfig(){const c={};for(const k of FIELDS){const v=pf.elements[k].value;c[k]=k==='kind'||k==='title'?v:Number(v);}return c;}
+function renderPanel(){
+  const p=view.panel;if(!p)return;
+  if(!panelEditing)for(const k of FIELDS)pf.elements[k].value=p.config[k];
+  const st=$('panel-state');st.dataset.state=p.visible?'ok':'wait';st.textContent=p.visible?'On stream'+(p.expiresAt?' · hides at '+new Date(p.expiresAt).toLocaleTimeString([], {hour:'numeric',minute:'2-digit',second:'2-digit'}):''):'Hidden';
+  sendPreview();
+}
+async function sendPreview(){
+  if(!previewReady)return;
+  let data={};try{data=await(await fetch('/api/community/overlay',{cache:'no-store'})).json();}catch{}
+  $('panel-preview').contentWindow?.postMessage({type:'voyager.community.preview',config:formConfig(),data},'*');
+}
+addEventListener('message',e=>{if(e.source===$('panel-preview').contentWindow&&e.data?.type==='voyager.community.preview.ready'){previewReady=true;sendPreview();}});
+async function panel(body){try{const r=await api('/api/community/panel',body);view.panel=r.panel;panelEditing=false;renderPanel();notice(body.visible===true?'Panel is on stream.':body.visible===false?'Panel hidden.':'Panel saved.');}catch(e){notice(e.message,true);}}
+pf.onsubmit=e=>{e.preventDefault();panel({config:formConfig()});};
+$('panel-show').onclick=()=>panel({config:formConfig(),visible:true});
+$('panel-hide').onclick=()=>panel({visible:false});
 if(!hosted)$('not-hosted').hidden=false;else{load();setInterval(()=>{if(!editing)load();},30000);}
 })();

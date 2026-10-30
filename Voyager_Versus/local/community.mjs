@@ -23,6 +23,19 @@ const metric=m=>{const c=Number(m.capturedIn);if(Number.isFinite(c)&&c>=0)return
 export function weekStart(now){const d=new Date(now);d.setHours(0,0,0,0);d.setDate(d.getDate()-((d.getDay()+6)%7));return d.getTime();}
 export function dayId(now){const d=new Date(now);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 
+// On-stream panel (2.14): same look and placement options as the OBS leaderboard panel.
+export const PANEL_KINDS={season:'Season standings',hall:'Hall of Fame',missions:"This week's missions"};
+export const PANEL_DEFAULTS={kind:'season',limit:10,speed:14,width:356,top:132,right:16,opacity:40,duration:0,title:''};
+export function normalizePanel(raw){
+  const r=raw&&typeof raw==='object'?raw:{},c={};
+  if(!Object.hasOwn(PANEL_KINDS,r.kind??PANEL_DEFAULTS.kind))throw new Error('Choose what the panel shows.');c.kind=r.kind??PANEL_DEFAULTS.kind;
+  for(const [k,[min,max]] of Object.entries({limit:[3,10],speed:[0,40],width:[320,480],top:[0,600],right:[0,1440],opacity:[0,95],duration:[0,600]})){
+    const v=r[k]===undefined?PANEL_DEFAULTS[k]:Number(r[k]);if(!Number.isInteger(v)||v<min||v>max)throw new Error(k+' must be a whole number between '+min+' and '+max+'.');c[k]=v;}
+  if(c.right+c.width>1920)throw new Error('The panel must fit inside the canvas.');
+  const t=typeof r.title==='string'?r.title.trim():'';if(t.length>80||/[\u0000-\u001f\u007f]/.test(t))throw new Error('Panel title must be a single line of up to 80 characters.');c.title=t;
+  return c;
+}
+
 export function normalizeMissions(raw){
   const out=[],seen=new Set();
   for(const m of Array.isArray(raw)?raw.slice(0,8):[]){
@@ -42,7 +55,7 @@ export class Community{
     const now=this.now();
     return {schema:1,missions:DEFAULT_MISSIONS.map(m=>({...m})),members:{},
       week:{id:weekStart(now),baseline:{},days:{},versus:{}},previous:null,payouts:{},
-      season:this.newSeason(now,1,13),hall:[]};
+      season:this.newSeason(now,1,13),hall:[],panel:{config:{...PANEL_DEFAULTS},visible:false,expiresAt:0,revision:0}};
   }
   newSeason(now,number,weeks){return {number,name:'Season '+number,startedAt:now,endsAt:now+weeks*7*DAY,weeks,baseline:{},versus:{}};}
   async load(){try{const raw=JSON.parse(await readFile(join(this.dataDir,FILE),'utf8'));if(raw?.schema===1){this.state={...this.fresh(),...raw};this.state.missions=normalizeMissions(raw.missions);}}catch{}return this;}
@@ -131,10 +144,19 @@ export class Community{
     const s=this.state.season,w=int(weeks,1,52);if(w===null)throw new Error('A season lasts 1 to 52 weeks.');
     const n=clean(name,40);if(n)s.name=n;s.weeks=w;s.endsAt=s.startedAt+w*7*DAY;this.persist();return this.view();
   }
+  setPanel({config,visible}){
+    const p=this.state.panel||(this.state.panel={config:{...PANEL_DEFAULTS},visible:false,expiresAt:0,revision:0});
+    if(config!==undefined)p.config=normalizePanel(config);
+    if(visible!==undefined){p.visible=visible===true;p.expiresAt=p.visible&&p.config.duration?this.now()+p.config.duration*1000:0;}
+    p.revision=(p.revision||0)+1;this.persist();return this.panelView();
+  }
+  panelView(){const p=this.state.panel||{config:{...PANEL_DEFAULTS},visible:false,expiresAt:0,revision:0};return {config:p.config,visible:p.visible&&(!p.expiresAt||this.now()<p.expiresAt),expiresAt:p.expiresAt,revision:p.revision||0};}
+  // What the OBS panel reads (local only). Real names: it's shown on your own stream, like the other panels.
+  overlay(){this.roll(this.now());return {serverAt:this.now(),panel:this.panelView(),...this.publicView()};}
   view(){
     const s=this.state,missions=s.missions.map(m=>{const p=this.progressFor(m);return {...m,typeLabel:TYPES[m.type].label,unit:TYPES[m.type].unit,started:p.length,completed:p.filter(x=>x.done).length,top:p.slice(0,8)};});
     return {missions,week:{id:s.week.id,endsAt:s.week.id+7*DAY},members:Object.keys(s.members).length,payables:this.payables(),
-      season:{number:s.season.number,name:s.season.name,startedAt:s.season.startedAt,endsAt:s.season.endsAt,weeks:s.season.weeks},standings:this.standings(),topPilot:this.topPilot(),hall:s.hall,types:TYPES};
+      season:{number:s.season.number,name:s.season.name,startedAt:s.season.startedAt,endsAt:s.season.endsAt,weeks:s.season.weeks},standings:this.standings(),topPilot:this.topPilot(),hall:s.hall,types:TYPES,panel:this.panelView(),panelKinds:PANEL_KINDS};
   }
   // What the public site may show (names are masked later if "Show viewer names" is off).
   publicView(){

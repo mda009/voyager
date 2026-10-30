@@ -59,3 +59,17 @@ test('Mission settings are validated',()=>{
   assert.throws(()=>normalizeMissions([{title:'X',type:'streamDays',target:9,reward:1}]),/1 to 7/);
   assert.throws(()=>normalizeMissions([{title:'',type:'earnPoints',target:9,reward:1}]),/name/);
 });
+
+test('OBS panel: settings are validated, timed panels hide themselves, and the overlay has no member keys',async()=>{
+  const {c,set}=await make(monday);
+  c.receive([{key:'twitch:1',name:'Nova',login:'nova',capturedIn:10},{key:'twitch:2',name:'Orion',login:'orion',capturedIn:10}]);
+  set(monday+60000);c.receive([{key:'twitch:1',name:'Nova',login:'nova',capturedIn:500},{key:'twitch:2',name:'Orion',login:'orion',capturedIn:20}]);
+  assert.throws(()=>c.setPanel({config:{kind:'nope'}}),/Choose/);
+  assert.throws(()=>c.setPanel({config:{kind:'season',width:900}}),/width/);
+  const p=c.setPanel({config:{kind:'season',limit:5,duration:30},visible:true});
+  assert.equal(p.visible,true);assert.equal(p.expiresAt,monday+60000+30000);
+  const o=c.overlay();assert.equal(o.panel.config.kind,'season');assert.equal(o.season.standings[0].name,'Nova');
+  assert.equal(JSON.stringify(o).includes('twitch:1'),false);
+  set(monday+60000+31000);assert.equal(c.overlay().panel.visible,false,'hides after its duration');
+  assert.equal(c.setPanel({visible:false}).visible,false);
+});
