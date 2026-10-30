@@ -120,16 +120,18 @@ const server=http.createServer(async(req,res)=>{
       if(!publicSite){response(res,404,{message:'The public website needs the full Voyager Control package.'});return;}
       const json=req.headers['content-type']?.startsWith('application/json');
       if(url.pathname==='/public'){res.writeHead(302,{Location:'/public/'});res.end();return;}
+      const proofMatch=/^\/public\/proofs\/([a-z0-9]{1,16})\.json$/i.exec(url.pathname);
+      if(proofMatch&&req.method==='GET'){const p=publicSite.proof(proofMatch[1]);if(!p){response(res,404,{message:'No proof for that giveaway.'});return;}res.writeHead(200,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'});res.end(JSON.stringify(p));return;}
       if(url.pathname==='/public/feed.json'&&req.method==='GET'){if(!publicSite.feed)publicSite.rebuild();res.writeHead(200,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','Access-Control-Allow-Origin':'*'});res.end(publicSite.feedJson);return;}
       if(url.pathname.startsWith('/public/')&&req.method==='GET'){
-        const assets={'':'site/viewer/index.html','index.html':'site/viewer/index.html','assets/voyager.png':'brand-assets/voyager.png','assets/icon.png':'desktop/build/icon.png','assets/Rajdhani-600.ttf':'brand-assets/Rajdhani-600.ttf','assets/Rajdhani-700.ttf':'brand-assets/Rajdhani-700.ttf'};
+        const assets={'':'site/viewer/index.html','index.html':'site/viewer/index.html','fair-draw.js':'site/viewer/fair-draw.js','assets/voyager.png':'brand-assets/voyager.png','assets/icon.png':'desktop/build/icon.png','assets/Rajdhani-600.ttf':'brand-assets/Rajdhani-600.ttf','assets/Rajdhani-700.ttf':'brand-assets/Rajdhani-700.ttf'};
         const name=url.pathname.slice('/public/'.length);if(!Object.hasOwn(assets,name)){response(res,404,{message:'File not found.'});return;}
         const file=resolve(controlRoot,assets[name]),bytes=await readFile(file);res.writeHead(200,{'Content-Type':mime[extname(file)]||'application/octet-stream','Cache-Control':'no-cache','Content-Length':bytes.length});res.end(bytes);return;
       }
       if(!validToken(req)){response(res,403,{message:'Open the local Public website page.'});return;}
       if(url.pathname==='/api/public-site'&&req.method==='GET'){response(res,200,publicSite.view());return;}
       if(!json||req.method!=='POST'){response(res,405,{message:'Method not allowed.'});return;}
-      if(url.pathname==='/api/public-site/feed'){const r=publicSite.receive(await body(req,65536));response(res,200,{ok:true,feed:r.feed,status:publicSite.view()});return;}
+      if(url.pathname==='/api/public-site/feed'){const r=publicSite.receive(await body(req,2*1024*1024));response(res,200,{ok:true,feed:r.feed,status:publicSite.view()});return;}
       if(url.pathname==='/api/public-site/settings'){try{response(res,200,{ok:true,...await publicSite.configure(await body(req,32768))});}catch(e){response(res,400,{ok:false,message:e.message});}return;}
       if(url.pathname==='/api/public-site/publish-now'){await body(req);if(!publicSite.view().upload.enabled){response(res,400,{ok:false,message:'Turn on publishing and add the repository and token first.'});return;}publicSite.rebuild();await publicSite.push();const v=publicSite.view();response(res,200,{ok:!v.upload.lastError,message:v.upload.lastError||'Published. The public site shows it within about 5 minutes.',status:v});return;}
       response(res,404,{message:'Not found.'});return;

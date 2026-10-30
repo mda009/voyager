@@ -11,7 +11,32 @@ function message(text,good=false){$('message').textContent=text;$('message').hid
 function isChat(){return state?.session?state.session.mode==='chat':mode==='chat';}
 function labelSelection(){return selected.map(k=>G.names[k]).join(' + ');}
 function current(){return state?.session?.draws.find(d=>d.id===state.session.currentDrawId);}
-function setupArgs(){return{mode:isChat()?'chat':'groups',groups:selected.join(','),title:$('prize').value.trim(),claimSeconds:$('claim').checked?Number($('claim-seconds').value):0,excludeLogins:$('exclude').value};}
+// Who can win (2.12): rule-based exclusions are added to the manual list before the pool locks.
+const E=window.VoyagerEligibility;let rules=E?E.load():null,security=null,securityError=demo?'Security rules use your live Security data, so they are not applied in the demo.':'';
+function ruleRows(){if(!E)return [];return E.compute(rules,state,security,Date.now()+(connection.offset||0));}
+function ruleExclusions(){return E?E.exclusions(ruleRows(),isChat()):[];}
+function setupArgs(){return{mode:isChat()?'chat':'groups',groups:selected.join(','),title:$('prize').value.trim(),claimSeconds:$('claim').checked?Number($('claim-seconds').value):0,excludeLogins:E?E.merge($('exclude').value,ruleExclusions()):$('exclude').value};}
+function renderRules(){
+ if(!E||!$('win-rules'))return;
+ $('rule-recent').checked=rules.recentWin;$('rule-recent-days').value=rules.recentDays;$('rule-flagged').checked=rules.flagged;$('rule-age').checked=rules.accountAge;$('rule-age-days').value=rules.accountDays;
+ $('rule-recent-days').disabled=!rules.recentWin||$('setup-fields').disabled;$('rule-age-days').disabled=!rules.accountAge||$('setup-fields').disabled;
+ let rows=ruleRows();const chat=isChat();
+ if(!chat){let pool=[];try{pool=poolData().pool||[];}catch{}const logins=new Set(pool.map(u=>String(u.login||'').toLowerCase()).filter(Boolean));if(pool.length)rows=rows.filter(r=>r.login&&logins.has(r.login));}
+ const list=$('rules-list');list.textContent='';
+ for(const r of rows.slice(0,100)){const li=document.createElement('li'),a=document.createElement('span'),b=document.createElement('span');a.textContent=r.name+(r.platform&&r.platform!=='twitch'?' · '+(platforms[r.platform]||r.platform):'');b.textContent=r.reason;li.append(a,b);list.append(li);}
+ $('rules-count').textContent=rows.length?'· '+rows.length+(chat?' can\u2019t enter':' left out'):'· everyone in the pool can win';
+ const notes=[];if((rules.flagged||rules.accountAge)&&!security)notes.push(securityError||'Security data not loaded yet, so Security rules are not applied.');
+ if(state?.session)notes.push('Rules were applied when this pool locked.');
+ $('rules-note').textContent=notes.join(' ');
+}
+async function loadSecurity(){
+ if(demo||typeof connection.request!=='function'||!connection.ready)return;
+ try{const r=await connection.request('GetGlobal',{variable:'VoyagerSecurityStateV1',persisted:true});const v=r?.variable?.value??r?.value;security=v?(typeof v==='string'?JSON.parse(v):v):null;securityError=security?'':'Security has no saved data yet.';}
+ catch(e){securityError='Security data unavailable: '+(e.message||e);}
+ renderRules();
+}
+for(const [id,key] of [['rule-recent','recentWin'],['rule-flagged','flagged'],['rule-age','accountAge']])$(id)?.addEventListener('change',e=>{rules=E.save({...rules,[key]:e.target.checked});renderRules();renderList();updateControls();});
+for(const [id,key] of [['rule-recent-days','recentDays'],['rule-age-days','accountDays']])$(id)?.addEventListener('change',e=>{rules=E.save({...rules,[key]:e.target.value});renderRules();renderList();updateControls();});
 function settingsKey(s){if(!s)return '';const list=Array.isArray(s.groups)?s.groups:String(s.groups||'').split(','),ex=Array.isArray(s.excludeLogins)?s.excludeLogins.join(','):String(s.excludeLogins||'');return JSON.stringify([s.mode||'groups',G.keys.filter(k=>list.includes(k)),String(s.title||'').trim(),Number(s.claimSeconds)||0,[...new Set(ex.split(/[\s,;]+/).map(v=>v.replace(/^@/,'').toLowerCase()).filter(Boolean))].sort()]);}
 function matchingPreview(){return !state?.session&&state?.preview&&settingsKey(state.preview)===settingsKey(setupArgs());}
 function poolData(){if(state?.session)return{pool:state.session.pool,duplicatesRemoved:state.session.duplicatesRemoved};if(matchingPreview())return{pool:state.preview.pool,duplicatesRemoved:state.preview.duplicatesRemoved};if(isChat()||!groups)return{pool:[],duplicatesRemoved:0};return VoyagerPool.mergePool(groups,selected,$('exclude').value);}
@@ -19,6 +44,7 @@ function selectedPreset(){if(isChat())return presets[0];return presets.find(p=>p
 for(const p of presets){const b=node('button',undefined,'preset');b.dataset.preset=p.id;b.style.setProperty('--colour',G.colours[p.id]||'#7b9abf');const dot=node('i');const t=node('span');t.append(node('strong',p.name),node('small',p.sub));b.append(dot,t);b.onclick=()=>{if(state?.session)return;mode=p.id==='chat'?'chat':'groups';if(p.keys)selected=[...p.keys];if(!p.keys){render();$('group-options').querySelector('input').focus();return;}$('prize').value=p.name;render();};$('presets').append(b);}
 for(const k of G.keys){const label=node('label',undefined,'group-option');label.dataset.group=k;label.style.setProperty('--colour',G.colours[k]);const input=node('input');input.type='checkbox';input.value=k;input.setAttribute('aria-label',G.names[k]+' group');const copy=node('span');copy.append(node('strong',G.names[k]),node('small','MEMBERS'));label.append(input,copy,node('b','—','group-count'));input.onchange=()=>{selected=G.keys.filter(k=>$('group-options').querySelector('[value='+k+']').checked);render();};$('group-options').append(label);}
 function render(){
+ setTimeout(renderRules);
  const session=state?.session,locked=!!session;if(locked){selected=[...session.groups];mode=session.mode==='chat'?'chat':'groups';}const chat=isChat(),preset=selectedPreset();
  for(const b of document.querySelectorAll('.preset')){b.disabled=locked||busy;b.classList.toggle('active',b.dataset.preset===selectedPreset().id);}
  for(const k of G.keys){const label=$('group-options').querySelector('[data-group='+k+']'),input=label.querySelector('input');input.checked=selected.includes(k);input.disabled=locked||busy;label.classList.toggle('selected',input.checked);const g=groups?.[k];label.querySelector('.group-count').textContent=locked?String(session.pool.filter(u=>u.groups.includes(k)).length):g&&!g.error&&g.exists!==false?new Set(g.users.map(u=>(u.platform||'')+':'+(u.id||u.login))).size:'—';label.title=g?.error||G.names[k]+' membership group';}
@@ -97,4 +123,5 @@ $('save-config').onclick=()=>{if(!$('settings-form').reportValidity())return;con
 setInterval(updateControls,250);setInterval(()=>{if(!demo&&connection.ready&&!busy&&!state?.session)connection.refreshMembers().catch(()=>{});},20000);
 setInterval(()=>{if(connection.ready&&!busy&&!state?.session&&state?.preview)connection.sync().catch(()=>{});},15000);
 render();connection.connect();
+setTimeout(loadSecurity,4000);setInterval(()=>{if(!state?.session)loadSecurity();},120000);setInterval(renderRules,5000);
 })();

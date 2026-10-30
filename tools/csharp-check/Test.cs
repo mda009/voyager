@@ -7,8 +7,8 @@ using Newtonsoft.Json.Linq;
 
 public static class Program
 {
-    static int failures = 0;
-    static void Check(bool ok, string what) { Console.WriteLine((ok ? "ok   " : "FAIL ") + what); if (!ok) failures++; }
+    static int failures = 0, checks = 0;
+    static void Check(bool ok, string what) { checks++; Console.WriteLine((ok ? "ok   " : "FAIL ") + what); if (!ok) { failures++; Console.WriteLine("::error title=C# check failed::" + what); } }
     public static int Main()
     {
         // Shared test vectors (same values asserted in JavaScript).
@@ -67,7 +67,7 @@ public static class Program
         Run(engine, "reopenEntries", new { });
         Check(State(cph)["session"]["proof"].Type == JTokenType.Null, "reopening discards the proof");
         Check(cph.Errors.Count == 0, "no engine errors: " + String.Join(" | ", cph.Errors));
-        Console.WriteLine(failures == 0 ? "All C# checks passed." : failures + " C# check(s) failed.");
+        Console.WriteLine(failures == 0 ? "::notice title=Streamer.bot actions::Compiled; all " + checks + " Giveaway Engine checks passed." : "::error title=Streamer.bot actions::" + failures + " of " + checks + " checks failed.");
         return failures == 0 ? 0 : 1;
     }
     static JObject State(FakeCph cph) { return JObject.Parse(cph.GetGlobalVar<string>("VoyagerGiveawayStateV1")); }

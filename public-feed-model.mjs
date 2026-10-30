@@ -90,6 +90,41 @@ function winnerOf(draw){
   const name=clean(draw.winner.name,LIMITS.name);return name?{name,platform:oneOf(draw.winner.platform,Object.keys(PLATFORMS),'')}:null;
 }
 
+// ---------- fair-draw proof (Giveaway Engine v9) ----------
+// Published only after a pick is settled, so the site can never reveal a winner before the on-stream reveal.
+// Entrant names are published only when "Show viewer names" is on (they are needed to re-check the draw).
+const HEX64=/^[0-9a-f]{64}$/,PROOF_LIST=5000,PROOF_DRAWS=64;
+const proofText=(v,max)=>typeof v==='string'&&v.length<=max&&!/[\u0000-\u001f\u007f-\u009f]/.test(v)?v:null;
+export function projectProof(session,settings=DEFAULT_SETTINGS){
+  const p=session?.proof;if(!p||p.version!==1||!HEX64.test(p.commitment||''))return null;
+  const seeds=list(p.seeds),names=settings.showNames===true;
+  const draws=list(session.draws).filter(d=>d?.proof&&Number.isInteger(d.proof.n)).map(d=>{
+    if(d.status==='selected')return {n:d.proof.n,seed:null,index:null,winner:null,status:'pending'};
+    const confirmed=d.status==='confirmed';
+    return {n:d.proof.n,seed:seeds[d.proof.n-1]||null,index:d.proof.index,winner:confirmed&&names?d.winner?.name??null:null,status:confirmed?'confirmed':'redrawn'};
+  });
+  return {version:1,committedAt:p.committedAt,commitment:p.commitment,poolHash:p.poolHash,size:p.size,entrants:names&&Array.isArray(p.entrants)?p.entrants:null,draws};
+}
+export function sanitizeProof(p){
+  if(!p||p.version!==1||!HEX64.test(p.commitment||'')||!HEX64.test(p.poolHash||''))return null;
+  const size=int(p.size,0,50000);if(size===null)return null;
+  let entrants=null;
+  if(Array.isArray(p.entrants)&&p.entrants.length===size&&size<=PROOF_LIST){
+    entrants=p.entrants.map(e=>Array.isArray(e)&&e.length===2&&proofText(e[0],20)!==null&&proofText(e[1],100)!==null?[e[0],e[1]]:null);
+    if(entrants.some(e=>!e))entrants=null;
+  }
+  const draws=list(p.draws).slice(0,PROOF_DRAWS).map(d=>{
+    const n=int(d?.n,1,PROOF_DRAWS),status=oneOf(d?.status,['confirmed','redrawn','pending']);if(n===null||!status)return null;
+    if(status==='pending')return {n,seed:null,index:null,winner:null,status};
+    const seed=HEX64.test(d.seed||'')?d.seed:null,index=int(d.index,0,50000);if(!seed||index===null)return null;
+    return {n,seed,index,winner:status==='confirmed'?proofText(d.winner,100):null,status};
+  });
+  if(draws.some(d=>!d))return null;
+  return {version:1,committedAt:time(p.committedAt),commitment:p.commitment,poolHash:p.poolHash,size,entrants,draws};
+}
+// Hides names in a stored proof when "Show viewer names" is off.
+export function publicProof(p,settings){const s=normalizeSettings(settings);return s.showNames?p:{...p,entrants:null,draws:p.draws.map(d=>({...d,winner:null}))};}
+
 export function projectGiveaway(state,settings=DEFAULT_SETTINGS,now=Date.now()){
   const session=state?.session||state?.preview;if(!session)return null;
   const preview=!state.session,chat=session.mode==='chat';
@@ -106,7 +141,8 @@ export function projectGiveaway(state,settings=DEFAULT_SETTINGS,now=Date.now()){
     title:clean(session.title,LIMITS.title)||'Voyager giveaway',status,label,
     enter:chat&&status==='open'?settings.commands.impromptu:'',
     eligibility:chat?'Everyone in chat on '+platformsText(['twitch','youtube','kick']):groupsText(list(session.groups)),
-    entrants:pool.length,tickets:null,startedAt:time(session.createdAt),closesAt:null,winner
+    entrants:pool.length,tickets:null,startedAt:time(session.createdAt),closesAt:null,winner,
+    proof:preview?null:projectProof(session,settings)
   };
 }
 
@@ -165,7 +201,8 @@ export function sanitizeGiveaway(g){
   return {id:clean(g.id,16).replace(/[^a-z0-9]/gi,'')||'g',kind,title:clean(g.title,LIMITS.title)||'Voyager giveaway',status,label:clean(g.label,LIMITS.name),
     enter:status==='open'?command(g.enter):'',eligibility:clean(g.eligibility,LIMITS.short),
     entrants:int(g.entrants,0,1e7)??0,tickets:kind==='tickets'?int(g.tickets,0,1e12)??0:null,
-    startedAt:time(g.startedAt),closesAt:time(g.closesAt),winner:['winner','ended'].includes(status)?cleanWinner(g.winner):null};
+    startedAt:time(g.startedAt),closesAt:time(g.closesAt),winner:['winner','ended'].includes(status)?cleanWinner(g.winner):null,
+    proof:sanitizeProof(g.proof)};
 }
 // What the control page may send: giveaways and points only. Everything else is added by the host.
 export function sanitizeCollected(raw){
@@ -176,14 +213,17 @@ export function sanitizeCollected(raw){
   return {giveaways,points:{available:r.points?.available===true,leaders,goals},sources:{giveaway:r.sources?.giveaway===true,tickets:r.sources?.tickets===true,points:r.sources?.points===true}};
 }
 
-export function buildFeed({collected,settings,pilots=[],versus=null,winners=[],online=true,now=Date.now()}){
+export function buildFeed({collected,settings,pilots=[],versus=null,winners=[],online=true,now=Date.now(),proofIds=new Set()}){
   const s=normalizeSettings(settings),c=sanitizeCollected(collected),show=s.sections;
   const name=n=>s.showNames?n:initials(n);
   const feed={schema:SCHEMA,generatedAt:now,online:online===true,
     channel:{name:s.channelName,tagline:s.tagline,links:Object.fromEntries(Object.entries(s.links).filter(([,v])=>v))},
     sections:{...show},giveaways:[],winners:[],goals:[],leaderboards:{points:[],pilots:[]},versus:null,program:null};
-  if(show.giveaways)feed.giveaways=c.giveaways.map(g=>({...g,winner:g.winner?{...g.winner,name:name(g.winner.name)}:null}));
-  if(show.winners)feed.winners=list(winners).slice(0,LIMITS.winners).map(w=>({title:clean(w?.title,LIMITS.title),name:name(clean(w?.name,LIMITS.name)),platform:oneOf(w?.platform,Object.keys(PLATFORMS),''),at:time(w?.at)})).filter(w=>w.name&&w.at);
+  // The full proof is uploaded as its own file (proofs/<id>.json); the feed carries a short summary.
+  if(show.giveaways)feed.giveaways=c.giveaways.map(({proof,...g})=>({...g,winner:g.winner?{...g.winner,name:name(g.winner.name)}:null,
+    fairDraw:proof?{id:g.id,commitment:proof.commitment,committedAt:proof.committedAt,size:proof.size}:null}));
+  if(show.winners)feed.winners=list(winners).slice(0,LIMITS.winners).map(w=>({title:clean(w?.title,LIMITS.title),name:name(clean(w?.name,LIMITS.name)),platform:oneOf(w?.platform,Object.keys(PLATFORMS),''),at:time(w?.at),
+    proof:typeof w?.gid==='string'&&proofIds.has(w.gid)?w.gid:null})).filter(w=>w.name&&w.at);
   if(show.goals)feed.goals=c.points.goals;
   if(show.points)feed.leaderboards.points=c.points.leaders.slice(0,s.leaderboardSize).map((l,i)=>({rank:i+1,name:name(l.name),platform:l.platform,value:l.value}));
   if(show.pilots)feed.leaderboards.pilots=projectPilots(pilots,s.leaderboardSize).map((p,i)=>({rank:i+1,...p,name:name(p.name)}));
@@ -198,7 +238,7 @@ export function mergeWinners(previous,giveaways,now=Date.now()){
   for(const g of giveaways){
     if(!g.winner)continue;const key=g.id+':'+g.winner.name;
     if(seen.has(key))continue;seen.add(key);
-    out.unshift({key,title:g.title,name:g.winner.name,platform:g.winner.platform,at:now});
+    out.unshift({key,gid:g.id,title:g.title,name:g.winner.name,platform:g.winner.platform,at:now});
   }
   return out.slice(0,LIMITS.winners);
 }

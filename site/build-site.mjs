@@ -17,6 +17,7 @@ export async function buildSite(repo,out){
   const viewer=(await readFile(join(root,'site','viewer','index.html'),'utf8')).replace('<meta name="voyager-feed" content="feed.json">',`<meta name="voyager-feed" content="${feed}">`);
   if(!viewer.includes(feed))throw new Error('Viewer page is missing its feed placeholder.');
   await writeFile(join(out,'index.html'),viewer);
+  await copyFile(join(root,'site','viewer','fair-draw.js'),join(out,'fair-draw.js'));
   await writeFile(join(out,'download','index.html'),(await readFile(join(root,'site','download.html'),'utf8')).replaceAll('__REPO__',repo));
   await writeFile(join(out,'.nojekyll'),'');
   return {out,feed};

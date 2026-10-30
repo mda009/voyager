@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Voyager • Chat commands</title>
+<link rel="icon" href="brand-assets/voyager.png">
+<link rel="stylesheet" href="stream-command.css">
+<link rel="stylesheet" href="voyager-brand.css">
+<link rel="stylesheet" href="settings.css?v=2.12">
+<link rel="stylesheet" href="commands.css?v=2.12">
+<link rel="stylesheet" href="voyager-glass.css?v=2.12">
+</head>
+<body class="voyager-console voyager-settings voyager-commands">
+<div class="shell">
+<aside class="rail"><a class="brand" href="Voyager_Command_Center.html"><img class="logo-voyager" src="brand-assets/voyager.png" alt="Voyager membership program" width="68" height="68"><span>VOYAGER<small>MDA009 · MISSION CONTROL</small></span></a></aside>
+<main>
+<header class="top"><div><span class="eyebrow">SETUP</span><h1>Chat commands</h1></div><div class="toolbar"><span class="st-pill" id="cm-status" data-state="wait">Connecting…</span><span class="st-note" id="cm-count"></span><button type="button" id="cm-refresh">↻ Refresh</button></div></header>
+<p class="st-notice" id="cm-notice" hidden></p>
+<div id="cm-issues" class="cm-issues" role="status" hidden></div>
+<section class="card cm-card">
+<div class="cm-bar"><div id="cm-filters" class="cm-filters" role="group" aria-label="Filter by feature"></div><label class="cm-find"><span class="sr-only">Find a command</span><input id="cm-search" type="search" placeholder="Find a command…" autocomplete="off"></label></div>
+<div class="cm-table"><table>
+<thead><tr><th>Command</th><th>Name in Streamer.bot</th><th>What it does</th><th>Feature</th><th>Platforms</th><th>On</th></tr></thead>
+<tbody id="cm-rows"></tbody>
+</table></div>
+<p class="st-hint" id="cm-empty" hidden>No commands match.</p>
+<p class="st-hint" id="cm-toggle-note" hidden>To switch commands on and off here, import <b>Voyager - Command Manager</b> (Voyager_Command_Manager.cs) into Streamer.bot. Until then this page is read-only; cooldowns and permissions are still changed in Streamer.bot.</p>
+</section>
+</main>
+</div>
+<script src="config.js"></script>
+<script src="commands.js?v=2.12"></script>
+<script src="voyager-shell.js?v=2.12"></script>
+<script src="voyager-navigation.js"></script>
+</body>
+</html>

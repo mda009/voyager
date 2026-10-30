@@ -113,6 +113,30 @@ footer{margin-top:48px;color:var(--faint);font-size:13px;border-top:1px solid #1
 .open-full{display:none;margin-left:8px;font-size:13px}
 @media (max-width:520px){.grid,.two{grid-template-columns:1fr}.card{padding:16px}.enter code{font-size:18px}h2{font-size:24px}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+/* Fair-draw proof */
+.fair{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px;font-size:13px;color:var(--muted)}
+.fair code{font:600 12px ui-monospace,Consolas,monospace;color:#c9e9ff;background:#0a1421;border:1px solid var(--line);border-radius:6px;padding:2px 6px}
+.check-btn{font:700 13px/1 var(--display);letter-spacing:.5px;color:#7ff0b5;background:#0b2a1f;border:1px solid #2f6b52;border-radius:999px;padding:6px 12px;cursor:pointer}
+.check-btn:hover,.check-btn:focus-visible{border-color:#7ff0b5}
+ol.rows li.has-proof{grid-template-columns:34px 1fr auto auto}
+dialog.proof{max-width:min(640px,calc(100vw - 32px));width:100%;border:1px solid var(--line-strong);border-radius:18px;background:linear-gradient(170deg,var(--panel-2),var(--panel) 60%);color:var(--text);padding:0}
+dialog.proof::backdrop{background:#020913cc;backdrop-filter:blur(4px)}
+.proof-head{display:flex;align-items:center;gap:10px;padding:16px 18px;border-bottom:1px solid var(--line)}
+.proof-head h3{flex:1;margin:0;font:700 22px/1.1 var(--display)}
+.proof-head button{background:none;border:1px solid var(--line);color:var(--text);border-radius:10px;width:36px;height:36px;cursor:pointer;font-size:16px}
+.proof-body{padding:16px 18px 20px;max-height:70vh;overflow:auto}
+.proof-body p{color:var(--muted);font-size:14px;margin:0 0 12px}
+.steps{list-style:none;margin:0 0 14px;padding:0;display:grid;gap:8px}
+.steps li{display:flex;gap:10px;align-items:flex-start;font-size:14px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#0b1422}
+.steps li b{flex:none;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:13px;background:#1d2c40;color:var(--muted)}
+.steps li.ok b{background:#103a28;color:#7ff0b5}.steps li.bad b{background:#3d1219;color:#ff9aa6}
+.proof-verdict{font:700 18px/1.2 var(--display);margin:0 0 12px}
+.proof-verdict.ok{color:#7ff0b5}.proof-verdict.bad{color:#ff9aa6}
+.proof-body details{border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin-top:10px}
+.proof-body summary{cursor:pointer;font-weight:600;font-size:14px}
+.proof-body ol.entrants{margin:8px 0 0;padding-left:28px;font-size:13px;color:var(--muted);columns:2 220px}
+.proof-body ol.entrants li{unicode-bidi:isolate}
+.proof-body .tech{font:12px/1.5 ui-monospace,Consolas,monospace;color:var(--faint);word-break:break-all}
 </style>
 </head>
 <body>
@@ -165,8 +189,13 @@ footer{margin-top:48px;color:var(--faint);font-size:13px;border-top:1px solid #1
   <div class="card" id="command-card" style="margin-top:14px"><table><tbody id="command-list"></tbody></table></div>
  </section>
 
+ <dialog class="proof" id="proof-dialog" aria-labelledby="proof-title">
+  <div class="proof-head"><h3 id="proof-title">Fair-draw check</h3><button type="button" id="proof-close" aria-label="Close">✕</button></div>
+  <div class="proof-body" id="proof-body"></div>
+ </dialog>
  <footer><p id="updated">Updates every few minutes while the stream tools are running.</p><p>Voyager community site. Giveaway entry happens in stream chat only; this site never asks for passwords or payment.</p></footer>
 </div>
+<script src="fair-draw.js"></script>
 <script>
 (()=>{'use strict';
 // ?embed=1: shown inside another site. Report our height so the host page can size its frame.
@@ -227,6 +256,11 @@ function renderGiveaways(){
   c.append(s);
   if(g.status==='drawing')c.append(el('p','who','A winner is being drawn on stream. Tune in to see who it is!'));
   if(g.winner){const w=el('div','winner');const t=el('div');t.append(el('small','','Winner'),el('strong','',g.winner.name));w.append(t);if(PLATFORM[g.winner.platform])w.append(el('span','badge',PLATFORM[g.winner.platform]));c.append(w);}
+  if(g.fairDraw){
+   const f=el('div','fair');f.append(el('span','','Fair draw locked '+ago(g.fairDraw.committedAt)+' · '+fmt(g.fairDraw.size)+' entrants · fingerprint'),el('code','',g.fairDraw.commitment.slice(0,16)));
+   if(['winner','ended'].includes(g.status)){const b=el('button','check-btn','✓ Check this draw');b.type='button';b.onclick=()=>openProof(g.fairDraw.id,g.title);f.append(b);}
+   c.append(f);
+  }
   box.append(c);
  }
 }
@@ -243,7 +277,9 @@ function renderGoals(){
 }
 function renderWinners(){
  const w=feed.winners||[],box=$('winner-list');$('winners').hidden=!w.length;box.textContent='';
- for(const x of w){const li=el('li');const n=platformTag(x.platform);n.append(el('span','',x.name));const icon=el('span','rank','★');const info=el('div');info.append(n,el('div','when',x.title));li.append(icon,info,el('span','when',ago(x.at)));box.append(li);}
+ for(const x of w){const li=el('li');const n=platformTag(x.platform);n.append(el('span','',x.name));const icon=el('span','rank','★');const info=el('div');info.append(n,el('div','when',x.title));li.append(icon,info,el('span','when',ago(x.at)));
+  if(x.proof){li.classList.add('has-proof');const b=el('button','check-btn','✓ Check');b.type='button';b.setAttribute('aria-label','Check the fair draw for '+x.title);b.onclick=()=>openProof(x.proof,x.title);li.append(b);}
+  box.append(li);}
 }
 function renderLeaders(){
  const boards={points:feed.leaderboards?.points||[],pilots:feed.leaderboards?.pilots||[]};
@@ -291,6 +327,25 @@ function renderJump(){
  const nav=$('jump');nav.textContent='';
  for(const [id,label] of [['giveaways','Giveaways'],['goals','Goals'],['winners','Winners'],['leaderboards','Leaderboards'],['program','How it works']]){if($(id).hidden)continue;const a=el('a','',label);a.href='#'+id;nav.append(a);}
 }
+// Fair-draw check: fetches the proof published beside the feed and re-runs the draw in this browser.
+async function openProof(id,title){
+ const d=$('proof-dialog'),body=$('proof-body');$('proof-title').textContent='Fair-draw check · '+title;
+ body.textContent='';body.append(el('p','','Checking in your browser…'));if(!d.open)d.showModal();
+ try{
+  if(!/^[a-z0-9]{1,16}$/i.test(id))throw new Error('Unknown giveaway.');
+  const url=new URL('proofs/'+id+'.json',new URL(FEED,location.href));
+  const r=await fetch(url,{cache:'no-store'});if(!r.ok)throw new Error('The proof is not published yet. Try again in a few minutes.');
+  const proof=await r.json(),result=await window.VoyagerFairDraw.verify(proof);
+  body.textContent='';
+  const verdict=el('p','proof-verdict '+(result.ok?'ok':'bad'),result.ok?'✓ This draw checks out.':'✗ Something does not match.');body.append(verdict);
+  body.append(el('p','','Before anyone was drawn, Voyager locked the entrant list and published its fingerprint ('+proof.commitment.slice(0,16)+'…, '+new Date(proof.committedAt).toLocaleString()+'). Each draw used a secret seed that could only come from that fingerprint. Your browser has just repeated the draw.'));
+  const ul=el('ul','steps');for(const st of result.steps){const li=el('li',st.ok===true?'ok':st.ok===false?'bad':'');li.append(el('b','',st.ok===true?'✓':st.ok===false?'✗':'…'),el('span','',st.text));ul.append(li);}body.append(ul);
+  if(Array.isArray(proof.entrants)){const det=el('details');det.append(el('summary','','All '+fmt(proof.entrants.length)+' entrants, in draw order'));const ol=el('ol','entrants');for(const [p,n] of proof.entrants){const li=el('li','',n);if(PLATFORM[p])li.title=PLATFORM[p];ol.append(li);}det.append(ol);body.append(det);}
+  const tech=el('details');tech.append(el('summary','','Technical details'),el('p','tech','Commitment '+proof.commitment+' · entrant fingerprint '+proof.poolHash+' · method: draw n uses seed s(n), where SHA-256 applied n times to s(n) gives the commitment; position = HMAC-SHA256(s(n), "voyager-draw-v1:"+c) first 4 bytes, rejection-sampled, modulo the entrants left.'));body.append(tech);
+ }catch(e){body.textContent='';body.append(el('p','',e.message||'The check could not run.'));}
+}
+$('proof-close').onclick=()=>$('proof-dialog').close();
+$('proof-dialog').addEventListener('click',e=>{if(e.target===$('proof-dialog'))$('proof-dialog').close();});
 function render(){if(!feed)return;renderHeader();renderGiveaways();renderGoals();renderWinners();renderLeaders();renderProgram();renderJump();$('updated').textContent='Updated '+ago(feed.generatedAt)+'. This page refreshes itself every minute.';}
 
 async function load(){

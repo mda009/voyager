@@ -2,6 +2,42 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.12.0 (30 October 2026)
+
+Fairer, clearer giveaways. **One Streamer.bot update:** paste the new `Voyager_Giveaway_Engine.cs` into your existing **Voyager - Giveaway Engine** action (see below). Everything else updates itself.
+
+### How to update the Giveaway Engine (once, about 2 minutes)
+1. Finish or start a new giveaway first. A giveaway that is already open keeps working, but only giveaways started after the update get a fair-draw proof.
+2. In Streamer.bot, open the **Voyager - Giveaway Engine** action and double-click its **Execute C# Code** sub-action.
+3. Select all the code, delete it, and paste the whole of `Voyager_Giveaway_Engine.cs` (tray menu > **Open Streamer.bot import files**).
+4. Click **Compile**. It should say "Compiled successfully". Then **Save and Compile**.
+5. In Voyager Control, Giveaway control should show the engine as connected. The engine version is now 9.
+
+### Fair-draw proof
+- When a pool locks (members giveaway) or entries close (chat giveaway), Voyager seals the entrant list and posts a short **fingerprint** in chat before anyone is drawn.
+- Each draw uses a secret seed that can only come from that fingerprint. After a pick is confirmed or re-drawn, its seed is published.
+- On voyagercommand.com, the giveaway card shows the fingerprint, and every winner has a **✓ Check** button. Viewers' own browsers repeat the draw and show each step, including the full entrant list.
+- A pick waiting for confirmation is never published, so the site can't spoil the on-stream reveal. A re-drawn pick is shown as "re-drawn" without its name, though it can be worked out from the published list.
+- Entrant names are only published while **Show viewer names** is on (Public website). With names hidden, viewers can still check the seeds but not the full list.
+- Ticketed giveaways don't have a proof yet; that comes in the next update.
+
+### Who can win
+- Giveaway control has a new **Who can win** section with three rules, saved for every giveaway:
+  - **Hasn't won recently** (default: confirmed winners in the last 30 days),
+  - **Not flagged by Security** (watchlist and confirmed bot, alt, abuse, compromised or impersonation accounts),
+  - **Account old enough** (off by default; uses the Twitch account dates Security has looked up).
+- It lists exactly who will be left out and why before you lock the pool. They are added to the giveaway's exclusions, so they can't be drawn and can't enter chat giveaways.
+- Ticketed giveaways keep their own Block controls for now.
+
+### Chat commands page
+- New **Chat commands** page (Setup in the sidebar, or Ctrl K) lists every Streamer.bot command, which Voyager feature it belongs to, and its platforms.
+- It warns about **duplicates** (one word used by two commands) and **look-alikes** such as `!ticket` and `!tickets`.
+- Optional: import the new **Voyager - Command Manager** action (`Voyager_Command_Manager.cs`, one Execute C# Code sub-action, no triggers) to switch commands on and off from this page. Without it the page is read-only.
+- Cooldowns and permissions are still changed in Streamer.bot.
+
+### For maintainers
+- The Streamer.bot actions are now compiled on every push (against a stand-in for Streamer.bot) and the Giveaway Engine's fair draw is run end to end. The website verifier is tested with the same numbers.
+
 ## 2.11.0 (30 October 2026)
 
 Less clutter and one place for settings. **No Streamer.bot C# changes**, nothing to re-import, and OBS overlays are unchanged. Installed apps update themselves.

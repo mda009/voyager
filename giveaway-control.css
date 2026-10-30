@@ -10,3 +10,15 @@
 .preset[data-preset="chat"]{--colour:#86e1c1!important;border-color:#294c44;margin-bottom:8px}.chat-invite{display:flex;align-items:center;gap:18px;padding:22px 0}.chat-invite strong{font-size:21px;letter-spacing:-.5px}.chat-invite p{margin-top:4px}.chat-invite code{color:#a0f1d3;font-weight:700}.chat-orbit{font-size:36px;color:#9de6ca}.chat-invite .pill{margin-left:auto;white-space:nowrap}.platform-counts{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px}.platform-counts>div{border:1px solid #2a3747;border-radius:9px;background:#0d1621;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;gap:14px}.platform-counts strong{font-size:26px;line-height:1;color:#ecf5ff}.platform-counts span{font-weight:700;color:#bfa6ed}.platform-counts [data-platform=youtube] span{color:#ff9d9d}.platform-counts [data-platform=kick] span{color:#a0ed8a}.platform-twitch{--colour:#bd9cf4}.platform-youtube{--colour:#ff9393}.platform-kick{--colour:#a0ed8a}.reopen-entries{width:100%;margin-top:8px}#demo-chat{display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding-top:14px}#demo-chat>span{font-size:9px;letter-spacing:1px;color:#e2b686}#demo-chat button{font-size:11px;padding:7px 9px}@media(max-width:680px){.chat-invite{flex-wrap:wrap;gap:12px}.chat-invite .pill{margin-left:0}.platform-counts{gap:6px}.platform-counts>div{padding:12px;display:block}.platform-counts strong{display:block;margin-top:10px}.platform-counts span{font-size:12px}}
 
 #confirmation-warning{margin-bottom:18px;padding:14px 18px;border:1px solid #805a35;background:#332316;color:#f2cda3;border-radius:8px}#demo-chat-replies{margin-top:14px;padding:12px 14px;background:#0b1622;border:1px solid #294054;border-radius:8px}#demo-chat-replies>strong{font-size:9px;letter-spacing:1.4px;color:#769bb8}#demo-chat-log p{font-size:12px;margin-top:7px;overflow-wrap:anywhere}#demo-chat-log b{color:#b7d5ec}
+
+/* 2.12: Who can win */
+.win-rules{margin:4px 0 12px}
+.win-rules summary{cursor:pointer;font-weight:600;font-size:13px;margin-bottom:10px}
+.rules-count{font-weight:500;color:#9ab0c5;margin-left:6px}
+.win-rules .rule{margin-bottom:6px}
+.win-rules .rule .switch-row{margin-bottom:4px}
+.rule-days{display:flex;align-items:center;gap:8px;font-size:12px;color:#9ab0c5;margin:0 0 8px}
+.rule-days input{width:72px;padding:4px 8px}
+.rules-list{list-style:none;margin:6px 0 4px;padding:0;display:grid;gap:4px;max-height:180px;overflow:auto}
+.rules-list li{display:flex;justify-content:space-between;gap:10px;font-size:12px;padding:6px 10px;border-radius:8px;background:rgba(255,122,135,.08);border:1px solid rgba(255,122,135,.25)}
+.rules-list li span:last-child{color:#ffb8c0;text-align:right}
