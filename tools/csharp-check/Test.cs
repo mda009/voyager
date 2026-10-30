@@ -80,7 +80,7 @@ public static class Program
         Check(support != null && support.Any(r => (string)r["key"] == "twitch:111" && (long)r["months"] == 7), "twitch months included");
         sc.Args = new System.Collections.Generic.Dictionary<string, object> { ["requestId"] = "r2" };
         stats.Execute(); Check(JObject.Parse(sc.Broadcasts.Last())["support"] == null, "support is only sent when asked for");
-        Console.WriteLine(failures == 0 ? "::notice title=Streamer.bot actions::Compiled; all " + checks + " Giveaway Engine checks passed." : "::error title=Streamer.bot actions::" + failures + " of " + checks + " checks failed.");
+        Console.WriteLine(failures == 0 ? "::notice title=Streamer.bot actions::Compiled; all " + checks + " Giveaway Engine and Stream Stats checks passed." : "::error title=Streamer.bot actions::" + failures + " of " + checks + " checks failed.");
         return failures == 0 ? 0 : 1;
     }
     static JObject State(FakeCph cph) { return JObject.Parse(cph.GetGlobalVar<string>("VoyagerGiveawayStateV1")); }
