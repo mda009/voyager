@@ -1,3 +1,4 @@
+// Voyager Giveaway Engine v10: impromptu giveaways can mark recent winners "can enter, can't be drawn" (noWinLogins).
 // Action name: Voyager - Giveaway Engine. One Execute C# Code sub-action only.
 // Use the dedicated Voyager Giveaways queue with Blocking ON; action Concurrent OFF.
 // Add ONE Core > Commands > Command Triggered trigger for !ticket / !enter.
@@ -218,15 +219,15 @@ public class CPHInline
         if (op == "draw" && current != null && (string)current["status"] == "selected")
             throw new Exception("Confirm this winner or use Reroll before drawing again.");
         var used = new HashSet<string>(((JArray)session["draws"]).Select(x => (string)x["winner"]["key"]), StringComparer.Ordinal);
-        var eligible = ((JArray)session["pool"]).OfType<JObject>().Where(x => !used.Contains((string)x["key"])).ToList();
-        if (eligible.Count == 0) throw new Exception("No eligible entrants remain in this locked pool.");
+        var eligible = ((JArray)session["pool"]).OfType<JObject>().Where(x => !used.Contains((string)x["key"]) && (bool?)x["noWin"] != true).ToList();
+        if (eligible.Count == 0) throw new Exception(((JArray)session["pool"]).OfType<JObject>().Any(x => (bool?)x["noWin"] == true && !used.Contains((string)x["key"])) ? "Everyone left won an impromptu giveaway in the last 30 days, so nobody can be drawn." : "No eligible entrants remain in this locked pool.");
         // Validate eligibility before marking the previous pick as rerolled.
         if (op == "reroll") { current["status"] = "rerolled"; UpdateAudit(state, current); }
         // Fair draw: draw n uses the n-th seed of the hash chain committed when the pool locked.
         // Sessions saved by older engine versions have no proof and keep the plain secure draw.
         var proof = session["proof"] as JObject;
         int drawNumber = ((JArray)session["draws"]).Count + 1, index;
-        if (proof != null && (int?)proof["version"] == 1)
+        if (proof != null && ((int?)proof["version"] == 1 || (int?)proof["version"] == 2))
         {
             var seeds = (JArray)proof["seeds"];
             if (drawNumber > seeds.Count) throw new Exception("This giveaway has used all " + seeds.Count + " fair-draw seeds. Start a new giveaway.");
@@ -296,6 +297,8 @@ public class CPHInline
             ["id"] = Guid.NewGuid().ToString(), ["mode"] = "chat", ["createdAt"] = Now(), ["title"] = title,
             ["groups"] = new JArray(), ["claimSeconds"] = claimSeconds,
             ["excludeLogins"] = new JArray(excluded.OrderBy(x => x)), ["duplicatesRemoved"] = 0,
+            // Recent impromptu winners: their entries count, but the draw skips them. Fixed when entries open.
+            ["noWinLogins"] = new JArray(Setting(settings, "noWinLogins").Split(new[] { ',', '\n', '\r', ' ', ';' }, StringSplitOptions.RemoveEmptyEntries).Select(NormalizeExclusion).Distinct().OrderBy(x => x)),
             ["entriesOpen"] = true, ["openedAt"] = Now(), ["closedAt"] = 0,
             ["pool"] = new JArray(), ["draws"] = new JArray(), ["currentDrawId"] = ""
         };
@@ -386,9 +389,11 @@ public class CPHInline
         string key = platform + ":id:" + id;
         if (pool.Any(x => (string)x["key"] == key)) return null;
         if (pool.Count >= 50000) return null;
+        var noWin = new HashSet<string>(((session["noWinLogins"] as JArray) ?? new JArray()).Select(x => (string)x), StringComparer.Ordinal);
+        bool cannotWin = noWin.Contains(login) || noWin.Contains(platform + ":" + login) || noWin.Contains(platform + ":id:" + id);
         var entrant = new JObject
         {
-            ["key"] = key, ["id"] = id, ["login"] = login, ["name"] = name, ["platform"] = platform,
+            ["key"] = key, ["id"] = id, ["login"] = login, ["name"] = name, ["platform"] = platform, ["noWin"] = cannotWin,
             ["groups"] = new JArray(), ["enteredAt"] = Now(), ["entryCommand"] = command,
             ["ticketNumber"] = pool.Count + 1, ["confirmationState"] = "pending",
             ["avatarUrl"] = EntryAvatarFromArguments(),
@@ -539,14 +544,17 @@ public class CPHInline
     // Index rule (the public site repeats it): HMAC-SHA256(key = s(n), "voyager-draw-v1:" + c) for c = 0, 1, …;
     // the first 4 bytes as a big-endian number, rejected if >= 2^32 - 2^32 % count; index = value % count.
     private const int ProofSeeds = 64, ProofListLimit = 5000;
+    // v2 (only when someone can't be drawn): their line is "platform<TAB>name<TAB>cannot-win" and their published entry
+    // is [platform, name, 1], so the fingerprint also locks who was skipped. Draws count only the drawable entrants left.
     private static JObject MakeProof(JArray pool, long now)
     {
-        var lines = new List<string>(); var entrants = new JArray();
+        var lines = new List<string>(); var entrants = new JArray(); int noWin = 0;
         foreach (var entrant in pool.OfType<JObject>())
         {
             string platform = ProofText((string)entrant["platform"], 20), name = ProofText((string)entrant["name"], 100);
-            lines.Add(platform + "\t" + name);
-            if (pool.Count <= ProofListLimit) entrants.Add(new JArray(platform, name));
+            bool skip = (bool?)entrant["noWin"] == true; if (skip) noWin++;
+            lines.Add(platform + "\t" + name + (skip ? "\tcannot-win" : ""));
+            if (pool.Count <= ProofListLimit) entrants.Add(skip ? new JArray(platform, name, 1) : new JArray(platform, name));
         }
         byte[] seed = new byte[32];
         using (var rng = RandomNumberGenerator.Create()) rng.GetBytes(seed);
@@ -555,7 +563,7 @@ public class CPHInline
         chain.Reverse(); // chain[0] = s0 (commitment) … chain[64] = s64
         return new JObject
         {
-            ["version"] = 1, ["committedAt"] = now, ["commitment"] = chain[0],
+            ["version"] = noWin > 0 ? 2 : 1, ["committedAt"] = now, ["commitment"] = chain[0], ["noWin"] = noWin,
             ["poolHash"] = Hex(Sha(Encoding.UTF8.GetBytes(String.Join("\n", lines)))), ["size"] = lines.Count,
             ["entrants"] = pool.Count <= ProofListLimit ? (JToken)entrants : JValue.CreateNull(),
             ["seeds"] = new JArray(chain.Skip(1)), ["announced"] = false
@@ -596,7 +604,8 @@ public class CPHInline
         var proof = session?["proof"] as JObject;
         if (proof == null || (bool?)proof["announced"] == true) return;
         proof["announced"] = true;
-        string message = "[Voyager] Entries locked: " + (int)proof["size"] + " entrants. Fair-draw fingerprint " + ((string)proof["commitment"]).Substring(0, 16) + ". After the draw, the proof is on the Voyager website.";
+        int skipped = (int?)proof["noWin"] ?? 0;
+        string message = "[Voyager] Entries locked: " + (int)proof["size"] + " entrants" + (skipped > 0 ? " (" + skipped + " won an impromptu giveaway in the last 30 days and can't be drawn this time)" : "") + ". Fair-draw fingerprint " + ((string)proof["commitment"]).Substring(0, 16) + ". After the draw, the proof is on the Voyager website.";
         foreach (string platform in new[] { "twitch", "youtube", "kick" })
         {
             try
@@ -645,4 +654,4 @@ public class CPHInline
     private string Read(string name) { object value; return CPH.TryGetArg<object>(name, out value) && value != null ? Convert.ToString(value) : ""; }
     private static long Now() { return DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(); }
 }
-// End of Voyager Giveaway Engine v9.
+// End of Voyager Giveaway Engine v10.

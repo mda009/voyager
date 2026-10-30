@@ -1,4 +1,4 @@
-/* Voyager winner eligibility rules (2.12). Works out who should be left out of a new giveaway, with the reason,
+/* Voyager winner eligibility rules (2.12; 2.16: recent impromptu winners can enter but can't be drawn). Works out who should be left out of a new giveaway, with the reason,
    from data Voyager already has: past confirmed winners (Giveaway Engine history) and Security reviews.
    The result is added to the giveaway's exclusion list before the pool locks, so the Streamer.bot engine
    (and the fair-draw proof) only ever see eligible entrants. Nothing is changed in Streamer.bot or Security. */
@@ -12,15 +12,17 @@ function normalize(raw){const r=raw&&typeof raw==='object'?raw:{};return {recent
 function load(){try{return normalize(JSON.parse(g.localStorage?.getItem(KEY)||'{}'));}catch{return {...DEFAULTS};}}
 function save(rules){const n=normalize(rules);try{g.localStorage?.setItem(KEY,JSON.stringify(n));}catch{}return n;}
 // giveawayState: the saved Giveaway Engine state (audit = past draws). security: VoyagerSecurityStateV1 or null.
-// Returns [{platform, login, id, name, reason}] — one row per account to leave out.
+// Returns [{platform, login, id, name, reason, kind}] — kind 'noWin' (may enter an impromptu giveaway, can't be drawn)
+// or 'exclude' (left out of the pool). Only impromptu (chat) wins count; Silver, Gold and Platinum giveaways never do.
+const impromptu=d=>d?.mode?d.mode==='chat':!(Array.isArray(d?.groups)&&d.groups.length);
 function compute(rules,giveawayState,security,now=Date.now()){
   const r=normalize(rules),out=new Map();
-  const add=(platform,login,id,name,reason)=>{const k=platform+':'+(id?'id:'+id:'login:'+login);if(!out.has(k))out.set(k,{platform,login:login||'',id:id||'',name:name||login||id,reason});};
+  const add=(platform,login,id,name,reason,kind='exclude')=>{const k=platform+':'+(id?'id:'+id:'login:'+login),old=out.get(k);if(!old||old.kind==='noWin'&&kind==='exclude')out.set(k,{platform,login:login||'',id:id||'',name:name||login||id,reason,kind});};
   if(r.recentWin){
     for(const d of Array.isArray(giveawayState?.audit)?giveawayState.audit:[]){
-      const at=Number(d?.confirmedAt||d?.at||0);if(d?.status!=='confirmed'||!d.winner||now-at>r.recentDays*DAY)continue;
+      const at=Number(d?.confirmedAt||d?.at||0);if(d?.status!=='confirmed'||!d.winner||!impromptu(d)||now-at>r.recentDays*DAY)continue;
       const w=d.winner,ago=Math.max(0,Math.floor((now-at)/DAY));
-      add(String(w.platform||'twitch').toLowerCase(),String(w.login||'').toLowerCase(),String(w.id||''),w.name,'won '+(ago===0?'today':ago===1?'yesterday':ago+' days ago'));
+      add(String(w.platform||'twitch').toLowerCase(),String(w.login||'').toLowerCase(),String(w.id||''),w.name,'won an impromptu giveaway '+(ago===0?'today':ago===1?'yesterday':ago+' days ago'),'noWin');
     }
   }
   const users=security&&typeof security.users==='object'?security.users:{};
@@ -41,10 +43,13 @@ function exclusions(rows,chat){
   }
   return [...set];
 }
+// Splits rows for a giveaway: impromptu giveaways leave out 'exclude' rows and mark 'noWin' rows as entered-but-not-drawable;
+// member (Silver/Gold/Platinum) giveaways ignore the recent-winner rule entirely.
+function split(rows,chat){return {exclude:rows.filter(x=>x.kind!=='noWin'),noWin:chat?rows.filter(x=>x.kind==='noWin'):[]};}
 function merge(manual,extra){
   const parts=String(manual||'').split(/[,\n;]+/).map(s=>s.trim()).filter(Boolean),seen=new Set(parts.map(s=>s.toLowerCase()));
   for(const e of extra)if(!seen.has(e.toLowerCase())){parts.push(e);seen.add(e.toLowerCase());}
   return parts.join(', ');
 }
-g.VoyagerEligibility={DEFAULTS,normalize,load,save,compute,exclusions,merge,FLAGGED};
+g.VoyagerEligibility={DEFAULTS,normalize,load,save,compute,exclusions,split,merge,FLAGGED};
 })(globalThis);

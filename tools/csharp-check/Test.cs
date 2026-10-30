@@ -67,6 +67,40 @@ public static class Program
         Run(engine, "reopenEntries", new { });
         Check(State(cph)["session"]["proof"].Type == JTokenType.Null, "reopening discards the proof");
         Check(cph.Errors.Count == 0, "no engine errors: " + String.Join(" | ", cph.Errors));
+        // v10: a recent impromptu winner can enter but is never drawn, and is locked into a v2 proof.
+        engine = new CPHInline(); cph = engine.CPH;
+        Run(engine, "create", new { mode = "chat", title = "Impromptu", noWinLogins = "twitch:id:id-Beta, youtube:id:UCx" });
+        cph.EventType = FakeEventType.CommandTriggered;
+        foreach (var n in new[] { "Alpha", "Beta", "Gamma", "Delta" })
+        {
+            cph.Args = new System.Collections.Generic.Dictionary<string, object> { ["command"] = "!enter", ["commandSource"] = "twitch", ["commandType"] = "message", ["userId"] = "id-" + n, ["userName"] = n.ToLower(), ["user"] = n };
+            engine.Execute();
+        }
+        cph.EventType = FakeEventType.Unknown;
+        var nwPool = (JArray)State(cph)["session"]["pool"];
+        Check(nwPool.Count == 4 && nwPool.Count(e => (bool?)e["noWin"] == true) == 1 && (bool)nwPool.First(e => (string)e["name"] == "Beta")["noWin"], "recent winner entered, marked cannot-win");
+        Run(engine, "closeEntries", new { });
+        var nwProof = (JObject)State(cph)["session"]["proof"];
+        Check((int)nwProof["version"] == 2 && (int)nwProof["noWin"] == 1 && ((JArray)nwProof["entrants"])[1].Count() == 3, "v2 proof lists the cannot-win entrant");
+        string nwLines = String.Join("\n", nwPool.Select(e => (string)e["platform"] + "\t" + (string)e["name"] + ((bool?)e["noWin"] == true ? "\tcannot-win" : "")));
+        Check(CPHInline.Hex(CPHInline.Sha(Encoding.UTF8.GetBytes(nwLines))) == (string)nwProof["poolHash"], "v2 pool hash includes cannot-win");
+        Check(cph.Chat.Any(m => m.Contains("can't be drawn this time")), "chat announcement mentions recent winners");
+        var nwSeeds = ((JArray)nwProof["seeds"]).Select(x => (string)x).ToList();
+        var drawable = nwPool.Where(e => (bool?)e["noWin"] != true).ToList(); bool neverBeta = true;
+        for (int k = 0; k < 3; k++)
+        {
+            Run(engine, "draw", new { });
+            var sess = (JObject)State(cph)["session"]; var dk = (JObject)((JArray)sess["draws"])[k];
+            neverBeta &= (string)dk["winner"]["name"] != "Beta";
+            Check((string)dk["winner"]["key"] == (string)drawable[CPHInline.ProofIndex(nwSeeds[k], drawable.Count)]["key"], "draw " + (k + 1) + " counts only drawable entrants");
+            drawable.RemoveAll(e => (string)e["key"] == (string)dk["winner"]["key"]);
+            Expire(cph); Run(engine, "confirm", new { });
+        }
+        Check(neverBeta, "the recent winner is never drawn");
+        bool refused = false; try { Run(engine, "draw", new { }); } catch (Exception e) { refused = e.Message.Contains("impromptu giveaway"); }
+        Check(refused, "with only the recent winner left, the draw explains why it can't pick anyone");
+        cph.Errors.Clear();
+
         // Voyager Stream Stats v6: the subscriber export used by Missions and Seasons.
         var stats = new CPHInline_2(); var sc = stats.CPH; long nowMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
         sc.SetGlobalVar("VoyagerCommunityStateV1", new JObject { ["schema"] = 1, ["platforms"] = new JObject {

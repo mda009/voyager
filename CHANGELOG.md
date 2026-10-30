@@ -2,6 +2,15 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.16.0 (31 October 2026)
+
+Fairer impromptu giveaways. **One Streamer.bot change:** paste the new `Voyager_Giveaway_Engine.cs` (v10) into **Voyager - Giveaway Engine** and compile.
+
+- **Everyone can enter.** Anyone who won an **impromptu** giveaway in the last 30 days can still type `!enter` and is counted as an entrant, but **can't be drawn** as the winner. Giveaway Control marks them "can't be drawn", and the chat lock message says how many there are.
+- **Silver, Gold and Platinum giveaways are not affected.** Recent impromptu winners can win them, and winning one doesn't count toward the 30 days.
+- The rule is **Hasn't won an impromptu giveaway recently** under Who can win (on by default, 1–365 days). Security rules (watchlist, confirmed bots or alts, account age) still keep those accounts out completely.
+- **Fair-draw proof:** the list of entrants who couldn't be drawn is locked into the fingerprint before the draw (proof version 2), so voyagercommand.com can still re-check every draw. Its entrant list marks them "entered, could not be drawn".
+
 ## 2.15.0 (30 October 2026)
 
 Subscriber goals for Missions and Seasons, for Twitch subs, YouTube memberships and Kick subs. **One Streamer.bot change:** paste the new `Voyager_Stream_Stats.cs` (v6) into **Voyager - Stream Stats** and compile (see `NATIVE_COMMUNITY_SETUP.html`). **Voyager - Community Tracker** must be enabled.

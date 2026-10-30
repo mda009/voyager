@@ -75,3 +75,21 @@ test('Feed carries a short fair-draw summary; the full proof stays out of feed.j
   assert.equal(feed.winners[0].proof,g.id);
   assert.equal(M.sanitizeProof({...g.proof,commitment:'nothex'}),null);
 });
+
+test('Version 2: recent impromptu winners are entered and locked into the fingerprint, but never drawn',async()=>{
+  const pool=Array.from({length:12},(_,i)=>({key:'twitch:id:'+i,name:'Viewer '+i,platform:'twitch',noWin:i%4===0}));
+  let s=randomBytes(32);const chain=[s.toString('hex')];for(let i=0;i<64;i++){s=createHash('sha256').update(s).digest();chain.push(s.toString('hex'));}chain.reverse();
+  const lines=pool.map(e=>e.platform+'\t'+e.name+(e.noWin?'\tcannot-win':'')).join('\n');
+  const proof={version:2,committedAt:Date.now()-60000,commitment:chain[0],poolHash:createHash('sha256').update(lines).digest('hex'),size:12,noWin:3,entrants:pool.map(e=>e.noWin?[e.platform,e.name,1]:[e.platform,e.name]),seeds:chain.slice(1)};
+  const draws=[];let left=pool.filter(e=>!e.noWin);
+  for(const n of [1,2]){const i=index(proof.seeds[n-1],left.length);draws.push({id:'d'+n,status:'confirmed',winner:left[i],proof:{n,index:i}});left.splice(i,1);}
+  const sess={id:'s2',mode:'chat',title:'Impromptu',pool,draws,currentDrawId:'d2',proof};
+  const clean=M.sanitizeProof(JSON.parse(JSON.stringify(M.projectProof(sess,M.normalizeSettings({showNames:true})))));
+  assert.equal(clean.version,2);assert.equal(clean.noWin,3);assert.deepEqual(clean.entrants[0],['twitch','Viewer 0',1]);
+  const result=await F.verify(clean);assert.equal(result.ok,true,JSON.stringify(result.steps));
+  assert.ok(draws.every(d=>!d.winner.noWin));
+  // Quietly making a skipped entrant drawable (or the reverse) breaks the fingerprint.
+  const unflagged={...clean,entrants:clean.entrants.map((e,i)=>i===0?[e[0],e[1]]:e)};
+  assert.equal((await F.verify(unflagged)).ok,false);
+  assert.equal(M.sanitizeProof({...clean,version:1}).entrants,null,'a v1 proof cannot carry cannot-win entries');
+});

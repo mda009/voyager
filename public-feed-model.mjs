@@ -96,21 +96,23 @@ function winnerOf(draw){
 const HEX64=/^[0-9a-f]{64}$/,PROOF_LIST=5000,PROOF_DRAWS=64;
 const proofText=(v,max)=>typeof v==='string'&&v.length<=max&&!/[\u0000-\u001f\u007f-\u009f]/.test(v)?v:null;
 export function projectProof(session,settings=DEFAULT_SETTINGS){
-  const p=session?.proof;if(!p||p.version!==1||!HEX64.test(p.commitment||''))return null;
+  const p=session?.proof;if(!p||(p.version!==1&&p.version!==2)||!HEX64.test(p.commitment||''))return null;
   const seeds=list(p.seeds),names=settings.showNames===true;
   const draws=list(session.draws).filter(d=>d?.proof&&Number.isInteger(d.proof.n)).map(d=>{
     if(d.status==='selected')return {n:d.proof.n,seed:null,index:null,winner:null,status:'pending'};
     const confirmed=d.status==='confirmed';
     return {n:d.proof.n,seed:seeds[d.proof.n-1]||null,index:d.proof.index,winner:confirmed&&names?d.winner?.name??null:null,status:confirmed?'confirmed':'redrawn'};
   });
-  return {version:1,committedAt:p.committedAt,commitment:p.commitment,poolHash:p.poolHash,size:p.size,entrants:names&&Array.isArray(p.entrants)?p.entrants:null,draws};
+  return {version:p.version,committedAt:p.committedAt,commitment:p.commitment,poolHash:p.poolHash,size:p.size,noWin:p.noWin||0,entrants:names&&Array.isArray(p.entrants)?p.entrants:null,draws};
 }
 export function sanitizeProof(p){
-  if(!p||p.version!==1||!HEX64.test(p.commitment||'')||!HEX64.test(p.poolHash||''))return null;
+  if(!p||(p.version!==1&&p.version!==2)||!HEX64.test(p.commitment||'')||!HEX64.test(p.poolHash||''))return null;
   const size=int(p.size,0,50000);if(size===null)return null;
+  // v2: an entry [platform, name, 1] entered but could not be drawn (won an impromptu giveaway recently).
+  const v2=p.version===2,noWin=v2?int(p.noWin,0,size)??0:0;
   let entrants=null;
   if(Array.isArray(p.entrants)&&p.entrants.length===size&&size<=PROOF_LIST){
-    entrants=p.entrants.map(e=>Array.isArray(e)&&e.length===2&&proofText(e[0],20)!==null&&proofText(e[1],100)!==null?[e[0],e[1]]:null);
+    entrants=p.entrants.map(e=>Array.isArray(e)&&(e.length===2||v2&&e.length===3&&e[2]===1)&&proofText(e[0],20)!==null&&proofText(e[1],100)!==null?(e.length===3?[e[0],e[1],1]:[e[0],e[1]]):null);
     if(entrants.some(e=>!e))entrants=null;
   }
   const draws=list(p.draws).slice(0,PROOF_DRAWS).map(d=>{
@@ -120,7 +122,7 @@ export function sanitizeProof(p){
     return {n,seed,index,winner:status==='confirmed'?proofText(d.winner,100):null,status};
   });
   if(draws.some(d=>!d))return null;
-  return {version:1,committedAt:time(p.committedAt),commitment:p.commitment,poolHash:p.poolHash,size,entrants,draws};
+  return {version:v2?2:1,committedAt:time(p.committedAt),commitment:p.commitment,poolHash:p.poolHash,size,...(v2?{noWin}:{}),entrants,draws};
 }
 // Hides names in a stored proof when "Show viewer names" is off.
 export function publicProof(p,settings){const s=normalizeSettings(settings);return s.showNames?p:{...p,entrants:null,draws:p.draws.map(d=>({...d,winner:null}))};}
