@@ -8,3 +8,6 @@ desktop.ini
 .DS_Store
 _site/
 wrangler.json
+tools/csharp-check/generated/
+tools/csharp-check/bin/
+tools/csharp-check/obj/

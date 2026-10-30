@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -29,7 +30,7 @@ public class CPHInline
                 if ((int?)state["schema"] != 1) throw new Exception("Unsupported saved giveaway state. Export/back up the global variable before changing versions.");
                 // Migrate existing saved group giveaways without changing their pool or picks.
                 if (state["controlRevision"] == null) state["controlRevision"] = (long)state["revision"];
-                state["engineVersion"] = 8;
+                state["engineVersion"] = 9;
                 // Chat commands have their own path. Chat arguments can never run operator commands.
                 if (CPH.GetEventType().ToString() == "CommandTriggered")
                 {
@@ -98,6 +99,14 @@ public class CPHInline
                     state["revision"] = (long)state["revision"] + 1;
                     CPH.SetGlobalVar(Store, state.ToString(Formatting.None), true);
                 }
+                var locked = state["session"] as JObject;
+                if ((op == "create" || op == "closeEntries") && locked?["proof"] is JObject && (bool?)locked["proof"]["announced"] != true)
+                {
+                    // Posted after the lock is saved, so the fingerprint in chat always matches the saved pool.
+                    SendProofAnnouncement(locked);
+                    state["revision"] = (long)state["revision"] + 1;
+                    CPH.SetGlobalVar(Store, state.ToString(Formatting.None), true);
+                }
                 Reply(state, requestId, "");
                 return true;
             }
@@ -148,6 +157,8 @@ public class CPHInline
             if (mode != "" && mode != "groups" && mode != "chat") throw new Exception("Unsupported giveaway mode.");
             bool showingPreview = state["preview"] is JObject && (string)state["view"] == "pool";
             state["session"] = CreateSession(mode == "chat");
+            // Group pools are final once locked: commit the fair-draw proof now, before any draw.
+            if (mode != "chat") state["session"]["proof"] = MakeProof((JArray)state["session"]["pool"], now);
             state["preview"] = null;
             state["view"] = mode == "chat" || showingPreview ? "pool" : "hidden"; state["reveal"] = null;
             return;
@@ -169,6 +180,9 @@ public class CPHInline
             if (opening && ((JArray)session["pool"]).Count >= 50000) throw new Exception("The 50,000-entry limit has been reached.");
             session["entriesOpen"] = opening;
             session[opening ? "openedAt" : "closedAt"] = now;
+            // The entrant list is final when entries close: commit the fair-draw proof then.
+            // Reopening (only possible before the first draw) discards it; the next close commits a new one.
+            session["proof"] = opening ? null : MakeProof((JArray)session["pool"], now);
             state["view"] = "pool"; state["reveal"] = null;
             return;
         }
@@ -208,13 +222,25 @@ public class CPHInline
         if (eligible.Count == 0) throw new Exception("No eligible entrants remain in this locked pool.");
         // Validate eligibility before marking the previous pick as rerolled.
         if (op == "reroll") { current["status"] = "rerolled"; UpdateAudit(state, current); }
+        // Fair draw: draw n uses the n-th seed of the hash chain committed when the pool locked.
+        // Sessions saved by older engine versions have no proof and keep the plain secure draw.
+        var proof = session["proof"] as JObject;
+        int drawNumber = ((JArray)session["draws"]).Count + 1, index;
+        if (proof != null && (int?)proof["version"] == 1)
+        {
+            var seeds = (JArray)proof["seeds"];
+            if (drawNumber > seeds.Count) throw new Exception("This giveaway has used all " + seeds.Count + " fair-draw seeds. Start a new giveaway.");
+            index = ProofIndex((string)seeds[drawNumber - 1], eligible.Count);
+        }
+        else index = UniformIndex(eligible.Count);
         int claimSeconds = 60; // All new giveaways receive a full 60-second claim window.
         session["claimSeconds"] = claimSeconds;
         var draw = new JObject
         {
             ["id"] = Guid.NewGuid().ToString(), ["sessionId"] = (string)session["id"],
             ["title"] = (string)session["title"], ["mode"] = (string)session["mode"] ?? "groups", ["groups"] = session["groups"].DeepClone(),
-            ["winner"] = eligible[UniformIndex(eligible.Count)].DeepClone(),
+            ["winner"] = eligible[index].DeepClone(),
+            ["proof"] = proof != null ? new JObject { ["n"] = drawNumber, ["index"] = index } : null,
             ["eligibleCount"] = eligible.Count, ["at"] = now,
             ["sequenceVersion"] = 2, ["wheelMs"] = 30000, ["revealDelayMs"] = 50000, ["claimStartsAt"] = now + 60000L,
             ["claimDeadline"] = claimSeconds > 0 ? now + 60000L + claimSeconds * 1000L : 0L,
@@ -372,6 +398,7 @@ public class CPHInline
         if (pool.Count == 50000)
         {
             session["entriesOpen"] = false; session["closedAt"] = Now();
+            session["proof"] = MakeProof(pool, Now());
             state["controlRevision"] = (long)state["controlRevision"] + 1;
             CPH.LogInfo("[Voyager Giveaway] Entries closed at the 50,000-entry limit.");
         }
@@ -505,6 +532,88 @@ public class CPHInline
         if (id.Length == 0 && aliases.TryGetValue(platform + ":" + login, out resolved)) id = resolved;
         return platform + (id.Length > 0 ? ":id:" + id : ":login:" + login);
     }
+    // ---------- Fair-draw proof (v1) ----------
+    // When the pool locks, Voyager makes a chain of 64 seeds: s64 is random and each s(k) = SHA-256(s(k+1)).
+    // s0 (the commitment) and the entrant list fingerprint are published before any draw. Draw n uses s(n);
+    // revealing s(n) afterwards proves it belongs to the commitment without revealing any later seed.
+    // Index rule (the public site repeats it): HMAC-SHA256(key = s(n), "voyager-draw-v1:" + c) for c = 0, 1, …;
+    // the first 4 bytes as a big-endian number, rejected if >= 2^32 - 2^32 % count; index = value % count.
+    private const int ProofSeeds = 64, ProofListLimit = 5000;
+    private static JObject MakeProof(JArray pool, long now)
+    {
+        var lines = new List<string>(); var entrants = new JArray();
+        foreach (var entrant in pool.OfType<JObject>())
+        {
+            string platform = ProofText((string)entrant["platform"], 20), name = ProofText((string)entrant["name"], 100);
+            lines.Add(platform + "\t" + name);
+            if (pool.Count <= ProofListLimit) entrants.Add(new JArray(platform, name));
+        }
+        byte[] seed = new byte[32];
+        using (var rng = RandomNumberGenerator.Create()) rng.GetBytes(seed);
+        var chain = new List<string> { Hex(seed) };
+        for (int i = 0; i < ProofSeeds; i++) { seed = Sha(seed); chain.Add(Hex(seed)); }
+        chain.Reverse(); // chain[0] = s0 (commitment) … chain[64] = s64
+        return new JObject
+        {
+            ["version"] = 1, ["committedAt"] = now, ["commitment"] = chain[0],
+            ["poolHash"] = Hex(Sha(Encoding.UTF8.GetBytes(String.Join("\n", lines)))), ["size"] = lines.Count,
+            ["entrants"] = pool.Count <= ProofListLimit ? (JToken)entrants : JValue.CreateNull(),
+            ["seeds"] = new JArray(chain.Skip(1)), ["announced"] = false
+        };
+    }
+    public static int ProofIndex(string seedHex, int count)
+    {
+        if (count <= 0) throw new ArgumentOutOfRangeException("count");
+        ulong range = 1UL << 32, limit = range - range % (ulong)count;
+        using (var hmac = new HMACSHA256(FromHex(seedHex)))
+        {
+            for (int c = 0; c < 4096; c++)
+            {
+                byte[] d = hmac.ComputeHash(Encoding.UTF8.GetBytes("voyager-draw-v1:" + c));
+                uint value = ((uint)d[0] << 24) | ((uint)d[1] << 16) | ((uint)d[2] << 8) | d[3];
+                if ((ulong)value < limit) return (int)(value % (uint)count);
+            }
+        }
+        throw new Exception("Fair-draw index could not be derived.");
+    }
+    public static string ProofText(string value, int maximum)
+    {
+        string clean = new String((value ?? "").Where(c => !Char.IsControl(c)).ToArray()).Trim();
+        if (clean.Length > maximum) { int length = maximum; if (Char.IsHighSurrogate(clean[length - 1])) length--; clean = clean.Substring(0, length); }
+        return clean;
+    }
+    public static byte[] Sha(byte[] data) { using (var sha = SHA256.Create()) return sha.ComputeHash(data); }
+    public static string Hex(byte[] data) { var b = new StringBuilder(data.Length * 2); foreach (byte x in data) b.Append(x.ToString("x2")); return b.ToString(); }
+    public static byte[] FromHex(string hex)
+    {
+        if (hex == null || hex.Length != 64) throw new Exception("Invalid fair-draw seed.");
+        var bytes = new byte[32];
+        for (int i = 0; i < 32; i++) bytes[i] = Convert.ToByte(hex.Substring(i * 2, 2), 16);
+        return bytes;
+    }
+    private void SendProofAnnouncement(JObject session)
+    {
+        var proof = session?["proof"] as JObject;
+        if (proof == null || (bool?)proof["announced"] == true) return;
+        proof["announced"] = true;
+        string message = "[Voyager] Entries locked: " + (int)proof["size"] + " entrants. Fair-draw fingerprint " + ((string)proof["commitment"]).Substring(0, 16) + ". After the draw, the proof is on the Voyager website.";
+        foreach (string platform in new[] { "twitch", "youtube", "kick" })
+        {
+            try
+            {
+                if (platform == "twitch") CPH.SendMessage(message, true, true);
+                else if (platform == "kick") CPH.SendKickMessage(message, true, true);
+                else
+                {
+                    var broadcasts = CPH.YouTubeGetMonitoredBroadcasts();
+                    if (broadcasts == null || broadcasts.Count != 1) continue;
+                    CPH.SendYouTubeMessageToLatestMonitored(message, true, true);
+                }
+            }
+            catch (Exception ex) { CPH.LogError("[Voyager Giveaway] Fair-draw fingerprint was saved, but the " + platform + " message failed: " + ex.Message); }
+        }
+    }
+
     private static int UniformIndex(int count)
     {
         if (count <= 0) throw new ArgumentOutOfRangeException("count");
@@ -517,7 +626,7 @@ public class CPHInline
         }
         return (int)((ulong)value % (ulong)count);
     }
-    private static JObject EmptyState() { return new JObject { ["schema"] = 1, ["engineVersion"] = 8, ["revision"] = 0, ["controlRevision"] = 0, ["session"] = null, ["preview"] = null, ["celebration"] = null, ["view"] = "hidden", ["reveal"] = null, ["audit"] = new JArray(), ["requests"] = new JArray() }; }
+    private static JObject EmptyState() { return new JObject { ["schema"] = 1, ["engineVersion"] = 9, ["revision"] = 0, ["controlRevision"] = 0, ["session"] = null, ["preview"] = null, ["celebration"] = null, ["view"] = "hidden", ["reveal"] = null, ["audit"] = new JArray(), ["requests"] = new JArray() }; }
     private static JObject Current(JObject session) { return ((JArray)session["draws"]).OfType<JObject>().FirstOrDefault(x => (string)x["id"] == (string)session["currentDrawId"]); }
     private static long RevealDelay(JObject value) { return (int?)value["sequenceVersion"] == 2 ? 50000L : 20000L; }
     private static JObject MakeReveal(JObject session, JObject draw, long at, bool confirmed)
@@ -536,4 +645,4 @@ public class CPHInline
     private string Read(string name) { object value; return CPH.TryGetArg<object>(name, out value) && value != null ? Convert.ToString(value) : ""; }
     private static long Now() { return DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(); }
 }
-// End of Voyager Giveaway Engine v8.
+// End of Voyager Giveaway Engine v9.

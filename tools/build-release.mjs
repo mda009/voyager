@@ -14,7 +14,7 @@ export const EXCLUDE=[
   /^\.git(\/|$)/,/(^|\/)node_modules(\/|$)/,/^dist-release(\/|$)/,
   /^desktop\/release(\/|$)/,/^Voyager_Versus\/local\/data(\/|$)/,
   / - Copy(\.[^/]*)?$/i,/(^|\/)(Thumbs\.db|desktop\.ini|\.DS_Store)$/i,/\.(log|tmp)$/i,
-  /^Voyager_Versus\/dist\/Voyager-Versus\.zip$/
+  /^Voyager_Versus\/dist\/Voyager-Versus\.zip$/,/^tools\/csharp-check\/(generated|bin|obj)(\/|$)/
 ];
 // Files that exist in two places on purpose (docs refer to both); they must stay identical.
 export const MIRRORS=[

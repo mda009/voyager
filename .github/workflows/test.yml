@@ -24,3 +24,18 @@ jobs:
         with:
           name: voyager-release
           path: dist-release/*.zip
+  streamerbot-actions:
+    # Compiles the Streamer.bot C# actions against a stand-in and runs the Giveaway Engine checks.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - name: Prepare actions
+        run: node tools/csharp-check/prepare.mjs Voyager_Giveaway_Engine.cs Voyager_Command_Manager.cs
+      - name: Compile and run checks
+        run: dotnet run --project tools/csharp-check/csharp-check.csproj
