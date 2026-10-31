@@ -221,7 +221,7 @@ export class Cards{
       {label:'MEMBER ID',value:memberId(who.key,since),icon:'M3 5h18v14H3z M7 10a2 2 0 1 0 4 0 2 2 0 0 0-4 0 M6 16c.6-1.6 1.8-2.4 3-2.4s2.4.8 3 2.4 M14 9h4 M14 13h4'},
       {label:'MEMBER SINCE',value:new Date(since).toLocaleDateString('en-AU',{day:'numeric',month:'long',year:'numeric'}),icon:'M4 6h16v15H4z M4 10h16 M8 3v5 M16 3v5 M8 14h2 M12 14h2 M16 14h2 M8 17h2 M12 17h2'}];
     const stats=[
-      {label:'VOYAGER POINTS',value:balance>=0?fmt(balance):'—',sub:this.state.settings.ranks?'Balance · spend with !upgrade':lifetime?fmt(lifetime)+' earned all-time':'Points balance'},
+      {label:'VOYAGER POINTS',value:balance>=0?fmt(balance):'—',sub:this.state.settings.ranks?'Balance for !upgrade':lifetime?fmt(lifetime)+' earned all-time':'Points balance'},
       this.state.settings.ranks?{label:'LIFETIME POINTS',value:fmt(lifetime),sub:rv.sub}:{label:'LEADERBOARD',value:who.rank?'#'+fmt(who.rank):'—',sub:who.members?'of '+fmt(who.members)+' members':'Points leaderboard'},
       {label:'TIME WATCHED',value:hidden?'Private':fmt(watchH)+' h',sub:c.streak?fmt(c.streak)+'-stream streak · best '+fmt(c.bestStreak):fmt(c.days||0)+' streams attended'},
       {label:'VOYAGER VERSUS',value:battles?fmt(wins)+'–'+fmt(losses):'—',sub:battles?Math.round(wins/battles*100)+'% win rate'+(vRank?' · #'+vRank:''):'Type !versus to battle'}];

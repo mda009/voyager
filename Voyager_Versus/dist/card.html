@@ -8,8 +8,10 @@
 html,body{margin:0;width:100%;height:100%;overflow:hidden;background:transparent}
 #stage{position:absolute;left:0;top:0;width:1920px;height:1080px;transform-origin:0 0}
 .slot{position:absolute;left:280px;top:100px;width:1360px;height:880px;transform-origin:50% 55%;opacity:0;
-  -webkit-mask-image:radial-gradient(ellipse 72% 70% at 50% 50%,#000 70%,transparent 100%);mask-image:radial-gradient(ellipse 72% 70% at 50% 50%,#000 70%,transparent 100%)}
-.nobackdrop .slot{-webkit-mask-image:none;mask-image:none}
+  /* 2.20.6: only the card itself is on screen: cut to the card's cut-corner outline (card is 1200 × 720 at 80, 80). */
+  clip-path:polygon(120px 80px,1240px 80px,1280px 120px,1280px 760px,1240px 800px,120px 800px,80px 760px,80px 120px)}
+/* ?frame=full keeps the space scene around the card, softly faded (the 2.19 look). */
+.full .slot{clip-path:none;-webkit-mask-image:radial-gradient(ellipse 72% 70% at 50% 50%,#000 70%,transparent 100%);mask-image:radial-gradient(ellipse 72% 70% at 50% 50%,#000 70%,transparent 100%)}
 .nobackdrop .slot>div{background:transparent!important}
 .nobackdrop .slot>div>div:nth-child(1),.nobackdrop .slot>div>svg:nth-child(2){display:none}
 .slot.in{animation:enter 1.1s cubic-bezier(.2,.8,.2,1) forwards}
@@ -50,9 +52,10 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:transparent
 <body>
 <div id="stage"></div>
 <script type="module">
-import {TIERS,cardHTML} from './card-template.mjs?v=2.20.0';
+import {TIERS,cardHTML} from './card-template.mjs?v=2.20.6';
 const q=new URLSearchParams(location.search),stage=document.getElementById('stage');
 if(q.get('backdrop')==='0')stage.classList.add('nobackdrop');
+if(q.get('frame')==='full')stage.classList.add('full');
 if(/^[0-9a-f]{6}$/i.test(q.get('bg')||''))document.documentElement.style.background=document.body.style.background='#'+q.get('bg');
 function fit(){const s=Math.min(innerWidth/1920,innerHeight/1080);stage.style.transform='scale('+s+')';}addEventListener('resize',fit);fit();
 const NO_RANK={show:'none',roleShow:'inline',...Object.fromEntries(['mid','aslt','slt','lt','lcdr','cdr','capt','cdre','radm','vadm','adml','af'].map(id=>['s_'+id,'none']))};

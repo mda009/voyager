@@ -2,6 +2,11 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.6 (31 October 2026)
+
+- **Membership card: only the card is on screen.** The OBS overlay is cut to the card's own cut-corner outline, so the space scene and glow around it are gone. Add `?frame=full` to the address to bring the surrounding scene back.
+- The Voyager points tile reads "Balance for !upgrade" on one line.
+
 ## 2.20.5 (31 October 2026)
 
 **Clearer Streamer.bot checklists** on the Voyager Dreadnought and Membership cards pages, so you can see exactly which link is missing:
