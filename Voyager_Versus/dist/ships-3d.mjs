@@ -1,7 +1,7 @@
 import * as T from './vendor/three.module.min.js';
 import {RoomEnvironment} from './vendor/RoomEnvironment.mjs';
 import {createShip,animateShip,quality,textureResolution,materialsReady,shipMeshesReady} from './ship-models.mjs?v=2.3.0';
-import {spaceEnvironment,SSAO} from './space-lighting.mjs?v=2.17.3';
+import {spaceEnvironment,SSAO} from './space-lighting.mjs?v=2.20.3';
 
 // One WebGL context is shared by the arena, challenger splash and hangar.
 // Compositing into the existing transparent canvas keeps HUD/weapon coordinates aligned.

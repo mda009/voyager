@@ -61,7 +61,7 @@ export class BossFight{
     if(!ev||typeof ev!=='object')return {ok:false,ignored:true};
     const kind=ev.kind,platform=String(ev.platform||'').toLowerCase();if(!PLATFORMS.includes(platform))return {ok:false,ignored:true};
     this.lastEvent={at:this.now(),kind:clean(kind,10),platform};
-    const userId=clean(ev.userId,128),name=clean(ev.name||ev.login,60)||'Anonymous',login=clean(ev.login,60).toLowerCase(),key=userId?platform+':'+userId:'';
+    const userId=clean(ev.userId,128),name=clean(ev.name||ev.login,60)||'Anonymous',login=clean(ev.login,60).toLowerCase(),key=userId?platform+':'+userId:login&&(kind==='join'||kind==='fire')?platform+':@'+login:'';
     if(kind==='call'){
       if(!this.settings.chatCall||!(Number(ev.role)>=3||ev.broadcaster===true))return {ok:false,ignored:true};
       if(this.active())return {ok:false,message:'Already here.'};

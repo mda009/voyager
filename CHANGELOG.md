@@ -2,6 +2,15 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.3 (31 October 2026)
+
+**Dreadnought fixes.**
+
+- **Black box over the Dreadnought as it flies in.** One invalid (NaN/infinite) pixel from the ship's lighting could spread through the bloom passes into a large black rectangle. The bloom, final image and ambient-occlusion passes now discard invalid values (also in Voyager Versus). The ship's 2,200 hull details and 760 windows no longer get culled while it is partly off screen.
+- **!join (and !fire) from Twitch chat work even without the Streamer.bot command trigger**: Voyager reads them straight from chat while a fight is running. The action's copy of the same message is ignored, so nobody boards twice or fires double.
+- `Voyager_Dreadnought.cs`, `Voyager_Medals.cs` and `Voyager_Membership_Card.cs` work out the platform from `userType` when `commandSource` is missing, and a viewer without a user ID can still board (keyed by login). Paste the new Dreadnought file into its action and Save and Compile.
+- OBS: refresh the Dreadnought browser source (or tick "Refresh browser when scene becomes active") so it loads the new version.
+
 ## 2.20.2 (31 October 2026)
 
 **Fix: Voyager - Membership Card did not compile in Streamer.bot** (CS0234 "Linq does not exist in the namespace System", CS1061 / CS1955). `Voyager_Membership_Card.cs` (v1.1) and `Voyager_Medals.cs` (v1.2) no longer use System.Linq at all, so they compile with Streamer.bot's default references whatever the action's References tab holds. Paste each new file into its action's Execute C# Code and Save and Compile. The reference check now also rejects `using System.Linq` in these actions.

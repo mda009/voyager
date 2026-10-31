@@ -28,8 +28,13 @@ public class CPHInline
             JObject ev = null;
             if (command.Length > 0)
             {
+                // commandSource on current Streamer.bot; older builds only give userType / eventSource.
                 string platform = Read("commandSource").Trim().ToLowerInvariant();
+                if (platform.Length == 0) platform = Read("userType").Trim().ToLowerInvariant();
+                if (platform.Length == 0) platform = Read("eventSource").Trim().ToLowerInvariant();
+                if (platform.Length == 0) platform = "twitch";
                 if (platform != "twitch" && platform != "youtube" && platform != "kick") return true;
+                if (command.IndexOf(' ') > 0) command = command.Substring(0, command.IndexOf(' '));
                 string kind = command == "!join" ? "join" : command == "!fire" ? "fire" : command == "!dreadnought" ? "call" : "";
                 if (kind.Length == 0) return true;
                 ev = Event(kind, platform, 0);

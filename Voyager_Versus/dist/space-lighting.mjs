@@ -35,16 +35,16 @@ export class SSAO{
       vec3 vp(vec2 uv){float z=texture2D(tDepth,uv).r;vec2 n=uv*2.-1.;return ortho>.5?vec3(n*halfSize,-z):vec3(n.x*tanH*aspect*z,n.y*tanH*z,-z);}
       vec2 proj(vec3 s){return (ortho>.5?s.xy/halfSize:vec2(s.x/(-s.z*tanH*aspect),s.y/(-s.z*tanH)))*.5+.5;}
       void main(){float z=texture2D(tDepth,vUv).r;if(z>far*.5){gl_FragColor=vec4(1.);return;}
-        vec3 P=vp(vUv);vec3 N=normalize(cross(dFdx(P),dFdy(P)));if(dot(N,ortho>.5?vec3(0.,0.,1.):-P)<0.)N=-N;
+        vec3 P=vp(vUv);vec3 cr=cross(dFdx(P),dFdy(P));if(!(dot(cr,cr)>1e-12)){gl_FragColor=vec4(1.);return;}vec3 N=normalize(cr);if(dot(N,ortho>.5?vec3(0.,0.,1.):-P)<0.)N=-N;
         float a=fract(sin(dot(floor(vUv*res),vec2(12.9898,78.233)))*43758.5453)*6.2831853;vec3 r=vec3(cos(a),sin(a),0.);
-        vec3 Tg=normalize(r-N*dot(r,N));mat3 tbn=mat3(Tg,cross(N,Tg),N);float occ=0.;
+        vec3 tr=r-N*dot(r,N);if(dot(tr,tr)<1e-8)tr=abs(N.x)<.9?vec3(1.,0.,0.)-N*N.x:vec3(0.,1.,0.)-N*N.y;vec3 Tg=normalize(tr);mat3 tbn=mat3(Tg,cross(N,Tg),N);float occ=0.;
         for(int i=0;i<16;i++){vec3 s=P+tbn*kernel[i]*radius;float sz=texture2D(tDepth,proj(s)).r;occ+=step(sz,-s.z-radius*.05)*smoothstep(0.,1.,radius/max(.001,abs(-s.z-sz)));}
-        gl_FragColor=vec4(vec3(pow(clamp(1.-occ/16.,0.,1.),1.6)),1.);}`});
+        float ao=pow(clamp(1.-occ/16.,0.,1.),1.6);gl_FragColor=vec4(vec3(ao==ao?ao:1.),1.);}`});
     this.blurMat=new T.ShaderMaterial({uniforms:{src:{value:null},dir:{value:new T.Vector2()}},vertexShader:VS,depthTest:false,depthWrite:false,fragmentShader:'uniform sampler2D src;uniform vec2 dir;varying vec2 vUv;void main(){float c=texture2D(src,vUv).r*.227027;c+=texture2D(src,vUv+dir*1.384615).r*.316216;c+=texture2D(src,vUv-dir*1.384615).r*.316216;c+=texture2D(src,vUv+dir*3.230769).r*.07027;c+=texture2D(src,vUv-dir*3.230769).r*.07027;gl_FragColor=vec4(vec3(c),1.);}'});
     // Multiply over the frame: dst.rgb *= mix(1, ao, strength); alpha unchanged.
     this.applyMat=new T.ShaderMaterial({uniforms:{src:{value:null},strength:{value:strength}},vertexShader:VS,depthTest:false,depthWrite:false,transparent:true,
       blending:T.CustomBlending,blendEquation:T.AddEquation,blendSrc:T.ZeroFactor,blendDst:T.SrcColorFactor,blendSrcAlpha:T.ZeroFactor,blendDstAlpha:T.OneFactor,
-      fragmentShader:'uniform sampler2D src;uniform float strength;varying vec2 vUv;void main(){gl_FragColor=vec4(vec3(mix(1.,texture2D(src,vUv).r,strength)),1.);}'});
+      fragmentShader:'uniform sampler2D src;uniform float strength;varying vec2 vUv;void main(){float a=texture2D(src,vUv).r;a=a==a?clamp(a,0.,1.):1.;gl_FragColor=vec4(vec3(mix(1.,a,strength)),1.);}'});
     this.quad=new T.Mesh(new T.PlaneGeometry(2,2));this.quad.frustumCulled=false;this.post=new T.Scene();this.post.add(this.quad);this.postCam=new T.OrthographicCamera(-1,1,1,-1,0,1);
     this.size=[0,0];this.farColor=new T.Color(1e5,0,0);this.keep=new T.Color();
   }

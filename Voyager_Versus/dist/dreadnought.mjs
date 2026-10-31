@@ -3,7 +3,7 @@
 import * as T from './vendor/three.module.min.js';
 import {RoomEnvironment} from './vendor/RoomEnvironment.mjs';
 import {createShip,animateShip,shipMeshesReady,materialsReady} from './ship-models.mjs?v=2.3.0';
-import {buildDreadnought} from './dreadnought-model.mjs?v=2.17.2';
+import {buildDreadnought} from './dreadnought-model.mjs?v=2.20.3';
 
 const $=id=>document.getElementById(id),params=new URLSearchParams(location.search);
 if(params.get('backdrop')==='0')document.body.classList.add('backdrop-off');
@@ -32,16 +32,18 @@ const CAM=new T.Vector3(-160,430,2850),LOOK=new T.Vector3(-40,-30,0);camera.posi
 const quad=new T.Mesh(new T.PlaneGeometry(2,2)),postScene=new T.Scene(),postCam=new T.OrthographicCamera(-1,1,1,-1,0,1);postScene.add(quad);quad.frustumCulled=false;
 const VS='varying vec2 vUv;void main(){vUv=uv;gl_Position=vec4(position.xy,0.,1.);}';
 const rt=(w,h,samples=0)=>new T.WebGLRenderTarget(w,h,{type:T.HalfFloatType,samples,depthBuffer:samples>0,colorSpace:T.LinearSRGBColorSpace});
-const brightMat=new T.ShaderMaterial({uniforms:{src:{value:null},threshold:{value:1.15}},vertexShader:VS,fragmentShader:'uniform sampler2D src;uniform float threshold;varying vec2 vUv;void main(){vec4 c=texture2D(src,vUv);float l=max(c.r,max(c.g,c.b));float k=smoothstep(threshold,threshold*1.8,l);gl_FragColor=vec4(c.rgb*k,1.);}',depthTest:false,depthWrite:false});
+const brightMat=new T.ShaderMaterial({uniforms:{src:{value:null},threshold:{value:1.15}},vertexShader:VS,fragmentShader:'uniform sampler2D src;uniform float threshold;varying vec2 vUv;vec3 ok(vec3 c){return (c.r==c.r&&c.g==c.g&&c.b==c.b)?clamp(c,0.,64.):vec3(0.);}void main(){vec3 c=ok(texture2D(src,vUv).rgb);float l=max(c.r,max(c.g,c.b));float k=smoothstep(threshold,threshold*1.8,l);gl_FragColor=vec4(c*k,1.);}',depthTest:false,depthWrite:false});
 const blurMat=new T.ShaderMaterial({uniforms:{src:{value:null},dir:{value:new T.Vector2()}},vertexShader:VS,fragmentShader:'uniform sampler2D src;uniform vec2 dir;varying vec2 vUv;void main(){vec3 c=texture2D(src,vUv).rgb*.227027;c+=texture2D(src,vUv+dir*1.384615).rgb*.316216;c+=texture2D(src,vUv-dir*1.384615).rgb*.316216;c+=texture2D(src,vUv+dir*3.230769).rgb*.070270;c+=texture2D(src,vUv-dir*3.230769).rgb*.070270;gl_FragColor=vec4(c,1.);}',depthTest:false,depthWrite:false});
 const finalMat=new T.ShaderMaterial({uniforms:{tAO:{value:null},aoAmount:{value:QUALITY==='low'?0:.85},src:{value:null},b0:{value:null},b1:{value:null},b2:{value:null},b3:{value:null},b4:{value:null},strength:{value:.85},exposure:{value:1.12},t:{value:0},flash:{value:0},alphaOut:{value:BACKDROP?0:1}},vertexShader:VS,
   fragmentShader:`uniform sampler2D src,b0,b1,b2,b3,b4,tAO;uniform float strength,exposure,t,flash,alphaOut,aoAmount;varying vec2 vUv;
   vec3 aces(vec3 x){const float a=2.51,b=.03,c=2.43,d=.59,e=.14;return clamp((x*(a*x+b))/(x*(c*x+d)+e),0.,1.);}
   vec3 toSRGB(vec3 c){return mix(c*12.92,1.055*pow(c,vec3(1./2.4))-.055,step(.0031308,c));}
   float h(vec2 p){return fract(sin(dot(p,vec2(12.9898,78.233))+t)*43758.5453);}
-  void main(){vec2 o=(vUv-.5)*.0012;vec4 base=texture2D(src,vUv);vec3 c=vec3(texture2D(src,vUv+o).r,base.g,texture2D(src,vUv-o).b);
-    c*=mix(1.,texture2D(tAO,vUv).r,aoAmount);
-    vec3 bloom=texture2D(b0,vUv).rgb*.30+texture2D(b1,vUv).rgb*.25+texture2D(b2,vUv).rgb*.2+texture2D(b3,vUv).rgb*.15+texture2D(b4,vUv).rgb*.1;
+  // 2.20.3: one NaN or infinite pixel from the scene used to spread through the bloom mips into big black boxes.
+  vec3 ok(vec3 c){return (c.r==c.r&&c.g==c.g&&c.b==c.b)?clamp(c,0.,64.):vec3(0.);}
+  void main(){vec2 o=(vUv-.5)*.0012;vec4 base=texture2D(src,vUv);vec3 c=ok(vec3(texture2D(src,vUv+o).r,base.g,texture2D(src,vUv-o).b));
+    float ao=texture2D(tAO,vUv).r;ao=ao==ao?clamp(ao,0.,1.):1.;c*=mix(1.,ao,aoAmount);
+    vec3 bloom=ok(texture2D(b0,vUv).rgb*.30+texture2D(b1,vUv).rgb*.25+texture2D(b2,vUv).rgb*.2+texture2D(b3,vUv).rgb*.15+texture2D(b4,vUv).rgb*.1);
     c=(c+bloom*strength)*exposure+flash;vec3 m=aces(c);float v=smoothstep(1.25,.35,length(vUv-.5)*1.45);m*=mix(1.,v,1.-alphaOut*.85);
     m+=(h(vUv*913.)-.5)*.012*(1.-alphaOut);vec3 outc=toSRGB(m);
     float a=alphaOut>.5?clamp(max(base.a,max(max(bloom.r,bloom.g),bloom.b)*strength*1.2+flash),0.,1.):1.;
@@ -53,9 +55,9 @@ const aoMat=new T.ShaderMaterial({uniforms:{tDepth:{value:null},res:{value:new T
   fragmentShader:`uniform sampler2D tDepth;uniform vec2 res;uniform float tanH,aspect,radius;uniform vec3 kernel[16];varying vec2 vUv;
   vec3 vp(vec2 uv){float z=texture2D(tDepth,uv).r;vec2 n=uv*2.-1.;return vec3(n.x*tanH*aspect*z,n.y*tanH*z,-z);}
   void main(){float z=texture2D(tDepth,vUv).r;if(z>40000.){gl_FragColor=vec4(1.);return;}
-    vec3 P=vp(vUv);vec3 N=normalize(cross(dFdx(P),dFdy(P)));if(dot(N,-P)<0.)N=-N;
+    vec3 P=vp(vUv);vec3 cr=cross(dFdx(P),dFdy(P));if(!(dot(cr,cr)>1e-12)){gl_FragColor=vec4(1.);return;}vec3 N=normalize(cr);if(dot(N,-P)<0.)N=-N;
     float a=fract(sin(dot(floor(vUv*res),vec2(12.9898,78.233)))*43758.5453)*6.2831853;vec3 r=vec3(cos(a),sin(a),0.);
-    vec3 Tg=normalize(r-N*dot(r,N));mat3 tbn=mat3(Tg,cross(N,Tg),N);float occ=0.;
+    vec3 tr=r-N*dot(r,N);if(dot(tr,tr)<1e-8)tr=abs(N.x)<.9?vec3(1.,0.,0.)-N*N.x:vec3(0.,1.,0.)-N*N.y;vec3 Tg=normalize(tr);mat3 tbn=mat3(Tg,cross(N,Tg),N);float occ=0.;
     for(int i=0;i<16;i++){vec3 s=P+tbn*kernel[i]*radius;vec2 su=vec2(s.x/(-s.z*tanH*aspect),s.y/(-s.z*tanH))*.5+.5;float sz=texture2D(tDepth,su).r;
       float range=smoothstep(0.,1.,radius/max(1.,abs(-s.z-sz)));occ+=step(sz,-s.z-3.)*range;}
     gl_FragColor=vec4(vec3(pow(clamp(1.-occ/16.,0.,1.),1.6)),1.);}`});

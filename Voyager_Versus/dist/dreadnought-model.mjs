@@ -123,6 +123,7 @@ export function buildDreadnought({maps,anisotropy=8}){
   // ---- greebles: instanced detail blocks scattered over the top and flanks ----
   const greebleGeo=(()=>{const sh=new T.Shape();sh.moveTo(-.42,-.42);sh.lineTo(.42,-.42);sh.lineTo(.42,.42);sh.lineTo(-.42,.42);sh.closePath();const g=new T.ExtrudeGeometry(sh,{depth:.84,bevelEnabled:true,bevelThickness:.08,bevelSize:.08,bevelSegments:2});g.translate(0,0,-.42);return boxUV(g,1/3);})();
   const greebleMat=new T.MeshPhysicalMaterial({map:maps.base,roughnessMap:maps.orm,metalnessMap:maps.orm,normalMap:maps.normal,color:0xffffff,metalness:1,roughness:1,normalScale:new T.Vector2(.5,.5),envMapIntensity:1});
+  // 2.20.3: instanced parts are not frustum-culled (their bounding sphere is one block at the origin, so they vanished as the ship flew in).
   const N=2200,greebles=new T.InstancedMesh(greebleGeo,greebleMat,N),m4=new T.Matrix4(),q=new T.Quaternion(),sc=new T.Vector3(),ps=new T.Vector3();let gi=0;
   const place=(st,count,onSide)=>{for(let i=0;i<count&&gi<N;i++){
     const x=st[0].x+rnd()*(st[st.length-1].x-st[0].x),s=lerpStations(st,x);if(!s||s.w<30)continue;
@@ -134,7 +135,8 @@ export function buildDreadnought({maps,anisotropy=8}){
   greebles.count=gi;greebles.castShadow=greebles.receiveShadow=true;group.add(greebles);
 
   // ---- lit windows: rows along the flanks ----
-  const winN=760,wins=new T.InstancedMesh(new T.PlaneGeometry(1,1),new T.MeshBasicMaterial({toneMapped:false}),winN),col=new T.Color();let wi=0;
+  greebles.frustumCulled=false;
+  const winN=760,wins=new T.InstancedMesh(new T.PlaneGeometry(1,1),new T.MeshBasicMaterial({toneMapped:false}),winN),col=new T.Color();let wi=0;wins.frustumCulled=false;
   for(const [st,rows] of [[main,[.15,.38]],[mid,[.35,.62]],[upper,[.45]]])for(const fr of rows)for(const s of [-1,1]){
     for(let x=st[0].x+60;x<st[st.length-1].x-40&&wi<winN;x+=9+rnd()*14){if(rnd()<.32)continue;const t=lerpStations(st,x);if(!t||t.w<40)continue;
       const ch=Math.min(t.w*.35,(t.top-t.bot)*.35),y=t.bot+ch*.55+fr*((t.top-ch*.8)-(t.bot+ch*.55));

@@ -87,3 +87,12 @@ test('An escape (or a fight ended early) never awards points',async()=>{
   at(30000);b.call();b.receive(ev('join','nova'));at(10000);b.receive(ev('fire','nova'));b.cancel();
   assert.equal(b.rewardBatches().length,0,'cancelled fights pay nothing');
 });
+
+test('!join and !fire still work when the chat event has no user ID (keyed by login)',async()=>{
+  let now=1_800_000_000_000;
+  const b=await new BossFight({dataDir:await mkdtemp(join(tmpdir(),'voyager-boss-')),now:()=>now,random:()=>0.5}).load();
+  b.configure({lobbySeconds:10});b.call();
+  assert.equal(b.receive({kind:'join',platform:'twitch',userId:'',login:'nova',name:'Nova'}).ok,true);
+  assert.equal(b.receive({kind:'join',platform:'twitch',userId:'',login:'nova',name:'Nova'}).ignored,true,'boards once');
+  now+=10000;b.tick();assert.equal(b.receive({kind:'fire',platform:'twitch',userId:'',login:'nova'}).ok,true);
+});

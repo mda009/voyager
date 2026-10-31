@@ -95,6 +95,10 @@ const bot=new StreamerBot({onCards:ev=>{cards.receive(ev);},onMedals:ev=>{if(ev.
   if(ev.kind==='call'&&!['lobby','result'].includes(game.phase)){game.note('Finish the Versus battle before calling the Dreadnought.','system');return;}
   boss.receive(ev);
 },onChat:chat=>{
+  // Dreadnought (2.20.3): Twitch !join and !fire also work straight from chat, so a missing Streamer.bot command trigger
+  // can't stop the fight. The action's copy of the same message is ignored (already boarded / !fire cooldown).
+  const word=chat.text.trim().toLowerCase().split(/\s+/)[0];
+  if(boss.active()&&(word==='!join'||word==='!fire')){try{boss.receive({kind:word.slice(1),platform:'twitch',userId:chat.userId,login:chat.login,name:chat.name,direct:true});}catch{}return;}
   if(boss.busy()&&/^!versus\b/i.test(chat.text.trim())){const now=Date.now(),last=failures.get(chat.login)||0;if(now-last>4000){game.note(`${chat.name}: Voyager Versus is paused while the Dreadnought fight is on.`,'system');failures.set(chat.login,now);}return;}
   let result;try{result=game.command(chat);}catch{game.paused=true;game.note('Cannot save battle cooldown or stream entries. Check host storage and restart.');return;}
   // Accepted match transitions are announced by MatchChat; weapon feedback stays on-screen.

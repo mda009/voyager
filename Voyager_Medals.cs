@@ -27,6 +27,9 @@ public class CPHInline
             string command = Read("command").Trim().ToLowerInvariant();
             if (command != "!medals") return true;
             string platform = Read("commandSource").Trim().ToLowerInvariant();
+            if (platform.Length == 0) platform = Read("userType").Trim().ToLowerInvariant();
+            if (platform.Length == 0) platform = Read("eventSource").Trim().ToLowerInvariant();
+            if (platform.Length == 0) platform = "twitch";
             if (platform != "twitch" && platform != "youtube" && platform != "kick") return true;
             string name = Read("user"); if (name.Length == 0) name = Read("userName");
             var ev = new JObject
