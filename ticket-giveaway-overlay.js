@@ -4,9 +4,12 @@ function node(tag,text,cls){const n=document.createElement(tag);if(text!==undefi
 function accept(s,clock=0,sample=false){if(!s||s.schema!==1)return;if(state&&s.revision<state.revision)return;state=s;offset=clock;$('sample').hidden=!sample;render();}
 function sendSequence(){if(state)$('animation').contentWindow?.postMessage({type:'voyager.giveaway.sequence',state,offset,muted:preview||demo,volume:Number(window.VOYAGER_CONFIG?.giveawayVolume??window.VOYAGER_CONFIG?.volume??.75)},'*');}
 $('animation').addEventListener('load',sendSequence);addEventListener('message',e=>{if(e.source===$('animation').contentWindow&&e.data?.type==='voyager.giveaway.sequence.ready')sendSequence();});
+// 2.20.10: when the main Giveaway overlay is also in OBS it plays ticket reveals itself; this source then keeps to its panel.
+let mainAt=0;try{new BroadcastChannel('voyager-giveaway-reveal').onmessage=e=>{if(e.data?.type==='main-overlay')mainAt=Date.now();};}catch{}
 function render(){const c=state?.campaign,now=Date.now()+offset,status=M.status(c,now);let mode=state?.view||'hidden',event=null;
  if(mode==='reveal'){event=state.reveal;if(!event||now>=VoyagerGiveawaySequence.timeline(event).expiresAt||now<event.at-5000)mode='panel';}
  if(mode==='celebration'){event=state.celebration;if(!event||now>=event.at+8000||now<event.at-5000)mode='panel';}
+ const deferred=!preview&&!demo&&Date.now()-mainAt<6000&&['reveal','celebration'].includes(mode);if(deferred)mode='hidden';
  $('panel').hidden=!c||mode!=='panel';const animated=!!c&&['reveal','celebration'].includes(mode);$('animation').hidden=!animated;
  const nextFrame=animated?'sequence':'';if(nextFrame!==frameSignature){frameSignature=nextFrame;if(animated)$('animation').src='Voyager_Giveaway_Sequence.html';else $('animation').removeAttribute('src');}
  if(animated)sendSequence();

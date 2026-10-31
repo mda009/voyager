@@ -2,6 +2,15 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.10 (1 November 2026)
+
+**Every giveaway reveal now plays the same way, from the same OBS source.**
+
+- The main **Giveaway overlay** (`Voyager_Giveaway_Overlay.html`, the one that plays impromptu and member giveaways) now also plays **ticketed giveaway** reveals: the same 10-second countdown, buildup, 30-second wheel (segments sized by tickets), winner reveal, claim timer and congratulations. Before, a ticketed draw only showed in the separate Ticket overlay source, so with just the main overlay in OBS nothing appeared.
+- If you also keep the **Ticket overlay** in OBS for its ticket leaderboard panel, it now steps aside during reveals when the main overlay is running, so the animation and sound never play twice. On its own it still plays the reveal as before.
+- Add `?tickets=0` to the main overlay's address if you ever want it to ignore ticketed giveaways.
+- No Streamer.bot changes. Refresh both giveaway browser sources in OBS after updating.
+
 ## 2.20.9 (31 October 2026)
 
 **Fix: the giveaway wheel didn't appear during the winner reveal.** Since 2.16, impromptu giveaways keep recent winners in the pool ("can enter, can't be drawn"). The Giveaway Engine leaves them out of the draw, but the wheel still counted them, so its pool no longer matched the saved draw and it stayed hidden for safety. The wheel now leaves those entrants off too, so it matches the draw exactly and spins to the real winner. Member and ticketed giveaways were not affected. No Streamer.bot changes; refresh the giveaway browser source in OBS after updating.
