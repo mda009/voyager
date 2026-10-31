@@ -72,7 +72,7 @@ $('pay-all').onclick=async()=>{
   if(!confirm('Pay '+due.length+' mission rewards ('+due.reduce((a,p)=>a+p.reward,0).toLocaleString()+' points)?'))return;
   paying=true;render();let ok=0,bad=0;
   for(const p of due){
-    const reason=(p.scope==='season'?p.title+' ('+p.label+')':'Mission: '+p.title+' (week of '+new Date(p.week).toLocaleDateString()+')').slice(0,200);
+    const reason=(p.scope==='boss'?'Voyager Dreadnought: '+p.title+' ('+new Date(p.week).toLocaleDateString()+')':p.scope==='season'?p.title+' ('+p.label+')':'Mission: '+p.title+' (week of '+new Date(p.week).toLocaleDateString()+')').slice(0,200);
     try{
       const plan=await points.call('admin_preview',{adminTask:'points',adminUserKey:p.key,adminTwitchLogin:'',adminDelta:String(p.reward),adminReason:reason});
       if(!plan?.planId)throw new Error(plan?.error||'No preview returned.');

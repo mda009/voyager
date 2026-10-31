@@ -16,6 +16,7 @@ import {LiveOverlay} from './live-overlay.mjs';
 import {PublicSite} from './public-site.mjs';
 import {readConnection,updateConnection} from './connection-config.mjs';
 import {Community} from './community.mjs';
+import {BossFight} from './boss.mjs';
 let VERSION='unknown';try{VERSION=JSON.parse(await readFile(new URL('../package.json',import.meta.url),'utf8')).version;}catch{}
 const major=Number(process.versions.node.split('.')[0]);
 if(major<22||typeof WebSocket==='undefined'){console.error('Voyager Versus requires Node.js 22.4 or newer. Install it from https://nodejs.org/');process.exit(1);}
@@ -61,7 +62,20 @@ const economy=new EconomyStore(dataDir);
 const entries=new StreamEntries(dataDir);
 const game=new Arena({entryGate:(pilot,role)=>entries.claim(pilot,role),stats:saved,cooldownUntil:economy.data.cooldownUntil,onCooldown:until=>economy.cooldown(until),onRewards:rewards=>economy.enqueue(rewards),onSave:stats=>{const copy=structuredClone(stats);saving=saving.then(async()=>{try{await writeFile(resolve(dataDir,'rankings.tmp'),JSON.stringify(copy,null,2));await rename(resolve(dataDir,'rankings.tmp'),resolve(dataDir,'rankings.json'));savedRankings=copy;pilots.changed();}catch{if(!storageMessage){storageMessage='Rankings could not be saved. Check the game folder is writable.';game.note(storageMessage,'system');}}});}});
 let wasConnected=false;
-const bot=new StreamerBot({onChat:chat=>{
+// Voyager Dreadnought (2.17): chat co-op boss fight. Chat lines go out through the "Voyager - Dreadnought" action.
+let bossActionId=null,bossActionAt=0;
+async function bossSay(text){
+  try{
+    if(!bossActionId||Date.now()-bossActionAt>300000){const r=await bot.request('GetActions');const a=(r.actions||[]).filter(x=>x.name==='Voyager - Dreadnought'&&x.enabled!==false);bossActionId=a.length===1?a[0].id:null;bossActionAt=Date.now();}
+    if(bossActionId)await bot.request('DoAction',{action:{id:bossActionId},args:{bossSay:String(text).slice(0,450)}});
+  }catch{}
+}
+const boss=await new BossFight({dataDir,say:text=>{void bossSay(text);}}).load();
+const bot=new StreamerBot({onBoss:ev=>{
+  if(ev.kind==='call'&&!['lobby','result'].includes(game.phase)){game.note('Finish the Versus battle before calling the Dreadnought.','system');return;}
+  boss.receive(ev);
+},onChat:chat=>{
+  if(boss.busy()&&/^!versus\b/i.test(chat.text.trim())){const now=Date.now(),last=failures.get(chat.login)||0;if(now-last>4000){game.note(`${chat.name}: Voyager Versus is paused while the Dreadnought fight is on.`,'system');failures.set(chat.login,now);}return;}
   let result;try{result=game.command(chat);}catch{game.paused=true;game.note('Cannot save battle cooldown or stream entries. Check host storage and restart.');return;}
   // Accepted match transitions are announced by MatchChat; weapon feedback stays on-screen.
   if(!result.ok&&!result.ignored&&result.message&&!result.message.startsWith('Wait a moment')){
@@ -85,7 +99,7 @@ const pilots=new PilotLeaderboard({bot,records:()=>savedRankings});
 publicSite?.setVersus(()=>{const now=Date.now(),cooldown=Number(economy.data.cooldownUntil)||0;
   const status=cooldown>now?'cooldown':['calling','countdown','battle','result'].includes(game.phase)?'live':bot.status.connected?'ready':'offline';
   return {pilots:savedRankings||[],versus:{status,cooldownUntil:cooldown,winnerPoints:REWARDS.winner}};});
-community?.setPilots(()=>savedRankings||[]);publicSite?.setCommunity(()=>community?.publicView()||null);
+community?.setPilots(()=>savedRankings||[]);community?.setBoss(()=>boss.rewardBatches());publicSite?.setCommunity(()=>community?.publicView()||null);
 const rewards=new RewardDispatcher({store:economy,bot,onCredit:r=>{game.note(`${r.name}: +${r.amount} Voyager points credited.`, 'reward');matchChat.credit(r);}});
 const announcements=new AvailabilityAnnouncer({store:economy,bot,game,action:()=>rewards.ready?rewards.action:null});
 const matchChat=new MatchChat({directory:dataDir,game,bot,action:()=>rewards.ready?rewards.action:null,protocol:()=>rewards.chatProtocol,reward:id=>economy.data.rewards.find(r=>r.id===id)});
@@ -158,6 +172,23 @@ const server=http.createServer(async(req,res)=>{
       if(url.pathname==='/api/public-site/publish-now'){await body(req);if(!publicSite.view().upload.enabled){response(res,400,{ok:false,message:'Turn on publishing and add the repository and token first.'});return;}publicSite.rebuild();await publicSite.push();const v=publicSite.view();response(res,200,{ok:!v.upload.lastError,message:v.upload.lastError||'Published. The public site shows it within about 5 minutes.',status:v});return;}
       response(res,404,{message:'Not found.'});return;
     }
+    if(url.pathname==='/api/boss/overlay'&&req.method==='GET'){res.setHeader('Cache-Control','no-store');response(res,200,boss.overlay());return;}
+    if(url.pathname.startsWith('/api/boss')){
+      if(!validToken(req)){response(res,403,{message:'Open Voyager Control to run the Dreadnought.'});return;}
+      if(url.pathname==='/api/boss'&&req.method==='GET'){response(res,200,boss.view());return;}
+      if(url.pathname==='/api/boss/control'&&req.method==='POST'){
+        if(!req.headers['content-type']?.startsWith('application/json')){response(res,403,{message:'Invalid request.'});return;}
+        const {action,value}=await body(req);
+        try{
+          if(['call','demo'].includes(action)&&!['lobby','result'].includes(game.phase))throw new Error('Finish the Voyager Versus battle first.');
+          const r=action==='call'?boss.call():action==='demo'?boss.call({demo:true,by:'Preview'}):action==='start'?boss.start():action==='cancel'?boss.cancel():action==='settings'?boss.configure(value||{}):null;
+          if(!r)throw new Error('Unknown Dreadnought action.');
+          response(res,200,{ok:true,...r});
+        }catch(e){response(res,400,{ok:false,message:e.message});}
+        return;
+      }
+      response(res,404,{message:'Not found.'});return;
+    }
     if(url.pathname==='/api/live-overlay'&&req.method==='GET'){response(res,200,liveOverlay.snapshot());return;}
     if(['/api/live-overlay/feed','/api/live-overlay/settings'].includes(url.pathname)&&req.method==='POST'){
       if(!validToken(req)||!req.headers['content-type']?.startsWith('application/json')){response(res,403,{message:'Open the local Live dashboard to update the overlay.'});return;}
@@ -214,6 +245,7 @@ const server=http.createServer(async(req,res)=>{
   }catch(e){response(res,e.code==='ENOENT'?404:400,{message:e.code==='ENOENT'?'File not found.':e.message==='Invalid URL'?'Invalid WebSocket address.':'Request could not be processed. Check your inputs.'});}
 });
 let ticks=0;const timer=setInterval(()=>{
+  try{boss.tick();}catch{}
   try{game.tick(.1);}catch{game.paused=true;game.note('Host storage error. Check the game folder before restarting.');}ticks++;
   if(ticks%10===0){community?.roll(Date.now());void publicSite?.tick();void pilots.tick();void rewards.tick();void announcements.tick();void matchChat.tick();}
   if(ticks%300===0){for(const [key,t] of failures)if(Date.now()-t>120000)failures.delete(key);}

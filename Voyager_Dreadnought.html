@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Voyager • Dreadnought</title>
+<link rel="icon" href="brand-assets/voyager.png">
+<link rel="stylesheet" href="stream-command.css">
+<link rel="stylesheet" href="voyager-brand.css">
+<link rel="stylesheet" href="settings.css?v=2.17">
+<link rel="stylesheet" href="community.css?v=2.17">
+<link rel="stylesheet" href="voyager-glass.css?v=2.17">
+<style>
+.dn-layout{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(320px,1fr);gap:16px;align-items:start}
+.dn-main,.dn-side{display:flex;flex-direction:column;gap:16px;min-width:0}
+.dn-card{padding:18px 22px;display:flex;flex-direction:column;gap:12px}
+.dn-preview{position:relative;aspect-ratio:16/9;background:#04070d;border:1px solid rgba(151,223,255,.16);overflow:hidden}
+.dn-preview iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.dn-preview .idle{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:#8ea6bd;font-size:14px;text-align:center;padding:20px}
+.dn-preview .idle b{font:700 26px var(--brand-display);color:#e6eef7;letter-spacing:2px}
+.dn-status{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.dn-status div{padding:10px 12px;border:1px solid rgba(151,223,255,.12);background:rgba(8,15,24,.4)}
+.dn-status small{display:block;font:700 10px var(--brand-display);letter-spacing:1.6px;color:#8ea6bd;text-transform:uppercase}
+.dn-status b{font:700 22px var(--brand-display);color:#e6eef7}
+.dn-cmds{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.dn-cmds div{padding:12px;border:1px solid rgba(151,223,255,.12);background:rgba(8,15,24,.4)}
+.dn-cmds code{font:700 18px var(--brand-display);color:#97dfff}
+.dn-cmds .b code{color:#ffb070}.dn-cmds .g code{color:#f2cd73}
+.dn-cmds p{margin:6px 0 0;font-size:13px;color:#9ab0c5}
+.dn-form{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.dn-form label{display:flex;flex-direction:column;gap:5px;font-size:12px;color:#9ab0c5}
+.dn-form label.wide{grid-column:1/-1}
+.dn-form input{height:38px;padding:0 10px;border:1px solid rgba(151,223,255,.18);background:rgba(8,15,24,.55);color:#e6eef7;font:14px 'Segoe UI',sans-serif;min-width:0}
+.dn-form .check{flex-direction:row;align-items:center;gap:8px;grid-column:1/-1}
+.dn-form .check input{height:auto}
+.dn-history{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.dn-history li{padding:10px 12px;border:1px solid rgba(151,223,255,.1);background:rgba(8,15,24,.35);display:flex;flex-direction:column;gap:3px}
+.dn-history b{font:700 15px var(--brand-display);color:#e6eef7}.dn-history span{font-size:12px;color:#9ab0c5}
+.dn-history .win b{color:#f2cd73}
+.dn-check{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;font-size:13px;color:#c9d7e4}
+.dn-check li::before{content:'○ ';color:#8ea6bd}.dn-check li.ok::before{content:'✓ ';color:#7ce1cb}
+@media(max-width:1100px){.dn-layout{grid-template-columns:1fr}.dn-status,.dn-cmds{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body class="voyager-console voyager-settings voyager-community">
+<div class="shell">
+<aside class="rail"><a class="brand" href="Voyager_Command_Center.html"><img class="logo-voyager" src="brand-assets/voyager.png" alt="Voyager membership program" width="68" height="68"><span>VOYAGER<small>MDA009 · MISSION CONTROL</small></span></a></aside>
+<main>
+<header class="top"><div><span class="eyebrow">CHAT CO-OP BOSS FIGHT</span><h1>Voyager Dreadnought</h1></div><div class="toolbar"><span class="st-note" id="phase-note"></span><button type="button" id="demo">Preview (simulated chat)</button><button type="button" id="cancel" hidden>End fight</button><button type="button" id="start" hidden>Start now</button><button type="button" class="primary" id="call">Call the Dreadnought</button></div></header>
+<p class="st-notice" id="notice" hidden></p>
+<p class="st-notice" id="not-hosted" hidden>Open this page from the Voyager app (or START-VOYAGER-CONTROL.bat). The fight runs in the Voyager host.</p>
+<div class="dn-layout">
+<div class="dn-main">
+<section class="card dn-card">
+<div class="card-heading"><div><span class="eyebrow">ON STREAM</span><h2>Live view</h2></div><span class="st-pill" id="live-pill" data-state="wait">Standing by</span></div>
+<div class="dn-preview"><iframe id="preview" title="Dreadnought overlay preview" src="/dreadnought.html?res=0.5&amp;quality=low"></iframe><div class="idle" id="idle"><b>STANDING BY</b><span>Call the Dreadnought, or run a preview with simulated chat. This is exactly what the OBS source shows.</span></div></div>
+<div class="dn-status"><div><small>Pilots</small><b id="s-pilots">0</b></div><div><small>Hull</small><b id="s-hull">—</b></div><div><small>Time</small><b id="s-time">—</b></div><div><small>Gifted subs</small><b id="s-gifts">0</b></div></div>
+</section>
+<section class="card dn-card">
+<span class="eyebrow">HOW CHAT PLAYS</span>
+<div class="dn-cmds">
+<div><code>!join</code> then <code>!fire</code><p>Free for everyone. Lasers deal <span id="c-fire">12–22</span> damage, once every <span id="c-cd">4</span> seconds. 1 in 16 shots is a critical hit (×3).</p></div>
+<div class="b"><code>Cheers</code><p>Bits and YouTube Super Chats fire missiles: <span id="c-bits">2.5</span> damage per bit (1.00 of Super Chat counts as 100 bits).</p></div>
+<div class="g"><code>Gifted subs</code><p>Twitch gift subs, YouTube gifted memberships and Kick gifted subs fire torpedoes: <span id="c-gift">600</span> damage each.</p></div>
+</div>
+<p class="st-hint">Chat has to <b>!join</b> to take part (cheering or gifting joins automatically). At 50% hull the boss raises shields for 8 seconds (!fire is halved); at 20% it is enraged. Every 15 seconds it knocks a few pilots out for 10 seconds. Victory pays <b>the same points to every pilot who fought</b>, paid from <a href="Voyager_Missions.html">Missions › Points owed</a>. Support only changes damage, never rewards.</p>
+</section>
+</div>
+<div class="dn-side">
+<section class="card dn-card">
+<div class="card-heading"><div><span class="eyebrow">SETTINGS</span><h2>The fight</h2></div></div>
+<form id="settings" class="dn-form" autocomplete="off">
+<label class="wide">Boss name<input name="name" maxlength="40"></label>
+<label>Boarding time (seconds)<input name="lobbySeconds" type="number" min="10" max="300"></label>
+<label>Battle time (seconds)<input name="battleSeconds" type="number" min="60" max="900"></label>
+<label>Base hull<input name="baseHp" type="number" min="500" max="1000000"></label>
+<label>Extra hull per pilot<input name="hpPerPilot" type="number" min="0" max="100000"></label>
+<label>!fire damage, least<input name="fireMin" type="number" min="1" max="1000"></label>
+<label>!fire damage, most<input name="fireMax" type="number" min="1" max="2000"></label>
+<label>!fire cooldown (seconds)<input name="fireCooldown" type="number" min="1" max="60"></label>
+<label>Damage per bit<input name="bitDamage" type="number" min="0" max="100" step="0.1"></label>
+<label>Damage per gifted sub<input name="giftDamage" type="number" min="0" max="100000"></label>
+<label>Victory points (each pilot)<input name="victoryPoints" type="number" min="0" max="1000000"></label>
+<label class="check"><input type="checkbox" name="chatCall"> Moderators and you can call it from chat with <b>!dreadnought</b></label>
+<label class="check"><input type="checkbox" name="announce"> Post fight updates in chat</label>
+<div class="st-actions wide"><button type="submit" class="primary">Save settings</button></div>
+</form>
+</section>
+<section class="card dn-card">
+<span class="eyebrow">OBS</span>
+<p class="st-hint">Add a <b>Browser</b> source, 1920 × 1080, with this address (leave "Local file" unticked). It is invisible until a fight starts. Add <code>&amp;backdrop=0</code> to drop the space background.</p>
+<div class="cs-url"><code id="obs-url"></code><button type="button" id="obs-copy">Copy</button></div>
+</section>
+<section class="card dn-card">
+<span class="eyebrow">STREAMER.BOT</span>
+<ul class="dn-check" id="checklist"></ul>
+<p class="st-hint"><a href="DREADNOUGHT_SETUP.html">Setup guide ↗</a></p>
+</section>
+<section class="card dn-card"><span class="eyebrow">RECENT FIGHTS</span><ul class="dn-history" id="history"></ul></section>
+</div>
+</div>
+</main>
+</div>
+<script src="dreadnought.js?v=2.17"></script>
+<script src="voyager-shell.js?v=2.17"></script>
+<script src="voyager-navigation.js"></script>
+</body>
+</html>

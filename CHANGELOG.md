@@ -2,6 +2,18 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.17.0 (31 October 2026)
+
+**Voyager Dreadnought**: a chat co-op boss fight. **One Streamer.bot change:** create the **Voyager - Dreadnought** action from `Voyager_Dreadnought.cs` and add its commands and triggers (see `DREADNOUGHT_SETUP.html`).
+
+- **You call it** from **Voyager Control › Voyager Dreadnought** (or a moderator types `!dreadnought`). Chat has a boarding countdown to type **`!join`**; only pilots who join can attack.
+- **`!fire`** is free: lasers for 12–22 damage every 4 seconds, with the odd critical hit. **Cheers and YouTube Super Chats** fire missile barrages (2.5 damage per bit). **Gifted subs** on Twitch, YouTube and Kick fire torpedoes, the biggest hits (600 each). Cheering or gifting joins the fleet automatically.
+- The boss raises **shields at 50%** (`!fire` halved for 8 seconds), becomes **enraged at 20%**, and knocks pilots out for 10 seconds every 15 seconds. Destroy it before the clock runs out (3 minutes by default) or it escapes.
+- **OBS overlay** `http://127.0.0.1:8740/dreadnought.html` in the Voyager Versus style: the same 3D ships and hull materials, a Dreadnought capital ship with shields, lasers, missiles, torpedoes, a hull bar, timer, fleet leaderboard, battle feed and a victory or escape screen. It is invisible between fights.
+- **Rewards:** victory pays the **same** points (100 by default) to every pilot who fought, through **Missions › Points owed**. Paid support only changes damage, never rewards, and never gives giveaway tickets.
+- **Preview (simulated chat)** shows a full fight without posting in chat or paying anyone. Every setting (hull, damage, timings, rewards, boss name) is on the page.
+- Fight updates post to Twitch, YouTube and Kick chat through the new action. Voyager Versus is paused while a fight is on.
+
 ## 2.16.1 (31 October 2026)
 
 Subscriber rewards now follow your Currency System's own points. **No Streamer.bot changes.**

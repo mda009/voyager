@@ -19,6 +19,7 @@ const PAGES=[
  {file:'Voyager_Ticket_Giveaway.html',label:'Ticketed giveaway',ico:'◇',group:'Live',side:false,keys:'ticket tickets watchtime weighted giveaway',help:'TICKET_GIVEAWAY_SETUP.html'},
  {file:'Voyager_Entrant_Board.html',label:'Entrant board',ico:'☷',group:'Live',side:false,keys:'entrants board list giveaway'},
  {file:'Voyager_Versus.html',label:'Voyager Versus',ico:'⚔',group:'Live',keys:'versus battle pilots fleet game',help:'VERSUS_SETUP.html'},
+ {file:'Voyager_Dreadnought.html',label:'Voyager Dreadnought',ico:'☄',group:'Live',live:true,keys:'dreadnought boss fight raid co-op chat game fire join',help:'DREADNOUGHT_SETUP.html'},
  {file:'Voyager_Fleet_Control.html',label:'Support alerts',ico:'✧',group:'Live',keys:'support alerts fleet follow subscription raid bits',help:'FLEET_ALERTS_SETUP.html'},
  {file:'Voyager_Banner_Control.html',label:'Stream banner',ico:'▰',group:'Live',keys:'banner message ticker',help:'BANNER_SETUP.html'},
  {file:'Voyager_Command_Center.html',page:'live',label:'Live dashboard',ico:'◉',group:'Live',keys:'live dashboard audiences viewers obs strip',help:'DASHBOARD_PAGES_SETUP.html'},
@@ -39,7 +40,7 @@ const GUIDES=[
  ['FLEET_ALERTS_SETUP.html','Support alerts setup'],['BANNER_SETUP.html','Stream banner setup'],['SECURITY_SETUP.html','Security setup'],
  ['COMMAND_CENTER_SETUP.html','Command center setup'],['LEADERBOARD_PANEL_SETUP.html','Leaderboard panel setup'],['BUCKET_OVERLAY_SETUP.html','OBS progress strip setup'],
  ['TWITCH_ANALYTICS_SETUP.html','Twitch analytics setup'],['EXTERNAL_ANALYTICS_SETUP.html','External analytics'],['NATIVE_COMMUNITY_SETUP.html','Native community setup'],
- ['BRAND_REFRESH_SETUP.html','Stream branding & preview']
+ ['BRAND_REFRESH_SETUP.html','Stream branding & preview'],['DREADNOUGHT_SETUP.html','Voyager Dreadnought setup']
 ];
 const canonical=new Set([...PAGES.map(p=>p.file),'START_HERE.html','COMMAND_CENTER_SETUP.html','Voyager_Settings.html']);
 const hrefOf=p=>{let h=p.file+(p.page?'?page='+p.page:'');if(demo&&!/SETUP|START_HERE|Guide|Settings/.test(p.file))h+=(h.includes('?')?'&':'?')+'demo=1';return h;};

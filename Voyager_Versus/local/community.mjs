@@ -85,7 +85,7 @@ export function normalizeGoals(raw){
 const onPlatform=(want,platform)=>!want||want==='all'||want===platform;
 
 export class Community{
-  constructor({dataDir,now=Date.now}){this.dataDir=dataDir;this.now=now;this.state=this.fresh();this.saving=Promise.resolve();this.pilots=()=>[];}
+  constructor({dataDir,now=Date.now}){this.dataDir=dataDir;this.now=now;this.state=this.fresh();this.saving=Promise.resolve();this.pilots=()=>[];this.boss=()=>[];}
   fresh(){
     const now=this.now();
     return {schema:1,missions:normalizeMissions([...DEFAULT_MISSIONS,...SUB_MISSIONS]),subSeeded:true,rewards2161:true,members:{},support:{},supportAt:0,
@@ -115,6 +115,7 @@ export class Community{
   }
   persist(){const data=JSON.stringify(this.state),tmp=join(this.dataDir,FILE+'.tmp');this.saving=this.saving.then(async()=>{await writeFile(tmp,data);await rename(tmp,join(this.dataDir,FILE));}).catch(()=>{});return this.saving;}
   setPilots(fn){this.pilots=fn;}
+  setBoss(fn){this.boss=fn;}
 
   // Called with the points ledger members (from the publisher page) about once a minute.
   receive(list){
@@ -204,6 +205,12 @@ export class Community{
       [s.season.startedAt,this.goalCompletions(),'season',s.season.name],[s.previousSeason?.id,s.previousSeason?.completions||[],'season',s.previousSeason?.name||'last season']]){
       if(!week)continue;
       for(const c of list){if(!c.reward)continue;const k=this.payKey(week,c.missionId,c.key);rows.push({...c,week,scope,label,payable:!!c.key&&c.account!==false,status:s.payouts[k]?.status||'owed',paidAt:s.payouts[k]?.at||0,note:s.payouts[k]?.note||''});}
+    }
+    // Voyager Dreadnought victories (2.17): the same points for every pilot who fought.
+    let batches=[];try{batches=this.boss()||[];}catch{}
+    for(const b of batches)for(const p of b.pilots||[]){
+      const key=clean(p.key,120);if(!key)continue;const k=this.payKey(b.id,'boss',key);
+      rows.push({missionId:'boss',title:b.title,reward:b.reward,key,name:s.members[key]?.name||p.name,platform:p.platform,week:b.id,scope:'boss',label:'Dreadnought',payable:!!s.members[key],status:s.payouts[k]?.status||'owed',paidAt:s.payouts[k]?.at||0,note:s.payouts[k]?.note||''});
     }
     return rows;
   }

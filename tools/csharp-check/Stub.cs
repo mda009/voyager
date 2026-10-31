@@ -3,7 +3,7 @@
 using System;
 using System.Collections.Generic;
 
-public enum FakeEventType { Unknown, CommandTriggered }
+public enum FakeEventType { Unknown, CommandTriggered, TwitchCheer, TwitchGiftSub, TwitchGiftBomb, KickMassGiftSubscription }
 public class FakeGroupUser { public string Id, Login, Username, Type; }
 public class FakeTwitchUser { public string ProfileImageUrl = ""; }
 public class FakeCph

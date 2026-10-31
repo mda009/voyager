@@ -114,7 +114,23 @@ public static class Program
         Check(support != null && support.Any(r => (string)r["key"] == "twitch:111" && (long)r["months"] == 7), "twitch months included");
         sc.Args = new System.Collections.Generic.Dictionary<string, object> { ["requestId"] = "r2" };
         stats.Execute(); Check(JObject.Parse(sc.Broadcasts.Last())["support"] == null, "support is only sent when asked for");
-        Console.WriteLine(failures == 0 ? "::notice title=Streamer.bot actions::Compiled; all " + checks + " Giveaway Engine and Stream Stats checks passed." : "::error title=Streamer.bot actions::" + failures + " of " + checks + " checks failed.");
+        // Voyager Dreadnought v1: chat and support events for the boss fight.
+        var boss = new CPHInline_3(); var bc = boss.CPH;
+        Func<System.Collections.Generic.Dictionary<string, object>, FakeEventType, JObject> fireEvent = (args, type) => { bc.Broadcasts.Clear(); bc.Args = args; bc.EventType = type; boss.Execute(); return bc.Broadcasts.Count == 0 ? null : JObject.Parse(bc.Broadcasts.Last()); };
+        var j = fireEvent(new System.Collections.Generic.Dictionary<string, object> { ["command"] = "!join", ["commandSource"] = "kick", ["userId"] = "k9", ["userName"] = "orion", ["user"] = "Orion" }, FakeEventType.CommandTriggered);
+        Check(j != null && (string)j["type"] == "voyager.boss.event" && (string)j["kind"] == "join" && (string)j["platform"] == "kick" && (string)j["userId"] == "k9", "!join becomes a join event");
+        var cheer = fireEvent(new System.Collections.Generic.Dictionary<string, object> { ["bits"] = "250", ["userId"] = "t1", ["userName"] = "nova", ["user"] = "Nova" }, FakeEventType.TwitchCheer);
+        Check(cheer != null && (string)cheer["kind"] == "bits" && (long)cheer["amount"] == 250, "cheer carries its bits");
+        Check(fireEvent(new System.Collections.Generic.Dictionary<string, object> { ["fromSubBomb"] = "True", ["userId"] = "t1" }, FakeEventType.TwitchGiftSub) == null, "gift bomb children are not counted twice");
+        var bomb = fireEvent(new System.Collections.Generic.Dictionary<string, object> { ["gifts"] = "5", ["anonymous"] = "True", ["userId"] = "t1", ["user"] = "Nova" }, FakeEventType.TwitchGiftBomb);
+        Check(bomb != null && (long)bomb["amount"] == 5 && (string)bomb["name"] == "Anonymous" && (string)bomb["userId"] == "", "anonymous gift bomb");
+        var mass = fireEvent(new System.Collections.Generic.Dictionary<string, object> { ["count"] = "2", ["subscribedAt"] = "2026-10-31T00:00:00Z", ["recipient.0.userId"] = "a", ["recipient.1.userId"] = "b", ["userId"] = "k9", ["user"] = "Orion" }, FakeEventType.KickMassGiftSubscription);
+        Check(mass != null && ((JArray)mass["receipts"]).Count == 2, "Kick mass gift sends recipient receipts");
+        Check(fireEvent(new System.Collections.Generic.Dictionary<string, object> { ["command"] = "!dance", ["commandSource"] = "twitch", ["userId"] = "t1" }, FakeEventType.CommandTriggered) == null, "other commands are ignored");
+        bc.Chat.Clear(); fireEvent(new System.Collections.Generic.Dictionary<string, object> { ["bossSay"] = "Dreadnought incoming" }, FakeEventType.Unknown);
+        Check(bc.Chat.Contains("twitch:Dreadnought incoming") && bc.Chat.Contains("kick:Dreadnought incoming"), "bossSay posts to chat");
+
+        Console.WriteLine(failures == 0 ? "::notice title=Streamer.bot actions::Compiled; all " + checks + " Giveaway Engine, Stream Stats and Dreadnought checks passed." : "::error title=Streamer.bot actions::" + failures + " of " + checks + " checks failed.");
         return failures == 0 ? 0 : 1;
     }
     static JObject State(FakeCph cph) { return JObject.Parse(cph.GetGlobalVar<string>("VoyagerGiveawayStateV1")); }
