@@ -63,6 +63,16 @@ export class Cards{
   member(key){const m=this.state.members;if(!m[key]){m[key]={};const keys=Object.keys(m);if(keys.length>50000)delete m[keys[0]];}return m[key];}
 
   // ---------- events from the "Voyager - Membership Card" action ----------
+  // Twitch chat seen directly by Voyager (fallback when the Streamer.bot action can't be reached): tier and points from the
+  // Points Ledger members Voyager already has.
+  fromChat(chat){
+    const key='twitch:'+clean(chat.userId,128),m=this.community()?.state?.members?.[key];
+    const balances=Object.values(this.community()?.state?.members||{}).filter(x=>!BUCKETS.has(x.login)&&Number.isFinite(x.balance));
+    const points=Number.isFinite(m?.balance)?m.balance:-1;
+    return {type:'voyager.card.event',v:1,kind:'card',platform:'twitch',userId:chat.userId,login:chat.login,name:chat.name,tier:m?.tier||this.state.members[key]?.tier||'blue',
+      points,rank:points>=0?balances.filter(x=>x.balance>points).length+1:0,members:balances.length,input:clean(String(chat.text).trim().replace(/^!voyager\b/i,''),80)};
+  }
+  requestedSince(key,at){return (this.requests?.get(key)?.at||0)>=at;}
   receive(ev){
     if(!ev||ev.type!=='voyager.card.event'||ev.v!==1)return null;
     const platform=clean(ev.platform,10).toLowerCase();if(!PLATFORM[platform])return null;
@@ -72,7 +82,14 @@ export class Cards{
     if(!key||!KEY.test(key)||!this.state.settings.enabled)return null;
     const who={key,platform,login,name,tier,points:num(ev.points),rank:num(ev.rank),members:num(ev.members),hasPoints:num(ev.points)>=0};
     if(ev.kind==='tierup')return this.tierUp(who);
-    if(ev.kind==='card')return this.command(who,clean(ev.input,80));
+    if(ev.kind==='card'){
+      // The same !voyager can arrive twice (Streamer.bot trigger and Voyager's own chat fallback): use the first.
+      const sig=who.key+'|'+clean(ev.input,80).toLowerCase(),now=this.now();
+      this.requests||=new Map();const prev=this.requests.get(who.key);
+      if(prev&&prev.sig===sig&&now-prev.at<8000)return null;
+      this.requests.set(who.key,{sig,at:now});if(this.requests.size>500)this.requests.delete(this.requests.keys().next().value);
+      return this.command(who,clean(ev.input,80));
+    }
     return null;
   }
   findKey(platform,login){

@@ -86,3 +86,13 @@ test('Naval ranks: lifetime points brackets, leaderboard gates for flag ranks, a
   assert.match(cards.tickChat(),/Promotions: V4 is now Captain · V5 is now Lieutenant/);
   assert.throws(()=>cards.configure({rankPoints:[0,5,4,6,7,8,9,10,11,12,13,14]}),/go up/);
 });
+
+test('!voyager straight from Twitch chat: tier and points from the Points Ledger, and a duplicate from Streamer.bot is ignored',async()=>{
+  const {cards}=await make();
+  cards.community().state.members['twitch:1'].tier='gold';
+  const ev=cards.fromChat({userId:'1',login:'nova',name:'Nova',text:'!voyager stats'});
+  assert.equal(ev.tier,'gold');assert.equal(ev.points,1450);assert.equal(ev.rank,1);assert.equal(ev.input,'stats');
+  const item=cards.receive(ev);assert.equal(item.card.tier,'gold');assert.equal(item.card.v.stats,'block');
+  assert.ok(cards.requestedSince('twitch:1',0));
+  assert.equal(cards.receive({...ev,tier:'gold'}),null,'the same request from the Streamer.bot trigger shows once');
+});

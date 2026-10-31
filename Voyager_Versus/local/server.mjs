@@ -98,6 +98,15 @@ const bot=new StreamerBot({onCards:ev=>{cards.receive(ev);},onMedals:ev=>{if(ev.
   // Dreadnought (2.20.3): Twitch !join and !fire also work straight from chat, so a missing Streamer.bot command trigger
   // can't stop the fight. The action's copy of the same message is ignored (already boarded / !fire cooldown).
   const word=chat.text.trim().toLowerCase().split(/\s+/)[0];
+  // Membership card (2.20.4): Twitch !voyager also asks the "Voyager - Membership Card" action directly (it reads the tier
+  // groups and points); if that action can't be reached, Voyager builds the card from the Points Ledger data it has.
+  if(word==='!voyager'){
+    void (async()=>{let sent=false;try{sent=await runAction('Voyager - Membership Card',{command:'!voyager',commandSource:'twitch',userId:chat.userId,userName:chat.login,user:chat.name,rawInput:chat.text.trim().replace(/^!voyager\b/i,'').trim()});}catch{}
+      const started=Date.now();if(sent)await new Promise(r=>setTimeout(r,3000));
+      // No card event from the action within 3 seconds (not installed, or failing): show the card from Voyager's own data.
+      if(!sent||!cards.requestedSince('twitch:'+chat.userId,started))try{cards.receive(cards.fromChat(chat));}catch(e){console.warn('Membership card: '+e.message);}})();
+    return;
+  }
   if(boss.active()&&(word==='!join'||word==='!fire')){try{boss.receive({kind:word.slice(1),platform:'twitch',userId:chat.userId,login:chat.login,name:chat.name,direct:true});}catch{}return;}
   if(boss.busy()&&/^!versus\b/i.test(chat.text.trim())){const now=Date.now(),last=failures.get(chat.login)||0;if(now-last>4000){game.note(`${chat.name}: Voyager Versus is paused while the Dreadnought fight is on.`,'system');failures.set(chat.login,now);}return;}
   let result;try{result=game.command(chat);}catch{game.paused=true;game.note('Cannot save battle cooldown or stream entries. Check host storage and restart.');return;}

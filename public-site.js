@@ -91,7 +91,7 @@ async function send(){
 let lastMembers='';
 async function sendMembers(){
   const users=states.points?.users;if(!Array.isArray(users)||!users.length)return;
-  const members=users.filter(u=>u&&u.key&&u.pointsFresh!==false).map(u=>({key:u.key,name:u.name||u.login||'',login:u.login||'',capturedIn:Number.isFinite(Number(u.capturedIn))?Number(u.capturedIn):null,points:Number.isFinite(Number(u.points))?Number(u.points):null}));
+  const members=users.filter(u=>u&&u.key&&u.pointsFresh!==false).map(u=>({key:u.key,name:u.name||u.login||'',login:u.login||'',capturedIn:Number.isFinite(Number(u.capturedIn))?Number(u.capturedIn):null,points:Number.isFinite(Number(u.points))?Number(u.points):null,tier:typeof u.tier==='string'?u.tier:''}));
   const json=JSON.stringify(members);if(json===lastMembers&&Date.now()-(sendMembers.at||0)<300000)return;
   try{await api('/api/community/members',{members});lastMembers=json;sendMembers.at=Date.now();}catch{}
 }

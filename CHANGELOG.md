@@ -2,6 +2,14 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.4 (31 October 2026)
+
+**Fix: `!voyager` didn't show the card when the Streamer.bot command wasn't reaching the new action.**
+
+- Voyager now reads Twitch `!voyager` straight from chat and asks the **Voyager - Membership Card** action for the viewer's tier and points. If that action isn't installed, isn't found or doesn't answer within 3 seconds, Voyager shows the card from its own Points Ledger data (tier, balance, leaderboard place). A request that arrives both ways shows once.
+- The Public website publisher now passes each member's tier to Voyager for that.
+- YouTube and Kick `!voyager` still go through the Streamer.bot command trigger.
+
 ## 2.20.3 (31 October 2026)
 
 **Dreadnought fixes.**
