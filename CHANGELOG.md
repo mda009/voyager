@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.1 (31 October 2026)
+
+**Fix: Voyager - Medals did not compile in Streamer.bot** (CS0012 "ITypedList / IBindingList / INotifyCollectionChanged ... add a reference to System"). `Voyager_Medals.cs` is now v1.1: it reads Fleet Alerts history and giveaway winners with plain loops, so it compiles with Streamer.bot's default references. Paste the new file into the action's Execute C# Code and Save and Compile. A new check stops this from coming back in the Medals, Membership Card and Dreadnought actions.
+
 ## 2.20.0 (31 October 2026)
 
 **Naval ranks** on the membership card. **No new Streamer.bot steps** beyond 2.19's Voyager - Membership Card. Updating from 2.16? Follow `UPDATE_2.20_SETUP.html` (Help › Updating to 2.20), which covers 2.17 to 2.20 in one pass.

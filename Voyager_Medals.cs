@@ -1,4 +1,4 @@
-// Voyager Medals v1 - data for Voyager's medal system (Voyager 2.18) and the !medals chat command.
+// Voyager Medals v1.1 - data for Voyager's medal system (Voyager 2.18) and the !medals chat command.
 // Action name: Voyager - Medals. One Core > C# > Execute C# Code sub-action (this whole file). Untick Concurrent.
 // Trigger: Core > Commands > Command Triggered: !medals (Permitted: Everyone; Twitch, YouTube and Kick sources).
 // The Voyager host runs this action about once a minute (medalExport=1). It only READS:
@@ -99,8 +99,10 @@ public class CPHInline
                 JArray history = s["history"] as JArray;
                 if (history != null)
                 {
-                    foreach (JObject e in history.OfType<JObject>())
+                    // Index loops, not LINQ: LINQ over a JArray needs an extra System.dll reference in Streamer.bot.
+                    for (int h = 0; h < history.Count; h++)
                     {
+                        JObject e = history[h] as JObject; if (e == null) continue;
                         if ((bool?)e["test"] == true) continue;
                         long at = L(e["receivedAt"]);
                         if (at < since - 600000L) continue;
@@ -126,8 +128,9 @@ public class CPHInline
                 JArray audit = JObject.Parse(raw)["audit"] as JArray;
                 if (audit != null)
                 {
-                    foreach (JObject d in audit.OfType<JObject>())
+                    for (int a = 0; a < audit.Count; a++)
                     {
+                        JObject d = audit[a] as JObject; if (d == null) continue;
                         if ((string)d["status"] != "confirmed") continue;
                         JObject w = d["winner"] as JObject; if (w == null) continue;
                         long at = L(d["confirmedAt"]); if (at == 0) at = L(d["at"]);
@@ -179,4 +182,4 @@ public class CPHInline
     private bool Flag(string key) { bool value; return Boolean.TryParse(Read(key), out value) && value; }
     private string Read(string key) { object value; return CPH.TryGetArg<object>(key, out value) && value != null ? Convert.ToString(value, CultureInfo.InvariantCulture) : ""; }
 }
-// End of Voyager Medals v1.
+// End of Voyager Medals v1.1.
