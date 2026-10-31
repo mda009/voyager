@@ -2,6 +2,15 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.8 (31 October 2026)
+
+**Kick (and YouTube) chat now reach Voyager directly.**
+
+- Voyager used to hear only Twitch chat itself; Kick and YouTube only worked if a Streamer.bot command trigger forwarded them. It now also subscribes to Streamer.bot's **Kick ChatMessage** and **YouTube Message** events, so `!join`, `!fire`, `!voyager` (with `stats`, `badges`, `title`, `private`) and `!medals` work from Kick and YouTube chat even without the command triggers. Voyager Versus stays Twitch-only.
+- A message that also arrives through a command trigger is only acted on once.
+- The Dreadnought and Membership cards checklists show whether Kick/YouTube chat has been seen, and say so if Streamer.bot refuses those events (older Streamer.bot).
+- Chat replies to Kick still go out through Streamer.bot's Kick connection (Platforms › Kick must be connected with a bot or broadcaster account).
+
 ## 2.20.7 (31 October 2026)
 
 **Dreadnought: smoother animation and a pay-out button.**

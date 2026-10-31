@@ -62,3 +62,15 @@ test('Stream-online parser accepts dated Twitch streams and ignores tests, guest
  assert.equal(parseStreamOnline({...event,event:{source:'Kick',type:'StreamOnline'}}),null);
  const streams=[],b=new StreamerBot({WebSocketImpl:FakeSocket,onStreamOnline:e=>streams.push(e)});b.connect({url:'ws://localhost:8080'});const w=FakeSocket.all.at(-1);w.receive(event);assert.equal(streams.length,0);w.receive({request:'Hello'});w.receive({id:'vv-subscribe',status:'ok'});w.receive(event);assert.equal(streams.length,1);b.disconnect();
 });
+
+test('Kick and YouTube chat are read from Streamer.bot events (2.20.8)',async()=>{
+  const {parseOtherChat}=await import('../local/streamerbot.mjs');
+  const kick=parseOtherChat({event:{source:'Kick',type:'ChatMessage'},data:{user:{id:'123',login:'vex',name:'Vex'},text:'!join',messageId:'k1'}});
+  assert.deepEqual([kick.platform,kick.userId,kick.login,kick.text],['kick','123','vex','!join']);
+  const nested=parseOtherChat({event:{source:'Kick',type:'ChatMessage'},data:{message:{id:'k2',content:'!voyager stats',sender:{id:'9',username:'Orion'}}}});
+  assert.deepEqual([nested.userId,nested.login,nested.text],['9','orion','!voyager stats']);
+  const yt=parseOtherChat({event:{source:'YouTube',type:'Message'},data:{user:{id:'UC1',name:'Lyra'},message:'!fire'}});
+  assert.deepEqual([yt.platform,yt.userId,yt.text],['youtube','UC1','!fire']);
+  assert.equal(parseOtherChat({event:{source:'Twitch',type:'ChatMessage'},data:{}}),null);
+  assert.equal(parseOtherChat({event:{source:'Kick',type:'Follow'},data:{user:{id:'1'}}}),null);
+});

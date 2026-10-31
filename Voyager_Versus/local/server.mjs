@@ -97,10 +97,24 @@ async function medalSync(){
   if(!bot.status.connected)return;
   try{medalsAction={found:await runAction('Voyager - Medals',{medalExport:'1',since:String(medals.exportSince()),requestId:'medals-'+Date.now()}),at:Date.now()};}catch{}
 }
+// !voyager straight from chat (any platform): ask the Membership Card action (tier groups and points), and fall back to
+// Voyager's own Points Ledger data if it doesn't answer within 3 seconds.
+function voyagerCommand(chat){
+  void (async()=>{let sent=false;const started=Date.now(),key=chat.platform+':'+(chat.userId||'@'+chat.login);
+    try{sent=await runAction('Voyager - Membership Card',{command:'!voyager',commandSource:chat.platform,userType:chat.platform,userId:chat.userId,userName:chat.login,user:chat.name,rawInput:chat.text.trim().replace(/^!voyager\b/i,'').trim()});}catch{}
+    if(sent)await new Promise(r=>setTimeout(r,3000));
+    if(!sent||!cards.requestedSince(key,started))try{cards.receive(cards.fromChat(chat));}catch(e){console.warn('Membership card: '+e.message);}})();
+}
 function medalTick(){try{if(community)medals.observeCommunity(community);medals.observePilots(savedRankings||[]);medals.evaluate();}catch(e){console.warn('Medals: '+e.message);}}
 function rankTick(){try{cards.tickRanks();}catch(e){console.warn('Ranks: '+e.message);}}
 const boss=await new BossFight({dataDir,say:text=>{void bossSay(text);},onResult:r=>medals.observeBoss(r)}).load();
-const bot=new StreamerBot({onCards:ev=>{cards.receive(ev);},onMedals:ev=>{if(ev.type==='voyager.medals.data')medals.ingestExport(ev);else medals.command(ev);},onBoss:ev=>{
+const bot=new StreamerBot({onOtherChat:chat=>{
+  // Kick and YouTube (2.20.8): same direct commands as Twitch, except Voyager Versus (Twitch only).
+  const word=chat.text.trim().toLowerCase().split(/\s+/)[0];
+  if(word==='!voyager'){voyagerCommand(chat);return;}
+  if(word==='!medals'){try{medals.command({kind:'medals',platform:chat.platform,userId:chat.userId,login:chat.login,name:chat.name});}catch{}return;}
+  if(boss.active()&&(word==='!join'||word==='!fire')){try{boss.receive({kind:word.slice(1),platform:chat.platform,userId:chat.userId,login:chat.login,name:chat.name,direct:true});}catch{}}
+},onCards:ev=>{cards.receive(ev);},onMedals:ev=>{if(ev.type==='voyager.medals.data')medals.ingestExport(ev);else medals.command(ev);},onBoss:ev=>{
   if(ev.kind==='call'&&!['lobby','result'].includes(game.phase)){game.note('Finish the Versus battle before calling the Dreadnought.','system');return;}
   boss.receive(ev);
 },onChat:chat=>{
@@ -110,13 +124,7 @@ const bot=new StreamerBot({onCards:ev=>{cards.receive(ev);},onMedals:ev=>{if(ev.
   const word=chat.text.trim().toLowerCase().split(/\s+/)[0];
   // Membership card (2.20.4): Twitch !voyager also asks the "Voyager - Membership Card" action directly (it reads the tier
   // groups and points); if that action can't be reached, Voyager builds the card from the Points Ledger data it has.
-  if(word==='!voyager'){
-    void (async()=>{let sent=false;try{sent=await runAction('Voyager - Membership Card',{command:'!voyager',commandSource:'twitch',userId:chat.userId,userName:chat.login,user:chat.name,rawInput:chat.text.trim().replace(/^!voyager\b/i,'').trim()});}catch{}
-      const started=Date.now();if(sent)await new Promise(r=>setTimeout(r,3000));
-      // No card event from the action within 3 seconds (not installed, or failing): show the card from Voyager's own data.
-      if(!sent||!cards.requestedSince('twitch:'+chat.userId,started))try{cards.receive(cards.fromChat(chat));}catch(e){console.warn('Membership card: '+e.message);}})();
-    return;
-  }
+  if(word==='!voyager'){voyagerCommand({...chat,platform:'twitch'});return;}
   if(boss.active()&&(word==='!join'||word==='!fire')){try{boss.receive({kind:word.slice(1),platform:'twitch',userId:chat.userId,login:chat.login,name:chat.name,direct:true});}catch{}return;}
   if(boss.busy()&&/^!versus\b/i.test(chat.text.trim())){const now=Date.now(),last=failures.get(chat.login)||0;if(now-last>4000){game.note(`${chat.name}: Voyager Versus is paused while the Dreadnought fight is on.`,'system');failures.set(chat.login,now);}return;}
   let result;try{result=game.command(chat);}catch{game.paused=true;game.note('Cannot save battle cooldown or stream entries. Check host storage and restart.');return;}
@@ -218,7 +226,7 @@ const server=http.createServer(async(req,res)=>{
     if(url.pathname==='/api/cards/overlay'&&req.method==='GET'){res.setHeader('Cache-Control','no-store');response(res,200,cards.overlay());return;}
     if(url.pathname.startsWith('/api/cards')){
       if(!validToken(req)){response(res,403,{message:'Open Voyager Control › Membership cards.'});return;}
-      if(url.pathname==='/api/cards'&&req.method==='GET'){response(res,200,{...cards.view(),connected:bot.status.connected,action:await actionStatus('Voyager - Membership Card'),lastChatAt});return;}
+      if(url.pathname==='/api/cards'&&req.method==='GET'){response(res,200,{...cards.view(),connected:bot.status.connected,action:await actionStatus('Voyager - Membership Card'),lastChatAt,otherChat:bot.otherChat});return;}
       if(req.method!=='POST'||!req.headers['content-type']?.startsWith('application/json')){response(res,405,{message:'Method not allowed.'});return;}
       try{
         const input=await body(req,65536);
@@ -245,7 +253,7 @@ const server=http.createServer(async(req,res)=>{
     if(url.pathname==='/api/boss/overlay'&&req.method==='GET'){res.setHeader('Cache-Control','no-store');response(res,200,boss.overlay());return;}
     if(url.pathname.startsWith('/api/boss')){
       if(!validToken(req)){response(res,403,{message:'Open Voyager Control to run the Dreadnought.'});return;}
-      if(url.pathname==='/api/boss'&&req.method==='GET'){response(res,200,{...boss.view(),connected:bot.status.connected,action:await actionStatus('Voyager - Dreadnought'),lastChatAt});return;}
+      if(url.pathname==='/api/boss'&&req.method==='GET'){response(res,200,{...boss.view(),connected:bot.status.connected,action:await actionStatus('Voyager - Dreadnought'),lastChatAt,otherChat:bot.otherChat});return;}
       if(url.pathname==='/api/boss/control'&&req.method==='POST'){
         if(!req.headers['content-type']?.startsWith('application/json')){response(res,403,{message:'Invalid request.'});return;}
         const {action,value}=await body(req);

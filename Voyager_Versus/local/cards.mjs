@@ -66,10 +66,10 @@ export class Cards{
   // Twitch chat seen directly by Voyager (fallback when the Streamer.bot action can't be reached): tier and points from the
   // Points Ledger members Voyager already has.
   fromChat(chat){
-    const key='twitch:'+clean(chat.userId,128),m=this.community()?.state?.members?.[key];
+    const platform=PLATFORM[chat.platform]?chat.platform:'twitch',key=platform+':'+clean(chat.userId,128),m=this.community()?.state?.members?.[key];
     const balances=Object.values(this.community()?.state?.members||{}).filter(x=>!BUCKETS.has(x.login)&&Number.isFinite(x.balance));
     const points=Number.isFinite(m?.balance)?m.balance:-1;
-    return {type:'voyager.card.event',v:1,kind:'card',platform:'twitch',userId:chat.userId,login:chat.login,name:chat.name,tier:m?.tier||this.state.members[key]?.tier||'blue',
+    return {type:'voyager.card.event',v:1,kind:'card',platform,userId:chat.userId,login:chat.login,name:chat.name,tier:m?.tier||this.state.members[key]?.tier||'blue',
       points,rank:points>=0?balances.filter(x=>x.balance>points).length+1:0,members:balances.length,input:clean(String(chat.text).trim().replace(/^!voyager\b/i,''),80)};
   }
   requestedSince(key,at){return (this.requests?.get(key)?.at||0)>=at;}

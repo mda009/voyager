@@ -31,6 +31,10 @@ function render(){
     [view.connected,view.connected?'Voyager is connected to Streamer.bot':'Voyager is not connected to Streamer.bot: connect it in Voyager Versus › Stream setup'],
     [act==='found',act==='found'?'Found the "Voyager - Dreadnought" action (use Send test message to check it runs)':act==='disabled'?'"Voyager - Dreadnought" is disabled in Streamer.bot: tick Enabled':act==='duplicate'?'There are two enabled "Voyager - Dreadnought" actions: keep one':act==='offline'?'Waiting for Streamer.bot':'No action named exactly "Voyager - Dreadnought": import Voyager_Dreadnought.cs (see the setup guide)'],
     [!!chat,chat?'Voyager can read Twitch chat: !join and !fire work from Twitch even without the commands':'No Twitch chat seen yet (type anything in chat)'],
+    (()=>{const o=view.otherChat||{},recent=t=>t&&Date.now()-t<15*60000;
+      if(o.subscribed===false)return [false,'Streamer.bot refused Kick/YouTube chat events: update Streamer.bot to 1.0 or later, or use the command triggers'];
+      const seen=['kick','youtube'].filter(p=>recent(o[p])).map(p=>p==='kick'?'Kick':'YouTube');
+      return [seen.length?true:null,seen.length?'Voyager can read '+seen.join(' and ')+' chat too: !join, !fire, !voyager and !medals work there directly':'No Kick or YouTube chat seen yet: check Kick/YouTube are connected in Streamer.bot (Platforms), then type in that chat'];})(),
     [!!ev,ev?'Events arriving from the action (last: '+ev.kind+' from '+ev.platform+', '+new Date(ev.at).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'})+')':'No events from the action yet: during a fight, type !join (needed for YouTube, Kick, cheers and gifted subs)'],
     [null,'Add the !join, !fire, !dreadnought commands and the Cheer / Gift Subscription / Gift Bomb · Super Chat / Super Sticker / Membership Gift · Kick Gift / Mass Gift triggers to the action']
   ];

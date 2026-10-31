@@ -20,9 +20,23 @@ export function parseChat(payload){
   if(!login||typeof text!=='string')return null;
   return {userId:String(user?.id||user?.userId||m?.userId||d.userId||''),login:String(login).toLowerCase(),name:String(name),text,messageId:d.messageId||m?.msgId||m?.messageId||null,demo:false};
 }
+// Kick and YouTube chat (2.20.8): read straight from Streamer.bot so !join, !fire, !voyager and !medals work there even
+// when a Streamer.bot command trigger is missing. Field names differ between Streamer.bot builds, so read them defensively.
+export function parseOtherChat(payload){
+  const src=payload?.event?.source,type=payload?.event?.type;
+  const platform=src==='Kick'&&/^Chat(Message)?/.test(type||'')?'kick':src==='YouTube'&&/^(Message|ChatMessage)$/.test(type||'')?'youtube':'';
+  if(!platform)return null;
+  const d=payload.data;if(!d||d.isTest||d.meta?.isTest||d.meta?.internal||d.isInternal)return null;
+  const m=d.message&&typeof d.message==='object'?d.message:null,u=d.user||m?.sender||m?.user||d.sender||{};
+  const text=typeof d.text==='string'?d.text:typeof d.message==='string'?d.message:m?.content??m?.message??m?.text??d.content??null;
+  const id=String(u.id??u.userId??d.userId??m?.userId??''),login=String(u.login??u.username??u.slug??u.userName??d.userName??d.username??u.name??'').replace(/^@/,'').toLowerCase();
+  const name=String(u.name??u.displayName??u.display_name??u.username??d.displayName??login);
+  if(typeof text!=='string'||(!id&&!login))return null;
+  return {platform,userId:id,login,name,text,messageId:d.messageId||m?.id||d.id||null,demo:false};
+}
 export class StreamerBot {
-  constructor({onChat=()=>{},onStatus=()=>{},onStreamOnline=()=>{},onBoss=()=>{},onMedals=()=>{},onCards=()=>{},WebSocketImpl=globalThis.WebSocket,retryMs=3000}={}){
-    this.onStreamOnline=onStreamOnline;this.onBoss=onBoss;this.onMedals=onMedals;this.onCards=onCards;this.rewardResponses=new Map();
+  constructor({onOtherChat=()=>{},onChat=()=>{},onStatus=()=>{},onStreamOnline=()=>{},onBoss=()=>{},onMedals=()=>{},onCards=()=>{},WebSocketImpl=globalThis.WebSocket,retryMs=3000}={}){
+    this.onStreamOnline=onStreamOnline;this.onOtherChat=onOtherChat;this.otherChat={kick:0,youtube:0,subscribed:null};this.onBoss=onBoss;this.onMedals=onMedals;this.onCards=onCards;this.rewardResponses=new Map();
     this.pending=new Map();this.requestSequence=0;this.onChat=onChat;this.onStatus=onStatus;this.WebSocketImpl=WebSocketImpl;this.retryMs=retryMs;this.generation=0;this.socket=null;this.timer=null;this.handshake=null;this.wanted=false;this.seen=new Map();this.status={connected:false,message:'Streamer.bot disconnected'};
   }
   statusUpdate(connected,message){this.status={connected,message};this.onStatus(this.status);}
@@ -54,9 +68,12 @@ export class StreamerBot {
       }
       if(data.id==='vv-subscribe'){
         if(data.status!=='ok'){this.wanted=false;this.statusUpdate(false,'Chat subscription rejected by Streamer.bot.');ws.close();return;}
-        subscribed=true;clearTimeout(this.handshake);this.statusUpdate(true,'Streamer.bot connected · Twitch chat ready');return;
+        subscribed=true;clearTimeout(this.handshake);this.statusUpdate(true,'Streamer.bot connected · Twitch chat ready');
+        // Separate request: an older Streamer.bot that doesn't know these events must not break the Twitch subscription.
+        send({request:'Subscribe',id:'vv-subscribe-chat',events:{Kick:['ChatMessage'],YouTube:['Message']}});return;
       }
       if(!authenticated||!subscribed)return;
+      if(data.id==='vv-subscribe-chat'){this.otherChat.subscribed=data.status==='ok';return;}
       if(data.id&&this.pending.has(data.id)){const p=this.pending.get(data.id);clearTimeout(p.timer);this.pending.delete(data.id);p.resolve(data);return;}
       // C# broadcasts can arrive before the DoAction acknowledgement. Retain only
       // bounded, correlated rewards replies; the dispatcher still verifies IDs.
@@ -75,6 +92,8 @@ export class StreamerBot {
       if(reply?.type==='voyager.card.event'&&reply.v===1){try{this.onCards(reply);}catch{}return;}
       if((reply?.type==='voyager.medals.event'||reply?.type==='voyager.medals.data')&&reply.v===1){try{this.onMedals(reply);}catch{}return;}
       const online=parseStreamOnline(data);if(online){this.onStreamOnline(online);return;}
+      const other=parseOtherChat(data);
+      if(other){if(other.messageId){if(this.seen.has(other.messageId))return;this.seen.set(other.messageId,Date.now());}this.otherChat[other.platform]=Date.now();try{this.onOtherChat(other);}catch{}return;}
       const chat=parseChat(data);if(!chat)return;
       if(chat.messageId){if(this.seen.has(chat.messageId))return;this.seen.set(chat.messageId,Date.now());if(this.seen.size>3000)this.seen.delete(this.seen.keys().next().value);}
       this.onChat(chat);

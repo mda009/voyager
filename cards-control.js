@@ -38,6 +38,10 @@ function render(){
   const checks=[[view.connected,view.connected?'Voyager is connected to Streamer.bot':'Voyager is not connected to Streamer.bot: connect it in Voyager Versus › Stream setup'],
     [act==='found',act==='found'?'Found the "Voyager - Membership Card" action':act==='disabled'?'"Voyager - Membership Card" is disabled in Streamer.bot: tick Enabled':act==='duplicate'?'There are two enabled "Voyager - Membership Card" actions: keep one':act==='offline'?'Waiting for Streamer.bot':'No action named exactly "Voyager - Membership Card": Twitch !voyager still works from Voyager\'s own data'],
     [!!chat,chat?'Voyager can read Twitch chat (!voyager works from Twitch)':'No Twitch chat seen yet (type anything in chat)'],
+    (()=>{const o=view.otherChat||{},recent=t=>t&&Date.now()-t<15*60000;
+      if(o.subscribed===false)return [false,'Streamer.bot refused Kick/YouTube chat events: update Streamer.bot to 1.0 or later, or use the command triggers'];
+      const seen=['kick','youtube'].filter(p=>recent(o[p])).map(p=>p==='kick'?'Kick':'YouTube');
+      return [seen.length?true:null,seen.length?'Voyager can read '+seen.join(' and ')+' chat too: !join, !fire, !voyager and !medals work there directly':'No Kick or YouTube chat seen yet: check Kick/YouTube are connected in Streamer.bot (Platforms), then type in that chat'];})(),
     [!!ev,ev?'Card events arriving from the action (last: '+ev.kind+' from '+ev.platform+')':'No events from the action yet: type !voyager (needed for YouTube, Kick and the tier-up ceremony)'],
     [null,'Disable the old Silver/Gold/Platinum OR Blue "Membership On Screen" actions so the old cards stop showing']];
   const cl=$('checklist');cl.textContent='';for(const [ok,t] of checks)cl.append(el('li',ok===null?'info':ok?'ok':'',t));
