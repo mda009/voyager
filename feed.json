@@ -1,0 +1,459 @@
+{
+ "schema": 1,
+ "generatedAt": 1793464830502,
+ "online": true,
+ "channel": {
+  "name": "MDA009",
+  "tagline": "Explore · Earn · Excel. Giveaways, points and Voyager Versus for the MDA009 community.",
+  "links": {
+   "twitch": "https://www.twitch.tv/mda009",
+   "youtube": "https://www.youtube.com/@MDA009",
+   "kick": "https://kick.com/mda009",
+   "discord": "https://discord.gg/mda009"
+  }
+ },
+ "sections": {
+  "giveaways": true,
+  "winners": true,
+  "goals": true,
+  "points": true,
+  "pilots": true,
+  "versus": true,
+  "program": true,
+  "missions": true,
+  "season": true
+ },
+ "giveaways": [
+  {
+   "id": "t1uvdwzj",
+   "kind": "tickets",
+   "title": "L-21 WOLF LYCAN GAME PACKAGE - LTI COURTESY OF CIG",
+   "status": "drawing",
+   "label": "Winner being drawn on stream",
+   "enter": "",
+   "eligibility": "Viewers on Twitch, YouTube or Kick",
+   "entrants": 269,
+   "tickets": 15868,
+   "startedAt": 1792751203723,
+   "closesAt": null,
+   "winner": null,
+   "fairDraw": null
+  }
+ ],
+ "winners": [
+  {
+   "title": "L-21 WOLF LYCAN GAME PACKAGE - LTI COURTESY OF CIG",
+   "name": "ssixss",
+   "platform": "twitch",
+   "at": 1793463379421,
+   "proof": null
+  },
+  {
+   "title": "FIRST FLIGHT STARTER PACK !ENTER",
+   "name": "northerntechhermit",
+   "platform": "twitch",
+   "at": 1793460601653,
+   "proof": "g91yzy5"
+  },
+  {
+   "title": "RUNIC MONTHLY BUNDLE - !ENTER",
+   "name": "Wirusko84",
+   "platform": "youtube",
+   "at": 1793454000526,
+   "proof": "g1s3ztnz"
+  },
+  {
+   "title": "DAY OF THE VARA PARASITE PACK - !ENTER",
+   "name": "DeimosRus",
+   "platform": "twitch",
+   "at": 1793445755064,
+   "proof": "gyai7gd"
+  },
+  {
+   "title": "STEELTEK BUNDLE",
+   "name": "BunnieBurrow",
+   "platform": "twitch",
+   "at": 1793368847715,
+   "proof": "g33jttw"
+  }
+ ],
+ "goals": [
+  {
+   "key": "silver",
+   "name": "Silver giveaway pool",
+   "points": 15600,
+   "target": 72000
+  },
+  {
+   "key": "gold",
+   "name": "Gold giveaway pool",
+   "points": 31850,
+   "target": 120000
+  },
+  {
+   "key": "platinum",
+   "name": "Platinum giveaway pool",
+   "points": 51000,
+   "target": 200000
+  }
+ ],
+ "leaderboards": {
+  "points": [
+   {
+    "rank": 1,
+    "name": "beardstax1984",
+    "platform": "twitch",
+    "value": 31689
+   },
+   {
+    "rank": 2,
+    "name": "Nate10250",
+    "platform": "twitch",
+    "value": 23511
+   },
+   {
+    "rank": 3,
+    "name": "cabbofragestef",
+    "platform": "twitch",
+    "value": 14148
+   },
+   {
+    "rank": 4,
+    "name": "acey77",
+    "platform": "twitch",
+    "value": 11820
+   },
+   {
+    "rank": 5,
+    "name": "DarthSpawn501st",
+    "platform": "twitch",
+    "value": 9867
+   },
+   {
+    "rank": 6,
+    "name": "tgbudzzz",
+    "platform": "twitch",
+    "value": 9215
+   },
+   {
+    "rank": 7,
+    "name": "CMDRSpaceRooster",
+    "platform": "twitch",
+    "value": 8935
+   },
+   {
+    "rank": 8,
+    "name": "respectfuljohn",
+    "platform": "twitch",
+    "value": 8085
+   },
+   {
+    "rank": 9,
+    "name": "temper25",
+    "platform": "twitch",
+    "value": 7971
+   },
+   {
+    "rank": 10,
+    "name": "Mac_1701",
+    "platform": "twitch",
+    "value": 7950
+   }
+  ],
+  "pilots": [
+   {
+    "rank": 1,
+    "name": "temper25",
+    "wins": 5,
+    "losses": 1,
+    "draws": 0,
+    "battles": 6
+   },
+   {
+    "rank": 2,
+    "name": "DenizenJ",
+    "wins": 4,
+    "losses": 0,
+    "draws": 0,
+    "battles": 4
+   },
+   {
+    "rank": 3,
+    "name": "danjal87",
+    "wins": 3,
+    "losses": 2,
+    "draws": 0,
+    "battles": 5
+   },
+   {
+    "rank": 4,
+    "name": "Weavis69",
+    "wins": 3,
+    "losses": 2,
+    "draws": 0,
+    "battles": 5
+   },
+   {
+    "rank": 5,
+    "name": "Paegan",
+    "wins": 2,
+    "losses": 1,
+    "draws": 0,
+    "battles": 3
+   },
+   {
+    "rank": 6,
+    "name": "Astaxic",
+    "wins": 1,
+    "losses": 0,
+    "draws": 0,
+    "battles": 1
+   },
+   {
+    "rank": 7,
+    "name": "PaglaMia",
+    "wins": 1,
+    "losses": 0,
+    "draws": 0,
+    "battles": 1
+   },
+   {
+    "rank": 8,
+    "name": "respectfuljohn",
+    "wins": 1,
+    "losses": 0,
+    "draws": 0,
+    "battles": 1
+   },
+   {
+    "rank": 9,
+    "name": "silverhaze069690",
+    "wins": 1,
+    "losses": 0,
+    "draws": 0,
+    "battles": 1
+   },
+   {
+    "rank": 10,
+    "name": "SixxDog",
+    "wins": 1,
+    "losses": 0,
+    "draws": 0,
+    "battles": 1
+   }
+  ]
+ },
+ "versus": {
+  "status": "ready",
+  "cooldownUntil": null,
+  "command": "!versus",
+  "winnerPoints": 50
+ },
+ "program": {
+  "intro": "Voyager is the MDA009 membership program. Take part on stream, earn Voyager points and move up through the membership groups.",
+  "tiers": [
+   {
+    "key": "blue",
+    "name": "Blue",
+    "description": "Super Saturday Game Package Giveaway Entries | Grand Monthly Ship Giveaway Entries"
+   },
+   {
+    "key": "silver",
+    "name": "Silver",
+    "description": "Giveaways valued between $100-$200 USD"
+   },
+   {
+    "key": "gold",
+    "name": "Gold",
+    "description": "Giveaways valued between $200-$500 USD"
+   },
+   {
+    "key": "platinum",
+    "name": "Platinum",
+    "description": "Giveaways valued between $500-$1000 USD"
+   },
+   {
+    "key": "vip",
+    "name": "Ruby VIP",
+    "description": "The Unprofessionals & MDA009 Merchandise"
+   }
+  ],
+  "commands": [
+   {
+    "command": "!enter",
+    "description": "Join an open giveaway from chat on Twitch, YouTube or Kick (!ticket also works)."
+   },
+   {
+    "command": "!entergiveaway",
+    "description": "Join a ticketed giveaway and collect tickets while you watch."
+   },
+   {
+    "command": "!versus",
+    "description": "Call a Voyager Versus battle, or answer one to fly as the challenger."
+   },
+   {
+    "command": "!points",
+    "description": "Call your Voyager Points total in chat"
+   },
+   {
+    "command": "!voyager",
+    "description": "Call your membership card on screen"
+   }
+  ]
+ },
+ "missions": {
+  "endsAt": 1793538000000,
+  "list": [
+   {
+    "title": "Ace of the Arena",
+    "type": "versusWins",
+    "platform": "all",
+    "target": 1,
+    "reward": 400,
+    "completed": 6
+   },
+   {
+    "title": "Crew Supporter",
+    "type": "subscribe",
+    "platform": "all",
+    "target": 1,
+    "reward": 250,
+    "completed": 8
+   },
+   {
+    "title": "Fleet Gifter",
+    "type": "giftSubs",
+    "platform": "all",
+    "target": 3,
+    "reward": 250,
+    "completed": 3
+   },
+   {
+    "title": "Veteran Crew",
+    "type": "loyalSub",
+    "platform": "all",
+    "target": 6,
+    "reward": 125,
+    "completed": 3
+   },
+   {
+    "title": "New mission",
+    "type": "earnPoints",
+    "platform": "all",
+    "target": 300,
+    "reward": 100,
+    "completed": 10
+   }
+  ]
+ },
+ "season": {
+  "name": "Season 1",
+  "endsAt": 1801195430687,
+  "standings": [
+   {
+    "rank": 1,
+    "name": "OrpheusDamocles",
+    "platform": "twitch",
+    "points": 6692,
+    "support": 2,
+    "wins": 0
+   },
+   {
+    "rank": 2,
+    "name": "SCHaulers",
+    "platform": "twitch",
+    "points": 6335,
+    "support": 1,
+    "wins": 0
+   },
+   {
+    "rank": 3,
+    "name": "acey77",
+    "platform": "twitch",
+    "points": 3783,
+    "support": 1,
+    "wins": 0
+   },
+   {
+    "rank": 4,
+    "name": "DarthSpawn501st",
+    "platform": "twitch",
+    "points": 2030,
+    "support": 0,
+    "wins": 0
+   },
+   {
+    "rank": 5,
+    "name": "cabbofragestef",
+    "platform": "twitch",
+    "points": 993,
+    "support": 5,
+    "wins": 0
+   },
+   {
+    "rank": 6,
+    "name": "Nate10250",
+    "platform": "twitch",
+    "points": 808,
+    "support": 5,
+    "wins": 0
+   },
+   {
+    "rank": 7,
+    "name": "respectfuljohn",
+    "platform": "twitch",
+    "points": 696,
+    "support": 5,
+    "wins": 0
+   },
+   {
+    "rank": 8,
+    "name": "SixxDog",
+    "platform": "twitch",
+    "points": 685,
+    "support": 0,
+    "wins": 0
+   },
+   {
+    "rank": 9,
+    "name": "beardstax1984",
+    "platform": "twitch",
+    "points": 579,
+    "support": 0,
+    "wins": 0
+   },
+   {
+    "rank": 10,
+    "name": "misszzzzzzzz",
+    "platform": "twitch",
+    "points": 521,
+    "support": 0,
+    "wins": 0
+   }
+  ],
+  "supportBonus": 100,
+  "goals": [
+   {
+    "title": "Grow the Crew",
+    "metric": "support",
+    "platform": "all",
+    "target": 50,
+    "total": 20,
+    "reward": 250,
+    "reached": false,
+    "helpers": 7
+   },
+   {
+    "title": "Gift Fleet",
+    "metric": "gifts",
+    "platform": "all",
+    "target": 25,
+    "total": 17,
+    "reward": 200,
+    "reached": false,
+    "helpers": 5
+   }
+  ],
+  "hall": []
+ }
+}
