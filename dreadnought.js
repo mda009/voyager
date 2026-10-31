@@ -26,18 +26,22 @@ function render(){
   for(const x of view.history){const li=el('li',x.outcome==='victory'?'win':'');li.append(el('b','',(x.outcome==='victory'?'★ Destroyed':x.outcome==='empty'?'Nobody boarded':'☠ Escaped')+' · '+x.name),
     el('span','',new Date(x.endedAt).toLocaleString([], {weekday:'short',day:'numeric',month:'short',hour:'numeric',minute:'2-digit'})+' · '+x.pilots+' pilots · '+x.damage.toLocaleString()+' damage'+(x.mvp?' · MVP '+x.mvp.name:'')+(x.rewardedCount?' · '+x.rewardedCount+' × '+x.reward+' pts owed':'')));h.append(li);}
   if(!view.history.length)h.append(el('li','',"No fights yet. Call the Dreadnought when you're live."));
-  const ev=view.lastEvent,checks=[
-    [!!ev,ev?'Voyager - Dreadnought is sending events (last: '+ev.kind+' from '+ev.platform+', '+new Date(ev.at).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'})+')':'Import Voyager_Dreadnought.cs as the "Voyager - Dreadnought" action and add its triggers'],
-    [!!ev,'Commands !join, !fire and !dreadnought (Moderators/Broadcaster) point at that action'],
-    [true,'Twitch Cheer, Gift Subscription, Gift Bomb · YouTube Super Chat, Super Sticker, Membership Gift · Kick Gift Subscription, Mass Gift Subscription triggers'],
+  const ev=view.lastEvent,act=view.action?.state,chat=view.lastChatAt&&Date.now()-view.lastChatAt<15*60000;
+  const checks=[
+    [view.connected,view.connected?'Voyager is connected to Streamer.bot':'Voyager is not connected to Streamer.bot: connect it in Voyager Versus › Stream setup'],
+    [act==='found',act==='found'?'Found the "Voyager - Dreadnought" action (use Send test message to check it runs)':act==='disabled'?'"Voyager - Dreadnought" is disabled in Streamer.bot: tick Enabled':act==='duplicate'?'There are two enabled "Voyager - Dreadnought" actions: keep one':act==='offline'?'Waiting for Streamer.bot':'No action named exactly "Voyager - Dreadnought": import Voyager_Dreadnought.cs (see the setup guide)'],
+    [!!chat,chat?'Voyager can read Twitch chat: !join and !fire work from Twitch even without the commands':'No Twitch chat seen yet (type anything in chat)'],
+    [!!ev,ev?'Events arriving from the action (last: '+ev.kind+' from '+ev.platform+', '+new Date(ev.at).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'})+')':'No events from the action yet: during a fight, type !join (needed for YouTube, Kick, cheers and gifted subs)'],
+    [null,'Add the !join, !fire, !dreadnought commands and the Cheer / Gift Subscription / Gift Bomb · Super Chat / Super Sticker / Membership Gift · Kick Gift / Mass Gift triggers to the action']
   ];
-  const cl=$('checklist');cl.textContent='';for(const [ok,text] of checks){const li=el('li',ok?'ok':'',text);cl.append(li);}
+  const cl=$('checklist');cl.textContent='';for(const [ok,text] of checks){const li=el('li',ok===null?'info':ok?'ok':'',text);cl.append(li);}
 }
 async function load(){try{view=await api('/api/boss');render();}catch(e){notice(e.message,true);}}
 async function control(action,value,msg){try{view=await api('/api/boss/control',{action,value});notice(msg);render();}catch(e){notice(e.message,true);}}
 $('call').onclick=()=>control('call',null,'The Dreadnought is approaching. Chat has '+(view?.settings.lobbySeconds||60)+' seconds to !join.');
 $('demo').onclick=()=>control('demo',null,'Preview running with simulated chat. Nothing is posted in chat or paid.');
 $('start').onclick=()=>control('start',null,'Battle started.');
+$('test').onclick=async()=>{try{const r=await api('/api/boss/control',{action:'test'});notice(r.message);}catch(e){notice(e.message,true);}};
 $('cancel').onclick=()=>{if(confirm('End this fight now? No rewards are paid for a fight that is ended early.'))control('cancel',null,'Fight ended.');};
 const form=$('settings');form.addEventListener('focusin',()=>{editing=true;});
 form.onsubmit=e=>{e.preventDefault();const f=form.elements,value={chatCall:f.chatCall.checked,announce:f.announce.checked};for(const k of FIELDS)value[k]=k==='name'?f[k].value:Number(f[k].value);

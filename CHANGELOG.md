@@ -2,6 +2,15 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.5 (31 October 2026)
+
+**Clearer Streamer.bot checklists** on the Voyager Dreadnought and Membership cards pages, so you can see exactly which link is missing:
+
+- Is Voyager connected to Streamer.bot; is there exactly one **enabled** action with the exact name (or is it missing, disabled or duplicated); has Voyager seen Twitch chat; have events arrived from the action.
+- **Send test message** on the Dreadnought page runs the action and posts a line in chat, proving it is installed, compiled and reachable.
+- The trigger reminder is no longer shown with a tick, since Voyager can't check triggers.
+- A missing action is re-checked every 20 seconds instead of every 5 minutes, so the checklist updates soon after you add it.
+
 ## 2.20.4 (31 October 2026)
 
 **Fix: `!voyager` didn't show the card when the Streamer.bot command wasn't reaching the new action.**

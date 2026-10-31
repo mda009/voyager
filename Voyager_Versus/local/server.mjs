@@ -73,10 +73,19 @@ async function bossSay(text){
   }catch{}
 }
 // Voyager Medals (2.18): data comes from (and chat goes out through) the "Voyager - Medals" action.
-const actionIds=new Map();
-async function runAction(name,args){
+const actionIds=new Map();let lastChatAt=0;
+// Looks an action up by its exact name: found, missing, disabled or duplicate (a missing one is re-checked every 20 s).
+async function findAction(name){
   let e=actionIds.get(name);
-  if(!e||Date.now()-e.at>300000){const r=await bot.request('GetActions');const a=(r.actions||[]).filter(x=>x.name===name&&x.enabled!==false);e={id:a.length===1?a[0].id:null,at:Date.now()};actionIds.set(name,e);}
+  if(!e||Date.now()-e.at>(e.id?300000:20000)){
+    const r=await bot.request('GetActions'),all=(r.actions||[]).filter(x=>x.name===name),on=all.filter(x=>x.enabled!==false);
+    e={id:on.length===1?on[0].id:null,state:on.length===1?'found':on.length>1?'duplicate':all.length?'disabled':'missing',at:Date.now()};actionIds.set(name,e);
+  }
+  return e;
+}
+async function actionStatus(name){if(!bot.status.connected)return {state:'offline'};try{const e=await findAction(name);return {state:e.state};}catch{return {state:'offline'};}}
+async function runAction(name,args){
+  const e=await findAction(name);
   if(!e.id)return false;
   await bot.request('DoAction',{action:{id:e.id},args});return true;
 }
@@ -95,6 +104,7 @@ const bot=new StreamerBot({onCards:ev=>{cards.receive(ev);},onMedals:ev=>{if(ev.
   if(ev.kind==='call'&&!['lobby','result'].includes(game.phase)){game.note('Finish the Versus battle before calling the Dreadnought.','system');return;}
   boss.receive(ev);
 },onChat:chat=>{
+  lastChatAt=Date.now();
   // Dreadnought (2.20.3): Twitch !join and !fire also work straight from chat, so a missing Streamer.bot command trigger
   // can't stop the fight. The action's copy of the same message is ignored (already boarded / !fire cooldown).
   const word=chat.text.trim().toLowerCase().split(/\s+/)[0];
@@ -208,7 +218,7 @@ const server=http.createServer(async(req,res)=>{
     if(url.pathname==='/api/cards/overlay'&&req.method==='GET'){res.setHeader('Cache-Control','no-store');response(res,200,cards.overlay());return;}
     if(url.pathname.startsWith('/api/cards')){
       if(!validToken(req)){response(res,403,{message:'Open Voyager Control › Membership cards.'});return;}
-      if(url.pathname==='/api/cards'&&req.method==='GET'){response(res,200,{...cards.view(),connected:bot.status.connected});return;}
+      if(url.pathname==='/api/cards'&&req.method==='GET'){response(res,200,{...cards.view(),connected:bot.status.connected,action:await actionStatus('Voyager - Membership Card'),lastChatAt});return;}
       if(req.method!=='POST'||!req.headers['content-type']?.startsWith('application/json')){response(res,405,{message:'Method not allowed.'});return;}
       try{
         const input=await body(req,65536);
@@ -235,12 +245,15 @@ const server=http.createServer(async(req,res)=>{
     if(url.pathname==='/api/boss/overlay'&&req.method==='GET'){res.setHeader('Cache-Control','no-store');response(res,200,boss.overlay());return;}
     if(url.pathname.startsWith('/api/boss')){
       if(!validToken(req)){response(res,403,{message:'Open Voyager Control to run the Dreadnought.'});return;}
-      if(url.pathname==='/api/boss'&&req.method==='GET'){response(res,200,boss.view());return;}
+      if(url.pathname==='/api/boss'&&req.method==='GET'){response(res,200,{...boss.view(),connected:bot.status.connected,action:await actionStatus('Voyager - Dreadnought'),lastChatAt});return;}
       if(url.pathname==='/api/boss/control'&&req.method==='POST'){
         if(!req.headers['content-type']?.startsWith('application/json')){response(res,403,{message:'Invalid request.'});return;}
         const {action,value}=await body(req);
         try{
           if(['call','demo'].includes(action)&&!['lobby','result'].includes(game.phase))throw new Error('Finish the Voyager Versus battle first.');
+          if(action==='test'){const ok=await runAction('Voyager - Dreadnought',{bossSay:'✅ Voyager Dreadnought is connected. When the boss is called, type !join to board and !fire to attack.'}).catch(()=>false);
+            if(!ok)throw new Error(bot.status.connected?'Streamer.bot has no enabled action named exactly "Voyager - Dreadnought".':'Voyager is not connected to Streamer.bot. Connect it in Voyager Versus › Stream setup.');
+            response(res,200,{ok:true,message:'Test message sent: check your chat.'});return;}
           const r=action==='call'?boss.call():action==='demo'?boss.call({demo:true,by:'Preview'}):action==='start'?boss.start():action==='cancel'?boss.cancel():action==='settings'?boss.configure(value||{}):null;
           if(!r)throw new Error('Unknown Dreadnought action.');
           response(res,200,{ok:true,...r});

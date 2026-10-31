@@ -34,11 +34,13 @@ function render(){
   const R=$('recent');R.textContent='';
   for(const r of view.recent.slice(0,12)){const li=el('li');li.append(el('span','mc-dot mc-'+r.tier),el('b','',r.name),el('span','',(r.promotion?'Promoted to '+r.promotion+' · ':r.tierUp?'Tier-up · ':'')+(r.side==='front'?'card':r.side)+' · '+r.platform),el('span','r',ago(r.at)));R.append(li);}
   if(!view.recent.length)R.append(el('li','','No cards yet.'));
-  const checks=[[view.connected,view.connected?'Streamer.bot is connected':'Connect Streamer.bot (Voyager Versus › Stream setup)'],
-    [!!ev,ev?'Voyager - Membership Card is sending events (last: '+ev.kind+' from '+ev.platform+')':'Import Voyager_Membership_Card.cs as "Voyager - Membership Card"'],
-    [!!ev,'Move the !voyager command trigger to that action, and add Core › Groups › User Added to Group'],
-    [true,'Disable the old Silver/Gold/Platinum OR Blue "Membership On Screen" actions so the old cards stop showing']];
-  const cl=$('checklist');cl.textContent='';for(const [ok,t] of checks)cl.append(el('li',ok?'ok':'',t));
+  const act=view.action?.state,chat=view.lastChatAt&&Date.now()-view.lastChatAt<15*60000;
+  const checks=[[view.connected,view.connected?'Voyager is connected to Streamer.bot':'Voyager is not connected to Streamer.bot: connect it in Voyager Versus › Stream setup'],
+    [act==='found',act==='found'?'Found the "Voyager - Membership Card" action':act==='disabled'?'"Voyager - Membership Card" is disabled in Streamer.bot: tick Enabled':act==='duplicate'?'There are two enabled "Voyager - Membership Card" actions: keep one':act==='offline'?'Waiting for Streamer.bot':'No action named exactly "Voyager - Membership Card": Twitch !voyager still works from Voyager\'s own data'],
+    [!!chat,chat?'Voyager can read Twitch chat (!voyager works from Twitch)':'No Twitch chat seen yet (type anything in chat)'],
+    [!!ev,ev?'Card events arriving from the action (last: '+ev.kind+' from '+ev.platform+')':'No events from the action yet: type !voyager (needed for YouTube, Kick and the tier-up ceremony)'],
+    [null,'Disable the old Silver/Gold/Platinum OR Blue "Membership On Screen" actions so the old cards stop showing']];
+  const cl=$('checklist');cl.textContent='';for(const [ok,t] of checks)cl.append(el('li',ok===null?'info':ok?'ok':'',t));
 }
 async function load(){try{view=await api('/api/cards');render();}catch(e){notice(e.message,true);}}
 $('settings').addEventListener('focusin',()=>{editing=true;});$('ranks').addEventListener('focusin',()=>{editing=true;});
