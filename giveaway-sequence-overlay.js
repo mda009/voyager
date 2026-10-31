@@ -3,14 +3,16 @@
  const q=new URLSearchParams(location.search),preview=q.get('preview')==='1',pool=document.getElementById('pool'),frame=document.getElementById('reveal');
  let client=null,state=null,offset=0,ready=false,poolReady=false,sample=false;
  // 2.20.10: ticketed giveaways play their reveal here too, with the same countdown, wheel and winner sequence.
- let tickets=null,ticketState=null,ticketOffset=0,shown=null;
+ let tickets=null,ticketState=null,ticketOffset=0,shown=null,arbiter=null;
  const S=window.VoyagerGiveawaySequence;
  function ticketLive(){if(!ticketState||!S)return false;const e=S.event(ticketState);if(!e)return false;const now=Date.now()+ticketOffset;
   if(ticketState.view==='celebration')return now>=e.at-5000&&now<e.at+8000;const t=S.timeline(e);return !!t&&now>=t.at-5000&&now<t.expiresAt;}
  const config=window.VOYAGER_CONFIG||{};
  function send(){const useTickets=ticketLive(),s=useTickets?ticketState:state,o=useTickets?ticketOffset:offset;shown=useTickets?'tickets':'engine';
   if(useTickets){pool.hidden=true;frame.hidden=false;}else if(state){pool.hidden=state.view!=='pool';frame.hidden=!['reveal','celebration'].includes(state.view);}else frame.hidden=true;
+  beat();
   if(ready&&s)frame.contentWindow.postMessage({type:'voyager.giveaway.sequence',state:s,offset:o,volume:Number(config.giveawayVolume??config.volume??.75),muted:preview},'*');}
+ function beat(){arbiter?.beat(!!tickets?.ready,shown==='tickets'&&ticketLive()?ticketState.view+':'+(S.event(ticketState)?.id||S.event(ticketState)?.at):'');}
  function sendPool(){if(poolReady&&state)pool.contentWindow.postMessage({type:'voyager.giveaway.pool.v1',state,offset,sample},'*');}
  function accept(s,clock=0,isSample=false){if(!s||s.schema!==1||!Number.isFinite(s.revision))return;if(state&&s.revision<state.revision)return;state=s;offset=Number(clock)||0;sample=preview&&isSample===true;send();sendPool();}
  pool.addEventListener('load',()=>{poolReady=true;sendPool();});
@@ -31,8 +33,8 @@
    tickets.addEventListener('tickets',e=>{const s=e.detail?.state;if(!s||s.schema!==1)return;if(ticketState&&s.revision<ticketState.revision)return;ticketState=s;ticketOffset=Number(e.detail.offset)||0;send();});
    tickets.connect();
   }
-  // Tell a separate Ticket overlay source that this one plays the reveals, so OBS never shows two at once.
-  try{const bc=new BroadcastChannel('voyager-giveaway-reveal');setInterval(()=>bc.postMessage({type:'main-overlay',at:Date.now()}),2000);}catch{}
+  // 2.20.11: tell the Leaderboard panel and Ticket overlay which reveal this source is playing, so OBS shows it once.
+  if(window.VoyagerRevealArbiter){arbiter=window.VoyagerRevealArbiter(3);setInterval(beat,1000);}
   // Switch between the ticket and engine sequence as reveals start and end.
   setInterval(()=>{const want=ticketLive()?'tickets':'engine';if(want!==shown)send();},1000);
  }

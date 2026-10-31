@@ -2,6 +2,14 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.11 (1 November 2026)
+
+**Ticketed giveaway reveals now always play on stream, in exactly one OBS source.**
+
+- The shared **Leaderboard panel** (`Voyager_Leaderboard_Panel.html`, the source the Ticket control page uses) now plays a ticketed draw's countdown, buildup, 30-second wheel and winner even when the panel is hidden or showing a different leaderboard. Before, the reveal only played while the ticket list itself was on screen, so a draw made after hiding the panel or switching leaderboards showed the winner in Ticket controls but nothing on stream.
+- One rule now decides which source plays each reveal: the main **Giveaway overlay** first, then the **Leaderboard panel**, then the separate **Ticket overlay**. A source only steps aside when a higher one is on screen and actually playing that same reveal; if it doesn't start within 2.5 seconds, the next one plays it. This replaces the 2.20.10 hand-off, which could silence the Ticket overlay while the main overlay sat in a scene that wasn't live.
+- No Streamer.bot changes. Refresh the Giveaway overlay, Leaderboard panel and Ticket overlay browser sources in OBS after updating.
+
 ## 2.20.10 (1 November 2026)
 
 **Every giveaway reveal now plays the same way, from the same OBS source.**
