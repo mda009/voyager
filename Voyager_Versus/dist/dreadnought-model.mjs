@@ -5,7 +5,7 @@
 import * as T from './vendor/three.module.min.js';
 import {mergeGeometries} from './vendor/BufferGeometryUtils.mjs';
 
-const TILE=520;// world units covered by one repeat of the 4K hull texture
+const TILE=360;// world units covered by one repeat of the 4K hull texture
 let seed=1717;const rnd=()=>((seed=(seed*16807)%2147483647)/2147483647);
 
 // World-space box projection: every triangle takes UVs from the plane its normal faces most.
@@ -22,13 +22,15 @@ export function boxUV(geo,tile=TILE){
 
 // A faceted armour section lofted through stations {x, w (half width), top, bot, ch (chamfer)}.
 function loft(st){
-  const ring=s=>{const w=s.w,ch=s.ch??Math.min(s.w*.35,(s.top-s.bot)*.35);return [[s.top,-w*.58],[s.top,w*.58],[s.top-ch*.8,w],[s.bot+ch*.55,w],[s.bot,w*.62],[s.bot,-w*.62],[s.bot+ch*.55,-w],[s.top-ch*.8,-w]];};
+  const ring8=s=>{const w=s.w,ch=s.ch??Math.min(s.w*.35,(s.top-s.bot)*.35);return [[s.top,-w*.58],[s.top,w*.58],[s.top-ch*.8,w],[s.bot+ch*.55,w],[s.bot,w*.62],[s.bot,-w*.62],[s.bot+ch*.55,-w],[s.top-ch*.8,-w]];};
+  // Chamfer every corner so hard edges catch a thin highlight, as machined armour does.
+  const ring=s=>{const R=ring8(s),bev=Math.min(5,s.w*.05),out=[];for(let i=0;i<8;i++){const p=R[i],a=R[(i+7)%8],b=R[(i+1)%8];const da=Math.hypot(a[0]-p[0],a[1]-p[1])||1,db=Math.hypot(b[0]-p[0],b[1]-p[1])||1,ka=Math.min(bev,da*.3)/da,kb=Math.min(bev,db*.3)/db;out.push([p[0]+(a[0]-p[0])*ka,p[1]+(a[1]-p[1])*ka],[p[0]+(b[0]-p[0])*kb,p[1]+(b[1]-p[1])*kb]);}return out;};
   const pos=[];const quad=(p1,p2,p3,p4)=>{pos.push(...p1,...p4,...p3,...p1,...p3,...p2);};
   for(let i=0;i<st.length-1;i++){
     const A=ring(st[i]),B=ring(st[i+1]),xa=st[i].x,xb=st[i+1].x;
-    for(let k=0;k<8;k++){const k2=(k+1)%8;quad([xa,A[k][0],A[k][1]],[xb,B[k][0],B[k][1]],[xb,B[k2][0],B[k2][1]],[xa,A[k2][0],A[k2][1]]);}
+    for(let k=0;k<16;k++){const k2=(k+1)%16;quad([xa,A[k][0],A[k][1]],[xb,B[k][0],B[k][1]],[xb,B[k2][0],B[k2][1]],[xa,A[k2][0],A[k2][1]]);}
   }
-  for(const [s,flip] of [[st[0],true],[st[st.length-1],false]]){const R=ring(s),cy=(s.top+s.bot)/2;for(let k=0;k<8;k++){const k2=(k+1)%8;const t=[[s.x,cy,0],[s.x,R[k][0],R[k][1]],[s.x,R[k2][0],R[k2][1]]];if(flip)t.reverse();pos.push(...t.flat());}}
+  for(const [s,flip] of [[st[0],true],[st[st.length-1],false]]){const R=ring(s),cy=(s.top+s.bot)/2;for(let k=0;k<16;k++){const k2=(k+1)%16;const t=[[s.x,cy,0],[s.x,R[k][0],R[k][1]],[s.x,R[k2][0],R[k2][1]]];if(flip)t.reverse();pos.push(...t.flat());}}
   const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(pos,3));
   return boxUV(g);
 }
@@ -52,14 +54,31 @@ function plumeMaterial(color){
         gl_FragColor=vec4(c*(a+diamonds)*2.2,a);}`});
 }
 
+// Painted markings (hull number, class name, hazard stencils), worn so the plating shows through.
+function decalTexture(w,h,draw){
+  const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');draw(x,w,h);
+  x.globalCompositeOperation='destination-out';for(let i=0;i<w*h/900;i++){x.fillStyle=`rgba(0,0,0,${.25+Math.random()*.75})`;const r=Math.random()**3*7+.6;x.beginPath();x.arc(Math.random()*w,Math.random()*h,r,0,7);x.fill();}
+  for(let i=0;i<w/12;i++){x.fillStyle='rgba(0,0,0,.35)';x.fillRect(Math.random()*w,Math.random()*h,1+Math.random()*2,8+Math.random()*60);}
+  const t=new T.CanvasTexture(c);t.colorSpace=T.SRGBColorSpace;t.anisotropy=8;return t;
+}
+function decal(group,st,x0,x1,side,yf0,yf1,tex,opts={}){
+  const a=lerpStations(st,x0),b=lerpStations(st,x1);if(!a||!b)return;
+  const yr=s=>{const ch=Math.min(s.w*.35,(s.top-s.bot)*.35);return [s.bot+ch*.55,s.top-ch*.8];};
+  const [ya0,ya1]=yr(a),y0=ya0+(ya1-ya0)*yf0,y1=ya0+(ya1-ya0)*yf1,za=side*(a.w+.7),zb=side*(b.w+.7);
+  const g=new T.PlaneGeometry(1,1);const m=new T.Mesh(g,new T.MeshPhysicalMaterial({map:tex,transparent:true,roughness:opts.rough??.62,metalness:0,clearcoat:.1,polygonOffset:true,polygonOffsetFactor:-4,depthWrite:false,envMapIntensity:.8}));
+  const len=Math.hypot(x1-x0,zb-za);m.scale.set(len,y1-y0,1);m.position.set((x0+x1)/2,(y0+y1)/2,(za+zb)/2);m.rotation.y=Math.atan2(-(zb-za),(x1-x0))+(side<0?Math.PI:0);
+  if(side<0){m.scale.x*=-1;m.material.side=T.DoubleSide;}
+  m.receiveShadow=true;m.renderOrder=2;group.add(m);
+}
+
 export function buildDreadnought({maps,anisotropy=8}){
   seed=1717;const group=new T.Group(),parts={turrets:[],engines:[],plumes:[],lights:[],core:null,coreGlow:null,shield:null,strips:[],windows:null,dishes:[]};
   for(const t of Object.values(maps))if(t){t.anisotropy=anisotropy;t.wrapS=t.wrapT=T.RepeatWrapping;}
   const hull=new T.MeshPhysicalMaterial({map:maps.base,normalMap:maps.normal,aoMap:maps.orm,roughnessMap:maps.orm,metalnessMap:maps.orm,emissiveMap:maps.emissive,emissive:0xffffff,emissiveIntensity:2.2,
-    color:0xffffff,metalness:1,roughness:1,normalScale:new T.Vector2(1.1,1.1),clearcoat:.25,clearcoatRoughness:.35,envMapIntensity:1});
+    color:0xffffff,metalness:1,roughness:1,normalScale:new T.Vector2(1.1,1.1),clearcoat:.12,clearcoatRoughness:.5,envMapIntensity:1});
   const dark=hull.clone();dark.color.setHex(0x8a9099);dark.emissiveIntensity=0;
   const trim=new T.MeshPhysicalMaterial({map:maps.base,normalMap:maps.normal,roughnessMap:maps.orm,metalnessMap:maps.orm,color:0x5d636b,metalness:1,roughness:.9,normalScale:new T.Vector2(.7,.7),envMapIntensity:1.1});
-  const engineMetal=new T.MeshPhysicalMaterial({color:0x2a2c30,metalness:1,roughness:.28,clearcoat:.4,envMapIntensity:1.3,normalMap:maps.normal,normalScale:new T.Vector2(.3,.3)});
+  const engineMetal=new T.MeshPhysicalMaterial({color:0x8a8478,metalness:1,roughness:.32,anisotropy:.7,iridescence:.85,iridescenceIOR:1.6,iridescenceThicknessRange:[260,720],envMapIntensity:1.2,normalMap:maps.normal,normalScale:new T.Vector2(.25,.25)});
   const heat=new T.MeshBasicMaterial({color:0xff8040,toneMapped:false});
   const red=new T.MeshBasicMaterial({color:0xff2a3a,toneMapped:false});
   const add=(geo,mat)=>{const m=new T.Mesh(geo,mat);m.castShadow=m.receiveShadow=true;group.add(m);return m;};
@@ -70,7 +89,12 @@ export function buildDreadnought({maps,anisotropy=8}){
   const upper=[{x:60,w:20,top:170,bot:140},{x:200,w:118,top:226,bot:150},{x:480,w:140,top:246,bot:150},{x:660,w:120,top:232,bot:150}];
   const keel=[{x:-360,w:10,top:-80,bot:-96},{x:-150,w:70,top:-90,bot:-176},{x:250,w:96,top:-100,bot:-206},{x:560,w:84,top:-100,bot:-190},{x:640,w:50,top:-100,bot:-150}];
   const tower=[{x:380,w:78,top:330,bot:230,ch:22},{x:470,w:96,top:350,bot:230,ch:26},{x:560,w:84,top:330,bot:230,ch:22}];
-  add(mergeGeometries([loft(main),loft(keel)]),hull);add(loft(mid),hull);add(loft(upper),dark);add(loft(tower),dark);
+  add(mergeGeometries([loft(main),loft(keel)]),hull);
+  const number=decalTexture(1024,256,(x,w,h)=>{x.fillStyle='#d9d4c8';x.font='900 210px "Arial Black",Impact,sans-serif';x.textBaseline='middle';x.fillText('XV-07',30,h/2+8);x.fillRect(w-150,30,14,h-60);x.fillRect(w-110,30,14,h-60);});
+  const cls=decalTexture(1024,128,(x,w,h)=>{x.fillStyle='#c9c4b8';x.font='700 74px "Arial Narrow",Arial,sans-serif';x.textBaseline='middle';x.fillText('DREADNOUGHT CLASS  ·  HOSTILE',20,h/2+4);});
+  const hazard=decalTexture(512,96,(x,w,h)=>{for(let i=-2;i<w/36+2;i++){x.fillStyle=i%2?'#d8a51c':'#141414';x.beginPath();x.moveTo(i*36,0);x.lineTo(i*36+36,0);x.lineTo(i*36+6,h);x.lineTo(i*36-30,h);x.fill();}});
+  const warn=decalTexture(512,128,(x,w,h)=>{x.fillStyle='#d8a51c';x.fillRect(0,0,w,10);x.fillRect(0,h-10,w,10);x.font='800 46px Arial,sans-serif';x.textBaseline='middle';x.fillText('⚠ THRUSTER WASH',18,h/2+2);});
+  for(const s of [-1,1]){decal(group,main,-500,-280,s,.18,.86,number);decal(group,main,-240,20,s,.62,.86,cls);decal(group,main,420,580,s,.15,.38,warn);decal(group,main,-30,110,s,.06,.2,hazard);}add(loft(mid),hull);add(loft(upper),dark);add(loft(tower),dark);
   add(mergeGeometries([box(70,30,150,470,368,0),box(14,110,14,500,430,0),box(8,70,8,450,410,-30),box(180,10,10,470,388,0),box(60,30,60,390,250,0)]),trim);
   // Bridge glazing band and lit tower slits.
   const glass=new T.MeshPhysicalMaterial({color:0x0a1820,metalness:.2,roughness:.05,clearcoat:1,emissive:0x5fb8ff,emissiveIntensity:.35,envMapIntensity:1.6});
@@ -97,8 +121,8 @@ export function buildDreadnought({maps,anisotropy=8}){
   ribs.push(box(1000,16,30,-40,lerpStations(mid,0).top+8,0));add(mergeGeometries(ribs),trim);
 
   // ---- greebles: instanced detail blocks scattered over the top and flanks ----
-  const greebleGeo=boxUV(new T.BoxGeometry(1,1,1),1/4);
-  const greebleMat=new T.MeshPhysicalMaterial({color:0x3c4148,metalness:.95,roughness:.48,normalMap:maps.normal,normalScale:new T.Vector2(.4,.4),envMapIntensity:1});
+  const greebleGeo=(()=>{const sh=new T.Shape();sh.moveTo(-.42,-.42);sh.lineTo(.42,-.42);sh.lineTo(.42,.42);sh.lineTo(-.42,.42);sh.closePath();const g=new T.ExtrudeGeometry(sh,{depth:.84,bevelEnabled:true,bevelThickness:.08,bevelSize:.08,bevelSegments:2});g.translate(0,0,-.42);return boxUV(g,1/3);})();
+  const greebleMat=new T.MeshPhysicalMaterial({map:maps.base,roughnessMap:maps.orm,metalnessMap:maps.orm,normalMap:maps.normal,color:0xffffff,metalness:1,roughness:1,normalScale:new T.Vector2(.5,.5),envMapIntensity:1});
   const N=2200,greebles=new T.InstancedMesh(greebleGeo,greebleMat,N),m4=new T.Matrix4(),q=new T.Quaternion(),sc=new T.Vector3(),ps=new T.Vector3();let gi=0;
   const place=(st,count,onSide)=>{for(let i=0;i<count&&gi<N;i++){
     const x=st[0].x+rnd()*(st[st.length-1].x-st[0].x),s=lerpStations(st,x);if(!s||s.w<30)continue;

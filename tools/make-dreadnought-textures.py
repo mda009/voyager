@@ -52,6 +52,7 @@ def hull_maps():
     print('Hull: panels…', flush=True)
     height = np.zeros((N, N), np.float32)
     tint = np.zeros((N, N), np.float32)
+    tone = np.zeros((N, N), np.float32)       # 1 = second paint tone (warm grey)
     paint = np.zeros((N, N), np.float32)      # 1 = painted (red) plates
     hazard = np.zeros((N, N), np.float32)
     vents = np.zeros((N, N), np.float32)
@@ -85,7 +86,9 @@ def hull_maps():
         base = rng.uniform(-.06, .06)
         bevel = np.clip(d / 10.0, 0, 1)
         height[sl] = base + .12 * bevel
-        tint[sl] = rng.normal(0, .11)
+        tint[sl] = rng.normal(0, .07)
+        if rng.random() < .24:
+            tone[sl] = 1
         if rng.random() < .008 and w * h < 60000:
             paint[sl] = 1
         if rng.random() < .03 and w > 160 and h > 120:          # hazard chevrons on a strip of the plate
@@ -143,19 +146,34 @@ def hull_maps():
     scorch = np.clip((n_large - .78) * 6, 0, 1) * np.clip((n_mid - .45) * 3, 0, 1)
     wear = np.clip(1 - edge / 6.0, 0, 1) * (1 - seam) * np.clip((n_fine - .45) * 3, 0, 1)
 
-    gun = np.array([.085, .092, .104], np.float32)
-    red = np.array([.11, .03, .032], np.float32)
-    col = gun[None, None, :] * (1 + tint[..., None])
-    col = col * (1 - paint[..., None]) + red[None, None, :] * (1 + tint[..., None]) * paint[..., None]
-    col = col * (1 - hazard[..., None] * .7) + np.array([.55, .42, .08], np.float32) * hazard[..., None] * .7
-    col *= (1 - .55 * grime[..., None]) * (1 - .8 * scorch[..., None])
-    col += wear[..., None] * np.array([.12, .12, .13], np.float32)
-    col *= (.55 + .45 * ao[..., None])
-    col *= (1 - vents[..., None] * .35)
+    # Physically based layering: painted (dielectric) armour over steel. Paint chips and wears through at
+    # plate edges and in random flecks, exposing bright bare metal; seams and vents are dark unpainted metal.
+    chip_noise = box_blur(periodic_noise(N, 1.15, 15, lo=40), 1)
+    chip = np.clip((chip_noise + np.clip(1 - edge / 9.0, 0, 1) * .31 + grime * .12 - .74) * 10, 0, 1) * np.clip(1 - seam * 3, 0, 1)
+    bare_zone = vents
+    slate = np.array([.042, .046, .052], np.float32)
+    warm = np.array([.06, .058, .054], np.float32)
+    red = np.array([.115, .021, .023], np.float32)
+    yellow = np.array([.62, .43, .05], np.float32)
+    paint_col = slate[None, None, :] * (1 - tone[..., None]) + warm[None, None, :] * tone[..., None]
+    paint_col = paint_col * (1 - paint[..., None]) + red[None, None, :] * paint[..., None]
+    paint_col = paint_col * (1 + tint[..., None]) * (1 + .18 * (n_mid[..., None] - .5))
+    paint_col = paint_col * (1 - hazard[..., None]) + yellow[None, None, :] * hazard[..., None]
+    paint_col = paint_col * (1 - .45 * grime[..., None]) + np.array([.03, .028, .025]) * .45 * grime[..., None]
+    steel = np.array([.56, .565, .58], np.float32) * (.86 + .14 * n_fine[..., None])
+    dark_steel = np.array([.09, .092, .095], np.float32)
+    metal_col = steel * (1 - bare_zone[..., None]) + dark_steel * bare_zone[..., None]
+    metal_w = np.clip(chip + bare_zone, 0, 1)
+    col = paint_col * (1 - metal_w[..., None]) + metal_col * metal_w[..., None]
+    soot = np.array([.018, .017, .016], np.float32)
+    col = col * (1 - .85 * scorch[..., None]) + soot * .85 * scorch[..., None]
+    col *= (.82 + .18 * ao[..., None]) * (1 - .9 * seam[..., None])
     base = np.clip(col, 0, 1)
 
-    rough = np.clip(.42 + .18 * (n_mid - .5) + .3 * grime + .25 * scorch - .2 * wear + .1 * paint, .12, .95)
-    metal = np.clip(.88 - .55 * paint - .5 * scorch - .3 * hazard, 0, 1)
+    rough_paint = .52 + .12 * (n_mid - .5) + .22 * grime + .05 * (n_fine - .5) - .08 * paint
+    rough_metal = .26 + .1 * (n_fine - .5) + .3 * bare_zone
+    rough = np.clip(rough_paint * (1 - metal_w) + rough_metal * metal_w + .3 * scorch, .08, .98)
+    metal = np.clip(metal_w * (1 - scorch), 0, 1)
 
     print('Hull: normals…', flush=True)
     gx = (np.roll(height, -1, 1) - np.roll(height, 1, 1)) * 2.2

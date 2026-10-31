@@ -1,9 +1,9 @@
-// Voyager Dreadnought OBS overlay (2.17; 2.17.1 adds the 4K PBR capital ship, HDR bloom, shadows, backdrop and a 60 fps governor). Reads /api/boss/overlay from the local Voyager host and renders the
+// Voyager Dreadnought OBS overlay (2.17; 2.17.2 adds image-based space lighting and SSAO; 2.17.1 adds the 4K PBR capital ship, HDR bloom, shadows, backdrop and a 60 fps governor). Reads /api/boss/overlay from the local Voyager host and renders the
 // fight with the same ships, hull materials and lighting as Voyager Versus.
 import * as T from './vendor/three.module.min.js';
 import {RoomEnvironment} from './vendor/RoomEnvironment.mjs';
 import {createShip,animateShip,shipMeshesReady,materialsReady} from './ship-models.mjs?v=2.3.0';
-import {buildDreadnought} from './dreadnought-model.mjs?v=2.17.1';
+import {buildDreadnought} from './dreadnought-model.mjs?v=2.17.2';
 
 const $=id=>document.getElementById(id),params=new URLSearchParams(location.search);
 if(params.get('backdrop')==='0')document.body.classList.add('backdrop-off');
@@ -24,7 +24,7 @@ const renderer=new T.WebGLRenderer({canvas,alpha:true,antialias:false,powerPrefe
 renderer.setPixelRatio(1);renderer.setClearColor(0,0);renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.NoToneMapping;
 renderer.shadowMap.enabled=true;renderer.shadowMap.type=T.PCFSoftShadowMap;
 const scene=new T.Scene();
-{const pm=new T.PMREMGenerator(renderer),room=new RoomEnvironment();scene.environment=pm.fromScene(room,.04).texture;scene.environmentIntensity=.32;room.dispose();pm.dispose();}
+{const pm=new T.PMREMGenerator(renderer),room=new RoomEnvironment();scene.environment=pm.fromScene(room,.04).texture;scene.environmentIntensity=.25;room.dispose();pm.dispose();}
 const camera=new T.PerspectiveCamera(32,W/H,10,60000);
 const CAM=new T.Vector3(-160,430,2850),LOOK=new T.Vector3(-40,-30,0);camera.position.copy(CAM);camera.lookAt(LOOK);
 
@@ -34,28 +34,56 @@ const VS='varying vec2 vUv;void main(){vUv=uv;gl_Position=vec4(position.xy,0.,1.
 const rt=(w,h,samples=0)=>new T.WebGLRenderTarget(w,h,{type:T.HalfFloatType,samples,depthBuffer:samples>0,colorSpace:T.LinearSRGBColorSpace});
 const brightMat=new T.ShaderMaterial({uniforms:{src:{value:null},threshold:{value:1.15}},vertexShader:VS,fragmentShader:'uniform sampler2D src;uniform float threshold;varying vec2 vUv;void main(){vec4 c=texture2D(src,vUv);float l=max(c.r,max(c.g,c.b));float k=smoothstep(threshold,threshold*1.8,l);gl_FragColor=vec4(c.rgb*k,1.);}',depthTest:false,depthWrite:false});
 const blurMat=new T.ShaderMaterial({uniforms:{src:{value:null},dir:{value:new T.Vector2()}},vertexShader:VS,fragmentShader:'uniform sampler2D src;uniform vec2 dir;varying vec2 vUv;void main(){vec3 c=texture2D(src,vUv).rgb*.227027;c+=texture2D(src,vUv+dir*1.384615).rgb*.316216;c+=texture2D(src,vUv-dir*1.384615).rgb*.316216;c+=texture2D(src,vUv+dir*3.230769).rgb*.070270;c+=texture2D(src,vUv-dir*3.230769).rgb*.070270;gl_FragColor=vec4(c,1.);}',depthTest:false,depthWrite:false});
-const finalMat=new T.ShaderMaterial({uniforms:{src:{value:null},b0:{value:null},b1:{value:null},b2:{value:null},b3:{value:null},b4:{value:null},strength:{value:.85},exposure:{value:1.12},t:{value:0},flash:{value:0},alphaOut:{value:BACKDROP?0:1}},vertexShader:VS,
-  fragmentShader:`uniform sampler2D src,b0,b1,b2,b3,b4;uniform float strength,exposure,t,flash,alphaOut;varying vec2 vUv;
+const finalMat=new T.ShaderMaterial({uniforms:{tAO:{value:null},aoAmount:{value:QUALITY==='low'?0:.85},src:{value:null},b0:{value:null},b1:{value:null},b2:{value:null},b3:{value:null},b4:{value:null},strength:{value:.85},exposure:{value:1.12},t:{value:0},flash:{value:0},alphaOut:{value:BACKDROP?0:1}},vertexShader:VS,
+  fragmentShader:`uniform sampler2D src,b0,b1,b2,b3,b4,tAO;uniform float strength,exposure,t,flash,alphaOut,aoAmount;varying vec2 vUv;
   vec3 aces(vec3 x){const float a=2.51,b=.03,c=2.43,d=.59,e=.14;return clamp((x*(a*x+b))/(x*(c*x+d)+e),0.,1.);}
   vec3 toSRGB(vec3 c){return mix(c*12.92,1.055*pow(c,vec3(1./2.4))-.055,step(.0031308,c));}
   float h(vec2 p){return fract(sin(dot(p,vec2(12.9898,78.233))+t)*43758.5453);}
   void main(){vec2 o=(vUv-.5)*.0012;vec4 base=texture2D(src,vUv);vec3 c=vec3(texture2D(src,vUv+o).r,base.g,texture2D(src,vUv-o).b);
+    c*=mix(1.,texture2D(tAO,vUv).r,aoAmount);
     vec3 bloom=texture2D(b0,vUv).rgb*.30+texture2D(b1,vUv).rgb*.25+texture2D(b2,vUv).rgb*.2+texture2D(b3,vUv).rgb*.15+texture2D(b4,vUv).rgb*.1;
     c=(c+bloom*strength)*exposure+flash;vec3 m=aces(c);float v=smoothstep(1.25,.35,length(vUv-.5)*1.45);m*=mix(1.,v,1.-alphaOut*.85);
     m+=(h(vUv*913.)-.5)*.012*(1.-alphaOut);vec3 outc=toSRGB(m);
     float a=alphaOut>.5?clamp(max(base.a,max(max(bloom.r,bloom.g),bloom.b)*strength*1.2+flash),0.,1.):1.;
     gl_FragColor=vec4(outc*(alphaOut>.5?1.:1.),a);}`,depthTest:false,depthWrite:false,transparent:true});
+// Screen-space ambient occlusion from a linear-depth pre-pass of the solid geometry (layer 1).
+const depthMat=new T.ShaderMaterial({vertexShader:'#include <common>\nvarying float vD;\nvoid main(){\n#include <begin_vertex>\n#include <project_vertex>\nvD=-mvPosition.z;}',fragmentShader:'varying float vD;void main(){gl_FragColor=vec4(vD,0.,0.,1.);}'});
+const kernel=Array.from({length:16},(_,i)=>{const v=new T.Vector3(Math.random()*2-1,Math.random()*2-1,Math.random()*.9+.1).normalize().multiplyScalar(Math.random());const k=i/16;return v.multiplyScalar(.1+.9*k*k);});
+const aoMat=new T.ShaderMaterial({uniforms:{tDepth:{value:null},res:{value:new T.Vector2()},tanH:{value:0},aspect:{value:W/H},radius:{value:55},kernel:{value:kernel}},vertexShader:VS,depthTest:false,depthWrite:false,
+  fragmentShader:`uniform sampler2D tDepth;uniform vec2 res;uniform float tanH,aspect,radius;uniform vec3 kernel[16];varying vec2 vUv;
+  vec3 vp(vec2 uv){float z=texture2D(tDepth,uv).r;vec2 n=uv*2.-1.;return vec3(n.x*tanH*aspect*z,n.y*tanH*z,-z);}
+  void main(){float z=texture2D(tDepth,vUv).r;if(z>40000.){gl_FragColor=vec4(1.);return;}
+    vec3 P=vp(vUv);vec3 N=normalize(cross(dFdx(P),dFdy(P)));if(dot(N,-P)<0.)N=-N;
+    float a=fract(sin(dot(floor(vUv*res),vec2(12.9898,78.233)))*43758.5453)*6.2831853;vec3 r=vec3(cos(a),sin(a),0.);
+    vec3 Tg=normalize(r-N*dot(r,N));mat3 tbn=mat3(Tg,cross(N,Tg),N);float occ=0.;
+    for(int i=0;i<16;i++){vec3 s=P+tbn*kernel[i]*radius;vec2 su=vec2(s.x/(-s.z*tanH*aspect),s.y/(-s.z*tanH))*.5+.5;float sz=texture2D(tDepth,su).r;
+      float range=smoothstep(0.,1.,radius/max(1.,abs(-s.z-sz)));occ+=step(sz,-s.z-3.)*range;}
+    gl_FragColor=vec4(vec3(pow(clamp(1.-occ/16.,0.,1.),1.6)),1.);}`});
+const white=new T.DataTexture(new Uint8Array([255,255,255,255]),1,1);white.needsUpdate=true;finalMat.uniforms.tAO.value=white;
+let depthRT,aoA,aoB;
 let sceneRT,mips=[];
 function sizeTargets(){
   const w=Math.round(W*res),h=Math.round(H*res);renderer.setSize(w,h,false);
   sceneRT?.dispose();for(const m of mips){m.a.dispose();m.b.dispose();}
   sceneRT=rt(w,h,QUALITY==='low'?0:4);sceneRT.depthBuffer=true;mips=[];let mw=w>>1,mh=h>>1;
   for(let i=0;i<5;i++){mips.push({a:rt(mw,mh),b:rt(mw,mh),w:mw,h:mh});mw=Math.max(8,mw>>1);mh=Math.max(8,mh>>1);}
+  depthRT?.dispose();aoA?.dispose();aoB?.dispose();const aw=w>>1,ah=h>>1;
+  depthRT=new T.WebGLRenderTarget(aw,ah,{type:T.FloatType,depthBuffer:true});aoA=rt(aw,ah);aoB=rt(aw,ah);aoMat.uniforms.res.value.set(aw,ah);
 }
 sizeTargets();
 function pass(mat,target){quad.material=mat;renderer.setRenderTarget(target);renderer.render(postScene,postCam);}
 let flashLevel=0;
+const farColor=new T.Color(60000,0,0),clearCol=new T.Color();
 function renderFrame(t){
+  if(finalMat.uniforms.aoAmount.value>0){
+    renderer.getClearColor(clearCol);const ca=renderer.getClearAlpha();renderer.setClearColor(farColor,1);
+    camera.layers.set(1);scene.overrideMaterial=depthMat;renderer.setRenderTarget(depthRT);renderer.clear();renderer.render(scene,camera);scene.overrideMaterial=null;camera.layers.enableAll();
+    renderer.setClearColor(clearCol,ca);
+    aoMat.uniforms.tDepth.value=depthRT.texture;aoMat.uniforms.tanH.value=Math.tan(T.MathUtils.degToRad(camera.fov/2));pass(aoMat,aoA);
+    blurMat.uniforms.src.value=aoA.texture;blurMat.uniforms.dir.value.set(1/aoA.width,0);pass(blurMat,aoB);
+    blurMat.uniforms.src.value=aoB.texture;blurMat.uniforms.dir.value.set(0,1/aoA.height);pass(blurMat,aoA);
+    finalMat.uniforms.tAO.value=aoA.texture;
+  }
   renderer.setRenderTarget(sceneRT);renderer.clear();renderer.render(scene,camera);
   brightMat.uniforms.src.value=sceneRT.texture;pass(brightMat,mips[0].a);
   for(let i=0;i<mips.length;i++){const m=mips[i];if(i>0){blurMat.uniforms.src.value=mips[i-1].a.texture;blurMat.uniforms.dir.value.set(0,0);pass(blurMat,m.a);}
@@ -70,25 +98,38 @@ scene.add(new T.HemisphereLight(0x9fb8d6,0x0d0a12,.28));
 const sun=new T.DirectionalLight(0xfff0dc,6.5);sun.position.set(-2400,2600,2600);sun.target.position.set(0,0,0);scene.add(sun,sun.target);
 sun.castShadow=true;sun.shadow.mapSize.set(QUALITY==='low'?1024:4096,QUALITY==='low'?1024:4096);Object.assign(sun.shadow.camera,{left:-2200,right:2200,top:1400,bottom:-1400,near:100,far:9000});sun.shadow.bias=-.0004;sun.shadow.normalBias=1.5;
 const rim=new T.DirectionalLight(0x72d8ff,1.1);rim.position.set(-2000,300,-1600);scene.add(rim);
-const redRim=new T.DirectionalLight(0xff4050,1.6);redRim.position.set(2400,-500,-800);scene.add(redRim);
+const redRim=new T.DirectionalLight(0xff4050,.6);redRim.position.set(2400,-500,-800);scene.add(redRim);
 
 // ---------- textures ----------
 const loader=new T.TextureLoader(),maxAniso=renderer.capabilities.getMaxAnisotropy();
-const tex=(name,srgb)=>new Promise(ok=>{const t=loader.load(`materials/${name}.webp?v=2.17.1`,()=>ok(t),undefined,()=>ok(null));if(srgb)t.colorSpace=T.SRGBColorSpace;t.anisotropy=maxAniso;});
+const tex=(name,srgb)=>new Promise(ok=>{const t=loader.load(`materials/${name}.webp?v=2.17.2`,()=>ok(t),undefined,()=>ok(null));if(srgb)t.colorSpace=T.SRGBColorSpace;t.anisotropy=maxAniso;});
 
 // ---------- backdrop: 4K nebula, gas giant with atmosphere, drifting dust ----------
 const dust=(()=>{const n=900,g=new T.BufferGeometry(),p=new Float32Array(n*3);for(let i=0;i<n;i++){p[i*3]=(Math.random()-.5)*7000;p[i*3+1]=(Math.random()-.5)*3600;p[i*3+2]=-2600+Math.random()*4400;}g.setAttribute('position',new T.BufferAttribute(p,3));
   const m=new T.PointsMaterial({color:0x9fb6d0,size:3.2,sizeAttenuation:true,transparent:true,opacity:.45,depthWrite:false});const pts=new T.Points(g,m);scene.add(pts);return pts;})();
+// Image-based lighting from the same space scene: nebula, the star, the gas giant. Metal and paint now
+// reflect what is actually around them instead of a studio light box.
+function spaceEnvironment(space,planet){
+  const env=new T.Scene();
+  if(space){const m=new T.Mesh(new T.SphereGeometry(1000,64,32),new T.MeshBasicMaterial({map:space,side:T.BackSide}));m.material.color.setScalar(.55);env.add(m);}
+  const sunBall=new T.Mesh(new T.SphereGeometry(38,24,12),new T.MeshBasicMaterial({color:new T.Color(1,.95,.85).multiplyScalar(140)}));sunBall.position.copy(sun.position).normalize().multiplyScalar(900);env.add(sunBall);
+  const halo=new T.Mesh(new T.SphereGeometry(120,24,12),new T.MeshBasicMaterial({color:new T.Color(1,.8,.6).multiplyScalar(1.4),transparent:true,opacity:.35}));halo.position.copy(sunBall.position);env.add(halo);
+  if(planet){const p=new T.Mesh(new T.SphereGeometry(420,64,32),new T.MeshBasicMaterial({map:planet}));p.material.color.setScalar(.35);p.position.set(-520,-620,-300);env.add(p);}
+  const cool=new T.Mesh(new T.PlaneGeometry(900,500),new T.MeshBasicMaterial({color:new T.Color(.25,.55,1).multiplyScalar(.8),side:T.DoubleSide}));cool.position.set(-900,150,-500);cool.lookAt(0,0,0);env.add(cool);
+  const warm=new T.Mesh(new T.PlaneGeometry(900,500),new T.MeshBasicMaterial({color:new T.Color(1,.25,.3).multiplyScalar(.35),side:T.DoubleSide}));warm.position.set(900,-250,-300);warm.lookAt(0,0,0);env.add(warm);
+  const pm=new T.PMREMGenerator(renderer);const old=scene.environment;scene.environment=pm.fromScene(env,0).texture;scene.environmentIntensity=1;pm.dispose();old?.dispose?.();
+}
 async function backdrop(){
-  if(!BACKDROP)return;
   const [space,planet]=await Promise.all([tex('space-'+(TEX>=4096?4096:2048),true),tex('planet-'+(TEX>=4096?4096:2048),true)]);
+  try{spaceEnvironment(space,planet);}catch(e){console.warn('Environment:',e);}
+  if(!BACKDROP)return;
   if(space){const m=new T.Mesh(new T.PlaneGeometry(1,1),new T.MeshBasicMaterial({map:space,depthWrite:false,fog:false}));m.material.color.setScalar(.9);
     const d=30000,hh=2*Math.tan(T.MathUtils.degToRad(camera.fov/2))*d*1.15;m.scale.set(hh*16/9,hh,1);m.position.copy(camera.position).add(new T.Vector3().subVectors(LOOK,CAM).normalize().multiplyScalar(d));m.lookAt(camera.position);m.renderOrder=-10;scene.add(m);}
   if(planet){const g=new T.Group();const pm=new T.Mesh(new T.SphereGeometry(5200,128,64),new T.MeshStandardMaterial({map:planet,roughness:1,metalness:0,color:0x6a7078}));pm.rotation.set(.35,2.2,.25);g.add(pm);
     const atm=new T.Mesh(new T.SphereGeometry(5200*1.035,96,48),new T.ShaderMaterial({transparent:true,side:T.BackSide,blending:T.AdditiveBlending,depthWrite:false,uniforms:{sun:{value:sun.position.clone().normalize()}},
       vertexShader:'varying vec3 vN;varying vec3 vW;void main(){vN=normalize(mat3(modelMatrix)*normal);vec4 w=modelMatrix*vec4(position,1.);vW=w.xyz;gl_Position=projectionMatrix*viewMatrix*w;}',
       fragmentShader:'uniform vec3 sun;varying vec3 vN;varying vec3 vW;void main(){vec3 v=normalize(cameraPosition-vW);float rimv=pow(1.-abs(dot(vN,v)),3.);float lit=clamp(dot(-vN,sun)*.5+.6,0.,1.);gl_FragColor=vec4(vec3(.35,.65,1.)*rimv*lit*2.2,rimv*lit);}'}));
-    g.add(atm);g.scale.setScalar(1.35);g.position.set(-15200,-15800,-36000);scene.add(g);}
+    g.add(atm);g.scale.setScalar(1.1);g.position.set(-15800,-15600,-38000);scene.add(g);}
 }
 
 // ---------- shared sprite textures ----------
@@ -110,6 +151,7 @@ async function buildBoss(){
   const [base,normal,orm,emissive]=await Promise.all([tex('dreadnought-basecolor-'+TEX,true),tex('dreadnought-normal-'+TEX,false),tex('dreadnought-orm-'+TEX,false),tex('dreadnought-emissive-'+TEX,true)]);
   const {group,parts}=buildDreadnought({maps:{base,normal,orm,emissive},anisotropy:maxAniso});
   group.scale.setScalar(.82);boss.add(group);bossParts=parts;
+  group.traverse(o=>{if(o.isMesh&&!o.material.transparent&&!o.material.isShaderMaterial&&!o.material.isMeshBasicMaterial)o.layers.enable(1);});
   coreGlow=new T.Sprite(new T.SpriteMaterial({map:GLOW,color:0xff3050,transparent:true,blending:T.AdditiveBlending,depthWrite:false}));coreGlow.position.copy(parts.core.position);group.add(coreGlow);
   for(const l of parts.lights){const s=new T.Sprite(new T.SpriteMaterial({map:GLOW,color:l.color,transparent:true,blending:T.AdditiveBlending,depthWrite:false}));s.position.copy(l.pos);s.scale.setScalar(60);group.add(s);runLights.push(s);}
   for(const e of parts.engines){const s=new T.Sprite(new T.SpriteMaterial({map:GLOW,color:0xff9050,transparent:true,blending:T.AdditiveBlending,depthWrite:false,opacity:.9}));s.position.set(70,0,0);s.scale.setScalar(300);e.add(s);e.userData.glow=s;}
@@ -132,7 +174,7 @@ const SLOTS=Array.from({length:12},(_,i)=>{const col=i%3,row=Math.floor(i/3);ret
 const fleet=new Map();// slot -> {ship, pilot, born, flash}
 function shipFor(slot){
   let f=fleet.get(slot);if(f)return f;
-  const ship=createShip(KEYS[slot%3]);ship.scale.setScalar(.78);ship.traverse(o=>{if(o.isMesh&&!o.material.transparent){o.castShadow=true;o.receiveShadow=true;}});ship.position.copy(SLOTS[slot]).add(new T.Vector3(-900,0,0));ship.rotation.set(0,-.18,0);
+  const ship=createShip(KEYS[slot%3]);ship.scale.setScalar(.78);ship.traverse(o=>{const mats=[].concat(o.material||[]);if(o.isMesh&&!mats.some(m=>m.transparent)){o.castShadow=true;o.receiveShadow=true;o.layers.enable(1);}});ship.position.copy(SLOTS[slot]).add(new T.Vector3(-900,0,0));ship.rotation.set(0,-.18,0);
   scene.add(ship);const warp=new T.Sprite(new T.SpriteMaterial({map:GLOW,color:0x9fe6ff,transparent:true,blending:T.AdditiveBlending,depthWrite:false}));warp.position.copy(SLOTS[slot]);scene.add(warp);
   f={ship,born:performance.now(),warp,stunned:false,label:document.createElement('div')};f.label.className='label';$('labels').append(f.label);fleet.set(slot,f);return f;
 }
@@ -221,7 +263,7 @@ function hud(now){
 }
 // ---------- boss motion ----------
 let anim={mode:'idle',start:0};
-const debris=(()=>{const n=140,m=new T.InstancedMesh(new T.BoxGeometry(1,1,1),new T.MeshStandardMaterial({color:0x2b2f35,metalness:.9,roughness:.5}),n);m.visible=false;m.frustumCulled=false;m.castShadow=true;scene.add(m);return {m,n,parts:[]};})();
+const debris=(()=>{const n=140,m=new T.InstancedMesh(new T.BoxGeometry(1,1,1),new T.MeshStandardMaterial({color:0x26292e,metalness:.6,roughness:.55}),n);m.visible=false;m.frustumCulled=false;m.castShadow=true;m.layers.enable(1);scene.add(m);return {m,n,parts:[]};})();
 function victory(){
   anim={mode:'explode',start:performance.now()};flash(.6);shake=1.2;
   for(let i=0;i<34;i++)setTimeout(()=>{const p=bossPoint();burst(p,i%3?0xff9a4a:0xfff0c0,500+Math.random()*800,.95,3);sparks(p,0xffc080,18,900);lightFlash(p,0xff8040,3e6,350);if(i%6===0)ring(p,0xffc080,700,1);shake=Math.max(shake,.5);},i*95);
@@ -260,7 +302,7 @@ function frame(now){
   // Ship systems: reactor pulse, engines, running lights, turrets tracking the fleet, shield.
   const pulse=.75+.25*Math.sin(t*(d.enraged?9:3));
   if(coreGlow){coreGlow.material.opacity=.6+.35*pulse;coreGlow.scale.setScalar((d.enraged?720:520)*(.9+.15*pulse));coreGlow.material.color.setHex(0xff3050).multiplyScalar(2.5);}
-  if(bossParts.light)bossParts.light.intensity=(d.enraged?2e5:9e4)*pulse;
+  if(bossParts.light)bossParts.light.intensity=(d.enraged?8e4:3e4)*pulse;
   for(const st of bossParts.strips)st.material.color.setHex(d.enraged&&Math.sin(t*12)>0?0xffc0c8:st.userData.base??(st.userData.base=st.material.color.getHex())).multiplyScalar(2.4);
   const thrust=anim.mode==='escape'?2.4:anim.mode==='arrive'?1.4:1;
   for(const p of bossParts.plumes){p.material.uniforms.t.value=t;p.material.uniforms.power.value=thrust;p.scale.x=(p.userData.sx??(p.userData.sx=p.scale.x))*(.8+.2*thrust);}

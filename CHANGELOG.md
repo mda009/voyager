@@ -2,6 +2,17 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.17.2 (31 October 2026)
+
+More photorealistic PBR for the Voyager Dreadnought overlay. **No Streamer.bot changes.**
+
+- **Physically correct materials.** The armour is now painted plating (non-metal paint with realistic roughness) over steel, instead of everything behaving like bare metal. Paint chips and wears through at plate edges and in flecks, exposing bright bare steel. Seams are dark, vents are unpainted metal, and grime, run-off streaks and scorch marks change roughness as well as colour. All 4K/2K/1K texture sets are regenerated.
+- **Image-based lighting from space.** Reflections now come from the actual scene (the nebula, the star and the gas giant, with cool and warm fill) instead of a studio light box, so metal and paint pick up believable highlights. The player ships get the same lighting.
+- **Ambient occlusion.** A screen-space AO pass darkens crevices, the gaps between hull tiers and the bases of turrets and details, on both the Dreadnought and the fleet. It's off at `?quality=low`.
+- **Bevelled edges.** Every hull edge and every hull detail block is chamfered, so edges catch thin highlights the way machined armour does.
+- **Engine bells** are heat-tinted titanium (iridescent, brushed metal).
+- **Painted markings** on the hull: the hull number XV-07, its class name, hazard chevrons and thruster-wash warnings, all worn so the plating shows through.
+
 ## 2.17.1 (31 October 2026)
 
 Dreadnought visual overhaul and reward rule. **No Streamer.bot changes.**
