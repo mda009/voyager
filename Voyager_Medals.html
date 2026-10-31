@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Voyager • Medals</title>
+<link rel="icon" href="brand-assets/voyager.png">
+<link rel="stylesheet" href="stream-command.css">
+<link rel="stylesheet" href="voyager-brand.css">
+<link rel="stylesheet" href="settings.css?v=2.18">
+<link rel="stylesheet" href="community.css?v=2.18">
+<link rel="stylesheet" href="voyager-glass.css?v=2.18">
+<style>
+.md-layout{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(320px,1fr);gap:16px;align-items:start}
+.md-main,.md-side{display:flex;flex-direction:column;gap:16px;min-width:0}
+.md-card{padding:18px 22px;display:flex;flex-direction:column;gap:12px}
+.md-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.md-stats div{padding:10px 12px;border:1px solid rgba(151,223,255,.12);background:rgba(8,15,24,.4)}
+.md-stats small{display:block;font:700 10px var(--brand-display);letter-spacing:1.6px;color:#8ea6bd;text-transform:uppercase}
+.md-stats b{font:700 24px var(--brand-display);color:#e6eef7}
+.md-cat{font:700 13px var(--brand-display);letter-spacing:2.4px;color:#97dfff;text-transform:uppercase;margin:10px 0 2px;display:flex;align-items:center;gap:10px}
+.md-cat.feat{color:#ffc53d}.md-cat small{font:700 10px var(--brand-display);letter-spacing:1.2px;color:#07101c;background:#ffc53d;padding:3px 7px}
+.md-table{width:100%;border-collapse:collapse}
+.md-table th{font:700 10px var(--brand-display);letter-spacing:1.4px;color:#8ea6bd;text-align:left;padding:4px 6px}
+.md-table td{padding:6px;border-top:1px solid rgba(151,223,255,.08);font-size:13px;color:#c9d7e4;vertical-align:middle}
+.md-table td.n b{display:block;font:700 16px var(--brand-display);color:#e6eef7}.md-table td.n span{font-size:12px;color:#8ea6bd}
+.md-table input[type=number]{width:74px;height:30px;padding:0 6px;border:1px solid rgba(151,223,255,.18);background:rgba(8,15,24,.55);color:#e6eef7;font:600 14px var(--brand-display)}
+.md-table tr.off td{opacity:.45}
+.md-g0{color:#e8a36a}.md-g1{color:#e9f0f8}.md-g2{color:#ffc53d}.md-g3{color:#c08bff}
+.md-earned{font-size:12px;color:#8ea6bd;white-space:nowrap}
+.md-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.md-list li{display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid rgba(151,223,255,.1);background:rgba(8,15,24,.35);font-size:13px}
+.md-list li b{color:#e6eef7}.md-list li .r{margin-left:auto;color:#8ea6bd;font-size:12px;white-space:nowrap}
+.md-pill{font:700 10px var(--brand-display);letter-spacing:1px;padding:3px 7px;color:#07101c}
+.md-p0{background:#e8a36a}.md-p1{background:#e9f0f8}.md-p2{background:#ffc53d}.md-p3{background:#c08bff}.md-p4{background:#7ce1cb}
+.md-form{display:flex;flex-direction:column;gap:10px;font-size:13px;color:#c9d7e4}
+.md-form label{display:flex;align-items:center;gap:8px}
+.md-form select{height:34px;border:1px solid rgba(151,223,255,.18);background:rgba(8,15,24,.55);color:#e6eef7;padding:0 8px}
+.md-check{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;font-size:13px;color:#c9d7e4}
+.md-check li::before{content:'○ ';color:#8ea6bd}.md-check li.ok::before{content:'✓ ';color:#7ce1cb}
+@media(max-width:1100px){.md-layout{grid-template-columns:1fr}}
+</style>
+</head>
+<body class="voyager-console voyager-settings voyager-community">
+<div class="shell">
+<aside class="rail"><a class="brand" href="Voyager_Command_Center.html"><img class="logo-voyager" src="brand-assets/voyager.png" alt="Voyager membership program" width="68" height="68"><span>VOYAGER<small>MDA009 · MISSION CONTROL</small></span></a></aside>
+<main>
+<header class="top"><div><span class="eyebrow">COMMUNITY</span><h1>Medals</h1></div><div class="toolbar"><span class="st-note">Prestige only · no points or tickets</span><button type="button" id="preview">Preview unlock on stream</button><button type="button" id="sync">Check now</button><button type="button" class="primary" id="save">Save changes</button></div></header>
+<p class="st-notice" id="notice" hidden></p>
+<p class="st-notice" id="not-hosted" hidden>Open this page from the Voyager app (or START-VOYAGER-CONTROL.bat). Medals are worked out by the Voyager host.</p>
+<div class="md-layout">
+<div class="md-main">
+<section class="card md-card">
+<div class="card-heading"><div><span class="eyebrow">CATALOGUE</span><h2>Medals and grade targets</h2></div><span class="st-pill" id="state-pill" data-state="wait">Starting…</span></div>
+<div class="md-stats"><div><small>Viewers tracked</small><b id="s-viewers">0</b></div><div><small>Have a medal</small><b id="s-with">0</b></div><div><small>Medals earned</small><b id="s-medals">0</b></div></div>
+<p class="st-hint">Every medal has four grades: <b class="md-g0">Bronze</b>, <b class="md-g1">Silver</b>, <b class="md-g2">Gold</b> and <b class="md-g3">Legend</b>. Honour stars: 1, 2, 4 and 8, and medals in the gold-labelled groups count double, so the longest-serving viewers and biggest supporters rank highest. Hall of Honour medals are by rank (top 50, 25, 10, #1). A medal is never taken away.</p>
+<div id="catalogue"></div>
+</section>
+</div>
+<div class="md-side">
+<section class="card md-card">
+<div class="card-heading"><div><span class="eyebrow">ANNOUNCE</span><h2>When a medal is earned</h2></div></div>
+<form class="md-form" id="settings">
+<label><input type="checkbox" name="enabled"> Medals are on</label>
+<label><input type="checkbox" name="chat"> Announce in chat (grouped, at most one line every 20 seconds)</label>
+<label>Show on stream<select name="toastMin"><option value="0">Every grade</option><option value="1">Silver and above</option><option value="2">Gold and above</option><option value="3">Legend only</option><option value="4">Never</option></select></label>
+<p class="st-hint">The first time Voyager reads everyone's history, medals are awarded quietly with one summary line in chat, so chat isn't flooded.</p>
+</form>
+</section>
+<section class="card md-card">
+<span class="eyebrow">OBS</span>
+<p class="st-hint">Add a <b>Browser</b> source, 1920 × 1080, with this address (leave "Local file" unticked). It is invisible until a medal is earned. Add <code>?side=right</code> to show it on the right.</p>
+<div class="cs-url"><code id="obs-url"></code><button type="button" id="obs-copy">Copy</button></div>
+</section>
+<section class="card md-card">
+<span class="eyebrow">STREAMER.BOT</span>
+<ul class="md-check" id="checklist"></ul>
+<p class="st-hint"><a href="MEDALS_SETUP.html">Setup guide ↗</a></p>
+</section>
+<section class="card md-card"><div class="card-heading"><div><span class="eyebrow">HALL OF HONOUR</span><h2>Top rated</h2></div></div><ul class="md-list" id="leaders"></ul></section>
+<section class="card md-card"><span class="eyebrow">RECENT UNLOCKS</span><ul class="md-list" id="recent"></ul></section>
+</div>
+</div>
+</main>
+</div>
+<script src="medals-control.js?v=2.18"></script>
+<script src="voyager-shell.js?v=2.18"></script>
+<script src="voyager-navigation.js"></script>
+</body>
+</html>

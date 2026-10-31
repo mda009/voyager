@@ -6,7 +6,7 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 
-const local=['server.mjs','rewards.mjs','availability.mjs','streamerbot.mjs','stream-entries.mjs','live-overlay.mjs','match-chat.mjs','pilot-leaderboard.mjs','public-site.mjs','connection-config.mjs','community.mjs','boss.mjs'];
+const local=['server.mjs','rewards.mjs','availability.mjs','streamerbot.mjs','stream-entries.mjs','live-overlay.mjs','match-chat.mjs','pilot-leaderboard.mjs','public-site.mjs','connection-config.mjs','community.mjs','boss.mjs','medals.mjs'];
 async function bundle(dir){
   const root=join(dir,'Voyager_Versus');
   await mkdir(join(root,'local'),{recursive:true});await mkdir(join(root,'dist'),{recursive:true});
@@ -38,7 +38,7 @@ test('Live data defaults to the user data folder and old local/data is copied on
     const base='http://127.0.0.1:'+port,{token}=await(await fetch(base+'/api/admin')).json();
     assert.equal((await fetch(base+'/api/system')).status,403);
     const system=await(await fetch(base+'/api/system',{headers:{'X-Voyager-Token':token}})).json();
-    assert.equal(system.dataDir,target);assert.equal(system.dataWritable,true);assert.equal(system.version,'2.17.3');
+    assert.equal(system.dataDir,target);assert.equal(system.dataWritable,true);assert.equal(system.version,'2.18.0');
   }finally{if(child)await stop(child);await rm(dir,{recursive:true,force:true});}
 });
 

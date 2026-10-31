@@ -2,6 +2,22 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.18.0 (31 October 2026)
+
+**Voyager Medals**: medals viewers earn for their time with the crew, their support and taking part. **New Streamer.bot action: Voyager - Medals** (see `MEDALS_SETUP.html`).
+
+- **24 medals in four grades** (Bronze, Silver, Gold, Legend) plus four special medals. Built to reward the viewers who have been here longest and contributed most:
+  - **Time & loyalty**: Time Watched (10 h → 1,500 h), Follower Since (3 months → 4 years), Unbreakable (streams in a row), Regular Pilot (stream days).
+  - **Subs & support**: Loyal Subscriber (months), Sub Streak (months in a row), Fleet Gifter (gifted subs), Gift Bomb (biggest single drop), Power Supply (Bits, Kicks and Super Chats), Goal Breaker (season sub goals).
+  - **Hall of Honour** (by rank): Fleet Patron (top supporters), Elder of the Fleet (longest-serving), Season Patron.
+  - Versus & Dreadnought, Community (points, missions, seasons, giveaway wins) and Special (Founding Crew until Season 2 ends, First Contact, and two secret medals).
+- **Honour rating**: 1, 2, 4 and 8 stars per grade; the loyalty, support and Hall of Honour medals count double. Shown in `!medals` and the Medals page's Hall of Honour.
+- **Prestige only**: medals never pay points or giveaway tickets and never change anyone's odds. A medal is never taken away.
+- **`!medals`** in chat (Twitch, YouTube, Kick): medal count by grade, Honour and rank, latest medal and the closest next grade. One reply every 30 seconds per viewer.
+- **Announcements**: grouped chat lines (at most one every 20 seconds) and a glass medal pop-up on stream (`/medals.html`, Silver and above by default). The first run awards everyone's history quietly with one summary line.
+- **Voyager Control › Medals**: change any grade target, switch medals off, choose what shows on stream, preview the pop-up, see recent unlocks and the Hall of Honour.
+- The Dreadnought now records the killing blow and passes each fight's pilots, torpedoes and MVP to Medals.
+
 ## 2.17.3 (31 October 2026)
 
 The Dreadnought's photoreal lighting comes to **Voyager Versus**. **No Streamer.bot changes.**

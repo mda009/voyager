@@ -25,6 +25,7 @@ const PAGES=[
  {file:'Voyager_Command_Center.html',page:'live',label:'Live dashboard',ico:'◉',group:'Live',keys:'live dashboard audiences viewers obs strip',help:'DASHBOARD_PAGES_SETUP.html'},
  {file:'Voyager_Points.html',label:'Points & members',ico:'★',group:'Community',keys:'points members membership tiers silver gold platinum ledger',help:'POINTS_SETUP.html'},
  {file:'Voyager_Missions.html',label:'Missions',ico:'◆',group:'Community',live:true,keys:'missions weekly rewards badges streak',help:'Voyager_Guide.html'},
+ {file:'Voyager_Medals.html',label:'Medals',ico:'⬢',group:'Community',live:true,keys:'medals badges honour hall of honour loyalty watch time subs gifts achievements',help:'MEDALS_SETUP.html'},
  {file:'Voyager_Seasons.html',label:'Seasons',ico:'⟳',group:'Community',live:true,keys:'season seasons standings hall of fame champion',help:'Voyager_Guide.html'},
  {file:'Voyager_Public_Site.html',label:'Public website',ico:'◎',group:'Community',keys:'public website site viewers voyagercommand fourthwall',live:true,help:'Voyager_Guide.html'},
  {file:'Voyager_Security.html',label:'Security',ico:'⛨',group:'Community',keys:'security reports signals accounts',help:'SECURITY_SETUP.html'},
@@ -40,7 +41,7 @@ const GUIDES=[
  ['FLEET_ALERTS_SETUP.html','Support alerts setup'],['BANNER_SETUP.html','Stream banner setup'],['SECURITY_SETUP.html','Security setup'],
  ['COMMAND_CENTER_SETUP.html','Command center setup'],['LEADERBOARD_PANEL_SETUP.html','Leaderboard panel setup'],['BUCKET_OVERLAY_SETUP.html','OBS progress strip setup'],
  ['TWITCH_ANALYTICS_SETUP.html','Twitch analytics setup'],['EXTERNAL_ANALYTICS_SETUP.html','External analytics'],['NATIVE_COMMUNITY_SETUP.html','Native community setup'],
- ['BRAND_REFRESH_SETUP.html','Stream branding & preview'],['DREADNOUGHT_SETUP.html','Voyager Dreadnought setup']
+ ['BRAND_REFRESH_SETUP.html','Stream branding & preview'],['DREADNOUGHT_SETUP.html','Voyager Dreadnought setup'],['MEDALS_SETUP.html','Voyager Medals setup']
 ];
 const canonical=new Set([...PAGES.map(p=>p.file),'START_HERE.html','COMMAND_CENTER_SETUP.html','Voyager_Settings.html']);
 const hrefOf=p=>{let h=p.file+(p.page?'?page='+p.page:'');if(demo&&!/SETUP|START_HERE|Guide|Settings/.test(p.file))h+=(h.includes('?')?'&':'?')+'demo=1';return h;};

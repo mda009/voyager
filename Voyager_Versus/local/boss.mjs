@@ -25,8 +25,8 @@ export function normalizeBossSettings(raw={}){
 }
 
 export class BossFight{
-  constructor({dataDir,now=Date.now,random=Math.random,say=()=>{}}={}){
-    this.dataDir=dataDir;this.now=now;this.random=random;this.say=say;this.settings={...BOSS_DEFAULTS};this.history=[];this.battle=null;
+  constructor({dataDir,now=Date.now,random=Math.random,say=()=>{},onResult=()=>{}}={}){
+    this.onResult=onResult;this.dataDir=dataDir;this.now=now;this.random=random;this.say=say;this.settings={...BOSS_DEFAULTS};this.history=[];this.battle=null;
     this.receipts=new Map();this.saving=Promise.resolve();this.seq=0;
   }
   async load(){try{const raw=JSON.parse(await readFile(join(this.dataDir,FILE),'utf8'));this.settings=normalizeBossSettings(raw.settings||{});this.history=Array.isArray(raw.history)?raw.history.slice(0,30):[];}catch{}return this;}
@@ -117,6 +117,7 @@ export class BossFight{
   hit(p,dmg,kind,crit,anonName){
     const b=this.battle,now=this.now();if(b.phase!=='battle')return;
     const real=Math.min(dmg,b.hp);b.hp-=real;if(p)p.damage+=real;else b.anonymous.damage+=real;
+    if(real>0&&b.hp<=0)b.lastHit={key:p?.key||'',at:now};
     b.effects.push({id:++this.seq,at:now,kind,damage:dmg,crit,slot:p?p.slot:-1,name:p?.name||anonName||'Anonymous'});if(b.effects.length>EFFECTS)b.effects.splice(0,b.effects.length-EFFECTS);
     const frac=b.hp/b.maxHp;
     if(b.shieldsUsed===0&&frac<=.5&&b.hp>0){b.shieldsUsed=1;b.shieldUntil=now+8000;this.note('SHIELDS UP! !fire damage is halved for 8 seconds. Missiles and torpedoes punch through.','alert');}
@@ -142,6 +143,9 @@ export class BossFight{
         mvp:mvp?{name:mvp.name,platform:mvp.platform,damage:mvp.damage}:null,top:pilots.slice(0,5).map(p=>({name:p.name,platform:p.platform,damage:p.damage})),
         reward:s.victoryPoints,rewarded:rewarded.map(p=>({key:p.key,name:p.name,platform:p.platform}))});
       this.history=this.history.slice(0,30);this.persist();
+      // Voyager Medals (2.18): who fought, torpedoes fired, the MVP and the killing blow.
+      try{this.onResult({id:b.id,outcome,endsAt:b.endsAt,endedAt:now,mvpKey:mvp?.key||'',lastHit:b.lastHit||null,
+        pilots:pilots.map(p=>({key:p.key,name:p.name,platform:p.platform,damage:p.damage,fires:p.fires,bits:p.bits,gifts:p.gifts}))});}catch{}
       this.announce(outcome==='victory'
         ?'💥 '+s.name+' is destroyed! '+pilots.length+' pilots dealt '+total.toLocaleString('en')+' damage.'+(mvp?' MVP: '+mvp.name+' ('+mvp.damage.toLocaleString('en')+').':'')+(rewarded.length?' Every pilot who fought earns '+s.victoryPoints+' Voyager points.':'')
         :'☠ '+s.name+' escaped with '+Math.ceil(b.hp/b.maxHp*100)+'% hull left. No points this time. Regroup, pilots: it will be back.');

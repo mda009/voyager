@@ -130,7 +130,29 @@ public static class Program
         bc.Chat.Clear(); fireEvent(new System.Collections.Generic.Dictionary<string, object> { ["bossSay"] = "Dreadnought incoming" }, FakeEventType.Unknown);
         Check(bc.Chat.Contains("twitch:Dreadnought incoming") && bc.Chat.Contains("kick:Dreadnought incoming"), "bossSay posts to chat");
 
-        Console.WriteLine(failures == 0 ? "::notice title=Streamer.bot actions::Compiled; all " + checks + " Giveaway Engine, Stream Stats and Dreadnought checks passed." : "::error title=Streamer.bot actions::" + failures + " of " + checks + " checks failed.");
+        // Voyager Medals v1: read-only data export, !medals and chat lines.
+        var medals = new CPHInline_4(); var mc = medals.CPH;
+        mc.Globals["VoyagerCommunityStateV1"] = "{\"schema\":1,\"platforms\":{\"twitch\":{\"users\":{\"111\":{\"id\":\"111\",\"login\":\"nova\",\"name\":\"Nova\",\"watchSeconds\":36000,\"months\":7,\"gifts\":3,\"firstSeenAt\":1000,\"lastSeenAt\":5000},\"222\":{\"id\":\"222\",\"watchSeconds\":10}}}}}";
+        mc.Globals["VoyagerFleetAlertsV1"] = "{\"schema\":1,\"crew\":{\"twitch:111\":{\"name\":\"Nova\",\"login\":\"nova\",\"bits\":2500,\"follow\":1,\"firstSeenAt\":900,\"lastEventAt\":6000}},\"history\":[{\"id\":\"e1\",\"stage\":3,\"amount\":10,\"platform\":\"twitch\",\"userId\":\"111\",\"receivedAt\":6000,\"test\":false},{\"id\":\"e2\",\"stage\":5,\"source\":\"YouTubeSuperChat\",\"microAmount\":\"5000000\",\"platform\":\"youtube\",\"userId\":\"y1\",\"receivedAt\":6000},{\"id\":\"e3\",\"stage\":3,\"amount\":50,\"platform\":\"twitch\",\"userId\":\"111\",\"receivedAt\":6000,\"test\":true}]}";
+        mc.Globals["VoyagerGiveawayStateV1"] = "{\"schema\":1,\"audit\":[{\"id\":\"d1\",\"status\":\"confirmed\",\"confirmedAt\":7000,\"winner\":{\"platform\":\"kick\",\"id\":\"k5\",\"login\":\"vex\",\"name\":\"Vex\"}},{\"id\":\"d2\",\"status\":\"not_confirmed\",\"winner\":{\"platform\":\"kick\",\"id\":\"k6\"}}]}";
+        mc.Args = new System.Collections.Generic.Dictionary<string, object> { ["medalExport"] = "1", ["since"] = "0", ["requestId"] = "m1" };
+        medals.Execute();
+        var md = mc.Broadcasts.Count == 0 ? null : JObject.Parse(mc.Broadcasts.Last());
+        Check(md != null && (string)md["type"] == "voyager.medals.data" && (string)md["requestId"] == "m1", "medal export is broadcast");
+        Check(md != null && ((JArray)md["users"]).Count == 1 && (string)md["users"][0]["key"] == "twitch:111" && (long)md["users"][0]["watchSeconds"] == 36000 && (long)md["users"][0]["months"] == 7, "community watch time and months exported (tiny records skipped)");
+        Check(md != null && (long)md["crew"][0]["bits"] == 2500 && ((JArray)md["giftEvents"]).Count == 1 && (long)md["giftEvents"][0]["amount"] == 10, "fleet Bits and real gift drops exported (test alerts skipped)");
+        Check(md != null && (long)md["superChats"][0]["micro"] == 5000000 && ((JArray)md["wins"]).Count == 1 && (string)md["wins"][0]["userId"] == "k5", "Super Chats and confirmed giveaway winners exported");
+        mc.Args = new System.Collections.Generic.Dictionary<string, object> { ["medalExport"] = "1", ["since"] = "5500" };
+        medals.Execute(); var md2 = JObject.Parse(mc.Broadcasts.Last());
+        Check(((JArray)md2["users"]).Count == 0 && ((JArray)md2["crew"]).Count == 1, "since only sends records that changed");
+        mc.Broadcasts.Clear(); mc.EventType = FakeEventType.CommandTriggered;
+        mc.Args = new System.Collections.Generic.Dictionary<string, object> { ["command"] = "!medals", ["commandSource"] = "youtube", ["userId"] = "y1", ["userName"] = "Lyra", ["user"] = "Lyra" };
+        medals.Execute(); var me = mc.Broadcasts.Count == 0 ? null : JObject.Parse(mc.Broadcasts.Last());
+        Check(me != null && (string)me["type"] == "voyager.medals.event" && (string)me["platform"] == "youtube" && (string)me["userId"] == "y1", "!medals becomes a medals event");
+        mc.Chat.Clear(); mc.EventType = FakeEventType.Unknown; mc.Args = new System.Collections.Generic.Dictionary<string, object> { ["medalSay"] = "Nova earned Time Watched Gold" };
+        medals.Execute(); Check(mc.Chat.Contains("twitch:Nova earned Time Watched Gold") && mc.Chat.Contains("kick:Nova earned Time Watched Gold"), "medalSay posts to chat");
+
+        Console.WriteLine(failures == 0 ? "::notice title=Streamer.bot actions::Compiled; all " + checks + " Giveaway Engine, Stream Stats, Dreadnought and Medals checks passed." : "::error title=Streamer.bot actions::" + failures + " of " + checks + " checks failed.");
         return failures == 0 ? 0 : 1;
     }
     static JObject State(FakeCph cph) { return JObject.Parse(cph.GetGlobalVar<string>("VoyagerGiveawayStateV1")); }

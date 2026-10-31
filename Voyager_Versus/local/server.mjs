@@ -17,6 +17,7 @@ import {PublicSite} from './public-site.mjs';
 import {readConnection,updateConnection} from './connection-config.mjs';
 import {Community} from './community.mjs';
 import {BossFight} from './boss.mjs';
+import {Medals} from './medals.mjs';
 let VERSION='unknown';try{VERSION=JSON.parse(await readFile(new URL('../package.json',import.meta.url),'utf8')).version;}catch{}
 const major=Number(process.versions.node.split('.')[0]);
 if(major<22||typeof WebSocket==='undefined'){console.error('Voyager Versus requires Node.js 22.4 or newer. Install it from https://nodejs.org/');process.exit(1);}
@@ -70,8 +71,23 @@ async function bossSay(text){
     if(bossActionId)await bot.request('DoAction',{action:{id:bossActionId},args:{bossSay:String(text).slice(0,450)}});
   }catch{}
 }
-const boss=await new BossFight({dataDir,say:text=>{void bossSay(text);}}).load();
-const bot=new StreamerBot({onBoss:ev=>{
+// Voyager Medals (2.18): data comes from (and chat goes out through) the "Voyager - Medals" action.
+const actionIds=new Map();
+async function runAction(name,args){
+  let e=actionIds.get(name);
+  if(!e||Date.now()-e.at>300000){const r=await bot.request('GetActions');const a=(r.actions||[]).filter(x=>x.name===name&&x.enabled!==false);e={id:a.length===1?a[0].id:null,at:Date.now()};actionIds.set(name,e);}
+  if(!e.id)return false;
+  await bot.request('DoAction',{action:{id:e.id},args});return true;
+}
+const medals=await new Medals({dataDir,say:text=>{void runAction('Voyager - Medals',{medalSay:String(text).slice(0,450)}).catch(()=>{});}}).load();
+let medalsAction={found:null,at:0};
+async function medalSync(){
+  if(!bot.status.connected)return;
+  try{medalsAction={found:await runAction('Voyager - Medals',{medalExport:'1',since:String(medals.exportSince()),requestId:'medals-'+Date.now()}),at:Date.now()};}catch{}
+}
+function medalTick(){try{if(community)medals.observeCommunity(community);medals.observePilots(savedRankings||[]);medals.evaluate();}catch(e){console.warn('Medals: '+e.message);}}
+const boss=await new BossFight({dataDir,say:text=>{void bossSay(text);},onResult:r=>medals.observeBoss(r)}).load();
+const bot=new StreamerBot({onMedals:ev=>{if(ev.type==='voyager.medals.data')medals.ingestExport(ev);else medals.command(ev);},onBoss:ev=>{
   if(ev.kind==='call'&&!['lobby','result'].includes(game.phase)){game.note('Finish the Versus battle before calling the Dreadnought.','system');return;}
   boss.receive(ev);
 },onChat:chat=>{
@@ -172,6 +188,20 @@ const server=http.createServer(async(req,res)=>{
       if(url.pathname==='/api/public-site/publish-now'){await body(req);if(!publicSite.view().upload.enabled){response(res,400,{ok:false,message:'Turn on publishing and add the repository and token first.'});return;}publicSite.rebuild();await publicSite.push();const v=publicSite.view();response(res,200,{ok:!v.upload.lastError,message:v.upload.lastError||'Published. The public site shows it within about 5 minutes.',status:v});return;}
       response(res,404,{message:'Not found.'});return;
     }
+    if(url.pathname==='/api/medals/overlay'&&req.method==='GET'){res.setHeader('Cache-Control','no-store');response(res,200,medals.overlay());return;}
+    if(url.pathname.startsWith('/api/medals')){
+      if(!validToken(req)){response(res,403,{message:'Open Voyager Control › Medals.'});return;}
+      if(url.pathname==='/api/medals'&&req.method==='GET'){response(res,200,{...medals.view(),action:medalsAction,connected:bot.status.connected});return;}
+      if(req.method!=='POST'||!req.headers['content-type']?.startsWith('application/json')){response(res,405,{message:'Method not allowed.'});return;}
+      try{
+        const input=await body(req,65536);
+        if(url.pathname==='/api/medals/settings'){response(res,200,{ok:true,...medals.configure(input||{})});return;}
+        if(url.pathname==='/api/medals/preview'){response(res,200,{ok:true,toast:medals.preview()});return;}
+        if(url.pathname==='/api/medals/sync'){await medalSync();medalTick();response(res,200,{ok:true,action:medalsAction});return;}
+        response(res,404,{message:'Not found.'});
+      }catch(e){response(res,400,{ok:false,message:e.message});}
+      return;
+    }
     if(url.pathname==='/api/boss/overlay'&&req.method==='GET'){res.setHeader('Cache-Control','no-store');response(res,200,boss.overlay());return;}
     if(url.pathname.startsWith('/api/boss')){
       if(!validToken(req)){response(res,403,{message:'Open Voyager Control to run the Dreadnought.'});return;}
@@ -248,6 +278,10 @@ let ticks=0;const timer=setInterval(()=>{
   try{boss.tick();}catch{}
   try{game.tick(.1);}catch{game.paused=true;game.note('Host storage error. Check the game folder before restarting.');}ticks++;
   if(ticks%10===0){community?.roll(Date.now());void publicSite?.tick();void pilots.tick();void rewards.tick();void announcements.tick();void matchChat.tick();}
+  // Medals: read the action's export every minute, work out medals every 30 s, post grouped chat lines.
+  if(ticks%600===50)void medalSync();
+  if(ticks%300===0)medalTick();
+  if(ticks%100===0&&bot.status.connected)medals.tickChat();
   if(ticks%300===0){for(const [key,t] of failures)if(Date.now()-t>120000)failures.delete(key);}
   const update='data: '+JSON.stringify(packet())+'\n\n';
   for(const client of clients){if(client.writableLength>1024*1024){client.destroy();clients.delete(client);}else client.write(update);}
@@ -262,5 +296,5 @@ server.listen(port,'127.0.0.1',()=>{
   }
   if(hasControl)console.log(`Voyager Control: http://127.0.0.1:${port}/control/Voyager_Command_Center.html`);
   console.log(`\nVOYAGER VERSUS ${VERSION} — MDA009\n\nData folder:   ${dataDir}\nControl panel: http://127.0.0.1:${port}/\nOBS overlay:   http://127.0.0.1:${port}/?overlay=1&hideIdle=1\nCooldown:      http://127.0.0.1:${port}/cooldown.html\n\nKeep this window open while streaming. Press Ctrl+C to stop.\n`);});
-async function stop(){clearInterval(timer);await publicSite?.goOffline().catch(()=>{});await publicSite?.saving;bot.disconnect();for(const client of clients)client.end();server.close();await saving;await liveOverlay.saving.catch(()=>{});process.exit(0);}
+async function stop(){clearInterval(timer);await publicSite?.goOffline().catch(()=>{});await publicSite?.saving;await medals.flush();bot.disconnect();for(const client of clients)client.end();server.close();await saving;await liveOverlay.saving.catch(()=>{});process.exit(0);}
 process.on('SIGINT',stop);process.on('SIGTERM',stop);

@@ -21,8 +21,8 @@ export function parseChat(payload){
   return {userId:String(user?.id||user?.userId||m?.userId||d.userId||''),login:String(login).toLowerCase(),name:String(name),text,messageId:d.messageId||m?.msgId||m?.messageId||null,demo:false};
 }
 export class StreamerBot {
-  constructor({onChat=()=>{},onStatus=()=>{},onStreamOnline=()=>{},onBoss=()=>{},WebSocketImpl=globalThis.WebSocket,retryMs=3000}={}){
-    this.onStreamOnline=onStreamOnline;this.onBoss=onBoss;this.rewardResponses=new Map();
+  constructor({onChat=()=>{},onStatus=()=>{},onStreamOnline=()=>{},onBoss=()=>{},onMedals=()=>{},WebSocketImpl=globalThis.WebSocket,retryMs=3000}={}){
+    this.onStreamOnline=onStreamOnline;this.onBoss=onBoss;this.onMedals=onMedals;this.rewardResponses=new Map();
     this.pending=new Map();this.requestSequence=0;this.onChat=onChat;this.onStatus=onStatus;this.WebSocketImpl=WebSocketImpl;this.retryMs=retryMs;this.generation=0;this.socket=null;this.timer=null;this.handshake=null;this.wanted=false;this.seen=new Map();this.status={connected:false,message:'Streamer.bot disconnected'};
   }
   statusUpdate(connected,message){this.status={connected,message};this.onStatus(this.status);}
@@ -70,6 +70,8 @@ export class StreamerBot {
       }
       // Voyager Dreadnought: chat and support events from the "Voyager - Dreadnought" action.
       if(reply?.type==='voyager.boss.event'&&reply.v===1){try{this.onBoss(reply);}catch{}return;}
+      // Voyager Medals (2.18): !medals and the medal data export from the "Voyager - Medals" action.
+      if((reply?.type==='voyager.medals.event'||reply?.type==='voyager.medals.data')&&reply.v===1){try{this.onMedals(reply);}catch{}return;}
       const online=parseStreamOnline(data);if(online){this.onStreamOnline(online);return;}
       const chat=parseChat(data);if(!chat)return;
       if(chat.messageId){if(this.seen.has(chat.messageId))return;this.seen.set(chat.messageId,Date.now());if(this.seen.size>3000)this.seen.delete(this.seen.keys().next().value);}

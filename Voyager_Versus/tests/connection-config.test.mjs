@@ -41,7 +41,7 @@ test('Rejects bad hosts, ports and passwords, and adds a missing key',()=>{
   assert.equal(readConnection(added).requireAuthentication,true);
 });
 
-const local=['server.mjs','rewards.mjs','availability.mjs','streamerbot.mjs','stream-entries.mjs','live-overlay.mjs','match-chat.mjs','pilot-leaderboard.mjs','public-site.mjs','connection-config.mjs','community.mjs','boss.mjs'];
+const local=['server.mjs','rewards.mjs','availability.mjs','streamerbot.mjs','stream-entries.mjs','live-overlay.mjs','match-chat.mjs','pilot-leaderboard.mjs','public-site.mjs','connection-config.mjs','community.mjs','boss.mjs','medals.mjs'];
 test('Settings API edits the config.js in the user folder and needs the local token',{skip:process.platform==='win32'},async()=>{
   const dir=await mkdtemp(join(tmpdir(),'voyager-settings-')),root=join(dir,'Voyager_Versus'),user=join(dir,'user'),port=18761;
   await mkdir(join(root,'local'),{recursive:true});await mkdir(join(root,'dist'),{recursive:true});
