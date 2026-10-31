@@ -2,6 +2,15 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.7 (31 October 2026)
+
+**Dreadnought: smoother animation and a pay-out button.**
+
+- **No more stutter from resolution pumping.** The 60 fps governor used to resize every render target whenever a second ran a little slow, and it mistook OBS's 30 fps browser sources for a slow PC. It now learns the frame cap (30 or 60), only lowers resolution after 2 slow seconds in a row, only raises it after 15 good ones, never changes more than once every 10 seconds, and leaves the first 10 seconds alone while the scene settles.
+- **Lighter HUD.** The pilot leaderboard, hull text, clock and labels are only rewritten when they change (they were rebuilt 60 times a second), and the server clock is smoothed so countdowns don't jitter.
+- **Pay victory points** on the Voyager Dreadnought page: after a victory it lists every pilot who fought and pays them all with one button, through the Points Ledger's audited adjustment (same as Missions › Points owed, which stays in step). Failed payments show why and can be retried; paid pilots are never paid twice.
+- OBS: refresh the Dreadnought browser source after updating.
+
 ## 2.20.6 (31 October 2026)
 
 - **Membership card: only the card is on screen.** The OBS overlay is cut to the card's own cut-corner outline, so the space scene and glow around it are gone. Add `?frame=full` to the address to bring the surrounding scene back.

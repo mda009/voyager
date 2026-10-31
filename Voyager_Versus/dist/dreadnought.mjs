@@ -237,22 +237,24 @@ function play(e){
 // ---------- HUD ----------
 const fmtTime=ms=>{const s=Math.max(0,Math.ceil(ms/1000));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');};
 let data=null,offset=0,seen=new Set(),lastId=null,outcomeShown=null,hpShown=1;
+const setText=(id,text)=>{const n=$(id);if(n.textContent!==text)n.textContent=text;};
 function hud(now){
   const d=data,live=d&&d.phase!=='idle';stage.classList.toggle('on',!!live);if(!live)return;
   const t=now+offset;$('preview-tag').hidden=!d.demo;
   $('bossbar').hidden=d.phase==='lobby';$('clock').hidden=d.phase!=='battle';$('fleet').hidden=false;$('legend').hidden=d.phase!=='battle'&&d.phase!=='lobby';
   $('bossname').textContent=d.name;const frac=Math.max(0,d.hp/d.maxHp);
-  $('hp').querySelector('i').style.transform=`scaleX(${frac})`;if(frac<hpShown||frac>hpShown+.01){$('hp').querySelector('b').style.transform=`scaleX(${frac})`;hpShown=frac;}
-  $('hptext').textContent=d.hp.toLocaleString('en')+' / '+d.maxHp.toLocaleString('en')+' HULL · '+Math.ceil(frac*100)+'%';
-  const tags=[];if(d.shield&&d.phase==='battle')tags.push('<span class="tag shield">◈ SHIELDS UP · !FIRE HALVED</span>');if(d.enraged&&d.phase==='battle')tags.push('<span class="tag rage">▲ ENRAGED</span>');$('tags').innerHTML=tags.join('');
-  const left=d.endsAt-t;$('clocktime').textContent=fmtTime(left);$('clock').classList.toggle('low',left<30000);
-  $('pilotcount').textContent=d.pilots+' pilot'+(d.pilots===1?'':'s');
-  const ol=$('leaders');ol.replaceChildren();
+  {const tf=`scaleX(${frac.toFixed(4)})`,hi=$('hp').querySelector('i');if(hi.style.transform!==tf)hi.style.transform=tf;}if(frac<hpShown||frac>hpShown+.01){$('hp').querySelector('b').style.transform=`scaleX(${frac})`;hpShown=frac;}
+  setText('hptext',d.hp.toLocaleString('en')+' / '+d.maxHp.toLocaleString('en')+' HULL · '+Math.ceil(frac*100)+'%');
+  const tags=[];if(d.shield&&d.phase==='battle')tags.push('<span class="tag shield">◈ SHIELDS UP · !FIRE HALVED</span>');if(d.enraged&&d.phase==='battle')tags.push('<span class="tag rage">▲ ENRAGED</span>');const tg=tags.join('');if($('tags').dataset.k!==tg){$('tags').dataset.k=tg;$('tags').innerHTML=tg;}
+  const left=d.endsAt-t;setText('clocktime',fmtTime(left));$('clock').classList.toggle('low',left<30000);
+  setText('pilotcount',d.pilots+' pilot'+(d.pilots===1?'':'s'));
+  const ol=$('leaders'),lk=JSON.stringify((d.leaders.length?d.leaders:d.fleet.slice(0,5)).map(p=>[p.name,p.platform,p.damage??null]));
+  if(ol.dataset.k!==lk){ol.dataset.k=lk;ol.replaceChildren();
   (d.leaders.length?d.leaders:d.fleet.slice(0,5).map(p=>({...p,damage:null}))).forEach((p,i)=>{const li=document.createElement('li');const r=document.createElement('span');r.className='r';r.textContent=p.damage===null?'·':String(i+1);
-    const dot=document.createElement('span');dot.className='p '+p.platform;const n=document.createElement('span');n.className='n';n.textContent=p.name;const dm=document.createElement('span');dm.className='d';dm.textContent=p.damage===null?'READY':p.damage.toLocaleString('en');li.append(r,dot,n,dm);ol.append(li);});
+    const dot=document.createElement('span');dot.className='p '+p.platform;const n=document.createElement('span');n.className='n';n.textContent=p.name;const dm=document.createElement('span');dm.className='d';dm.textContent=p.damage===null?'READY':p.damage.toLocaleString('en');li.append(r,dot,n,dm);ol.append(li);});}
   const feed=$('feed'),key=d.feed.map(f=>f.id).join(',');if(feed.dataset.key!==key){feed.dataset.key=key;feed.replaceChildren(...d.feed.slice(0,5).map(f=>{const x=document.createElement('div');x.className=f.kind;x.textContent=f.text;return x;}));}
   $('lobby').hidden=d.phase!=='lobby';
-  if(d.phase==='lobby'){$('lobbytitle').textContent=d.name+' approaches';$('lobbytime').textContent=Math.max(0,Math.ceil((d.lobbyEndsAt-t)/1000));$('lobbycount').textContent=d.pilots+' pilot'+(d.pilots===1?'':'s')+' boarded';}
+  if(d.phase==='lobby'){$('lobbytitle').textContent=d.name+' approaches';setText('lobbytime',String(Math.max(0,Math.ceil((d.lobbyEndsAt-t)/1000))));setText('lobbycount',d.pilots+' pilot'+(d.pilots===1?'':'s')+' boarded');}
   $('result').hidden=d.phase!=='result';
   if(d.phase==='result'&&outcomeShown!==d.id+d.outcome){
     outcomeShown=d.id+d.outcome;const win=d.outcome==='victory',r=$('result');r.classList.toggle('win',win);
@@ -282,12 +284,20 @@ function resetBoss(duration=3000){boss.visible=true;boss.rotation.set(.06,.34,-.
 // Lowers the render resolution if frames run slow, and raises it again when there is headroom.
 const perf={frames:0,since:performance.now(),good:0,fps:0};
 const fpsBox=params.get('fps')==='1'?Object.assign(document.createElement('div'),{style:'position:absolute;left:12px;top:8px;font:700 16px monospace;color:#7ce1cb;z-index:9;text-shadow:0 1px 2px #000'}):null;if(fpsBox)document.body.append(fpsBox);
+// 2.20.7: smooth instead of pumping. The frame cap is learned (OBS runs browser sources at 30 or 60 fps), so a 30 fps source
+// is not mistaken for a slow one; resolution only drops after 2 slow seconds in a row, rises after 15 good ones, never more
+// than once every 10 seconds, and the targets are resized while nothing is moving on screen where possible.
+const govern={cap:0,slow:0,good:0,changed:0};
 function governor(now){
   perf.frames++;if(now-perf.since<1000)return;perf.fps=perf.frames*1000/(now-perf.since);perf.frames=0;perf.since=now;
-  if(fpsBox)fpsBox.textContent=perf.fps.toFixed(0)+' fps · '+Math.round(W*res)+'×'+Math.round(H*res)+' · '+QUALITY;
+  govern.cap=Math.max(perf.fps>52?60:perf.fps>27?30:govern.cap||30,govern.cap*.98);
+  const cap=govern.cap>45?60:30;
+  if(fpsBox)fpsBox.textContent=perf.fps.toFixed(0)+' / '+cap+' fps · '+Math.round(W*res)+'×'+Math.round(H*res)+' · '+QUALITY;
   if(data?.phase==='idle')return;
-  if(perf.fps<50&&res>.55){res=Math.max(.5,+(res-.15).toFixed(2));sizeTargets();perf.good=0;}
-  else if(perf.fps>58.5&&res<MAX_RES){if(++perf.good>=4){res=Math.min(MAX_RES,+(res+.1).toFixed(2));sizeTargets();perf.good=0;}}else perf.good=0;
+  if(perf.fps<cap*.82){govern.slow++;govern.good=0;}else if(perf.fps>cap*.96){govern.good++;govern.slow=0;}else{govern.slow=0;govern.good=0;}
+  if(now-govern.changed<10000)return;
+  if(govern.slow>=2&&res>.55){res=Math.max(.5,+(res-.15).toFixed(2));sizeTargets();govern.changed=now;govern.slow=0;}
+  else if(govern.good>=15&&res<MAX_RES){res=Math.min(MAX_RES,+(res+.1).toFixed(2));sizeTargets();govern.changed=now;govern.good=0;}
 }
 
 // ---------- main loop ----------
@@ -328,7 +338,7 @@ function frame(now){
     f.warp.material.opacity=Math.max(0,1-age*1.4);f.warp.material.color.setHex(0x9fe6ff).multiplyScalar(3);f.warp.scale.setScalar(200+age*800);
     if(p.stunned&&Math.random()<.25)burst(f.ship.position.clone().add(v((Math.random()-.5)*80,0,0)),0xff6040,50,.3,3);
     const sp=f.ship.position.clone().add(v(0,-80,0)).project(camera);f.label.style.left=((sp.x+1)/2*W)+'px';f.label.style.top=((1-sp.y)/2*H)+'px';
-    f.label.textContent=p.stunned?p.name+' · SYSTEMS DOWN':p.name;f.label.classList.toggle('down',p.stunned);f.label.style.opacity=p.stunned||age<4||d.phase==='lobby'?1:0;
+    {const lt=p.stunned?p.name+' · SYSTEMS DOWN':p.name;if(f.label.textContent!==lt)f.label.textContent=lt;}f.label.classList.toggle('down',p.stunned);f.label.style.opacity=p.stunned||age<4||d.phase==='lobby'?1:0;
   }
   // New effects from the host.
   let played=0;for(const e of d.effects){if(seen.has(e.id))continue;seen.add(e.id);if(Date.now()+offset-e.at<2500&&(e.kind!=='laser'||fx.length<140)&&played++<8)play(e);}
@@ -340,7 +350,7 @@ function frame(now){
   renderFrame(t);
 }
 async function poll(){
-  try{const t=Date.now(),r=await fetch('/api/boss/overlay',{cache:'no-store'});const next=await r.json();offset=next.serverAt-(t+Date.now())/2;
+  try{const t=Date.now(),r=await fetch('/api/boss/overlay',{cache:'no-store'});const next=await r.json();{const o=next.serverAt-(t+Date.now())/2;offset=offset?offset+(o-offset)*.1:o;}
     if(next.id!==lastId&&next.phase!=='idle'){lastId=next.id;seen=new Set((next.effects||[]).map(e=>e.id));clearFleet();outcomeShown=null;hpShown=1;if(ready)resetBoss(next.phase==='lobby'?Math.min(20000,Math.max(4000,next.lobbyEndsAt-next.serverAt-2000)):2500);}
     data=next;}catch{}
   setTimeout(poll,250);
@@ -349,6 +359,6 @@ async function poll(){
   try{await Promise.all([shipMeshesReady(),materialsReady(),buildBoss(),backdrop()]);}catch(e){console.warn('Dreadnought assets:',e);}
   // Compile every shader once up front so the first shots don't stutter.
   try{renderer.compile(scene,camera);}catch{}
-  resetBoss();ready=true;
+  resetBoss();ready=true;govern.changed=performance.now(); // no resolution change while the scene settles
 })();
 poll();requestAnimationFrame(frame);

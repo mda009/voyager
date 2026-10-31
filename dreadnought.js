@@ -48,5 +48,42 @@ form.onsubmit=e=>{e.preventDefault();const f=form.elements,value={chatCall:f.cha
   control('settings',value,'Settings saved.').then(()=>{editing=false;render();});};
 $('obs-url').textContent=location.origin+'/dreadnought.html';
 $('obs-copy').onclick=async()=>{try{await navigator.clipboard.writeText($('obs-url').textContent);$('obs-copy').textContent='Copied';setTimeout(()=>$('obs-copy').textContent='Copy',1500);}catch{}};
-if(!hosted)$('not-hosted').hidden=false;else{load();setInterval(()=>{if(!document.hidden)load();},1000);}
+// ---------- victory rewards (2.20.7) ----------
+let points=null,owed=[],paying=false;
+async function loadOwed(){try{const c=await api('/api/community');owed=(c.payables||[]).filter(p=>p.scope==='boss');renderOwed();}catch{}}
+function renderOwed(){
+  const list=$('owed');list.textContent='';
+  const rows=owed.slice().sort((a,b)=>(a.status==='paid')-(b.status==='paid')||b.week-a.week);
+  for(const p of rows.slice(0,40)){const li=el('li','owe');li.dataset.status=p.status;
+    li.append(el('b','',p.name),el('span','',p.title+' · '+new Date(p.week).toLocaleDateString([], {day:'numeric',month:'short'})),el('span','r',p.status==='paid'?'Paid +'+p.reward:!p.payable?'No points account':p.status==='failed'?'Failed':'+'+p.reward.toLocaleString()));
+    if(p.note)li.title=p.note;list.append(li);}
+  if(!rows.length)list.append(el('li','','No victory rewards yet. Destroy the Dreadnought and the pilots appear here.'));
+  const due=owed.filter(p=>p.status!=='paid'&&p.payable),total=due.reduce((a,p)=>a+p.reward,0);
+  $('pay-summary').textContent=due.length?due.length+' pilot'+(due.length===1?'':'s')+' · '+total.toLocaleString()+' points':'All paid';
+  $('pay-all').textContent=due.length?'Pay '+due.length+' pilot'+(due.length===1?'':'s')+' ('+total.toLocaleString()+' points)':'Pay victory points';
+  $('pay-all').disabled=paying||!due.length||!points?.transportReady;
+}
+$('pay-all').onclick=async()=>{
+  const due=owed.filter(p=>p.status!=='paid'&&p.payable);if(!due.length)return;
+  if(!confirm('Pay '+due.length+' pilots their Dreadnought victory points ('+due.reduce((a,p)=>a+p.reward,0).toLocaleString()+' points)?'))return;
+  paying=true;renderOwed();let ok=0,bad=0;
+  for(const p of due){
+    const reason=('Voyager Dreadnought: '+p.title+' ('+new Date(p.week).toLocaleDateString()+')').slice(0,200);
+    try{
+      const plan=await points.call('admin_preview',{adminTask:'points',adminUserKey:p.key,adminTwitchLogin:'',adminDelta:String(p.reward),adminReason:reason});
+      if(!plan?.planId)throw new Error(plan?.error||'No preview returned.');
+      const result=await points.call('admin_apply',{adminPlanId:plan.planId,adminConfirm:'APPLY',adminClearConfirm:''});
+      if(result?.ok===false)throw new Error(result.error||'Not applied.');
+      await api('/api/community/payout',{week:p.week,missionId:p.missionId,key:p.key,status:'paid',note:reason});ok++;
+    }catch(e){bad++;await api('/api/community/payout',{week:p.week,missionId:p.missionId,key:p.key,status:'failed',note:e.message}).catch(()=>{});}
+    notice('Paying pilots… '+(ok+bad)+' of '+due.length);
+  }
+  paying=false;notice(bad?ok+' paid, '+bad+' failed. Hover a failed pilot to see why, then press Pay again.':'All '+ok+' pilots paid. The points show in Points history.',bad>0);await loadOwed();
+};
+if(window.VoyagerPointsConnection&&hosted){
+  points=new window.VoyagerPointsConnection(window.VOYAGER_CONFIG||{});
+  points.addEventListener('status',e=>{const s=$('points-status'),st=e.detail?.state;s.dataset.state=st==='live'?'ok':st==='error'||st==='offline'?'error':'wait';s.textContent=st==='live'?'Points Ledger connected':'Points Ledger · '+(e.detail?.message||st);renderOwed();});
+  points.connect();
+}
+if(!hosted)$('not-hosted').hidden=false;else{load();loadOwed();setInterval(()=>{if(!document.hidden)load();},1000);setInterval(()=>{if(!document.hidden&&!paying)loadOwed();},5000);}
 })();
