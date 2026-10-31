@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.9 (31 October 2026)
+
+**Fix: the giveaway wheel didn't appear during the winner reveal.** Since 2.16, impromptu giveaways keep recent winners in the pool ("can enter, can't be drawn"). The Giveaway Engine leaves them out of the draw, but the wheel still counted them, so its pool no longer matched the saved draw and it stayed hidden for safety. The wheel now leaves those entrants off too, so it matches the draw exactly and spins to the real winner. Member and ticketed giveaways were not affected. No Streamer.bot changes; refresh the giveaway browser source in OBS after updating.
+
 ## 2.20.8 (31 October 2026)
 
 **Kick (and YouTube) chat now reach Voyager directly.**
