@@ -18,6 +18,7 @@ import {readConnection,updateConnection} from './connection-config.mjs';
 import {Community} from './community.mjs';
 import {BossFight} from './boss.mjs';
 import {Medals} from './medals.mjs';
+import {Cards} from './cards.mjs';
 let VERSION='unknown';try{VERSION=JSON.parse(await readFile(new URL('../package.json',import.meta.url),'utf8')).version;}catch{}
 const major=Number(process.versions.node.split('.')[0]);
 if(major<22||typeof WebSocket==='undefined'){console.error('Voyager Versus requires Node.js 22.4 or newer. Install it from https://nodejs.org/');process.exit(1);}
@@ -81,13 +82,15 @@ async function runAction(name,args){
 }
 const medals=await new Medals({dataDir,say:text=>{void runAction('Voyager - Medals',{medalSay:String(text).slice(0,450)}).catch(()=>{});}}).load();
 let medalsAction={found:null,at:0};
+// Membership cards (2.19): replies go out through the "Voyager - Membership Card" action.
+const cards=await new Cards({dataDir,medals,community:()=>community,rankings:()=>savedRankings||[],say:text=>{void runAction('Voyager - Membership Card',{cardSay:String(text).slice(0,450)}).catch(()=>{});}}).load();
 async function medalSync(){
   if(!bot.status.connected)return;
   try{medalsAction={found:await runAction('Voyager - Medals',{medalExport:'1',since:String(medals.exportSince()),requestId:'medals-'+Date.now()}),at:Date.now()};}catch{}
 }
 function medalTick(){try{if(community)medals.observeCommunity(community);medals.observePilots(savedRankings||[]);medals.evaluate();}catch(e){console.warn('Medals: '+e.message);}}
 const boss=await new BossFight({dataDir,say:text=>{void bossSay(text);},onResult:r=>medals.observeBoss(r)}).load();
-const bot=new StreamerBot({onMedals:ev=>{if(ev.type==='voyager.medals.data')medals.ingestExport(ev);else medals.command(ev);},onBoss:ev=>{
+const bot=new StreamerBot({onCards:ev=>{cards.receive(ev);},onMedals:ev=>{if(ev.type==='voyager.medals.data')medals.ingestExport(ev);else medals.command(ev);},onBoss:ev=>{
   if(ev.kind==='call'&&!['lobby','result'].includes(game.phase)){game.note('Finish the Versus battle before calling the Dreadnought.','system');return;}
   boss.receive(ev);
 },onChat:chat=>{
@@ -187,6 +190,19 @@ const server=http.createServer(async(req,res)=>{
       if(url.pathname==='/api/public-site/settings'){try{response(res,200,{ok:true,...await publicSite.configure(await body(req,32768))});}catch(e){response(res,400,{ok:false,message:e.message});}return;}
       if(url.pathname==='/api/public-site/publish-now'){await body(req);if(!publicSite.view().upload.enabled){response(res,400,{ok:false,message:'Turn on publishing and add the repository and token first.'});return;}publicSite.rebuild();await publicSite.push();const v=publicSite.view();response(res,200,{ok:!v.upload.lastError,message:v.upload.lastError||'Published. The public site shows it within about 5 minutes.',status:v});return;}
       response(res,404,{message:'Not found.'});return;
+    }
+    if(url.pathname==='/api/cards/overlay'&&req.method==='GET'){res.setHeader('Cache-Control','no-store');response(res,200,cards.overlay());return;}
+    if(url.pathname.startsWith('/api/cards')){
+      if(!validToken(req)){response(res,403,{message:'Open Voyager Control › Membership cards.'});return;}
+      if(url.pathname==='/api/cards'&&req.method==='GET'){response(res,200,{...cards.view(),connected:bot.status.connected});return;}
+      if(req.method!=='POST'||!req.headers['content-type']?.startsWith('application/json')){response(res,405,{message:'Method not allowed.'});return;}
+      try{
+        const input=await body(req,65536);
+        if(url.pathname==='/api/cards/settings'){response(res,200,{ok:true,...cards.configure(input||{})});return;}
+        if(url.pathname==='/api/cards/preview'){const item=cards.preview(input||{});response(res,200,{ok:true,id:item.id});return;}
+        response(res,404,{message:'Not found.'});
+      }catch(e){response(res,400,{ok:false,message:e.message});}
+      return;
     }
     if(url.pathname==='/api/medals/overlay'&&req.method==='GET'){res.setHeader('Cache-Control','no-store');response(res,200,medals.overlay());return;}
     if(url.pathname.startsWith('/api/medals')){
@@ -296,5 +312,5 @@ server.listen(port,'127.0.0.1',()=>{
   }
   if(hasControl)console.log(`Voyager Control: http://127.0.0.1:${port}/control/Voyager_Command_Center.html`);
   console.log(`\nVOYAGER VERSUS ${VERSION} — MDA009\n\nData folder:   ${dataDir}\nControl panel: http://127.0.0.1:${port}/\nOBS overlay:   http://127.0.0.1:${port}/?overlay=1&hideIdle=1\nCooldown:      http://127.0.0.1:${port}/cooldown.html\n\nKeep this window open while streaming. Press Ctrl+C to stop.\n`);});
-async function stop(){clearInterval(timer);await publicSite?.goOffline().catch(()=>{});await publicSite?.saving;await medals.flush();bot.disconnect();for(const client of clients)client.end();server.close();await saving;await liveOverlay.saving.catch(()=>{});process.exit(0);}
+async function stop(){clearInterval(timer);await publicSite?.goOffline().catch(()=>{});await publicSite?.saving;await medals.flush();await cards.saving;bot.disconnect();for(const client of clients)client.end();server.close();await saving;await liveOverlay.saving.catch(()=>{});process.exit(0);}
 process.on('SIGINT',stop);process.on('SIGTERM',stop);

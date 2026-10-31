@@ -152,7 +152,27 @@ public static class Program
         mc.Chat.Clear(); mc.EventType = FakeEventType.Unknown; mc.Args = new System.Collections.Generic.Dictionary<string, object> { ["medalSay"] = "Nova earned Time Watched Gold" };
         medals.Execute(); Check(mc.Chat.Contains("twitch:Nova earned Time Watched Gold") && mc.Chat.Contains("kick:Nova earned Time Watched Gold"), "medalSay posts to chat");
 
-        Console.WriteLine(failures == 0 ? "::notice title=Streamer.bot actions::Compiled; all " + checks + " Giveaway Engine, Stream Stats, Dreadnought and Medals checks passed." : "::error title=Streamer.bot actions::" + failures + " of " + checks + " checks failed.");
+        // Voyager Membership Card v1: !voyager reads the tier from the groups; joining Silver/Gold/Platinum plays the tier-up.
+        var card = new CPHInline_5(); var cc = card.CPH;
+        cc.Groups["GOLD GROUP"] = new System.Collections.Generic.List<FakeGroupUser> { new FakeGroupUser { Id = "t1", Login = "nova", Username = "Nova", Type = "twitch" } };
+        cc.Groups["SILVER GROUP"] = new System.Collections.Generic.List<FakeGroupUser> { new FakeGroupUser { Id = "t1", Login = "nova", Username = "Nova", Type = "twitch" }, new FakeGroupUser { Id = "k2", Login = "vex", Username = "Vex", Type = "kick" } };
+        cc.EventType = FakeEventType.CommandTriggered;
+        cc.Args = new System.Collections.Generic.Dictionary<string, object> { ["command"] = "!voyager", ["commandSource"] = "twitch", ["userId"] = "t1", ["userName"] = "nova", ["user"] = "Nova", ["rawInput"] = "stats" };
+        card.Execute(); var ce = cc.Broadcasts.Count == 0 ? null : JObject.Parse(cc.Broadcasts.Last());
+        Check(ce != null && (string)ce["type"] == "voyager.card.event" && (string)ce["kind"] == "card" && (string)ce["tier"] == "gold" && (string)ce["input"] == "stats", "!voyager sends the highest tier and the side asked for");
+        cc.Args = new System.Collections.Generic.Dictionary<string, object> { ["command"] = "!voyager", ["commandSource"] = "kick", ["userId"] = "k2", ["userName"] = "vex", ["user"] = "Vex" };
+        card.Execute(); Check((string)JObject.Parse(cc.Broadcasts.Last())["tier"] == "silver", "Kick member in SILVER GROUP is silver");
+        cc.Args = new System.Collections.Generic.Dictionary<string, object> { ["command"] = "!voyager", ["commandSource"] = "youtube", ["userId"] = "y9", ["userName"] = "lyra", ["user"] = "Lyra" };
+        card.Execute(); Check((string)JObject.Parse(cc.Broadcasts.Last())["tier"] == "blue", "everyone else gets the Blue Explorer card");
+        cc.Broadcasts.Clear(); cc.EventType = FakeEventType.Unknown;
+        cc.Args = new System.Collections.Generic.Dictionary<string, object> { ["group.name"] = "PLATINUM GROUP", ["group.user.count"] = "2", ["group.user0.userType"] = "twitch", ["group.user0.userId"] = "t1", ["group.user0.userName"] = "nova", ["group.user0.user"] = "Nova", ["group.user1.userType"] = "twitch", ["group.user1.userId"] = "b1", ["group.user1.userName"] = "mdavoyagerplatinum", ["group.user1.user"] = "bucket" };
+        card.Execute(); Check(cc.Broadcasts.Count == 1 && (string)JObject.Parse(cc.Broadcasts[0])["kind"] == "tierup" && (string)JObject.Parse(cc.Broadcasts[0])["tier"] == "platinum", "joining PLATINUM GROUP plays the tier-up (bucket accounts skipped)");
+        cc.Broadcasts.Clear(); cc.Args = new System.Collections.Generic.Dictionary<string, object> { ["group.name"] = "BLUE GROUP", ["group.user.count"] = "1", ["group.user0.userType"] = "twitch", ["group.user0.userId"] = "t5" };
+        card.Execute(); Check(cc.Broadcasts.Count == 0, "joining BLUE GROUP is not a ceremony");
+        cc.Chat.Clear(); cc.Args = new System.Collections.Generic.Dictionary<string, object> { ["cardSay"] = "@nova your callsign is now TOP GUN" };
+        card.Execute(); Check(cc.Chat.Contains("twitch:@nova your callsign is now TOP GUN"), "cardSay posts to chat");
+
+        Console.WriteLine(failures == 0 ? "::notice title=Streamer.bot actions::Compiled; all " + checks + " Giveaway Engine, Stream Stats, Dreadnought, Medals and Membership Card checks passed." : "::error title=Streamer.bot actions::" + failures + " of " + checks + " checks failed.");
         return failures == 0 ? 0 : 1;
     }
     static JObject State(FakeCph cph) { return JObject.Parse(cph.GetGlobalVar<string>("VoyagerGiveawayStateV1")); }

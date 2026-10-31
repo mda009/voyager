@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Voyager • Membership cards</title>
+<link rel="icon" href="brand-assets/voyager.png">
+<link rel="stylesheet" href="stream-command.css">
+<link rel="stylesheet" href="voyager-brand.css">
+<link rel="stylesheet" href="settings.css?v=2.18">
+<link rel="stylesheet" href="community.css?v=2.18">
+<link rel="stylesheet" href="voyager-glass.css?v=2.18">
+<style>
+.mc-layout{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(320px,1fr);gap:16px;align-items:start}
+.mc-main,.mc-side{display:flex;flex-direction:column;gap:16px;min-width:0}
+.mc-card{padding:18px 22px;display:flex;flex-direction:column;gap:12px}
+.mc-preview{position:relative;aspect-ratio:16/9;background:#04070d;border:1px solid rgba(151,223,255,.16);overflow:hidden}
+.mc-preview iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.mc-buttons{display:flex;flex-wrap:wrap;gap:8px}
+.mc-form{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mc-form label{display:flex;flex-direction:column;gap:5px;font-size:12px;color:#9ab0c5}
+.mc-form input[type=number]{height:38px;padding:0 10px;border:1px solid rgba(151,223,255,.18);background:rgba(8,15,24,.55);color:#e6eef7;font:14px 'Segoe UI',sans-serif;min-width:0}
+.mc-form .check{flex-direction:row;align-items:center;gap:8px;grid-column:1/-1}
+.mc-cmds{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.mc-cmds div{padding:12px;border:1px solid rgba(151,223,255,.12);background:rgba(8,15,24,.4)}
+.mc-cmds code{font:700 17px var(--brand-display);color:#97dfff}.mc-cmds p{margin:6px 0 0;font-size:13px;color:#9ab0c5}
+.mc-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.mc-list li{display:flex;gap:10px;align-items:center;padding:8px 10px;border:1px solid rgba(151,223,255,.1);background:rgba(8,15,24,.35);font-size:13px}
+.mc-list li b{color:#e6eef7}.mc-list .r{margin-left:auto;color:#8ea6bd;font-size:12px}
+.mc-dot{width:10px;height:10px;transform:rotate(45deg)}.mc-blue{background:#3fb2ff}.mc-silver{background:#eef3f9}.mc-gold{background:#ffc53d}.mc-platinum{background:#c08bff}
+.mc-check{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;font-size:13px;color:#c9d7e4}
+.mc-check li::before{content:'○ ';color:#8ea6bd}.mc-check li.ok::before{content:'✓ ';color:#7ce1cb}
+@media(max-width:1100px){.mc-layout{grid-template-columns:1fr}}
+</style>
+</head>
+<body class="voyager-console voyager-settings voyager-community">
+<div class="shell">
+<aside class="rail"><a class="brand" href="Voyager_Command_Center.html"><img class="logo-voyager" src="brand-assets/voyager.png" alt="Voyager membership program" width="68" height="68"><span>VOYAGER<small>MDA009 · MISSION CONTROL</small></span></a></aside>
+<main>
+<header class="top"><div><span class="eyebrow">COMMUNITY</span><h1>Membership cards</h1></div><div class="toolbar"><span class="st-note">!voyager · Blue to Platinum</span><button type="button" class="primary" id="save">Save settings</button></div></header>
+<p class="st-notice" id="notice" hidden></p>
+<p class="st-notice" id="not-hosted" hidden>Open this page from the Voyager app (or START-VOYAGER-CONTROL.bat). Cards are built by the Voyager host.</p>
+<div class="mc-layout">
+<div class="mc-main">
+<section class="card mc-card">
+<div class="card-heading"><div><span class="eyebrow">ON STREAM</span><h2>Live view</h2></div><span class="st-pill" id="state-pill" data-state="wait">Standing by</span></div>
+<div class="mc-preview"><iframe id="preview" title="Membership card overlay preview" src="/card.html?bg=04070d"></iframe></div>
+<div class="mc-buttons" id="previews"></div>
+<p class="st-hint">Previews use sample data and show only here and in OBS; nothing is posted in chat.</p>
+</section>
+<section class="card mc-card">
+<span class="eyebrow">WHAT CHAT TYPES</span>
+<div class="mc-cmds">
+<div><code>!voyager</code><p>Their card: tier, points, leaderboard, time watched, Versus, season, Dreadnought, months subscribed, Honour, six medals and progress to the next tier.</p></div>
+<div><code>!voyager stats</code><p>The back of the card: Dreadnought, Versus, missions and seasons, watch streak, goals helped and giveaways won.</p></div>
+<div><code>!voyager badges</code><p>The medal wall: earned medals in their grade, locked ones with progress.</p></div>
+<div><code>!voyager title &lt;medal&gt;</code><p>Choose the callsign under their name from medals they've earned. <code>!voyager private</code> hides time watched and months subscribed (<code>!voyager public</code> shows them again).</p></div>
+</div>
+<p class="st-hint">Tiers and upgrades work exactly as before: your BLUE/SILVER/GOLD/PLATINUM groups and <b>!upgrade</b>. When someone is added to Silver, Gold or Platinum, the card plays the tier-up ceremony. Giveaway tickets are never shown.</p>
+</section>
+</div>
+<div class="mc-side">
+<section class="card mc-card">
+<div class="card-heading"><div><span class="eyebrow">SETTINGS</span><h2>Cards</h2></div></div>
+<form id="settings" class="mc-form" autocomplete="off">
+<label class="check"><input type="checkbox" name="enabled"> Cards are on</label>
+<label class="check"><input type="checkbox" name="chat"> Reply in chat to <b>!voyager title</b> and <b>!voyager private</b></label>
+<label>Seconds on screen<input name="seconds" type="number" min="5" max="60"></label>
+<label>Cooldown per viewer (seconds)<input name="cooldown" type="number" min="0" max="3600"></label>
+<label>Silver price (points)<input name="silver" type="number" min="0"></label>
+<label>Silver → Gold (points)<input name="gold" type="number" min="0"></label>
+<label>Gold → Platinum (points)<input name="platinum" type="number" min="0"></label>
+</form>
+<p class="st-hint">Prices only drive the card's next-tier bar. They match your Streamer.bot purchase actions (1,200 / 1,800 / 17,000); if you change those, change these too.</p>
+</section>
+<section class="card mc-card">
+<span class="eyebrow">OBS</span>
+<p class="st-hint">Replace the old card sources in your <b>MDA Membership</b> scene with one <b>Browser</b> source, 1920 × 1080, at this address (leave "Local file" unticked). It is invisible until someone types !voyager. Add <code>?backdrop=0</code> to drop the space backdrop and keep only the glass card.</p>
+<div class="cs-url"><code id="obs-url"></code><button type="button" id="obs-copy">Copy</button></div>
+</section>
+<section class="card mc-card"><span class="eyebrow">STREAMER.BOT</span><ul class="mc-check" id="checklist"></ul><p class="st-hint"><a href="MEMBERSHIP_CARD_SETUP.html">Setup guide ↗</a></p></section>
+<section class="card mc-card"><span class="eyebrow">RECENT CARDS</span><ul class="mc-list" id="recent"></ul></section>
+</div>
+</div>
+</main>
+</div>
+<script src="cards-control.js?v=2.19"></script>
+<script src="voyager-shell.js?v=2.19"></script>
+<script src="voyager-navigation.js"></script>
+</body>
+</html>

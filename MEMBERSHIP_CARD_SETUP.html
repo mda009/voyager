@@ -1,0 +1,36 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Voyager membership card • Setup</title><style>:root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;background:#09111c;color:#dfeafa;font:16px/1.7 'Segoe UI',Arial,sans-serif}main{max-width:1000px;margin:50px auto;padding:0 25px 70px}h1{font-size:42px;letter-spacing:-1px;line-height:1.15}h2{font-size:23px;margin-top:34px;color:#c4e3ff}h3{font-size:18px}p,li,td{color:#aebfd4}li{margin:10px 0}strong{color:#e0edfc}a{color:#96cfff}code{background:#1b2c43;border-radius:4px;padding:3px 5px;color:#c9e6ff;overflow-wrap:anywhere}pre{white-space:pre-wrap;background:#142237;border-radius:8px;padding:18px}.button,button{display:inline-block;background:#9cd3ff;color:#091b2b;text-decoration:none;border:0;border-radius:7px;padding:11px 18px;margin:5px 7px 5px 0;font:inherit;font-weight:600;cursor:pointer}.secondary{background:#263a52;color:#d9e9fa}.card{border:1px solid #2c415d;border-radius:10px;background:#101e30;padding:22px;margin:25px 0}table{border-collapse:collapse;width:100%;font-size:14px}th,td{border-bottom:1px solid #2c3c51;text-align:left;vertical-align:top;padding:12px}th{color:#a9d1f4}input{width:100%;padding:11px;background:#091422;color:#deedff;border:1px solid #3b506a;border-radius:5px}.small{font-size:13px}.eyebrow{font-size:10px;letter-spacing:2px;color:#88b7de}.note{border-left:3px solid #87c6f7;padding-left:17px}@media(max-width:600px){main{margin-top:25px}h1{font-size:32px}table{font-size:12px}td,th{padding:8px}}</style></head><body><main>
+<span class="eyebrow">VOYAGER 2.19</span>
+<h1>Membership card setup</h1>
+<p>The new <code>!voyager</code> card is the glass card in each viewer's tier colour, built live from their points, leaderboard place, time watched, Versus record, season, Dreadnought fights, months subscribed and medals. It has two back sides (<code>!voyager stats</code>, <code>!voyager badges</code>) and a tier-up ceremony when someone joins Silver, Gold or Platinum.</p>
+<div class="card"><h2 style="margin-top:0">What stays the same</h2><ul>
+<li><strong>Tiers and upgrades are unchanged.</strong> Your BLUE/SILVER/GOLD/PLATINUM GROUP, <code>!upgrade</code>, the Silver and Gold purchase actions, Silver &gt; Gold and Gold &gt; Platinum logic, the FAST TRACK sub rewards, the bucket accounts (mdavoyagersilver/gold/platinum), the threshold giveaways and your upgrade sounds all keep working exactly as they do now.</li>
+<li>The card's next-tier bar uses the same prices: Silver 1,200 points, Silver → Gold 1,800, Gold → Platinum 17,000 (change them in <strong>Voyager Control › Membership cards</strong> if you change the actions).</li>
+<li>Giveaway ticket balances are never shown.</li></ul></div>
+<h2>1. Create the action</h2>
+<ol><li>In Streamer.bot, <strong>Actions</strong> › right-click › <strong>Add</strong>. Name it exactly <code>Voyager - Membership Card</code>. Untick <strong>Concurrent</strong>.</li>
+<li>Add a sub-action <strong>Core › C# › Execute C# Code</strong>. Paste the whole of <code>Voyager_Membership_Card.cs</code>, <strong>Compile</strong>, then <strong>Save and Compile</strong>.</li>
+<li><strong>Triggers</strong> › right-click › <strong>Core › Groups › User Added to Group</strong> (any group; the code only reacts to SILVER, GOLD and PLATINUM GROUP).</li></ol>
+<h2>2. Move !voyager to the new card</h2>
+<ol><li>Open the action <strong>Silver Membership On Screen</strong> › <strong>Triggers</strong>, and delete its <strong>Command Triggered: !voyager</strong> trigger.</li>
+<li>On <strong>Voyager - Membership Card</strong>, add <strong>Core › Commands › Command Triggered</strong> › <code>!voyager</code>. In <strong>Commands</strong>, open <em>SHOW CARD</em> (!voyager), tick Twitch, YouTube and Kick, and set the user cooldown to 0 (Voyager allows one card per viewer per minute).</li>
+<li><strong>Disable</strong> (untick Enabled) these three actions so the old image cards stop appearing after an upgrade: <em>Silver Membership On Screen</em>, <em>Gold Membership On Screen</em>, <em>Platinum OR Blue Membership On Screen</em>. The purchase actions still run them, but disabled actions do nothing. Your upgrade sounds are in the purchase actions and still play.</li></ol>
+<h2>3. OBS</h2>
+<ol><li>In your <strong>MDA Membership</strong> scene, hide or delete the old BLUE/SILVER/GOLD/PLATINUM Card, member name, member id and points balance sources.</li>
+<li>Add a <strong>Browser</strong> source, 1920 × 1080, address <code>http://127.0.0.1:8740/card.html</code>. Leave "Local file" unticked; tick <strong>Use custom frame rate: 60</strong>. Add <code>?backdrop=0</code> to keep only the glass card without the space backdrop.</li>
+<li>Check it from <strong>Voyager Control › Membership cards</strong> with the preview buttons.</li></ol>
+<h2>What chat can type</h2>
+<table><tr><th>Command</th><th>Shows</th></tr>
+<tr><td><code>!voyager</code></td><td>The card: tier, points, leaderboard, time watched, Versus, season, Dreadnought, subscribed, Honour, six best medals, callsign and progress to the next tier.</td></tr>
+<tr><td><code>!voyager stats</code></td><td>Fleet Record: Dreadnought, Versus, missions and seasons, watch streak, goals helped, giveaways won.</td></tr>
+<tr><td><code>!voyager badges</code></td><td>Medal Wall: earned medals by grade, locked ones with progress.</td></tr>
+<tr><td><code>!voyager title &lt;medal&gt;</code></td><td>Sets the callsign under their name from medals they've earned (reply in chat).</td></tr>
+<tr><td><code>!voyager private</code> / <code>public</code></td><td>Hide or show time watched and months subscribed.</td></tr></table>
+<h2>Your Streamer.bot review (31 October export)</h2>
+<p>For 2.19 to work fully, these need to be in Streamer.bot. From your export:</p>
+<table><tr><th>Action</th><th>Status in your export</th><th>Do</th></tr>
+<tr><td>Voyager - Membership Card</td><td>Not installed</td><td>Steps 1–2 above</td></tr>
+<tr><td>Voyager - Dreadnought</td><td>Not installed</td><td>Follow <a href="DREADNOUGHT_SETUP.html">Dreadnought setup</a> (!join, !fire, !dreadnought and the cheer/gift triggers)</td></tr>
+<tr><td>Voyager - Medals</td><td>Not installed</td><td>Follow <a href="MEDALS_SETUP.html">Medals setup</a> (!medals)</td></tr>
+<tr><td>Voyager - Stream Stats</td><td>v5</td><td>Replace the code with <code>Voyager_Stream_Stats.cs</code> (v6) so subscriber missions and season sub goals get their data</td></tr>
+<tr><td>Voyager - Community Tracker, Fleet Alerts, Giveaway Engine v10, Points Ledger 4.4.1</td><td>Installed</td><td>Nothing to change. Medals and the card read them.</td></tr></table>
+</main></body></html>

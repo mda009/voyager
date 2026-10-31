@@ -2,6 +2,19 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.19.0 (31 October 2026)
+
+**The new `!voyager` membership card**, built on your existing tiers and upgrade logic, alongside the Voyager Dreadnought (2.17) and Voyager Medals (2.18). **New Streamer.bot action: Voyager - Membership Card** (see `MEMBERSHIP_CARD_SETUP.html`, which also lists what your current Streamer.bot setup still needs).
+
+- **Tier glass card** in Blue Explorer, Silver Sentinel, Gold Commander and Platinum Vanguard (ultraviolet) colours: chrome titles, faceted crest, machined roundel, planet and nebula backdrop. OBS source `/card.html` (`?backdrop=0` for the card alone), one card at a time with a tier entrance (scan, chrome sweep, crest flare, ultraviolet pulse).
+- **Live data**: points balance and leaderboard place (from your `points` variable), lifetime points, time watched and streak, Versus record, season rank, Dreadnought, months subscribed, Honour, six best medals, a callsign and a member ID and member-since date.
+- **Next-tier bar from your upgrade prices**: Silver 1,200 points, Silver → Gold 1,800, Gold → Platinum 17,000 (as in your purchase actions), with "type !upgrade" once affordable.
+- **`!voyager stats`** (Fleet Record) and **`!voyager badges`** (Medal Wall) back sides; **`!voyager title <medal>`** picks a callsign; **`!voyager private`** hides time watched and months subscribed.
+- **Tier-up ceremony**: when someone is added to SILVER, GOLD or PLATINUM GROUP (by !upgrade, a purchase or a FAST TRACK sub), the old card charges, flashes and reveals the new tier with a TIER UP banner.
+- Tiers, `!upgrade`, purchases, bucket accounts, threshold giveaways and upgrade sounds are unchanged. Giveaway ticket balances are never shown.
+- **Voyager Control › Membership cards**: previews for every tier, side and the tier-up, seconds on screen, per-viewer cooldown, upgrade prices and a setup checklist.
+- Medals now record Dreadnought damage and fights joined (shown on the card).
+
 ## 2.18.0 (31 October 2026)
 
 **Voyager Medals**: medals viewers earn for their time with the crew, their support and taking part. **New Streamer.bot action: Voyager - Medals** (see `MEDALS_SETUP.html`).

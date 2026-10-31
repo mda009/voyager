@@ -10,6 +10,7 @@ const FEATURES=[
  ['Voyager Versus','Call or join a battle',['!versus']],
  ['Voyager Dreadnought','Board the fleet, fire, or call the boss (mods)',['!join','!fire','!dreadnought']],
  ['Voyager Medals','See your medals, Honour and the next grade',['!medals']],
+ ['Membership card','Show your card, its stats or medal wall',['!voyager']],
  ['Points','Voyager points and tiers',['!upgrade','!points','!balance']],
  ['Overlays','Show or hide stream panels',['!hidemembers','!showmembers']]
 ];

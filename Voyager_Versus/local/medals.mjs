@@ -47,7 +47,23 @@ export const MEDALS=[
   {id:'laststand',name:'Last Stand',cat:'special',kind:'secret',desc:'Landed the killing blow on the Dreadnought with 15 seconds or less left'},
   {id:'nightwatch',name:'Night Watch',cat:'special',kind:'secret',desc:'Earned Voyager points between midnight and 5 am on five different nights'}
 ];
+// Line icons (24 × 24) for each medal, shared with the membership card's badge wall.
+export const MEDAL_ICONS={watch:'M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0-18 0 M12 7v5l3 2',follow:'M4 6h16v15H4z M4 10h16 M8 3v5 M16 3v5 M8 14h2 M12 14h2 M16 14h2',
+  streak:'M12 3c1 4 5 5 5 10a5 5 0 0 1-10 0c0-3 2-4 2-6 1 1 2 2 2 3 1-2 1-4 1-7z',regular:'M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0-6 0',
+  subs:'M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.5-7 10-7 10z',substreak:'M13 2L4 14h7l-1 8 9-12h-7z',
+  gifter:'M4 10h16v11H4z M3 7h18v3H3z M12 7v14 M12 7c-2-4-6-3-5 0 M12 7c2-4 6-3 5 0',giftbomb:'M12 2c3 3 4 7 4 11l-4 4-4-4c0-4 1-8 4-11z M8 13l-3 3v3l3-2 M16 13l3 3v3l-3-2',
+  power:'M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0-18 0 M12 7v10 M9 9.5c0-1.2 1.3-2 3-2s3 .8 3 2-1.3 1.8-3 2.2-3 1-3 2.3 1.3 2 3 2 3-.8 3-2',goals:'M5 21V4 M5 4h12l-2 4 2 4H5',
+  patron:'M3 8l4 4 5-7 5 7 4-4-2 11H5z',elder:'M12 3l8 3v6c0 5-4 8-8 9-4-1-8-4-8-9V6z',seasonpatron:'M7 4h10v5a5 5 0 0 1-10 0z M7 6H4a3 3 0 0 0 3 4 M17 6h3a3 3 0 0 1-3 4 M12 14v4 M8 21h8',
+  versus:'M4 4l9 9 M4 4h4 M4 4v4 M20 4l-9 9 M20 4h-4 M20 4v4 M7 17l-3 3 M17 17l3 3 M9 15l-2 2 M15 15l2 2',hotstreak:'M13 2L4 14h7l-1 8 9-12h-7z',
+  slayer:'M12 12m-8 0a8 8 0 1 0 16 0a8 8 0 1 0-16 0 M12 12m-4 0a4 4 0 1 0 8 0a4 4 0 1 0-8 0 M12 2v4 M12 18v4 M2 12h4 M18 12h4',
+  torpedo:'M12 2c3 3 4 7 4 11l-4 4-4-4c0-4 1-8 4-11z M8 13l-3 3v3l3-2 M16 13l3 3v3l-3-2 M12 9v.01',topgun:'M3 8l4 4 5-7 5 7 4-4-2 11H5z',
+  points:'M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0-18 0 M12 7v10',missions:'M4 6h16v14H4z M8 12l3 3 5-6',spectrum:'M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.6 6.6 19.5l1.2-6L3.3 9.3l6.1-.7z',
+  podium:'M7 4h10v5a5 5 0 0 1-10 0z M7 6H4a3 3 0 0 0 3 4 M17 6h3a3 3 0 0 1-3 4 M12 14v4 M8 21h8 M10 18h4',champion:'M3 8l4 4 5-7 5 7 4-4-2 11H5z',
+  lucky:'M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.6 6.6 19.5l1.2-6L3.3 9.3l6.1-.7z',founding:'M12 3l8 3v6c0 5-4 8-8 9-4-1-8-4-8-9V6z',
+  firstcontact:'M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0-6 0',laststand:'M12 12m-8 0a8 8 0 1 0 16 0a8 8 0 1 0-16 0 M12 8v5 M12 16v.01',
+  nightwatch:'M20 14A8 8 0 1 1 10 4a6 6 0 0 0 10 10z',secret:'M9 9a3 3 0 1 1 4 2.8c-.8.4-1 1-1 2v.7 M12 18v.01'};
 const BY_ID=Object.fromEntries(MEDALS.map(m=>[m.id,m]));
+export function medalById(id){return BY_ID[id]||null;}
 export const MEDAL_DEFAULTS={enabled:true,chat:true,toastMin:1,off:[],grades:{}};
 const clean=(v,max)=>String(v??'').replace(/[\u0000-\u001f\u007f]/g,' ').trim().slice(0,max);
 const num=v=>{const n=Number(v);return Number.isFinite(n)&&n>0&&n<9e15?n:0;};
@@ -215,6 +231,7 @@ export class Medals{
     for(const p of Array.isArray(result.pilots)?result.pilots:[]){
       const v=this.viewer(clean(p.key,140),{name:p.name,platform:p.platform});if(!v)continue;
       const fought=p.fires>0||p.bits>0||p.gifts>0;
+      if(fought){this.inc(v,'fights');this.inc(v,'damage',Math.floor(num(p.damage)));}
       if(result.outcome==='victory'&&fought)this.inc(v,'slayer');
       if(p.gifts>0)this.inc(v,'torpedo',Math.floor(p.gifts));
       if(result.mvpKey&&result.mvpKey===p.key)this.inc(v,'topgun');

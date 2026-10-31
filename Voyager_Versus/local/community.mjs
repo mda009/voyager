@@ -125,7 +125,8 @@ export class Community{
       const key=clean(m?.key,120);if(!/^(twitch|youtube|kick):/.test(key))continue;
       const value=metric(m);if(value===null)continue;
       const prev=s.members[key];
-      s.members[key]={name:clean(m.name||m.login,60)||key,login:clean(m.login,60).toLowerCase(),platform:key.split(':')[0],value,seen:now};
+      const balance=Number(m.points);
+      s.members[key]={name:clean(m.name||m.login,60)||key,login:clean(m.login,60).toLowerCase(),platform:key.split(':')[0],value,...(Number.isFinite(balance)&&balance>=0?{balance}:{}),seen:now};
       if(s.week.baseline[key]===undefined){s.week.baseline[key]=value;changed=true;}
       if(s.season.baseline[key]===undefined){s.season.baseline[key]=value;changed=true;}
       if(prev&&value>prev.value){const d=s.week.days[key]||(s.week.days[key]=[]);if(!d.includes(today)){d.push(today);changed=true;}}
