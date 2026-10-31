@@ -2,6 +2,17 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.17.1 (31 October 2026)
+
+Dreadnought visual overhaul and reward rule. **No Streamer.bot changes.**
+
+- **If the Dreadnought escapes, no points are awarded** (and none for a fight ended early). The escape screen and chat message now say so.
+- **New Dreadnought model:** a faceted, three-tier armoured hull with a ventral keel, command tower with lit bridge, 8 twin-barrel turrets that track the fleet, 5 engine bells with animated volumetric plumes, prow spikes, swept fins, hangar bays, comms dishes, about 2,000 hull details, 700 lit windows and blinking running lights.
+- **4K PBR materials** made for it (base colour, normal, ambient occlusion/roughness/metal, emissive): weathered armour plating with seams, rivets, vents, hatches, run-off streaks and scorch marks. 2K and 1K versions are used automatically with `?quality=balanced` / `?quality=low`.
+- **Cinematic rendering:** HDR with multi-level bloom, ACES tone mapping, 4K soft shadows, MSAA, impact lights that light the hull, hex-shield ripples where shots land, sparks and smoke trails, fires and smoke that spread as the hull is damaged, a breakup with flying debris on victory and a jump-to-light-speed escape.
+- **4K space backdrop** (nebula and star field) with a gas giant and atmosphere glow, plus drifting dust for depth. `?backdrop=0` still gives a transparent overlay.
+- **60 fps:** effects are pooled (no stutter mid-fight), shaders compile before the first fight, and a governor lowers the render resolution slightly if frames run slow. Set the OBS Browser source to a custom frame rate of 60. For a 4K canvas, use 3840 × 2160 and `?res=2`.
+
 ## 2.17.0 (31 October 2026)
 
 **Voyager Dreadnought**: a chat co-op boss fight. **One Streamer.bot change:** create the **Voyager - Dreadnought** action from `Voyager_Dreadnought.cs` and add its commands and triggers (see `DREADNOUGHT_SETUP.html`).

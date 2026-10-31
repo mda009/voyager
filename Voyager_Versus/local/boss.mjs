@@ -135,7 +135,7 @@ export class BossFight{
     b.phase='result';b.outcome=outcome;b.endedAt=now;
     const pilots=[...b.pilots.values()].sort((a,c)=>c.damage-a.damage||a.joinedAt-c.joinedAt),mvp=pilots[0]&&pilots[0].damage>0?pilots[0]:null;
     const total=b.maxHp-b.hp;
-    this.note(outcome==='victory'?s.name+' destroyed! Victory, pilots!':s.name+' escaped with '+Math.ceil(b.hp/b.maxHp*100)+'% hull left.','alert');
+    this.note(outcome==='victory'?s.name+' destroyed! Victory, pilots!':s.name+' escaped with '+Math.ceil(b.hp/b.maxHp*100)+'% hull left. No points awarded.','alert');
     if(!b.demo){
       const rewarded=outcome==='victory'&&s.victoryPoints>0?pilots.filter(p=>p.fires>0||p.bits>0||p.gifts>0):[];
       this.history.unshift({id:b.id,name:s.name,outcome,startedAt:b.startedAt,endedAt:now,maxHp:b.maxHp,damage:total,pilots:pilots.length,
@@ -144,7 +144,7 @@ export class BossFight{
       this.history=this.history.slice(0,30);this.persist();
       this.announce(outcome==='victory'
         ?'💥 '+s.name+' is destroyed! '+pilots.length+' pilots dealt '+total.toLocaleString('en')+' damage.'+(mvp?' MVP: '+mvp.name+' ('+mvp.damage.toLocaleString('en')+').':'')+(rewarded.length?' Every pilot who fought earns '+s.victoryPoints+' Voyager points.':'')
-        :'☠ '+s.name+' escaped with '+Math.ceil(b.hp/b.maxHp*100)+'% hull left. Regroup, pilots: it will be back.');
+        :'☠ '+s.name+' escaped with '+Math.ceil(b.hp/b.maxHp*100)+'% hull left. No points this time. Regroup, pilots: it will be back.');
     }
   }
   // Called about ten times a second by the host.

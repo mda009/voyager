@@ -15,12 +15,18 @@
 <tr><td>YouTube</td><td>Super Chat · Super Sticker · Membership Gift</td><td>1.00 of Super Chat counts like 100 bits; each gifted membership is a torpedo</td></tr>
 <tr><td>Kick</td><td>Gift Subscription · Mass Gift Subscription</td><td>Each gifted sub is a torpedo (counted once per recipient)</td></tr></table>
 <h2>4. Add it to OBS</h2>
-<ol><li>Add a <strong>Browser</strong> source, 1920 × 1080, address <code>http://127.0.0.1:8740/dreadnought.html</code>. Leave "Local file" unticked.</li><li>It is invisible until a fight starts. Add <code>?backdrop=0</code> to the address for a transparent background over your gameplay, or <code>?res=0.5</code> if your PC struggles.</li></ol>
+<ol><li>Add a <strong>Browser</strong> source, 1920 × 1080, address <code>http://127.0.0.1:8740/dreadnought.html</code>. Leave "Local file" unticked.</li><li>In the source properties tick <strong>Use custom frame rate</strong> and set it to <strong>60</strong> (OBS browser sources run at 30 fps otherwise). Leave <strong>Shutdown source when not visible</strong> unticked, so the 4K textures stay loaded between fights.</li>
+<li>It is invisible until a fight starts. Options you can add to the address:<ul>
+<li><code>?backdrop=0</code> for a transparent background over your gameplay (the ship, effects and glow stay).</li>
+<li><code>?quality=balanced</code> (2K textures) or <code>?quality=low</code> (1K) if your graphics card is short of memory. The default, ultra, uses 4K textures (about 650 MB of video memory).</li>
+<li>For a 4K canvas set the source to 3840 × 2160 and add <code>?res=2</code>.</li>
+<li><code>?fps=1</code> shows a frame counter while you tune it.</li></ul></li>
+<li>The overlay targets 60 fps: if frames run slow it lowers its render resolution a little, and raises it again when there is headroom.</li></ol>
 <h2>5. Try it</h2>
 <ol><li>Open <strong>Voyager Control › Voyager Dreadnought</strong> and click <strong>Preview (simulated chat)</strong>. Nothing is posted in chat or paid.</li><li>When you're live, click <strong>Call the Dreadnought</strong> (or a moderator types <code>!dreadnought</code>). Chat has the boarding time to <code>!join</code>; <strong>Start now</strong> skips the wait.</li><li>Type <code>!join</code> and <code>!fire</code> yourself: the Streamer.bot checklist on the page ticks once events arrive.</li></ol>
 <h2>Rewards</h2>
 <p>Victory pays the <strong>same</strong> Voyager points to every pilot who fought (fired, cheered or gifted). They appear in <strong>Missions › Points owed</strong> and are paid with <strong>Pay all owed</strong> through the Points Ledger. Paid support only changes damage, never rewards, and the fight never gives giveaway tickets.</p>
 <h2>Balance (defaults)</h2>
-<table><tr><th>Setting</th><th>Default</th></tr><tr><td>Hull</td><td>4,000 + 350 per pilot (late pilots add 150)</td></tr><tr><td>!fire</td><td>12–22 damage, every 4 seconds per pilot, 1 in 16 critical (×3)</td></tr><tr><td>Bits</td><td>2.5 damage per bit (100 bits = 250)</td></tr><tr><td>Gifted sub</td><td>600 damage</td></tr><tr><td>Battle</td><td>60 seconds to board, 3 minutes to fight</td></tr><tr><td>Boss</td><td>Shields at 50% (8 s, !fire halved), enraged at 20%, knocks pilots out for 10 s</td></tr><tr><td>Victory</td><td>100 points each</td></tr></table>
+<table><tr><th>Setting</th><th>Default</th></tr><tr><td>Hull</td><td>4,000 + 350 per pilot (late pilots add 150)</td></tr><tr><td>!fire</td><td>12–22 damage, every 4 seconds per pilot, 1 in 16 critical (×3)</td></tr><tr><td>Bits</td><td>2.5 damage per bit (100 bits = 250)</td></tr><tr><td>Gifted sub</td><td>600 damage</td></tr><tr><td>Battle</td><td>60 seconds to board, 3 minutes to fight</td></tr><tr><td>Boss</td><td>Shields at 50% (8 s, !fire halved), enraged at 20%, knocks pilots out for 10 s</td></tr><tr><td>Victory</td><td>100 points each. If the Dreadnought escapes (or the fight is ended early) no points are awarded.</td></tr></table>
 <p class="small">All of these are in Voyager Control › Voyager Dreadnought › Settings.</p>
 </main></body></html>

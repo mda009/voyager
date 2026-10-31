@@ -77,3 +77,13 @@ test('Dreadnought victories appear in Missions › Points owed, payable once per
   c.recordPayout({week:42,missionId:'boss',key:'twitch:1',status:'paid'});
   assert.equal(c.payables().find(p=>p.key==='twitch:1'&&p.scope==='boss').status,'paid');
 });
+
+test('An escape (or a fight ended early) never awards points',async()=>{
+  const {b,said,at}=await make({lobbySeconds:10,battleSeconds:60,baseHp:100000,hpPerPilot:0});
+  b.call();b.receive(ev('join','nova'));at(10000);b.receive(ev('fire','nova'));b.receive(ev('gift','orion',{amount:3}));
+  at(61000);
+  assert.equal(b.history[0].outcome,'escaped');assert.deepEqual(b.history[0].rewarded,[]);assert.equal(b.rewardBatches().length,0);
+  assert.match(said.at(-1),/No points/);assert.match(b.overlay().feed[0].text,/No points awarded/);
+  at(30000);b.call();b.receive(ev('join','nova'));at(10000);b.receive(ev('fire','nova'));b.cancel();
+  assert.equal(b.rewardBatches().length,0,'cancelled fights pay nothing');
+});
