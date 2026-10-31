@@ -84,10 +84,48 @@ $('pay-all').onclick=async()=>{
   }
   paying=false;notice(bad?ok+' paid, '+bad+' failed. Hover a failed row to see why, then try again.':'All '+ok+' rewards paid. They show in Points history.',bad>0);await load();
 };
+// 2.16.1: subscriber rewards follow the Currency System's own sub and gift points (read from Points history).
+const GIFT_EVENTS=['TwitchGiftSub','KickGiftSubscription','YouTubeMembershipGift'],SUB_EVENTS=['TwitchSub','TwitchReSub','KickSubscription','KickResubscription','YouTubeNewSponsor','YouTubeMemberMileStone'];
+const ALIGN_DEFAULTS={supporter:250,gifter:250,veteran:125,crew:250,'gift-fleet':250};let detected=null,alignEdited=false,autoTried=false;
+const mode=list=>{const c=new Map();for(const v of list)c.set(v,(c.get(v)||0)+1);return [...c.entries()].sort((a,b)=>b[1]-a[1]||a[0]-b[0])[0]?.[0]??null;};
+async function readAllocation(){
+  const found={gift:[],sub:[]};
+  for(const [kind,events] of [['gift',GIFT_EVENTS],['sub',SUB_EVENTS]])for(const ev of events){
+    try{const r=await points.call('history',{pointsQuery:ev,pointsKind:'all',pointsPlatform:'all',pointsLimit:'300'});
+      for(const e of r?.entries||[])if(e.actionLabel==='StreamUP / '+ev&&Number(e.delta)>0)found[kind].push(Number(e.delta));}catch{}
+  }
+  return {gift:mode(found.gift),sub:mode(found.sub),giftCount:found.gift.length,subCount:found.sub.length};
+}
+function renderAlign(){
+  const st=$('align-state');if(!detected){st.dataset.state='wait';st.textContent=points?.transportReady?'Reading points history…':'Waiting for Points Ledger';return;}
+  const parts=[];if(detected.gift!==null)parts.push(detected.gift.toLocaleString()+' per gift ('+detected.giftCount+' seen)');if(detected.sub!==null)parts.push(detected.sub.toLocaleString()+' per sub ('+detected.subCount+' seen)');
+  st.dataset.state=parts.length?'ok':'wait';st.textContent=parts.length?'Found: '+parts.join(' · '):'No sub or gift events in Points history yet';
+  if(!alignEdited){if(detected.gift!==null)$('align-gift').value=detected.gift;if(detected.sub!==null)$('align-sub').value=detected.sub;}
+}
+for(const id of ['align-gift','align-sub'])$(id).addEventListener('input',()=>{alignEdited=true;});
+async function applyAlign(gift,sub,auto){
+  const G=Number.isInteger(gift)&&gift>=0?gift:sub,S=Number.isInteger(sub)&&sub>=0?sub:gift;if(!Number.isInteger(G)||!Number.isInteger(S))throw new Error('Enter the points per gifted sub (and per sub if different).');
+  const next=missions.map(m=>m.type==='subscribe'?{...m,reward:S}:m.type==='giftSubs'?{...m,reward:G}:m.type==='loyalSub'?{...m,reward:Math.round(S/2)}:m);
+  view=await api('/api/community/missions',{missions:next});missions=view.missions.map(({id,title,type,target,reward,platform,enabled})=>({id,title,type,target,reward,platform,enabled}));
+  const goals=(view.goals||[]).map(({id,title,metric,platform,target})=>({id,title,metric,platform,target,reward:metric==='subs'?S:G}));
+  view=await api('/api/community/season',{goals,supportBonus:G});
+  $('align-note').textContent=(auto?'Matched automatically: ':'Saved: ')+'Crew Supporter '+S+', Fleet Gifter '+G+', Veteran Crew '+Math.round(S/2)+', season goals '+G+' per helper, supporter bonus '+G+'.';
+  render();
+}
+$('align-apply').onclick=async()=>{try{await applyAlign(parseInt($('align-gift').value,10),parseInt($('align-sub').value,10),false);notice('Subscriber rewards now match your Currency System.');}catch(e){notice(e.message,true);}};
+async function detectAllocation(){
+  if(autoTried||!points?.transportReady||!view)return;autoTried=true;
+  detected=await readAllocation();renderAlign();
+  if(detected.gift===null&&detected.sub===null)return;
+  // Untouched defaults are matched automatically once; anything you edited yourself is left for the button.
+  const untouched=missions.filter(m=>ALIGN_DEFAULTS[m.id]!==undefined).every(m=>m.reward===ALIGN_DEFAULTS[m.id])&&(view.goals||[]).filter(g=>ALIGN_DEFAULTS[g.id]!==undefined).every(g=>g.reward===ALIGN_DEFAULTS[g.id]);
+  if(untouched)try{await applyAlign(detected.gift,detected.sub,true);notice('Subscriber rewards were matched to your Currency System ('+(detected.gift??detected.sub)+' per gift).');}catch(e){notice(e.message,true);}
+}
+setInterval(()=>{if(!autoTried)detectAllocation();},3000);
 if(!hosted){$('not-hosted').hidden=false;}else{load();setInterval(()=>{if(!paying&&!document.querySelector('.cm-missions :focus'))load();},30000);}
 if(window.VoyagerPointsConnection&&new URLSearchParams(location.search).get('demo')!=='1'){
   points=new window.VoyagerPointsConnection(window.VOYAGER_CONFIG||{});
-  points.addEventListener('status',e=>{const s=$('points-status'),st=e.detail?.state;s.dataset.state=st==='live'?'ok':st==='error'||st==='offline'?'error':'wait';s.textContent=st==='live'?'Points Ledger connected':'Points Ledger · '+(e.detail?.message||st);render();});
+  points.addEventListener('status',e=>{const s=$('points-status'),st=e.detail?.state;s.dataset.state=st==='live'?'ok':st==='error'||st==='offline'?'error':'wait';s.textContent=st==='live'?'Points Ledger connected':'Points Ledger · '+(e.detail?.message||st);render();if(st==='live')detectAllocation();else renderAlign();});
   points.connect();
 }
 })();

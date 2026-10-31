@@ -25,13 +25,13 @@ export const DEFAULT_MISSIONS=[
   {id:'arena',title:'Ace of the Arena',type:'versusWins',target:1,reward:400,enabled:true}
 ];
 export const SUB_MISSIONS=[
-  {id:'supporter',title:'Crew Supporter',type:'subscribe',target:1,reward:500,platform:'all',enabled:true},
-  {id:'gifter',title:'Fleet Gifter',type:'giftSubs',target:3,reward:750,platform:'all',enabled:true},
-  {id:'veteran',title:'Veteran Crew',type:'loyalSub',target:6,reward:300,platform:'all',enabled:true}
+  {id:'supporter',title:'Crew Supporter',type:'subscribe',target:1,reward:250,platform:'all',enabled:true},
+  {id:'gifter',title:'Fleet Gifter',type:'giftSubs',target:3,reward:250,platform:'all',enabled:true},
+  {id:'veteran',title:'Veteran Crew',type:'loyalSub',target:6,reward:125,platform:'all',enabled:true}
 ];
 export const DEFAULT_GOALS=[
-  {id:'crew',title:'Grow the Crew',metric:'support',platform:'all',target:50,reward:300},
-  {id:'gift-fleet',title:'Gift Fleet',metric:'gifts',platform:'all',target:25,reward:200}
+  {id:'crew',title:'Grow the Crew',metric:'support',platform:'all',target:50,reward:250},
+  {id:'gift-fleet',title:'Gift Fleet',metric:'gifts',platform:'all',target:25,reward:250}
 ];
 export const DEFAULT_SUPPORT_BONUS=100;
 const clean=(v,max)=>String(v??'').replace(/[\u0000-\u001f\u007f]/g,' ').trim().slice(0,max);
@@ -88,7 +88,7 @@ export class Community{
   constructor({dataDir,now=Date.now}){this.dataDir=dataDir;this.now=now;this.state=this.fresh();this.saving=Promise.resolve();this.pilots=()=>[];}
   fresh(){
     const now=this.now();
-    return {schema:1,missions:normalizeMissions([...DEFAULT_MISSIONS,...SUB_MISSIONS]),subSeeded:true,members:{},support:{},supportAt:0,
+    return {schema:1,missions:normalizeMissions([...DEFAULT_MISSIONS,...SUB_MISSIONS]),subSeeded:true,rewards2161:true,members:{},support:{},supportAt:0,
       goals:DEFAULT_GOALS.map(g=>({...g})),supportBonus:DEFAULT_SUPPORT_BONUS,previousSeason:null,
       week:{id:weekStart(now),baseline:{},days:{},versus:{},gifts:{}},previous:null,payouts:{},
       season:this.newSeason(now,1,13),hall:[],panel:{config:{...PANEL_DEFAULTS},visible:false,expiresAt:0,revision:0}};
@@ -102,6 +102,12 @@ export class Community{
         // 2.15: add the subscriber missions once to an existing programme (room permitting; they can be switched off).
         if(!raw.subSeeded){for(const m of SUB_MISSIONS)if(s.missions.length<8&&!s.missions.some(x=>x.id===m.id||x.type===m.type))s.missions.push({...m});s.subSeeded=true;}
         try{s.goals=normalizeGoals(s.goals);}catch{s.goals=DEFAULT_GOALS.map(g=>({...g}));}
+        // 2.16.1: lower the 2.15 subscriber rewards that were never edited (Missions can then match them to the Currency System).
+        if(!raw.rewards2161){
+          const OLD={supporter:500,gifter:750,veteran:300,crew:300,'gift-fleet':200},NEW=Object.fromEntries([...SUB_MISSIONS,...DEFAULT_GOALS].map(x=>[x.id,x.reward]));
+          for(const x of [...s.missions,...s.goals])if(OLD[x.id]!==undefined&&x.reward===OLD[x.id])x.reward=NEW[x.id];
+          s.rewards2161=true;
+        }
         s.week.gifts||={};s.season.support||={};s.support||={};
       }
     }catch{}

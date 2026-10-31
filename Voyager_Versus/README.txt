@@ -1,4 +1,4 @@
-VOYAGER VERSUS v2.16.0 - DATA IN YOUR USER FOLDER
+VOYAGER VERSUS v2.16.1 - DATA IN YOUR USER FOLDER
 
 Live rankings, rewards and entries now save in %APPDATA%\Voyager\data
 (copied automatically from local/data on first start). See CHANGELOG.md in

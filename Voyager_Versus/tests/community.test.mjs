@@ -122,3 +122,14 @@ test('Season sub goals pay everyone who helped once reached; the supporter bonus
   assert.equal(c.view().goals[0].total,0,'the next season starts from zero');
   assert.throws(()=>normalizeGoals([{title:'X',metric:'likes',target:1,reward:1}]),/counts/);
 });
+
+test('2.16.1 lowers untouched 2.15 subscriber rewards once, and keeps rewards you changed',async()=>{
+  const {writeFile}=await import('node:fs/promises');
+  const dir=await mkdtemp(join(tmpdir(),'voyager-community-'));
+  const c0=new Community({dataDir:dir,now:()=>monday});const old=c0.fresh();delete old.rewards2161;
+  old.missions=old.missions.map(m=>m.id==='supporter'?{...m,reward:500}:m.id==='gifter'?{...m,reward:999}:m.id==='veteran'?{...m,reward:300}:m);
+  old.goals=[{id:'crew',title:'Grow the Crew',metric:'support',platform:'all',target:50,reward:300},{id:'gift-fleet',title:'Gift Fleet',metric:'gifts',platform:'all',target:25,reward:200}];
+  await writeFile(join(dir,'community.json'),JSON.stringify(old));
+  const c=await new Community({dataDir:dir,now:()=>monday}).load(),r=Object.fromEntries([...c.state.missions,...c.state.goals].map(x=>[x.id,x.reward]));
+  assert.deepEqual([r.supporter,r.gifter,r.veteran,r.crew,r['gift-fleet']],[250,999,125,250,250]);
+});

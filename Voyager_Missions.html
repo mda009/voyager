@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="stream-command.css">
 <link rel="stylesheet" href="voyager-brand.css">
 <link rel="stylesheet" href="settings.css?v=2.16">
-<link rel="stylesheet" href="community.css?v=2.16">
+<link rel="stylesheet" href="community.css?v=2.16.1">
 <link rel="stylesheet" href="voyager-glass.css?v=2.16">
 </head>
 <body class="voyager-console voyager-settings voyager-community">
@@ -19,6 +19,11 @@
 <p class="st-notice" id="notice" hidden></p>
 <p class="st-hint cm-sub-status" id="sub-status" hidden></p>
 <p class="st-notice" id="not-hosted" hidden>Open this page from the Voyager app (or START-VOYAGER-CONTROL.bat). Missions are worked out by the Voyager host.</p>
+<section class="card cm-align" aria-labelledby="align-h">
+<div class="card-heading"><div><span class="eyebrow">SUBSCRIBER REWARDS</span><h2 id="align-h">Match your Currency System</h2></div><span class="st-pill" id="align-state" data-state="wait">Reading points history…</span></div>
+<p class="st-hint">Subscriber rewards follow what your Currency System already pays: <b>Crew Supporter</b> = one sub, <b>Fleet Gifter</b> = one gifted sub, <b>Veteran Crew</b> = half a sub, season goals = one gift (subs-only goals: one sub) per helper, and the season supporter bonus = one gift. Values are read from Points history (StreamUP sub and gift events); change them if needed.</p>
+<div class="cm-align-row"><label>Points per gifted sub<input id="align-gift" type="number" min="0" max="1000000"></label><label>Points per sub / resub<input id="align-sub" type="number" min="0" max="1000000"></label><button type="button" class="primary" id="align-apply">Match subscriber rewards</button><span class="st-note" id="align-note"></span></div>
+</section>
 <div class="cm-layout">
 <section class="cm-missions" id="missions" aria-label="This week's missions"></section>
 <aside class="card cm-pay">
@@ -35,7 +40,7 @@
 <script src="giveaway-connection.js"></script>
 <script src="points-model.js?v=4.4"></script>
 <script src="points-connection.js?v=4.4"></script>
-<script src="missions.js?v=2.16"></script>
+<script src="missions.js?v=2.16.1"></script>
 <script src="voyager-shell.js?v=2.16"></script>
 <script src="voyager-navigation.js"></script>
 </body>

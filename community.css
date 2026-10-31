@@ -78,3 +78,7 @@
 .cs-bonus{display:flex;flex-direction:column;gap:5px;font-size:12px;color:#9ab0c5;max-width:360px}
 .cs-bonus input{height:38px;padding:0 10px;border:1px solid rgba(151,223,255,.18);background:rgba(8,15,24,.55);color:#e6eef7;font:14px 'Segoe UI',sans-serif}
 td.cs-score{color:#97dfff;font-weight:700}
+.cm-align{padding:16px 22px;margin-bottom:16px;display:flex;flex-direction:column;gap:8px}
+.cm-align-row{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end}
+.cm-align-row label{display:flex;flex-direction:column;gap:5px;font-size:12px;color:#9ab0c5}
+.cm-align-row input{height:38px;width:170px;padding:0 10px;border:1px solid rgba(151,223,255,.18);background:rgba(8,15,24,.55);color:#e6eef7;font:14px 'Segoe UI',sans-serif}

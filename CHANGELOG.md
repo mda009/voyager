@@ -2,6 +2,19 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.16.1 (31 October 2026)
+
+Subscriber rewards now follow your Currency System's own points. **No Streamer.bot changes.**
+
+- **Missions › Match your Currency System** reads what StreamUP already pays per gifted sub and per sub/resub from Points history, and sets:
+  - **Crew Supporter** = one sub's points,
+  - **Fleet Gifter** = one gifted sub's points (a bonus on top of what each gift already earns),
+  - **Veteran Crew** = half a sub's points,
+  - **Season sub goals** = one gift's points per helper (subs-only goals: one sub's),
+  - **Supporter bonus** (season score only) = one gift's points.
+- Rewards you haven't edited are matched automatically the first time the Points Ledger connects. If no sub or gift events are in Points history yet, type the two numbers and click **Match subscriber rewards**.
+- Until then, the 2.15 subscriber rewards are lowered: Crew Supporter 250 (was 500), Fleet Gifter 250 (was 750), Veteran Crew 125 (was 300), Grow the Crew 250 (was 300), Gift Fleet 250 (was 200). Rewards you changed yourself are kept.
+
 ## 2.16.0 (31 October 2026)
 
 Fairer impromptu giveaways. **One Streamer.bot change:** paste the new `Voyager_Giveaway_Engine.cs` (v10) into **Voyager - Giveaway Engine** and compile.
