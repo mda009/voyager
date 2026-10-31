@@ -131,5 +131,5 @@ test('2.16.1 lowers untouched 2.15 subscriber rewards once, and keeps rewards yo
   old.goals=[{id:'crew',title:'Grow the Crew',metric:'support',platform:'all',target:50,reward:300},{id:'gift-fleet',title:'Gift Fleet',metric:'gifts',platform:'all',target:25,reward:200}];
   await writeFile(join(dir,'community.json'),JSON.stringify(old));
   const c=await new Community({dataDir:dir,now:()=>monday}).load(),r=Object.fromEntries([...c.state.missions,...c.state.goals].map(x=>[x.id,x.reward]));
-  assert.deepEqual([r.supporter,r.gifter,r.veteran,r.crew,r['gift-fleet']],[250,999,125,250,250]);
+  assert.deepEqual([r.supporter,r.gifter,r.veteran,r.crew,r['gift-fleet']],[250,999,125,250,200]);
 });

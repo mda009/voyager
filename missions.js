@@ -86,7 +86,7 @@ $('pay-all').onclick=async()=>{
 };
 // 2.16.1: subscriber rewards follow the Currency System's own sub and gift points (read from Points history).
 const GIFT_EVENTS=['TwitchGiftSub','KickGiftSubscription','YouTubeMembershipGift'],SUB_EVENTS=['TwitchSub','TwitchReSub','KickSubscription','KickResubscription','YouTubeNewSponsor','YouTubeMemberMileStone'];
-const ALIGN_DEFAULTS={supporter:250,gifter:250,veteran:125,crew:250,'gift-fleet':250};let detected=null,alignEdited=false,autoTried=false;
+const ALIGN_DEFAULTS={supporter:250,gifter:250,veteran:125,crew:250,'gift-fleet':200};let detected=null,alignEdited=false,autoTried=false;
 const mode=list=>{const c=new Map();for(const v of list)c.set(v,(c.get(v)||0)+1);return [...c.entries()].sort((a,b)=>b[1]-a[1]||a[0]-b[0])[0]?.[0]??null;};
 async function readAllocation(){
   const found={gift:[],sub:[]};

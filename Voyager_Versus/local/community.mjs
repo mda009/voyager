@@ -31,7 +31,7 @@ export const SUB_MISSIONS=[
 ];
 export const DEFAULT_GOALS=[
   {id:'crew',title:'Grow the Crew',metric:'support',platform:'all',target:50,reward:250},
-  {id:'gift-fleet',title:'Gift Fleet',metric:'gifts',platform:'all',target:25,reward:250}
+  {id:'gift-fleet',title:'Gift Fleet',metric:'gifts',platform:'all',target:25,reward:200}
 ];
 export const DEFAULT_SUPPORT_BONUS=100;
 const clean=(v,max)=>String(v??'').replace(/[\u0000-\u001f\u007f]/g,' ').trim().slice(0,max);
