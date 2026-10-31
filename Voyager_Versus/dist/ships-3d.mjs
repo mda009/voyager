@@ -1,6 +1,7 @@
 import * as T from './vendor/three.module.min.js';
 import {RoomEnvironment} from './vendor/RoomEnvironment.mjs';
 import {createShip,animateShip,quality,textureResolution,materialsReady,shipMeshesReady} from './ship-models.mjs?v=2.3.0';
+import {spaceEnvironment,SSAO} from './space-lighting.mjs?v=2.17.3';
 
 // One WebGL context is shared by the arena, challenger splash and hangar.
 // Compositing into the existing transparent canvas keeps HUD/weapon coordinates aligned.
@@ -18,6 +19,9 @@ export class ShipRenderer {
     const rim=new T.DirectionalLight(0x98cfff,2.6);rim.position.set(-350,-200,-450);this.scene.add(rim);
     const fill=new T.DirectionalLight(0xc9dbf3,.75);fill.position.set(-250,-70,580);this.scene.add(fill);
     this.camera=new T.OrthographicCamera(-800,800,450,-450,1,4000);this.camera.position.set(0,0,1600);this.camera.lookAt(0,0,0);
+    // 2.17.3: reflections from the space scene instead of a studio box, plus ambient occlusion on the ships.
+    this.ao=this.low?null:new SSAO(r,{radius:22,strength:.85});
+    spaceEnvironment(r,{sunDirection:key.position,size:2048}).then(t=>{if(!t)return;this.scene.environment=t;this.scene.environmentIntensity=1.15;this.env?.dispose?.();}).catch(()=>{});
     this.stage=new T.Group();this.scene.add(this.stage);
     this.weaponStage=new T.Group();this.scene.add(this.weaponStage);
     this.flashLights=[0,1].map(()=>{const light=new T.PointLight(0xffba76,0,650,2);this.scene.add(light);return light;});
@@ -29,7 +33,7 @@ export class ShipRenderer {
   }
   status(message){document.body.classList.toggle('ships-3d-ready',this.ready);const el=document.getElementById('graphics-status');if(el)el.textContent=message;}
   fail(error){this.ready=false;this.status('Compatibility ships · 3D rendering unavailable');console.warn('3D rendering stopped; compatibility artwork is active.',error);}
-  model(key,slot){const id=key+':'+slot;if(!this.models.has(id)){const g=createShip(key);this.models.set(id,g);this.stage.add(g);}return this.models.get(id);}
+  model(key,slot){const id=key+':'+slot;if(!this.models.has(id)){const g=createShip(key);g.traverse(o=>{const m=[].concat(o.material||[]);if(o.isMesh&&!m.some(x=>x.transparent))o.layers.enable(1);});this.models.set(id,g);this.stage.add(g);}return this.models.get(id);}
   clearModels(){for(const g of this.models.values())g.visible=false;}
   resize(width,height,vw=1600,vh=900){
     const max=this.low?1280:this.quality==='balanced'?1920:3840,factor=Math.min(1,max/Math.max(width,height));width=Math.max(1,Math.round(width*factor));height=Math.max(1,Math.round(height*factor));
@@ -49,7 +53,7 @@ export class ShipRenderer {
       if(i===1)g.rotateY(Math.PI);
       animateShip(g,time,activity,p);
     }
-    this.weapons(projectiles,time);this.renderer.render(this.scene,this.camera);c.drawImage(this.canvas,0,0,1600,900);return true;
+    this.weapons(projectiles,time);if(this.ao)try{this.ao.compute(this.scene,this.camera);}catch{this.ao=null;}this.renderer.render(this.scene,this.camera);if(this.ao)this.ao.apply();c.drawImage(this.canvas,0,0,1600,900);return true;
   }
   portrait(target,key,time,{still=false}={}){
     if(!this.ready)return false;

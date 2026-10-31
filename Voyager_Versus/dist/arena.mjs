@@ -1,6 +1,6 @@
 import {SHIPS} from './engine.mjs';
 import {FlightMotion} from './flight-motion.mjs';
-import {ShipRenderer} from './ships-3d.mjs?v=2.8.1';
+import {ShipRenderer} from './ships-3d.mjs?v=2.17.3';
 import {WeaponFX} from './weapon-fx.mjs';
 import {fleet} from './ship-models.mjs?v=2.3.0';
 const C=['#74cfff','#dce9f2'];

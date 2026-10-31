@@ -2,6 +2,14 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.17.3 (31 October 2026)
+
+The Dreadnought's photoreal lighting comes to **Voyager Versus**. **No Streamer.bot changes.**
+
+- Versus ships (Gladius, Paladin, Sabre) in the battle arena, challenger splash and hangar now reflect the space scene (nebula, star, gas giant) instead of a studio light box.
+- Ambient occlusion in the battle arena darkens intakes, panel gaps and the joins between hull sections. It's off with `?quality=low`.
+- The lighting code is now shared by Versus and the Dreadnought (`space-lighting.mjs`). Gameplay, controls and overlays are unchanged.
+
 ## 2.17.2 (31 October 2026)
 
 More photorealistic PBR for the Voyager Dreadnought overlay. **No Streamer.bot changes.**

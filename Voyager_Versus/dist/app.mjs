@@ -1,6 +1,6 @@
 import {Arena,SHIPS} from './engine.mjs?v=2.8.0';
 import {fleet} from './ship-models.mjs?v=2.3.0';
-import {ArenaView,SoundFX} from './arena.mjs?v=2.8.1';
+import {ArenaView,SoundFX} from './arena.mjs?v=2.17.3';
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const params=new URLSearchParams(location.search),overlay=params.get('overlay')==='1';
