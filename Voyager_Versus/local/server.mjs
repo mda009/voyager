@@ -89,6 +89,7 @@ async function medalSync(){
   try{medalsAction={found:await runAction('Voyager - Medals',{medalExport:'1',since:String(medals.exportSince()),requestId:'medals-'+Date.now()}),at:Date.now()};}catch{}
 }
 function medalTick(){try{if(community)medals.observeCommunity(community);medals.observePilots(savedRankings||[]);medals.evaluate();}catch(e){console.warn('Medals: '+e.message);}}
+function rankTick(){try{cards.tickRanks();}catch(e){console.warn('Ranks: '+e.message);}}
 const boss=await new BossFight({dataDir,say:text=>{void bossSay(text);},onResult:r=>medals.observeBoss(r)}).load();
 const bot=new StreamerBot({onCards:ev=>{cards.receive(ev);},onMedals:ev=>{if(ev.type==='voyager.medals.data')medals.ingestExport(ev);else medals.command(ev);},onBoss:ev=>{
   if(ev.kind==='call'&&!['lobby','result'].includes(game.phase)){game.note('Finish the Versus battle before calling the Dreadnought.','system');return;}
@@ -298,6 +299,8 @@ let ticks=0;const timer=setInterval(()=>{
   if(ticks%600===50)void medalSync();
   if(ticks%300===0)medalTick();
   if(ticks%100===0&&bot.status.connected)medals.tickChat();
+  if(ticks%300===150)rankTick();
+  if(ticks%100===50&&bot.status.connected)cards.tickChat();
   if(ticks%300===0){for(const [key,t] of failures)if(Date.now()-t>120000)failures.delete(key);}
   const update='data: '+JSON.stringify(packet())+'\n\n';
   for(const client of clients){if(client.writableLength>1024*1024){client.destroy();clients.delete(client);}else client.write(update);}

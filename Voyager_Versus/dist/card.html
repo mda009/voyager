@@ -50,18 +50,19 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:transparent
 <body>
 <div id="stage"></div>
 <script type="module">
-import {TIERS,cardHTML} from './card-template.mjs?v=2.19.0';
+import {TIERS,cardHTML} from './card-template.mjs?v=2.20.0';
 const q=new URLSearchParams(location.search),stage=document.getElementById('stage');
 if(q.get('backdrop')==='0')stage.classList.add('nobackdrop');
 if(/^[0-9a-f]{6}$/i.test(q.get('bg')||''))document.documentElement.style.background=document.body.style.background='#'+q.get('bg');
 function fit(){const s=Math.min(innerWidth/1920,innerHeight/1080);stage.style.transform='scale('+s+')';}addEventListener('resize',fit);fit();
+const NO_RANK={show:'none',roleShow:'inline',...Object.fromEntries(['mid','aslt','slt','lt','lcdr','cdr','capt','cdre','radm','vadm','adml','af'].map(id=>['s_'+id,'none']))};
 const wait=ms=>new Promise(r=>setTimeout(r,ms));
 const ACCENT={blue:['#3fb2ff','rgba(20,120,255,.75)'],silver:['#eef3f9','rgba(214,228,244,.6)'],gold:['#ffc53d','rgba(255,165,20,.7)'],platinum:['#c08bff','rgba(150,60,255,.8)']};
 function slot(card,fromTier){
   const tier=fromTier||card.tier,t={...TIERS[tier],...card.t};
   if(fromTier){Object.assign(t,{title:TIERS[fromTier].title,tier:TIERS[fromTier].tier});}
   const v=fromTier?{...card.v,banner:'none'}:card.v;
-  const el=document.createElement('div');el.className='slot';el.innerHTML=cardHTML(t,v,card.c,card.d);stage.append(el);return el;
+  const el=document.createElement('div');el.className='slot';el.innerHTML=cardHTML(t,v,card.c,card.d,card.k||NO_RANK);stage.append(el);return el;
 }
 function fx(names,extra=''){const out=[];for(const n of names){const d=document.createElement('div');d.className='fx '+n;if(extra)d.style.cssText=extra;stage.append(d);out.push(d);}setTimeout(()=>out.forEach(d=>d.remove()),2600);}
 function entrance(tier){({blue:()=>fx(['grid','scan']),silver:()=>fx(['sweep']),gold:()=>fx(['flare','rays']),platinum:()=>fx(['ring','ring r2','uvedge'])})[tier]?.();}
@@ -80,7 +81,10 @@ async function play(item){
     await wait(Math.max(secs,7)*1000);
     now.classList.remove('reveal');now.style.opacity=1;now.classList.add('out');await wait(750);now.remove();return;
   }
-  const el=slot(card);el.classList.add('in');entrance(card.tier);await wait(secs*1000);
+  const el=slot(card);el.classList.add('in');entrance(card.tier);
+  if(card.promotion){setTimeout(()=>burst(card.tier),700);const banner=[...el.querySelectorAll('span')].find(x=>x.textContent.trim()==='★ PROMOTED ★')?.parentElement;
+    if(banner)setTimeout(()=>{banner.style.transition='opacity .8s';banner.style.opacity='0';},5000);}
+  await wait((card.promotion?Math.max(secs,8):secs)*1000);
   el.classList.remove('in');el.style.opacity=1;el.classList.add('out');await wait(750);el.remove();
 }
 const seen=new Set(),queue=[];let busy=false,first=true;const opened=Date.now();

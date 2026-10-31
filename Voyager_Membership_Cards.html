@@ -74,6 +74,16 @@
 <p class="st-hint">Prices only drive the card's next-tier bar. They match your Streamer.bot purchase actions (1,200 / 1,800 / 17,000); if you change those, change these too.</p>
 </section>
 <section class="card mc-card">
+<div class="card-heading"><div><span class="eyebrow">NAVAL RANKS</span><h2>Ranks</h2></div></div>
+<p class="st-hint">Earned by <b>lifetime Voyager points</b> (spending never lowers a rank). The flag ranks also need an all-time leaderboard place: Vice Admiral top 10, Admiral top 3, Admiral of the Fleet #1.</p>
+<form id="ranks" class="mc-form" autocomplete="off">
+<label class="check"><input type="checkbox" name="ranks"> Show ranks on the card</label>
+<label class="check"><input type="checkbox" name="promoChat"> Announce promotions in chat (grouped)</label>
+<label class="wide" style="grid-column:1/-1">Show promotions on stream from<select name="promoMin" id="promo-min" style="height:36px;border:1px solid rgba(151,223,255,.18);background:rgba(8,15,24,.55);color:#e6eef7"></select></label>
+<div id="rank-rows" style="grid-column:1/-1;display:grid;grid-template-columns:1fr 120px 70px;gap:6px 10px;align-items:center;font-size:13px;color:#c9d7e4"></div>
+</form>
+</section>
+<section class="card mc-card">
 <span class="eyebrow">OBS</span>
 <p class="st-hint">Replace the old card sources in your <b>MDA Membership</b> scene with one <b>Browser</b> source, 1920 × 1080, at this address (leave "Local file" unticked). It is invisible until someone types !voyager. Add <code>?backdrop=0</code> to drop the space backdrop and keep only the glass card.</p>
 <div class="cs-url"><code id="obs-url"></code><button type="button" id="obs-copy">Copy</button></div>
@@ -84,8 +94,8 @@
 </div>
 </main>
 </div>
-<script src="cards-control.js?v=2.19"></script>
-<script src="voyager-shell.js?v=2.19"></script>
+<script src="cards-control.js?v=2.20"></script>
+<script src="voyager-shell.js?v=2.20"></script>
 <script src="voyager-navigation.js"></script>
 </body>
 </html>

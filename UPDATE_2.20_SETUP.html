@@ -1,0 +1,41 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Voyager • Updating to 2.20</title><style>:root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;background:#09111c;color:#dfeafa;font:16px/1.7 'Segoe UI',Arial,sans-serif}main{max-width:1000px;margin:50px auto;padding:0 25px 70px}h1{font-size:42px;letter-spacing:-1px;line-height:1.15}h2{font-size:23px;margin-top:34px;color:#c4e3ff}h3{font-size:18px}p,li,td{color:#aebfd4}li{margin:10px 0}strong{color:#e0edfc}a{color:#96cfff}code{background:#1b2c43;border-radius:4px;padding:3px 5px;color:#c9e6ff;overflow-wrap:anywhere}pre{white-space:pre-wrap;background:#142237;border-radius:8px;padding:18px}.button,button{display:inline-block;background:#9cd3ff;color:#091b2b;text-decoration:none;border:0;border-radius:7px;padding:11px 18px;margin:5px 7px 5px 0;font:inherit;font-weight:600;cursor:pointer}.secondary{background:#263a52;color:#d9e9fa}.card{border:1px solid #2c415d;border-radius:10px;background:#101e30;padding:22px;margin:25px 0}table{border-collapse:collapse;width:100%;font-size:14px}th,td{border-bottom:1px solid #2c3c51;text-align:left;vertical-align:top;padding:12px}th{color:#a9d1f4}input{width:100%;padding:11px;background:#091422;color:#deedff;border:1px solid #3b506a;border-radius:5px}.small{font-size:13px}.eyebrow{font-size:10px;letter-spacing:2px;color:#88b7de}.note{border-left:3px solid #87c6f7;padding-left:17px}@media(max-width:600px){main{margin-top:25px}h1{font-size:32px}table{font-size:12px}td,th{padding:8px}}</style></head><body><main>
+<span class="eyebrow">VOYAGER 2.20</span>
+<h1>Updating to 2.20 from 2.16</h1>
+<p>One pass for everything since 2.16: the <strong>Voyager Dreadnought</strong> boss fight (2.17), <strong>Voyager Medals</strong> (2.18), the new <strong>!voyager membership card</strong> (2.19) and <strong>naval ranks</strong> (2.20). About 30 minutes. Your points, tiers, <code>!upgrade</code>, purchases, giveaways and tickets are not changed by any of it.</p>
+<div class="card"><h2 style="margin-top:0">Before you start</h2><ul><li>Close OBS scenes you're streaming from, and back up Streamer.bot (<strong>File › Export</strong> of all actions, or copy its <code>data</code> folder).</li><li>Have Streamer.bot and Voyager open on the streaming PC.</li></ul></div>
+<h2>1. Update Voyager</h2>
+<ol><li>Right-click the Voyager tray icon › <strong>Check for updates</strong> and install 2.20.0 (or run <code>Voyager-Setup-2.20.0.exe</code> from the download page). Your data and settings stay where they are.</li>
+<li>Tray › <strong>Open Streamer.bot import files</strong>. Every <code>.cs</code> file below is in that folder.</li></ol>
+<h2>2. Streamer.bot: update Stream Stats to v6</h2>
+<ol><li>Open the action <strong>Voyager - Stream Stats</strong> › its <strong>Execute C# Code</strong> sub-action. Replace all the code with <code>Voyager_Stream_Stats.cs</code>, <strong>Compile</strong>, <strong>Save and Compile</strong>.</li>
+<li>Yours is v5; v6 sends the sub and gift records that subscriber missions and season sub goals use.</li></ol>
+<h2>3. Streamer.bot: add three new actions</h2>
+<p>For each: <strong>Actions</strong> › right-click › <strong>Add</strong>, name it <em>exactly</em> as shown, untick <strong>Concurrent</strong>, add <strong>Core › C# › Execute C# Code</strong>, paste the whole file, <strong>Compile</strong>, <strong>Save and Compile</strong>.</p>
+<table><tr><th>Action name</th><th>Code file</th><th>Triggers to add on the action</th></tr>
+<tr><td>Voyager - Dreadnought</td><td>Voyager_Dreadnought.cs</td><td>Command Triggered: <code>!join</code>, <code>!fire</code> (Everyone) and <code>!dreadnought</code> (Moderators/Broadcaster). Twitch: Cheer, Gift Subscription, Gift Bomb. YouTube: Super Chat, Super Sticker, Membership Gift. Kick: Gift Subscription, Mass Gift Subscription.</td></tr>
+<tr><td>Voyager - Medals</td><td>Voyager_Medals.cs</td><td>Command Triggered: <code>!medals</code> (Everyone)</td></tr>
+<tr><td>Voyager - Membership Card</td><td>Voyager_Membership_Card.cs</td><td>Command Triggered: <code>!voyager</code> (see step 4) and <strong>Core › Groups › User Added to Group</strong></td></tr></table>
+<p>Create the commands first in <strong>Commands</strong> › right-click › <strong>Add</strong> (<code>!join</code>, <code>!fire</code>, <code>!dreadnought</code>, <code>!medals</code>), tick Twitch, YouTube and Kick, and set the user and global cooldowns to 0 (Voyager handles cooldowns).</p>
+<h2>4. Streamer.bot: switch !voyager to the new card</h2>
+<ol><li>Action <strong>Silver Membership On Screen</strong> › Triggers: delete <em>Command Triggered: !voyager</em>.</li>
+<li>Action <strong>Voyager - Membership Card</strong> › Triggers: add <em>Command Triggered: !voyager</em>. In Commands, open <em>SHOW CARD</em> and tick Twitch, YouTube and Kick.</li>
+<li>Untick <strong>Enabled</strong> on <em>Silver Membership On Screen</em>, <em>Gold Membership On Screen</em> and <em>Platinum OR Blue Membership On Screen</em>. Leave every purchase, upgrade, FAST TRACK and Sub action as it is: your upgrade sounds still play, and the new card shows the tier-up.</li></ol>
+<h2>5. OBS</h2>
+<table><tr><th>Browser source (1920 × 1080, "Local file" unticked)</th><th>Where</th></tr>
+<tr><td><code>http://127.0.0.1:8740/dreadnought.html</code> · tick <em>Use custom frame rate: 60</em></td><td>Your gameplay/main scene, on top</td></tr>
+<tr><td><code>http://127.0.0.1:8740/medals.html</code></td><td>Main scene (medal pop-ups, bottom left)</td></tr>
+<tr><td><code>http://127.0.0.1:8740/card.html</code> · custom frame rate 60</td><td><strong>MDA Membership</strong> scene: hide or delete the old BLUE/SILVER/GOLD/PLATINUM Card, member name, member id and points balance sources</td></tr></table>
+<h2>6. Check it in Voyager Control</h2>
+<ol><li><strong>Voyager Dreadnought</strong> › <em>Preview (simulated chat)</em>. Then type <code>!join</code> in chat: the Streamer.bot checklist ticks.</li>
+<li><strong>Medals</strong> › the checklist should show "Found the Voyager - Medals action" and "Medal data read". Past progress is awarded quietly with one line in chat.</li>
+<li><strong>Membership cards</strong> › press each preview (Blue to Platinum, Stats, Medal wall, Tier-up, Promotion). Then type <code>!voyager</code> in chat.</li>
+<li>Review the settings: card upgrade prices (1,200 / 1,800 / 17,000, matching your actions), rank thresholds, which promotions show on stream, and which medal grades pop up.</li></ol>
+<h2>What chat can do now</h2>
+<table><tr><th>Command</th><th>What it does</th></tr>
+<tr><td><code>!voyager</code> · <code>!voyager stats</code> · <code>!voyager badges</code></td><td>Membership card with tier, naval rank, points, medals; the Fleet Record and Medal Wall sides</td></tr>
+<tr><td><code>!voyager title &lt;medal&gt;</code> · <code>!voyager private</code></td><td>Pick a callsign; hide time watched and months subscribed</td></tr>
+<tr><td><code>!medals</code></td><td>Medal count, Honour and closest next grade</td></tr>
+<tr><td><code>!join</code> · <code>!fire</code> · <code>!dreadnought</code></td><td>Board and fight the Dreadnought; mods call it</td></tr>
+<tr><td><code>!upgrade</code></td><td>Unchanged: buy the next tier with points</td></tr></table>
+<p class="small">Detailed guides: <a href="DREADNOUGHT_SETUP.html">Dreadnought</a> · <a href="MEDALS_SETUP.html">Medals</a> · <a href="MEMBERSHIP_CARD_SETUP.html">Membership card</a>.</p>
+</main></body></html>

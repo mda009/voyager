@@ -2,6 +2,15 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.0 (31 October 2026)
+
+**Naval ranks** on the membership card. **No new Streamer.bot steps** beyond 2.19's Voyager - Membership Card. Updating from 2.16? Follow `UPDATE_2.20_SETUP.html` (Help › Updating to 2.20), which covers 2.17 to 2.20 in one pass.
+
+- Twelve Royal Australian Navy officer ranks earned by **lifetime Voyager points** (spending on `!upgrade` never lowers a rank), ranked on the all-time leaderboard of those points: Midshipman, Acting Sub-Lieutenant (5,000), Sub-Lieutenant (15,000), Lieutenant (40,000), Lieutenant Commander (80,000), Commander (150,000), Captain (300,000), Commodore (600,000), Rear Admiral (1,000,000), Vice Admiral (2,000,000 and top 10), Admiral (3,500,000 and top 3), **Admiral of the Fleet (10,000,000 and #1 all-time, one holder)**.
+- The card shows the sleeve-lace insignia, rank and "#6 ALL-TIME · 214,560 POINTS EARNED" under the tier title, and a **Lifetime points** tile with the points to the next rank. Bucket accounts are left out of the leaderboard.
+- **Promotions**: announced in chat (grouped) and, from Lieutenant Commander up, a PROMOTED card on stream. The first check records everyone's current rank quietly.
+- Voyager Control › Membership cards: turn ranks on or off, edit every rank's points, choose which promotions show on stream, see how many viewers hold each rank, and preview a promotion.
+
 ## 2.19.0 (31 October 2026)
 
 **The new `!voyager` membership card**, built on your existing tiers and upgrade logic, alongside the Voyager Dreadnought (2.17) and Voyager Medals (2.18). **New Streamer.bot action: Voyager - Membership Card** (see `MEMBERSHIP_CARD_SETUP.html`, which also lists what your current Streamer.bot setup still needs).

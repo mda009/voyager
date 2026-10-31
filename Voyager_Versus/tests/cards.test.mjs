@@ -22,14 +22,15 @@ test('!voyager builds the tier card from groups, points and what Voyager tracks'
   medals.ingestExport({type:'voyager.medals.data',v:1,users:[{key:'twitch:1',name:'Nova',login:'nova',watchSeconds:312*3600,months:14,gifts:3,firstSeenAt:new Date(2025,2,14).getTime()}]});medals.primed=false;medals.evaluate();
   const item=cards.receive(ev());assert.ok(item);
   const c=item.card;assert.equal(c.tier,'silver');assert.equal(c.t.title,'SILVER SENTINEL');
-  assert.equal(c.d.stats[0].value,'1,450');assert.equal(c.d.stats[1].value,'#4');assert.equal(c.d.stats[2].value,'312 h');assert.equal(c.d.stats[3].value,'27–9');
+  assert.equal(c.d.stats[0].value,'1,450');assert.equal(c.d.stats[1].label,'LIFETIME POINTS');assert.equal(c.d.stats[1].value,'52,000');assert.match(c.d.stats[1].sub,/28,000 to Lieutenant Commander/);
+  assert.equal(c.k.name,'LIEUTENANT');assert.equal(c.k.place,'#1 ALL-TIME · 52,000 POINTS EARNED');assert.equal(c.k.s_lt,'inline-flex');assert.equal(c.k.s_mid,'none');assert.equal(c.d.stats[2].value,'312 h');assert.equal(c.d.stats[3].value,'27–9');
   assert.equal(c.d.extras[0].value,'#2 · 18,940');assert.equal(c.d.extras[2].value,'14 months');
   assert.equal(c.d.fields[2].value,'14 March 2025');assert.match(c.d.fields[1].value,/^UNP-2025-\d{4}$/);
   assert.equal(c.t.next,'GOLD COMMANDER');assert.equal(c.t.pct,'80%','1,450 of the 1,800 Silver → Gold price');assert.match(c.t.need,/350 to go · then type !upgrade/);
   assert.ok(c.d.equipped.length>0&&c.d.equipped.length<=6);assert.equal(c.d.badges.length,24);
   assert.equal(c.v.front,'block');assert.equal(c.v.banner,'none');
   assert.ok(!JSON.stringify(c).toLowerCase().includes('ticket balance'));
-  const html=cardHTML({...TIERS[c.tier],...c.t},c.v,c.c,c.d);assert.match(html,/SILVER SENTINEL/);assert.match(html,/1,450/);assert.ok(!html.includes('{{'));
+  const html=cardHTML({...TIERS[c.tier],...c.t},c.v,c.c,c.d,c.k);assert.match(html,/SILVER SENTINEL/);assert.match(html,/LIEUTENANT/);assert.match(html,/1,450/);assert.ok(!html.includes('{{'));
 });
 
 test('Back sides, cooldown, privacy and callsigns',async()=>{
@@ -61,4 +62,27 @@ test('Settings validate, previews use sample data, member IDs are stable',async(
   const {cards}=await make();const p=cards.preview({tier:'platinum',side:'badges'});
   assert.equal(p.card.tier,'platinum');assert.equal(p.card.d.stats[2].value,'312 h');assert.ok(p.card.c.badgeCount.startsWith('MEDALS · 12'));
   assert.throws(()=>cards.preview({tier:'emerald'}),/Unknown/);
+});
+
+test('Naval ranks: lifetime points brackets, leaderboard gates for flag ranks, and promotions after the first check',async()=>{
+  const {cards}=await make();
+  const members={};const community={state:{members,season:{name:'Season 1'}},standings:()=>[]};cards.community=()=>community;
+  const add=(id,value,login='u'+id)=>{members['twitch:'+id]={name:'V'+id,login,platform:'twitch',value};};
+  add(1,12_000_000);add(2,11_000_000);add(3,4_000_000);add(4,150_000);add(5,4_999);add(6,99_000_000,'mdavoyagergold');
+  const {place}=cards.board();
+  assert.equal(place.get('twitch:6'),undefined,'bucket accounts are not ranked');
+  assert.equal(cards.rankOf(12_000_000,place.get('twitch:1')),11,'#1 with 10M is Admiral of the Fleet');
+  assert.equal(cards.rankOf(11_000_000,place.get('twitch:2')),10,'10M but #2 is Admiral');
+  assert.equal(cards.rankOf(4_000_000,place.get('twitch:3')),10,'top 3 with 3.5M+ is Admiral');
+  assert.equal(cards.rankOf(4_000_000,4),9,'4th place stops at Vice Admiral');
+  assert.equal(cards.rankOf(150_000,place.get('twitch:4')),5,'150,000 is Commander');
+  assert.equal(cards.rankOf(4_999,5),0,'Midshipman below 5,000');
+  assert.deepEqual(cards.tickRanks(),[],'first check only records ranks');
+  members['twitch:5'].value=40_000;members['twitch:4'].value=310_000;
+  const promos=cards.tickRanks();
+  assert.deepEqual(promos.map(p=>[p.key,p.to]),[['twitch:4',6],['twitch:5',3]]);
+  const q=cards.overlay().items;assert.equal(q.length,1,'only Lieutenant Commander and above show on stream by default');
+  assert.equal(q[0].card.v.bannerText,'COMMANDER → CAPTAIN');assert.equal(q[0].card.v.bannerEyebrow,'★ PROMOTED ★');assert.equal(q[0].card.promotion,true);
+  assert.match(cards.tickChat(),/Promotions: V4 is now Captain · V5 is now Lieutenant/);
+  assert.throws(()=>cards.configure({rankPoints:[0,5,4,6,7,8,9,10,11,12,13,14]}),/go up/);
 });

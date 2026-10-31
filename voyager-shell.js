@@ -42,7 +42,7 @@ const GUIDES=[
  ['FLEET_ALERTS_SETUP.html','Support alerts setup'],['BANNER_SETUP.html','Stream banner setup'],['SECURITY_SETUP.html','Security setup'],
  ['COMMAND_CENTER_SETUP.html','Command center setup'],['LEADERBOARD_PANEL_SETUP.html','Leaderboard panel setup'],['BUCKET_OVERLAY_SETUP.html','OBS progress strip setup'],
  ['TWITCH_ANALYTICS_SETUP.html','Twitch analytics setup'],['EXTERNAL_ANALYTICS_SETUP.html','External analytics'],['NATIVE_COMMUNITY_SETUP.html','Native community setup'],
- ['BRAND_REFRESH_SETUP.html','Stream branding & preview'],['DREADNOUGHT_SETUP.html','Voyager Dreadnought setup'],['MEDALS_SETUP.html','Voyager Medals setup'],['MEMBERSHIP_CARD_SETUP.html','Membership card setup']
+ ['BRAND_REFRESH_SETUP.html','Stream branding & preview'],['DREADNOUGHT_SETUP.html','Voyager Dreadnought setup'],['MEDALS_SETUP.html','Voyager Medals setup'],['MEMBERSHIP_CARD_SETUP.html','Membership card setup'],['UPDATE_2.20_SETUP.html','Updating to 2.20']
 ];
 const canonical=new Set([...PAGES.map(p=>p.file),'START_HERE.html','COMMAND_CENTER_SETUP.html','Voyager_Settings.html']);
 const hrefOf=p=>{let h=p.file+(p.page?'?page='+p.page:'');if(demo&&!/SETUP|START_HERE|Guide|Settings/.test(p.file))h+=(h.includes('?')?'&':'?')+'demo=1';return h;};

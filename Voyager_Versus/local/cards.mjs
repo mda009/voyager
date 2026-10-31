@@ -13,7 +13,16 @@ const FILE='cards.json',DAY=86400000;
 export const TIER_ORDER=['blue','silver','gold','platinum'];
 export const TIER_INFO={blue:{title:'BLUE EXPLORER',tier:'TIER 1'},silver:{title:'SILVER SENTINEL',tier:'TIER 2'},gold:{title:'GOLD COMMANDER',tier:'TIER 3'},platinum:{title:'PLATINUM VANGUARD',tier:'TIER VANGUARD'}};
 // Upgrade prices from your Streamer.bot actions: Silver Membership Purchase 1,200, Silver > Gold Logic 1,800, Gold > Platinum Logic 17,000.
-export const CARD_DEFAULTS={enabled:true,seconds:12,cooldown:60,chat:true,costs:{silver:1200,gold:1800,platinum:17000}};
+export const CARD_DEFAULTS={enabled:true,seconds:12,cooldown:60,chat:true,costs:{silver:1200,gold:1800,platinum:17000},
+  ranks:true,promoChat:true,promoMin:4,rankPoints:[0,5000,15000,40000,80000,150000,300000,600000,1000000,2000000,3500000,10000000]};
+// Naval ranks (2.20): earned by lifetime Voyager points (never reduced by spending) and the all-time leaderboard of them.
+// top = also needs this all-time place. Royal Australian Navy officer ranks and sleeve lace.
+export const RANKS=[
+  {id:'mid',name:'Midshipman',abbr:'MIDN',top:0},{id:'aslt',name:'Acting Sub-Lieutenant',abbr:'ASLT',top:0},{id:'slt',name:'Sub-Lieutenant',abbr:'SBLT',top:0},
+  {id:'lt',name:'Lieutenant',abbr:'LEUT',top:0},{id:'lcdr',name:'Lieutenant Commander',abbr:'LCDR',top:0},{id:'cdr',name:'Commander',abbr:'CMDR',top:0},
+  {id:'capt',name:'Captain',abbr:'CAPT',top:0},{id:'cdre',name:'Commodore',abbr:'CDRE',top:0},{id:'radm',name:'Rear Admiral',abbr:'RADM',top:0},
+  {id:'vadm',name:'Vice Admiral',abbr:'VADM',top:10},{id:'adml',name:'Admiral',abbr:'ADML',top:3},{id:'af',name:'Admiral of the Fleet',abbr:'AF',top:1}];
+const BUCKETS=new Set(['mdavoyagersilver','mdavoyagergold','mdavoyagerplatinum']);
 const PLATFORM={twitch:'Twitch',youtube:'YouTube',kick:'Kick'};
 const clean=(v,max)=>String(v??'').replace(/[\u0000-\u001f\u007f]/g,' ').trim().slice(0,max);
 const num=v=>{const n=Number(v);return Number.isFinite(n)?n:0;};
@@ -24,6 +33,13 @@ export function normalizeCardSettings(raw={},base=CARD_DEFAULTS){
   const r=raw&&typeof raw==='object'?raw:{},s=structuredClone(base);
   for(const k of ['enabled','chat'])if(r[k]!==undefined)s[k]=r[k]===true;
   for(const [k,min,max] of [['seconds',5,60],['cooldown',0,3600]]){if(r[k]===undefined)continue;const n=Number(r[k]);if(!Number.isInteger(n)||n<min||n>max)throw new Error(k==='seconds'?'Show the card for 5 to 60 seconds.':'The cooldown must be 0 to 3,600 seconds.');s[k]=n;}
+  for(const k of ['ranks','promoChat'])if(r[k]!==undefined)s[k]=r[k]===true;
+  if(r.promoMin!==undefined){const n=Number(r.promoMin);if(!Number.isInteger(n)||n<1||n>12)throw new Error('Choose the lowest rank whose promotion shows on stream.');s.promoMin=n;}
+  if(r.rankPoints!==undefined){
+    const v=Array.isArray(r.rankPoints)?r.rankPoints.map(Number):[];
+    if(v.length!==12||v[0]!==0||v.some((x,i)=>!Number.isInteger(x)||x<0||x>1e12||(i&&x<=v[i-1])))throw new Error('Rank points must start at 0 and go up at every rank.');
+    s.rankPoints=v;
+  }
   if(r.costs!==undefined){for(const k of ['silver','gold','platinum']){if(r.costs?.[k]===undefined)continue;const n=Number(r.costs[k]);if(!Number.isInteger(n)||n<0||n>1e9)throw new Error('Upgrade prices must be whole numbers of points.');s.costs[k]=n;}}
   return s;
 }
@@ -40,9 +56,9 @@ const SAMPLE_VIEWER=now=>({name:'NebulaKnight',login:'nebulaknight',platform:'tw
 export class Cards{
   constructor({dataDir,now=Date.now,say=()=>{},medals=null,community=()=>null,rankings=()=>[]}={}){
     Object.assign(this,{dataDir,now,say,medals,community,rankings});
-    this.state={schema:1,settings:structuredClone(CARD_DEFAULTS),members:{},queue:[],recent:[],seq:0};this.saving=Promise.resolve();this.lastEvent=null;
+    this.state={schema:1,settings:structuredClone(CARD_DEFAULTS),members:{},queue:[],recent:[],seq:0,ranks:{},ranksPrimed:false,promoChat:[]};this.lastChatAt=0;this.saving=Promise.resolve();this.lastEvent=null;
   }
-  async load(){try{const raw=JSON.parse(await readFile(join(this.dataDir,FILE),'utf8'));if(raw?.schema===1){this.state={...this.state,...raw};try{this.state.settings=normalizeCardSettings(raw.settings||{});}catch{this.state.settings=structuredClone(CARD_DEFAULTS);}}}catch{}return this;}
+  async load(){try{const raw=JSON.parse(await readFile(join(this.dataDir,FILE),'utf8'));if(raw?.schema===1){this.state={...this.state,...raw};this.state.settings={...structuredClone(CARD_DEFAULTS),...raw.settings};try{this.state.settings=normalizeCardSettings(raw.settings||{});}catch{this.state.settings=structuredClone(CARD_DEFAULTS);}}}catch{}return this;}
   persist(){if(!this.dataDir)return this.saving;const data=JSON.stringify(this.state),tmp=join(this.dataDir,FILE+'.tmp');this.saving=this.saving.then(async()=>{await writeFile(tmp,data);await rename(tmp,join(this.dataDir,FILE));}).catch(()=>{});return this.saving;}
   member(key){const m=this.state.members;if(!m[key]){m[key]={};const keys=Object.keys(m);if(keys.length>50000)delete m[keys[0]];}return m[key];}
 
@@ -88,12 +104,63 @@ export class Cards{
     m.tierUpTo=who.tier;m.tierUpAt=this.now();
     return this.enqueue(who,'front',TIER_ORDER[from]);
   }
-  enqueue(who,side,fromTier){
-    const card=this.build(who,side,fromTier),item={id:++this.state.seq,at:this.now(),seconds:this.state.settings.seconds,card};
+  enqueue(who,side,fromTier,fromRank=null){
+    const card=this.build(who,side,fromTier,false,fromRank),item={id:++this.state.seq,at:this.now(),seconds:this.state.settings.seconds,card};
     this.member(who.key).tier=who.tier;
     this.state.queue=[...this.state.queue.filter(x=>this.now()-x.at<10*60000),item].slice(-20);
-    this.state.recent=[{id:item.id,at:item.at,name:who.name,platform:who.platform,tier:who.tier,side,tierUp:!!fromTier},...this.state.recent].slice(0,30);
+    this.state.recent=[{id:item.id,at:item.at,name:who.name,platform:who.platform,tier:who.tier,side,tierUp:!!fromTier,promotion:fromRank!==null?card.k.name:''},...this.state.recent].slice(0,30);
     this.persist();return item;
+  }
+
+  // ---------- naval ranks ----------
+  // All-time leaderboard of lifetime points (Points Ledger "captured in"), bucket accounts left out.
+  board(){
+    const members=this.community()?.state?.members||{};
+    const rows=Object.entries(members).filter(([,m])=>!BUCKETS.has(m.login)&&num(m.value)>0).map(([key,m])=>({key,value:num(m.value)})).sort((a,b)=>b.value-a.value);
+    const place=new Map();rows.forEach((r,i)=>place.set(r.key,i+1));
+    return {rows,place};
+  }
+  rankOf(lifetime,place){
+    const pts=this.state.settings.rankPoints;let i=0;
+    for(let k=RANKS.length-1;k>=0;k--){if(lifetime>=pts[k]&&(!RANKS[k].top||(place&&place<=RANKS[k].top))){i=k;break;}}
+    return i;
+  }
+  rankView(key,lifetime,place){
+    const on=this.state.settings.ranks,i=this.rankOf(lifetime,place),rk=RANKS[i],next=RANKS[i+1],pts=this.state.settings.rankPoints;
+    const k={show:on?'flex':'none',roleShow:on?'none':'inline',name:rk.name.toUpperCase(),place:(place?'#'+fmt(place)+' ALL-TIME · ':'')+fmt(lifetime)+' POINTS EARNED'};
+    for(const x of RANKS)k['s_'+x.id]=on&&x.id===rk.id?'inline-flex':'none';
+    let sub='Highest rank in the Voyager fleet';
+    if(next){const need=Math.max(0,pts[i+1]-lifetime);sub=need?fmt(need)+' to '+next.name+(next.top?' (and top '+next.top+')':''):'Needs top '+next.top+' all-time for '+next.name;}
+    return {k,index:i,rank:rk,sub};
+  }
+  // Promotions: checked with the medals tick. The first check only records everyone's rank (no flood of promotions).
+  tickRanks(){
+    const s=this.state.settings;if(!s.ranks||!s.enabled)return [];
+    const {rows,place}=this.board();if(!rows.length)return [];
+    const members=this.community()?.state?.members||{},out=[];
+    for(const r of rows){
+      const i=this.rankOf(r.value,place.get(r.key)),was=this.state.ranks[r.key];
+      if(this.state.ranksPrimed&&was!==undefined&&i>was)out.push({key:r.key,from:was,to:i});
+      if(was===undefined||i>was)this.state.ranks[r.key]=i;
+    }
+    this.state.ranksPrimed=true;
+    for(const p of out){
+      const m=members[p.key],platform=p.key.split(':')[0],name=m?.name||p.key;
+      if(s.promoChat)this.state.promoChat.push({at:this.now(),text:name+' is now '+RANKS[p.to].name});
+      if(p.to>=s.promoMin){
+        const who={key:p.key,platform,login:m?.login||'',name,tier:this.member(p.key).tier||'blue',points:-1,rank:0,members:0,hasPoints:false};
+        this.enqueue(who,'front',null,p.from);
+      }
+    }
+    this.state.promoChat=this.state.promoChat.filter(c=>this.now()-c.at<10*60000).slice(-40);
+    if(out.length)this.persist();
+    return out;
+  }
+  tickChat(){
+    const now=this.now(),q=this.state.promoChat;if(!q.length||now-this.lastChatAt<20000)return null;
+    const batch=q.splice(0,4);this.lastChatAt=now;
+    const text='⚓ Promotions: '+batch.map(b=>b.text).join(' · ')+(q.length?' · and more':'')+'! Type !voyager to see your rank.';
+    try{this.say(text.slice(0,450));}catch{}return text;
   }
 
   // ---------- what the card shows ----------
@@ -101,13 +168,15 @@ export class Cards{
     const v=this.medals?.state?.viewers?.[key];if(!v)return [];
     return Object.entries(v.m||{}).map(([id,e])=>({id,g:e.g,m:medalById(id)})).filter(x=>x.m).sort((a,b)=>b.g-a.g||a.m.name.localeCompare(b.m.name)).map(x=>({id:x.id,name:x.m.name}));
   }
-  build(who,side,fromTier,sample=false){
+  build(who,side,fromTier,sample=false,fromRank=null){
     const now=this.now(),s=this.state.settings,m=sample?{}:this.member(who.key),medals=this.medals;
     const v=sample?SAMPLE_VIEWER(now):medals?.state?.viewers?.[who.key]||null,c=v?.c||{};
-    const community=this.community(),cm=sample?{value:126400}:community?.state?.members?.[who.key]||null;
+    const community=this.community(),cm=sample?{value:214560}:community?.state?.members?.[who.key]||null;
     const since=Math.min(v?.first||now,now),hidden=!!m.private;
     const balance=who.hasPoints?who.points:num(cm?.balance);
     const lifetime=num(cm?.value);
+    const allTime=sample?6:this.board().place.get(who.key)||0;
+    const rv=this.rankView(who.key,lifetime,allTime);
     // Versus
     const pilots=sample?[{login:who.login,wins:27,losses:9,draws:0},{login:'x',wins:40}]:(this.rankings()||[]).filter(p=>p&&p.login),pilot=who.platform==='twitch'?pilots.find(p=>String(p.login).toLowerCase()===who.login):null;
     const vRank=pilot?[...pilots].sort((a,b)=>num(b.wins)-num(a.wins)).findIndex(p=>p===pilot)+1:0;
@@ -135,8 +204,8 @@ export class Cards{
       {label:'MEMBER ID',value:memberId(who.key,since),icon:'M3 5h18v14H3z M7 10a2 2 0 1 0 4 0 2 2 0 0 0-4 0 M6 16c.6-1.6 1.8-2.4 3-2.4s2.4.8 3 2.4 M14 9h4 M14 13h4'},
       {label:'MEMBER SINCE',value:new Date(since).toLocaleDateString('en-AU',{day:'numeric',month:'long',year:'numeric'}),icon:'M4 6h16v15H4z M4 10h16 M8 3v5 M16 3v5 M8 14h2 M12 14h2 M16 14h2 M8 17h2 M12 17h2'}];
     const stats=[
-      {label:'VOYAGER POINTS',value:balance>=0?fmt(balance):'—',sub:lifetime?fmt(lifetime)+' earned all-time':'Points balance'},
-      {label:'LEADERBOARD',value:who.rank?'#'+fmt(who.rank):'—',sub:who.members?'of '+fmt(who.members)+' members':'Points leaderboard'},
+      {label:'VOYAGER POINTS',value:balance>=0?fmt(balance):'—',sub:this.state.settings.ranks?'Balance · spend with !upgrade':lifetime?fmt(lifetime)+' earned all-time':'Points balance'},
+      this.state.settings.ranks?{label:'LIFETIME POINTS',value:fmt(lifetime),sub:rv.sub}:{label:'LEADERBOARD',value:who.rank?'#'+fmt(who.rank):'—',sub:who.members?'of '+fmt(who.members)+' members':'Points leaderboard'},
       {label:'TIME WATCHED',value:hidden?'Private':fmt(watchH)+' h',sub:c.streak?fmt(c.streak)+'-stream streak · best '+fmt(c.bestStreak):fmt(c.days||0)+' streams attended'},
       {label:'VOYAGER VERSUS',value:battles?fmt(wins)+'–'+fmt(losses):'—',sub:battles?Math.round(wins/battles*100)+'% win rate'+(vRank?' · #'+vRank:''):'Type !versus to battle'}];
     const extras=[
@@ -168,20 +237,24 @@ export class Cards{
       statsEyebrow:'!voyager stats · '+NAME+' · '+memberId(who.key,since),badgesEyebrow:'!voyager badges · '+NAME+' · '+earned.length+' OF '+total+' UNLOCKED',
       alsoEarned:earned.length>1?'Also earned: '+earned.slice(1,4).map(e=>e.m.name).join(' · '):'Earn medals to unlock more callsigns',
       promoted:who.name+' has been promoted · welcome to '+TIER_INFO[who.tier].title};
-    const vv={front:side==='front'?'block':'none',stats:side==='stats'?'block':'none',badges:side==='badges'?'block':'none',banner:fromTier?'flex':'none',
-      bannerText:fromTier?TIER_INFO[fromTier].title+' → '+TIER_INFO[who.tier].title:''};
-    return {tier:who.tier,fromTier:fromTier||'',side,name:who.name,platform:who.platform,t,v:vv,c:cc,d};
+    const promo=fromRank!==null&&fromRank!==undefined&&!fromTier;
+    if(promo)cc.promoted=who.name+' has been promoted · '+RANKS[fromRank].name+' to '+rv.rank.name;
+    const vv={front:side==='front'?'block':'none',stats:side==='stats'?'block':'none',badges:side==='badges'?'block':'none',banner:fromTier||promo?'flex':'none',
+      bannerEyebrow:promo?'★ PROMOTED ★':'★ TIER UP ★',
+      bannerText:fromTier?TIER_INFO[fromTier].title+' → '+TIER_INFO[who.tier].title:promo?RANKS[fromRank].name.toUpperCase()+' → '+rv.rank.name.toUpperCase():''};
+    return {tier:who.tier,fromTier:fromTier||'',promotion:promo,side,name:who.name,platform:who.platform,t,v:vv,c:cc,d,k:rv.k,rank:rv.rank.id};
   }
 
   // ---------- control page and OBS ----------
-  preview({tier='gold',side='front',tierUp=false}={}){
+  preview({tier='gold',side='front',tierUp=false,promotion=false}={}){
     if(!TIER_ORDER.includes(tier)||!['front','stats','badges'].includes(side))throw new Error('Unknown card preview.');
     const who={key:'twitch:preview',platform:'twitch',login:'nebulaknight',name:'NebulaKnight',tier,points:1450,rank:4,members:312,hasPoints:true};
-    const card=this.build(who,side,tierUp&&tier!=='blue'?TIER_ORDER[TIER_ORDER.indexOf(tier)-1]:null,true);
+    const card=this.build(who,side,tierUp&&tier!=='blue'?TIER_ORDER[TIER_ORDER.indexOf(tier)-1]:null,true,promotion?4:null);
     const item={id:++this.state.seq,at:this.now(),seconds:this.state.settings.seconds,card,preview:true};
     this.state.queue=[...this.state.queue,item].slice(-20);return item;
   }
   configure(raw){this.state.settings=normalizeCardSettings({...this.state.settings,...raw},this.state.settings);this.persist();return this.view();}
   overlay(){const now=this.now();return {serverAt:now,items:this.state.queue.filter(x=>now-x.at<10*60000)};}
-  view(){return {settings:this.state.settings,defaults:CARD_DEFAULTS,recent:this.state.recent,lastEvent:this.lastEvent,tiers:TIER_INFO};}
+  view(){const {rows,place}=this.board(),count=new Array(RANKS.length).fill(0);for(const r of rows)count[this.rankOf(r.value,place.get(r.key))]++;
+    return {settings:this.state.settings,defaults:CARD_DEFAULTS,recent:this.state.recent,lastEvent:this.lastEvent,tiers:TIER_INFO,ranks:RANKS.map((x,i)=>({...x,points:this.state.settings.rankPoints[i],holders:count[i]}))};}
 }
