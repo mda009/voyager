@@ -1,4 +1,4 @@
-// Voyager Medals v1.1 - data for Voyager's medal system (Voyager 2.18) and the !medals chat command.
+// Voyager Medals v1.2 - data for Voyager's medal system (Voyager 2.18) and the !medals chat command.
 // Action name: Voyager - Medals. One Core > C# > Execute C# Code sub-action (this whole file). Untick Concurrent.
 // Trigger: Core > Commands > Command Triggered: !medals (Permitted: Everyone; Twitch, YouTube and Kick sources).
 // The Voyager host runs this action about once a minute (medalExport=1). It only READS:
@@ -10,7 +10,6 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -69,7 +68,8 @@ public class CPHInline
                             ["watchSeconds"] = watch, ["months"] = months, ["gifts"] = gift, ["firstSeenAt"] = L(u["firstSeenAt"])
                         });
                     }
-                    foreach (JObject r in rows.OrderByDescending(x => (long)x["watchSeconds"]).Take(10000)) users.Add(r);
+                    rows.Sort((x, y) => ((long)y["watchSeconds"]).CompareTo((long)x["watchSeconds"]));
+                    for (int i = 0; i < rows.Count && i < 10000; i++) users.Add(rows[i]);
                 }
             }
         }
@@ -94,7 +94,7 @@ public class CPHInline
                             ["bits"] = L(u["bits"]), ["kicks"] = L(u["kicks"]), ["follow"] = L(u["follow"]), ["firstSeenAt"] = L(u["firstSeenAt"])
                         });
                     }
-                    foreach (JObject r in rows.Take(10000)) crew.Add(r);
+                    for (int i = 0; i < rows.Count && i < 10000; i++) crew.Add(rows[i]);
                 }
                 JArray history = s["history"] as JArray;
                 if (history != null)
@@ -182,4 +182,4 @@ public class CPHInline
     private bool Flag(string key) { bool value; return Boolean.TryParse(Read(key), out value) && value; }
     private string Read(string key) { object value; return CPH.TryGetArg<object>(key, out value) && value != null ? Convert.ToString(value, CultureInfo.InvariantCulture) : ""; }
 }
-// End of Voyager Medals v1.1.
+// End of Voyager Medals v1.2.

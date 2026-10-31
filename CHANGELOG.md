@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.2 (31 October 2026)
+
+**Fix: Voyager - Membership Card did not compile in Streamer.bot** (CS0234 "Linq does not exist in the namespace System", CS1061 / CS1955). `Voyager_Membership_Card.cs` (v1.1) and `Voyager_Medals.cs` (v1.2) no longer use System.Linq at all, so they compile with Streamer.bot's default references whatever the action's References tab holds. Paste each new file into its action's Execute C# Code and Save and Compile. The reference check now also rejects `using System.Linq` in these actions.
+
 ## 2.20.1 (31 October 2026)
 
 **Fix: Voyager - Medals did not compile in Streamer.bot** (CS0012 "ITypedList / IBindingList / INotifyCollectionChanged ... add a reference to System"). `Voyager_Medals.cs` is now v1.1: it reads Fleet Alerts history and giveaway winners with plain loops, so it compiles with Streamer.bot's default references. Paste the new file into the action's Execute C# Code and Save and Compile. A new check stops this from coming back in the Medals, Membership Card and Dreadnought actions.

@@ -1,16 +1,16 @@
-// Voyager Membership Card v1 - the !voyager glass membership card (Voyager 2.19).
+// Voyager Membership Card v1.1 - the !voyager glass membership card (Voyager 2.19).
 // Action name: Voyager - Membership Card. One Core > C# > Execute C# Code sub-action (this whole file). Untick Concurrent.
 // Triggers:
 //   Core > Commands > Command Triggered: !voyager (Everyone; Twitch, YouTube and Kick). Move it here from "Silver Membership On Screen".
 //   Core > Groups > User Added to Group (any group). Only SILVER, GOLD and PLATINUM GROUP are used: they play the tier-up card.
 // It reads your existing membership groups (BLUE/SILVER/GOLD/PLATINUM GROUP) and the "points" user variable, works out the
 // leaderboard position, and tells the Voyager host (WebSocket broadcast). The host builds the card and shows it in OBS.
+// No LINQ: it compiles with Streamer.bot's default references.
 // It never changes points, groups, tickets or giveaways: !upgrade and the purchase actions stay exactly as they are.
 // The host also runs it with cardSay to reply in chat.
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -51,7 +51,7 @@ public class CPHInline
             string platform = Read(prefix + "userType").ToLowerInvariant();
             if (platform != "twitch" && platform != "youtube" && platform != "kick") continue;
             string login = Read(prefix + "userName").ToLowerInvariant();
-            if (Buckets.Contains(login)) continue;
+            if (Array.IndexOf(Buckets, login) >= 0) continue;
             JObject ev = Event("tierup", platform, Read(prefix + "userId"), login, Read(prefix + "user"));
             ev["tier"] = Tiers[tier];
             CPH.WebsocketBroadcastJson(ev.ToString(Formatting.None));
@@ -102,14 +102,14 @@ public class CPHInline
         foreach (JToken token in JArray.FromObject(records))
         {
             string uid = (string)token["UserId"] ?? "", ulogin = ((string)token["UserLogin"] ?? "").ToLowerInvariant();
-            if (Buckets.Contains(ulogin)) continue;
+            if (Array.IndexOf(Buckets, ulogin) >= 0) continue;
             JValue raw = token["Value"] as JValue; if (raw == null || raw.Value == null) continue;
             double n; if (!Double.TryParse(Convert.ToString(raw.Value, CultureInfo.InvariantCulture), NumberStyles.Float, CultureInfo.InvariantCulture, out n)) continue;
             long v = (long)Math.Floor(n); values.Add(v);
             if ((id.Length > 0 && uid == id) || (id.Length == 0 && login.Length > 0 && ulogin == login)) points = v;
         }
         members = values.Count;
-        if (points >= 0) { long p = points; rank = values.Count(x => x > p) + 1; }
+        if (points >= 0) { rank = 1; foreach (long v in values) if (v > points) rank++; }
     }
     private void Say(string message)
     {
@@ -133,4 +133,4 @@ public class CPHInline
     private bool Flag(string key) { bool value; return Boolean.TryParse(Read(key), out value) && value; }
     private string Read(string key) { object value; return CPH.TryGetArg<object>(key, out value) && value != null ? Convert.ToString(value, CultureInfo.InvariantCulture) : ""; }
 }
-// End of Voyager Membership Card v1.
+// End of Voyager Membership Card v1.1.
