@@ -226,6 +226,7 @@ const server=http.createServer(async(req,res)=>{
     if(url.pathname==='/api/cards/overlay'&&req.method==='GET'){res.setHeader('Cache-Control','no-store');response(res,200,cards.overlay());return;}
     if(url.pathname.startsWith('/api/cards')){
       if(!validToken(req)){response(res,403,{message:'Open Voyager Control › Membership cards.'});return;}
+      if(url.pathname==='/api/cards/ranks'&&req.method==='GET'){response(res,200,cards.ranksView());return;}
       if(url.pathname==='/api/cards'&&req.method==='GET'){response(res,200,{...cards.view(),connected:bot.status.connected,action:await actionStatus('Voyager - Membership Card'),lastChatAt,otherChat:bot.otherChat});return;}
       if(req.method!=='POST'||!req.headers['content-type']?.startsWith('application/json')){response(res,405,{message:'Method not allowed.'});return;}
       try{

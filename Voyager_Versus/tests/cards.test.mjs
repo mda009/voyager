@@ -96,3 +96,16 @@ test('!voyager straight from Twitch chat: tier and points from the Points Ledger
   assert.ok(cards.requestedSince('twitch:1',0));
   assert.equal(cards.receive({...ev,tier:'gold'}),null,'the same request from the Streamer.bot trigger shows once');
 });
+
+test('Ranks page: roster with rank, place and progress, holders per rank, insignia and a promotions log',async()=>{
+  const {cards}=await make();
+  const members={};cards.community=()=>({state:{members},standings:()=>[]});
+  const add=(id,value,name)=>{members['twitch:'+id]={name,login:name.toLowerCase(),platform:'twitch',value};};
+  add(1,12_000_000,'Ace');add(2,52_000,'Nova');add(3,4_000,'Rook');members['twitch:9']={name:'Bucket',login:'mdavoyagergold',value:9e9};
+  let v=cards.ranksView();
+  assert.equal(v.total,3);assert.deepEqual(v.members.map(m=>[m.name,m.place,v.ranks[m.rank].name]),[['Ace',1,'Admiral of the Fleet'],['Nova',2,'Lieutenant'],['Rook',3,'Midshipman']]);
+  assert.equal(v.members[1].need,28_000);assert.equal(v.members[1].progress,(52_000-40_000)/40_000);assert.equal(v.members[0].next,null);
+  assert.equal(v.ranks[11].holders,1);assert.equal(Object.keys(v.insignia).length,12);assert.match(v.insignia.lt,/^<svg/);
+  cards.tickRanks();members['twitch:3'].value=6_000;cards.tickRanks();
+  v=cards.ranksView();assert.equal(v.promotions.length,1);assert.equal(v.promotions[0].name,'Rook');assert.equal(v.ranks[v.promotions[0].to].name,'Acting Sub-Lieutenant');
+});

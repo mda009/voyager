@@ -5,11 +5,16 @@
 // already tracks (medals, watch time, subs, Versus, the Dreadnought, missions and seasons).
 // Never shown: giveaway ticket balances.
 import {readFile,writeFile,rename} from 'node:fs/promises';
+import {readFileSync} from 'node:fs';
 import {join} from 'node:path';
 import {createHash} from 'node:crypto';
 import {MEDALS,MEDAL_ICONS,GRADE_NAMES,medalById} from './medals.mjs';
 
 const FILE='cards.json',DAY=86400000;
+// The rank insignia (sleeve lace) drawn on the card, reused on the Ranks page.
+const INSIGNIA={};
+try{const t=readFileSync(new URL('../dist/card-template.mjs',import.meta.url),'utf8');
+  for(const m of t.matchAll(/<span style="display: \$\{e\(k\.s_(\w+)\)\}">(<svg[\s\S]*?<\/svg>)<\/span>/g))INSIGNIA[m[1]]=m[2];}catch{}
 export const TIER_ORDER=['blue','silver','gold','platinum'];
 export const TIER_INFO={blue:{title:'BLUE EXPLORER',tier:'TIER 1'},silver:{title:'SILVER SENTINEL',tier:'TIER 2'},gold:{title:'GOLD COMMANDER',tier:'TIER 3'},platinum:{title:'PLATINUM VANGUARD',tier:'TIER VANGUARD'}};
 // Upgrade prices from your Streamer.bot actions: Silver Membership Purchase 1,200, Silver > Gold Logic 1,800, Gold > Platinum Logic 17,000.
@@ -56,7 +61,7 @@ const SAMPLE_VIEWER=now=>({name:'NebulaKnight',login:'nebulaknight',platform:'tw
 export class Cards{
   constructor({dataDir,now=Date.now,say=()=>{},medals=null,community=()=>null,rankings=()=>[]}={}){
     Object.assign(this,{dataDir,now,say,medals,community,rankings});
-    this.state={schema:1,settings:structuredClone(CARD_DEFAULTS),members:{},queue:[],recent:[],seq:0,ranks:{},ranksPrimed:false,promoChat:[]};this.lastChatAt=0;this.saving=Promise.resolve();this.lastEvent=null;
+    this.state={schema:1,settings:structuredClone(CARD_DEFAULTS),members:{},queue:[],recent:[],seq:0,ranks:{},ranksPrimed:false,promoChat:[],promotions:[]};this.lastChatAt=0;this.saving=Promise.resolve();this.lastEvent=null;
   }
   async load(){try{const raw=JSON.parse(await readFile(join(this.dataDir,FILE),'utf8'));if(raw?.schema===1){this.state={...this.state,...raw};this.state.settings={...structuredClone(CARD_DEFAULTS),...raw.settings};try{this.state.settings=normalizeCardSettings(raw.settings||{});}catch{this.state.settings=structuredClone(CARD_DEFAULTS);}}}catch{}return this;}
   persist(){if(!this.dataDir)return this.saving;const data=JSON.stringify(this.state),tmp=join(this.dataDir,FILE+'.tmp');this.saving=this.saving.then(async()=>{await writeFile(tmp,data);await rename(tmp,join(this.dataDir,FILE));}).catch(()=>{});return this.saving;}
@@ -163,6 +168,7 @@ export class Cards{
     this.state.ranksPrimed=true;
     for(const p of out){
       const m=members[p.key],platform=p.key.split(':')[0],name=m?.name||p.key;
+      this.state.promotions=[{at:this.now(),key:p.key,name,platform,from:p.from,to:p.to},...(this.state.promotions||[])].slice(0,200);
       if(s.promoChat)this.state.promoChat.push({at:this.now(),text:name+' is now '+RANKS[p.to].name});
       if(p.to>=s.promoMin){
         const who={key:p.key,platform,login:m?.login||'',name,tier:this.member(p.key).tier||'blue',points:-1,rank:0,members:0,hasPoints:false};
@@ -272,6 +278,17 @@ export class Cards{
   }
   configure(raw){this.state.settings=normalizeCardSettings({...this.state.settings,...raw},this.state.settings);this.persist();return this.view();}
   overlay(){const now=this.now();return {serverAt:now,items:this.state.queue.filter(x=>now-x.at<10*60000)};}
+  // 2.20.13: the Ranks page in Voyager Control. Everyone with lifetime points, their rank, all-time place and progress.
+  ranksView(limit=1000){
+    const {rows,place}=this.board(),members=this.community()?.state?.members||{},pts=this.state.settings.rankPoints,count=new Array(RANKS.length).fill(0);
+    const roster=rows.map(r=>{const m=members[r.key]||{},pl=place.get(r.key),i=this.rankOf(r.value,pl),next=RANKS[i+1];count[i]++;
+      const need=next?Math.max(0,pts[i+1]-r.value):0,span=next?pts[i+1]-pts[i]:0;
+      return {key:r.key,name:clean(m.name||m.login||r.key,60),platform:r.key.split(':')[0],tier:m.tier||this.state.members[r.key]?.tier||'blue',lifetime:r.value,place:pl,rank:i,
+        next:next?i+1:null,need,gated:!!next&&need===0&&!!next.top,progress:next?Math.max(0,Math.min(1,span?(r.value-pts[i])/span:1)):1};});
+    return {settings:{ranks:this.state.settings.ranks,promoChat:this.state.settings.promoChat,promoMin:this.state.settings.promoMin,rankPoints:pts,enabled:this.state.settings.enabled},
+      defaults:CARD_DEFAULTS.rankPoints,ranks:RANKS.map((x,i)=>({...x,points:pts[i],holders:count[i]})),insignia:INSIGNIA,total:roster.length,
+      lifetime:rows.reduce((a,r)=>a+r.value,0),members:roster.slice(0,limit),promotions:(this.state.promotions||[]).slice(0,50)};
+  }
   view(){const {rows,place}=this.board(),count=new Array(RANKS.length).fill(0);for(const r of rows)count[this.rankOf(r.value,place.get(r.key))]++;
     return {settings:this.state.settings,defaults:CARD_DEFAULTS,recent:this.state.recent,lastEvent:this.lastEvent,tiers:TIER_INFO,ranks:RANKS.map((x,i)=>({...x,points:this.state.settings.rankPoints[i],holders:count[i]}))};}
 }

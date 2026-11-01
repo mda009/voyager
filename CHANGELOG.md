@@ -2,6 +2,17 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.13 (1 November 2026)
+
+**New Ranks page in Voyager Control (Community › Ranks).**
+
+- **The ladder:** all twelve Royal Australian Navy officer ranks with their sleeve-lace insignia, the lifetime points each one needs, the leaderboard place the flag ranks need, and how many crew hold each rank. Click a rank to list its holders.
+- **Fleet roster:** everyone with lifetime Voyager points, by all-time place, with their rank, membership tier, platform and a progress bar to their next rank ("28,000 to Lieutenant Commander"). Search by name and filter by rank or platform.
+- **At a glance:** ranked crew, flag officers (Commodore and above), promotions in the last 7 days and the senior officer.
+- **Recent promotions:** every promotion is now logged, including those below the on-stream threshold.
+- **Settings:** the rank settings moved here from Membership cards (show ranks, chat announcements, which promotions show on stream, points for each rank), with a reset to the default points and a promotion card preview.
+- No Streamer.bot or OBS changes.
+
 ## 2.20.12 (1 November 2026)
 
 **The Dreadnought is easier to defeat.**

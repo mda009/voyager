@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Voyager • Ranks</title>
+<link rel="icon" href="brand-assets/voyager.png">
+<link rel="stylesheet" href="stream-command.css">
+<link rel="stylesheet" href="voyager-brand.css">
+<link rel="stylesheet" href="settings.css?v=2.18">
+<link rel="stylesheet" href="community.css?v=2.18">
+<link rel="stylesheet" href="voyager-glass.css?v=2.18">
+<style>
+.rk-layout{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(320px,1fr);gap:16px;align-items:start}
+.rk-main,.rk-side{display:flex;flex-direction:column;gap:16px;min-width:0}
+.rk-card{padding:18px 22px;display:flex;flex-direction:column;gap:12px}
+.rk-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.rk-stat{padding:12px 14px;border:1px solid rgba(151,223,255,.12);background:rgba(8,15,24,.4);min-width:0}
+.rk-stat small{display:block;font-size:11px;letter-spacing:.12em;color:#8ea6bd;text-transform:uppercase}
+.rk-stat b{display:block;margin-top:4px;font:700 22px var(--brand-display);color:#e6eef7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rk-stat span{font-size:12px;color:#9ab0c5}
+.rk-ins{display:inline-flex;align-items:center;justify-content:center;width:56px;height:32px;flex:none}
+.rk-ins svg{width:56px;height:32px}
+.rk-ins.sm{width:40px;height:22px}.rk-ins.sm svg{width:40px;height:22px}
+.rk-ladder{list-style:none;margin:0;padding:0;display:flex;flex-direction:column-reverse;gap:6px}
+.rk-ladder li{display:grid;grid-template-columns:64px minmax(0,1fr) 120px 150px;gap:12px;align-items:center;padding:8px 12px;border:1px solid rgba(151,223,255,.1);background:rgba(8,15,24,.35);cursor:pointer}
+.rk-ladder li:hover,.rk-ladder li.on{border-color:rgba(151,223,255,.4);background:rgba(20,40,60,.5)}
+.rk-ladder li.flag{background:linear-gradient(90deg,rgba(255,197,61,.08),rgba(8,15,24,.35) 60%)}
+.rk-name b{display:block;color:#e6eef7;font-size:14px}.rk-name span{font-size:12px;color:#8ea6bd}
+.rk-pts{text-align:right;font:600 14px var(--brand-display);color:#97dfff}
+.rk-hold{display:flex;align-items:center;gap:8px;font-size:12px;color:#c9d7e4}
+.rk-hold i{flex:1;height:6px;background:rgba(151,223,255,.1);position:relative;overflow:hidden}
+.rk-hold i em{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,#3fb2ff,#97dfff)}
+.rk-hold b{min-width:34px;text-align:right}
+.rk-tools{display:flex;gap:8px;flex-wrap:wrap}
+.rk-tools input,.rk-tools select,.rk-form select{height:36px;padding:0 10px;border:1px solid rgba(151,223,255,.18);background:rgba(8,15,24,.55);color:#e6eef7;font:14px 'Segoe UI',sans-serif;min-width:0}
+.rk-tools input{flex:1 1 220px;min-width:180px;width:auto}
+.rk-tools select{flex:0 0 auto;width:auto;min-width:150px}
+.rk-table{width:100%;border-collapse:collapse;font-size:13px}
+.rk-table th{text-align:left;font-size:11px;letter-spacing:.1em;color:#8ea6bd;font-weight:600;padding:6px 8px;border-bottom:1px solid rgba(151,223,255,.14)}
+.rk-table td{padding:7px 8px;border-bottom:1px solid rgba(151,223,255,.06);color:#c9d7e4;vertical-align:middle}
+.rk-table td.n{text-align:right;font-variant-numeric:tabular-nums}
+.rk-table td.who b{color:#e6eef7}.rk-table td.who small{display:block;color:#8ea6bd;font-size:11px}
+.rk-table .rk-r{display:flex;align-items:center;gap:8px}
+.rk-prog{min-width:150px}.rk-prog i{display:block;height:5px;background:rgba(151,223,255,.1);margin-bottom:4px;position:relative}
+.rk-prog i em{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,#3fb2ff,#97dfff)}
+.rk-prog small{color:#8ea6bd;font-size:11px}
+.rk-dot{display:inline-block;width:9px;height:9px;transform:rotate(45deg);margin-right:6px}.rk-blue{background:#3fb2ff}.rk-silver{background:#eef3f9}.rk-gold{background:#ffc53d}.rk-platinum{background:#c08bff}
+.rk-more{align-self:center}
+.rk-form{display:grid;grid-template-columns:1fr;gap:10px}
+.rk-form label{display:flex;flex-direction:column;gap:5px;font-size:12px;color:#9ab0c5}
+.rk-form .check{flex-direction:row;align-items:center;gap:8px;font-size:13px;color:#c9d7e4}
+.rk-points{display:grid;grid-template-columns:44px minmax(0,1fr) 120px;gap:6px 10px;align-items:center;font-size:13px;color:#c9d7e4}
+.rk-points input{height:32px;padding:0 8px;border:1px solid rgba(151,223,255,.18);background:rgba(8,15,24,.55);color:#e6eef7;min-width:0;text-align:right}
+.rk-points small{color:#8ea6bd}
+.rk-preview{position:relative;aspect-ratio:16/9;background:#04070d;border:1px solid rgba(151,223,255,.16);overflow:hidden}
+.rk-preview iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.rk-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.rk-list li{display:flex;gap:10px;align-items:center;padding:7px 10px;border:1px solid rgba(151,223,255,.1);background:rgba(8,15,24,.35);font-size:13px;color:#c9d7e4}
+.rk-list li b{color:#e6eef7}.rk-list .r{margin-left:auto;color:#8ea6bd;font-size:12px;white-space:nowrap}
+.rk-empty{padding:18px;text-align:center;color:#8ea6bd;font-size:13px}
+@media(max-width:1180px){.rk-layout{grid-template-columns:1fr}}
+@media(max-width:760px){.rk-stats{grid-template-columns:repeat(2,1fr)}.rk-ladder li{grid-template-columns:56px minmax(0,1fr) 100px}.rk-hold{display:none}.rk-table .hide-sm{display:none}}
+</style>
+</head>
+<body class="voyager-console voyager-settings voyager-community">
+<div class="shell">
+<aside class="rail"><a class="brand" href="Voyager_Command_Center.html"><img class="logo-voyager" src="brand-assets/voyager.png" alt="Voyager membership program" width="68" height="68"><span>VOYAGER<small>MDA009 · MISSION CONTROL</small></span></a></aside>
+<main>
+<header class="top"><div><span class="eyebrow">COMMUNITY</span><h1>Ranks</h1></div><div class="toolbar"><span class="st-note">Royal Australian Navy officer ranks · lifetime Voyager points</span><button type="button" class="primary" id="save">Save settings</button></div></header>
+<p class="st-notice" id="notice" hidden></p>
+<p class="st-notice" id="not-hosted" hidden>Open this page from the Voyager app (or START-VOYAGER-CONTROL.bat). Ranks are worked out by the Voyager host.</p>
+<p class="st-notice" id="off" hidden>Ranks are off, so they aren't shown on membership cards and nobody is promoted. Tick <b>Show ranks on the card</b> and save to turn them on.</p>
+<div class="rk-layout">
+<div class="rk-main">
+<div class="rk-stats">
+<div class="rk-stat"><small>Ranked crew</small><b id="s-total">–</b><span>with lifetime points</span></div>
+<div class="rk-stat"><small>Flag officers</small><b id="s-flag">–</b><span>Commodore and above</span></div>
+<div class="rk-stat"><small>Promotions</small><b id="s-week">–</b><span>in the last 7 days</span></div>
+<div class="rk-stat"><small>Senior officer</small><b id="s-top">–</b><span id="s-top-rank">–</span></div>
+</div>
+<section class="card rk-card">
+<div class="card-heading"><div><span class="eyebrow">THE LADDER</span><h2>Twelve ranks</h2></div><span class="st-pill" id="state-pill" data-state="wait">Loading</span></div>
+<ol class="rk-ladder" id="ladder"></ol>
+<p class="st-hint">Ranks come from <b>lifetime Voyager points</b>, so spending never lowers one. The top three also need an all-time leaderboard place: Vice Admiral top 10, Admiral top 3, Admiral of the Fleet #1. Click a rank to see who holds it.</p>
+</section>
+<section class="card rk-card">
+<div class="card-heading"><div><span class="eyebrow">FLEET ROSTER</span><h2 id="roster-title">Everyone, by lifetime points</h2></div></div>
+<div class="rk-tools"><input id="search" type="search" placeholder="Search by name" autocomplete="off"><select id="filter"><option value="">All ranks</option></select><select id="platform"><option value="">All platforms</option><option value="twitch">Twitch</option><option value="youtube">YouTube</option><option value="kick">Kick</option></select></div>
+<div style="overflow-x:auto"><table class="rk-table"><thead><tr><th>#</th><th>Crew</th><th>Rank</th><th class="hide-sm" style="text-align:right">Lifetime points</th><th class="hide-sm">Next rank</th></tr></thead><tbody id="roster"></tbody></table></div>
+<button type="button" class="rk-more" id="more" hidden>Show more</button>
+</section>
+</div>
+<div class="rk-side">
+<section class="card rk-card">
+<div class="card-heading"><div><span class="eyebrow">SETTINGS</span><h2>Ranks</h2></div></div>
+<form id="settings" class="rk-form" autocomplete="off">
+<label class="check"><input type="checkbox" name="ranks"> Show ranks on the card and promote crew</label>
+<label class="check"><input type="checkbox" name="promoChat"> Announce promotions in chat (grouped)</label>
+<label>Show promotions on stream from<select name="promoMin" id="promo-min"></select></label>
+<div><span class="eyebrow">LIFETIME POINTS FOR EACH RANK</span></div>
+<div class="rk-points" id="points"></div>
+<div><button type="button" id="reset">Reset to the default points</button></div>
+</form>
+<p class="st-hint">Changing the points moves everyone to their new rank. Only promotions after the change are announced; nobody is announced as demoted.</p>
+</section>
+<section class="card rk-card">
+<div class="card-heading"><div><span class="eyebrow">ON STREAM</span><h2>Promotion card</h2></div></div>
+<div class="rk-preview"><iframe id="preview" title="Membership card overlay preview" src="/card.html?bg=04070d"></iframe></div>
+<button type="button" id="preview-promo">Preview a promotion (sample data)</button>
+<p class="st-hint">Promotions play on the membership card source in OBS. The preview uses sample data and posts nothing in chat.</p>
+</section>
+<section class="card rk-card"><span class="eyebrow">RECENT PROMOTIONS</span><ul class="rk-list" id="promotions"></ul></section>
+</div>
+</div>
+</main>
+</div>
+<script src="ranks-control.js?v=2.20.13"></script>
+<script src="voyager-shell.js?v=2.20.13"></script>
+<script src="voyager-navigation.js"></script>
+</body>
+</html>
