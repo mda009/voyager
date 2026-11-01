@@ -275,7 +275,7 @@ export class Cards{
     const vv={front:side==='front'?'block':'none',stats:side==='stats'?'block':'none',badges:side==='badges'?'block':'none',banner:fromTier||promo?'flex':'none',
       bannerEyebrow:promo?'★ PROMOTED ★':'★ TIER UP ★',
       bannerText:fromTier?TIER_INFO[fromTier].title+' → '+TIER_INFO[who.tier].title:promo?RANKS[fromRank].name.toUpperCase()+' → '+rv.rank.name.toUpperCase():''};
-    return {tier:who.tier,fromTier:fromTier||'',promotion:promo,side,name:who.name,platform:who.platform,t,v:vv,c:cc,d,k:rv.k,rank:rv.rank.id};
+    return {tier:who.tier,fromTier:fromTier||'',promotion:promo,fromRankId:promo?RANKS[fromRank].id:'',fromRankName:promo?RANKS[fromRank].name.toUpperCase():'',side,name:who.name,platform:who.platform,t,v:vv,c:cc,d,k:rv.k,rank:rv.rank.id};
   }
 
   // ---------- control page and OBS ----------

@@ -48,11 +48,57 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:transparent
 .shock{left:960px;top:540px;width:200px;height:200px;margin:-100px 0 0 -100px;border-radius:50%;border:4px solid var(--c,#ffc53d);box-shadow:0 0 50px 12px var(--g,rgba(255,165,20,.7));animation:ring 1.3s ease-out}
 .spark{left:960px;top:540px;width:6px;height:6px;border-radius:50%;background:#fff3c4;box-shadow:0 0 10px 3px var(--g,rgba(255,190,60,.9));animation:spark 1.6s ease-out}
 @keyframes spark{0%{opacity:0;transform:translate(0,0)}10%{opacity:1}100%{opacity:0;transform:translate(var(--dx),var(--dy))}}
+
+/* 2.20.16: the reveal. Warp in, hologram opens from a beam of light, stats count up, medals pop in one by one,
+   the rank stamps on; promotions get a title card and the old insignia flips to the new one. */
+#stage{perspective:2400px}
+#fxc{position:absolute;left:0;top:0;width:1920px;height:1080px;pointer-events:none;z-index:5}
+.slot.on{opacity:1}
+.slot.live{animation:float 7s ease-in-out infinite}
+@keyframes float{0%,100%{transform:rotateX(0) rotateY(0) translateY(0)}25%{transform:rotateX(1.6deg) rotateY(-2.2deg) translateY(-5px)}75%{transform:rotateX(-1.2deg) rotateY(2deg) translateY(3px)}}
+.holo{animation:holo .8s cubic-bezier(.2,.9,.25,1) both}
+@keyframes holo{0%{clip-path:inset(49.6% 0 49.6% 0);filter:brightness(3) saturate(.2) blur(2px)}45%{clip-path:inset(8% 0 8% 0);filter:brightness(1.8) saturate(.6)}100%{clip-path:inset(0 0 0 0);filter:none}}
+.holo-out{animation:holoOut .65s cubic-bezier(.6,0,.8,.3) both}
+@keyframes holoOut{0%{clip-path:inset(0 0 0 0);filter:none}60%{clip-path:inset(46% 0 46% 0);filter:brightness(2.4) saturate(.3)}100%{clip-path:inset(49.8% 50% 49.8% 50%);filter:brightness(4)}}
+.beam{left:240px;width:1440px;top:538px;height:4px;background:linear-gradient(90deg,transparent,var(--c,#9fd8ff) 20%,#fff 50%,var(--c,#9fd8ff) 80%,transparent);box-shadow:0 0 40px 10px var(--g,rgba(80,170,255,.7));animation:beam .9s ease-out both;z-index:4}
+@keyframes beam{0%{opacity:0;transform:scaleX(0)}25%{opacity:1;transform:scaleX(1)}55%{opacity:1;transform:scaleX(1) scaleY(1.5)}100%{opacity:0;transform:scaleX(1.08) scaleY(.3)}}
+.sheen{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.sheen i{position:absolute;top:-20%;left:-40%;width:22%;height:140%;transform:rotate(18deg);background:linear-gradient(90deg,transparent,rgba(255,255,255,.16) 45%,rgba(255,255,255,.32) 50%,rgba(255,255,255,.16) 55%,transparent);mix-blend-mode:screen;animation:sheen 5.5s ease-in-out 1.6s infinite}
+@keyframes sheen{0%{left:-40%}35%,100%{left:130%}}
+[data-medal]{opacity:0}
+[data-medal].pop{animation:pop .7s cubic-bezier(.2,1.6,.4,1) both}
+@keyframes pop{0%{opacity:0;transform:scale(.2) rotate(-40deg);filter:brightness(3)}55%{opacity:1;transform:scale(1.28) rotate(6deg);filter:brightness(2)}100%{opacity:1;transform:none;filter:none}}
+.wait-rank [data-rank-panel]{opacity:0}
+[data-rank-panel].stamp{animation:stamp .7s cubic-bezier(.2,1.3,.3,1) both}
+@keyframes stamp{0%{opacity:0;transform:scale(2.2);filter:blur(6px) brightness(3)}60%{opacity:1;transform:scale(.94);filter:brightness(1.8)}100%{opacity:1;transform:none;filter:none}}
+[data-rank-panel].charging{animation:charging .9s ease-in both}
+@keyframes charging{0%{filter:none;transform:none}30%{transform:translateX(-2px)}45%{transform:translateX(3px)}60%{transform:translateX(-3px) scale(1.04)}75%{transform:translateX(3px) scale(1.06)}100%{filter:brightness(2.4) drop-shadow(0 0 18px #ffd36b);transform:scale(1.08)}}
+[data-rank-svg]{transition:transform .22s ease-in}
+[data-rank-svg].flip{transform:scale(1.25) rotateY(90deg)!important}
+[data-rank-name].decode{color:#fff8dc!important;text-shadow:0 0 18px rgba(255,210,110,.9)!important}
+[data-banner].hold{opacity:0}
+[data-banner].show{animation:bannerIn .7s cubic-bezier(.2,1.2,.3,1) both}
+@keyframes bannerIn{0%{opacity:0;transform:scaleY(.2);filter:brightness(3)}100%{opacity:1;transform:none;filter:none}}
+.shake{animation:shake .5s linear}
+/* left/top, not transform: the stage's transform is its fit-to-screen scale. */
+@keyframes shake{0%,100%{left:0;top:0}15%{left:-9px;top:4px}30%{left:8px;top:-6px}45%{left:-6px;top:-3px}60%{left:5px;top:5px}75%{left:-3px;top:2px}}
+.ptitle{left:0;width:1920px;top:300px;height:480px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;opacity:1;z-index:6}
+.ptitle .eb{font:700 22px/1 Rajdhani,sans-serif;letter-spacing:14px;color:#ffd36b;opacity:0;animation:fadeUp .6s ease-out .1s both}
+.ptitle .word{display:flex;gap:6px}
+.ptitle .word span{font:700 150px/1 Rajdhani,sans-serif;letter-spacing:4px;background:linear-gradient(180deg,#fffbe6 0%,#ffe48a 30%,#f2b52e 50%,#7a4d00 56%,#ffcf4a 80%,#fff3b8 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 6px 18px rgba(0,0,0,.6)) drop-shadow(0 0 30px rgba(255,190,60,.55));display:inline-block;opacity:0;animation:slam .45s cubic-bezier(.2,1.4,.4,1) both}
+@keyframes slam{0%{opacity:0;transform:scale(3.2) translateY(-30px);filter:blur(8px)}100%{opacity:1;transform:none}}
+.ptitle .sub{font:700 34px/1.1 Rajdhani,sans-serif;letter-spacing:3px;color:#fff;text-shadow:0 2px 12px rgba(0,0,0,.8);opacity:0;animation:fadeUp .6s ease-out .9s both;text-align:center}
+.ptitle .sub b{color:#ffd36b}
+.ptitle.go{animation:titleOut .6s cubic-bezier(.6,0,.8,.4) forwards}
+@keyframes titleOut{to{opacity:0;transform:translateY(-260px) scale(.5);filter:blur(6px)}}
+@keyframes fadeUp{0%{opacity:0;transform:translateY(16px)}100%{opacity:1;transform:none}}
+.dim{left:0;top:0;width:1920px;height:1080px;background:radial-gradient(ellipse at 50% 50%,rgba(0,0,0,.15),rgba(0,0,0,.55) 75%);animation:dim 2.6s ease-in-out both;z-index:-1}
+@keyframes dim{0%{opacity:0}20%,70%{opacity:1}100%{opacity:0}}
 </style></head>
 <body>
-<div id="stage"></div>
+<div id="stage"><canvas id="fxc" width="1920" height="1080"></canvas></div>
 <script type="module">
-import {TIERS,cardHTML} from './card-template.mjs?v=2.20.15';
+import {TIERS,cardHTML} from './card-template.mjs?v=2.20.16';
 const q=new URLSearchParams(location.search),stage=document.getElementById('stage');
 if(q.get('backdrop')==='0')stage.classList.add('nobackdrop');
 if(q.get('frame')==='full')stage.classList.add('full');
@@ -73,22 +119,101 @@ function burst(tier){
   const [c,g]=ACCENT[tier];fx(['flash']);fx(['shock'],'--c:'+c+';--g:'+g);
   for(let i=0;i<22;i++){const a=i/22*Math.PI*2,d=260+Math.random()*320;fx(['spark'],'--g:'+g+';--dx:'+Math.round(Math.cos(a)*d)+'px;--dy:'+Math.round(Math.sin(a)*d)+'px;animation-delay:'+(Math.random()*.25).toFixed(2)+'s');}
 }
+// ---------- particles (one canvas over the stage) ----------
+const cv=document.getElementById('fxc'),cx=cv.getContext('2d');let parts=[],running=false;
+function emit(o){parts.push({x:o.x,y:o.y,vx:o.vx||0,vy:o.vy||0,life:0,max:o.max||1000,size:o.size||3,color:o.color||'#fff',g:o.g||0,drag:o.drag??.985,kind:o.kind||'dot',rot:Math.random()*6,vr:(Math.random()-.5)*.3,w:o.w||8,h:o.h||4});if(!running){running=true;requestAnimationFrame(tick);}}
+let last=0;
+function tick(t){const dt=Math.min(40,t-(last||t));last=t;cx.clearRect(0,0,1920,1080);
+  parts=parts.filter(p=>(p.life+=dt)<p.max);
+  for(const p of parts){const k=dt/16.7;p.vx*=Math.pow(p.drag,k);p.vy=p.vy*Math.pow(p.drag,k)+p.g*k;p.x+=p.vx*k;p.y+=p.vy*k;p.rot+=p.vr*k;
+    const a=Math.max(0,1-p.life/p.max);
+    if(p.kind==='streak'){cx.globalCompositeOperation='lighter';cx.strokeStyle=p.color;cx.globalAlpha=a;cx.lineWidth=p.size;cx.beginPath();cx.moveTo(p.x,p.y);cx.lineTo(p.x-p.vx*6,p.y-p.vy*6);cx.stroke();}
+    else if(p.kind==='conf'){cx.globalCompositeOperation='source-over';cx.globalAlpha=Math.min(1,a*1.6);cx.fillStyle=p.color;cx.save();cx.translate(p.x,p.y);cx.rotate(p.rot);cx.scale(1,Math.cos(p.rot*2));cx.fillRect(-p.w/2,-p.h/2,p.w,p.h);cx.restore();}
+    else{cx.globalCompositeOperation='lighter';cx.globalAlpha=a;const r=p.size*(.6+a*.6);const gr=cx.createRadialGradient(p.x,p.y,0,p.x,p.y,r*3);gr.addColorStop(0,p.color);gr.addColorStop(.35,p.color);gr.addColorStop(1,'rgba(0,0,0,0)');cx.fillStyle=gr;cx.beginPath();cx.arc(p.x,p.y,r*3,0,7);cx.fill();}}
+  cx.globalAlpha=1;cx.globalCompositeOperation='source-over';
+  if(parts.length)requestAnimationFrame(tick);else{running=false;last=0;cx.clearRect(0,0,1920,1080);}}
+const rnd=(a,b)=>a+Math.random()*(b-a);
+function warp(color){for(let i=0;i<140;i++){const a=rnd(0,Math.PI*2),d=rnd(20,260),sp=rnd(10,26);emit({x:960+Math.cos(a)*d,y:540+Math.sin(a)*d*.62,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp*.62,drag:1.06,max:rnd(380,620),size:rnd(1.2,3),color:Math.random()<.4?'#ffffff':color,kind:'streak'});}}
+function sparks(x,y,color,n=40,speed=9,up=0){for(let i=0;i<n;i++){const a=rnd(0,Math.PI*2),sp=rnd(speed*.3,speed);emit({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-up,g:.12,drag:.96,max:rnd(600,1300),size:rnd(1.5,3.5),color:Math.random()<.3?'#ffffff':color});}}
+function embers(x,y,n=90){for(let i=0;i<n;i++)emit({x:x+rnd(-90,90),y:y+rnd(-10,20),vx:rnd(-1.5,1.5),vy:rnd(-9,-3),g:.05,drag:.985,max:rnd(1200,2400),size:rnd(1.5,3.2),color:['#ffd36b','#ffb02e','#fff3c4'][i%3]});}
+function confetti(colors,n=160){for(let i=0;i<n;i++)emit({x:rnd(200,1720),y:rnd(-200,-10),vx:rnd(-2,2),vy:rnd(2,6),g:.06,drag:.99,max:rnd(2600,4200),kind:'conf',w:rnd(8,16),h:rnd(4,8),color:colors[i%colors.length]});}
+// Stage position of an element inside the scaled stage.
+function at(el){const r=el.getBoundingClientRect(),s=stage.getBoundingClientRect(),k=s.width/1920;return {x:(r.left+r.width/2-s.left)/k,y:(r.top+r.height/2-s.top)/k};}
+
+// ---------- the card reveal ----------
+function countUp(root){for(const el of root.querySelectorAll('[data-count]')){const m=/^([\d,]+)(.*)$/.exec(el.textContent.trim());if(!m)continue;
+  const target=Number(m[1].replace(/,/g,'')),suffix=m[2];if(!target)continue;const t0=performance.now(),dur=1300;
+  (function step(t){const f=Math.min(1,(t-t0)/dur),v=Math.round(target*(1-Math.pow(1-f,3)));el.textContent=v.toLocaleString('en')+suffix;if(f<1)requestAnimationFrame(step);})(t0);}}
+function medals(root,tier,delay){[...root.querySelectorAll('[data-medal]')].forEach((m,i)=>setTimeout(()=>{m.classList.add('pop');setTimeout(()=>{const p=at(m);sparks(p.x,p.y-12,ACCENT[tier][0],14,5);},180);},delay+i*130));}
+function stampRank(root,delay){const panel=root.querySelector('[data-rank-panel]');if(!panel||getComputedStyle(panel).display==='none')return;
+  setTimeout(()=>{panel.closest('.slot')?.classList.remove('wait-rank');panel.classList.add('stamp');setTimeout(()=>{const p=at(panel);sparks(p.x,p.y,'#ffd36b',36,8);fx(['shock'],'left:'+p.x+'px;top:'+p.y+'px;--c:#ffd36b;--g:rgba(255,190,60,.7)');},260);},delay);}
+function beam(tier){const [c,g]=ACCENT[tier];fx(['beam'],'--c:'+c+';--g:'+g);}
+async function open(el,tier,{rank=true,stagger=true}={}){
+  const root=el.firstElementChild;el.classList.add('on');if(rank)el.classList.add('wait-rank');
+  const sh=document.createElement('div');sh.className='sheen';sh.innerHTML='<i></i>';el.append(sh);
+  warp(ACCENT[tier][0]);beam(tier);await wait(280);
+  root.classList.add('holo');entrance(tier);
+  setTimeout(()=>el.classList.add('live'),900);
+  if(stagger){setTimeout(()=>countUp(root),650);medals(root,tier,850);if(rank)stampRank(root,1700);}
+  await wait(800);
+}
+async function close(el){el.classList.remove('live');el.firstElementChild.classList.remove('holo');el.firstElementChild.classList.add('holo-out');await wait(320);beam(el.dataset.tier||'blue');await wait(380);el.remove();}
+
+// Promotion: old insignia shown first, then it charges and flips to the new rank.
+function showInsignia(root,id){const box=root.querySelector('[data-rank-svg]');if(!box)return;for(const sp of box.children)sp.style.display='none';const g=box.querySelector('[id="lace'+id+'"]');const host=g?.closest('svg')?.parentElement;if(host)host.style.display='inline-flex';}
+function scramble(el,text,dur=700){const chars='ABCDEFGHIJKLMNOPQRSTUVWXYZ#*-';const t0=performance.now();el.classList.add('decode');
+  (function step(t){const f=Math.min(1,(t-t0)/dur),n=Math.floor(text.length*f);el.textContent=text.slice(0,n)+text.slice(n).replace(/[^ ]/g,()=>chars[Math.floor(Math.random()*chars.length)]);if(f<1)requestAnimationFrame(step);else{el.textContent=text;setTimeout(()=>el.classList.remove('decode'),900);}})(t0);}
+async function promote(el,card){
+  const root=el.firstElementChild,panel=root.querySelector('[data-rank-panel]'),name=root.querySelector('[data-rank-name]'),box=root.querySelector('[data-rank-svg]');
+  if(!panel||!card.fromRankId)return;
+  const newName=name?.textContent||'';
+  showInsignia(root,card.fromRankId);if(name)name.textContent=card.fromRankName;
+  await wait(1500);
+  panel.classList.remove('stamp');panel.classList.add('charging');const p=at(panel);
+  for(let i=0;i<5;i++)setTimeout(()=>sparks(p.x+rnd(-80,80),p.y+rnd(-20,20),'#ffd36b',6,3),i*150);
+  await wait(900);
+  box?.classList.add('flip');await wait(220);
+  showInsignia(root,card.rank);box?.classList.remove('flip');panel.classList.remove('charging');
+  fx(['flash']);fx(['shock'],'left:'+p.x+'px;top:'+p.y+'px;--c:#ffd36b;--g:rgba(255,190,60,.8)');fx(['shock'],'left:'+p.x+'px;top:'+p.y+'px;--c:#fff3c4;--g:rgba(255,220,140,.6);animation-delay:.18s');
+  sparks(p.x,p.y,'#ffd36b',70,13,3);embers(p.x,p.y,110);stage.classList.add('shake');setTimeout(()=>stage.classList.remove('shake'),520);
+  if(name)scramble(name,newName);
+  setTimeout(()=>confetti(['#ffd36b','#fff3c4','#f2b52e','#ffffff',ACCENT[card.tier][0]]),400);
+  const banner=root.querySelector('[data-banner]');if(banner){banner.classList.remove('hold');banner.classList.add('show');setTimeout(()=>{banner.style.transition='opacity .8s';banner.style.opacity='0';},4200);}
+}
+function titleCard(card){
+  const d=document.createElement('div');d.className='fx ptitle';d.style.opacity='1';
+  const word=[...'PROMOTED'].map((ch,i)=>'<span style="animation-delay:'+(.15+i*.07).toFixed(2)+'s">'+ch+'</span>').join('');
+  const esc=x=>String(x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
+  d.innerHTML='<div class="eb">★ VOYAGER FLEET ★</div><div class="word">'+word+'</div><div class="sub">'+esc(card.name)+' · '+esc(card.fromRankName)+' → <b>'+esc((card.k?.name)||'')+'</b></div>';
+  stage.append(d);fx(['dim']);
+  setTimeout(()=>{sparks(960,520,'#ffd36b',90,15,2);fx(['flash']);},15*0+760);
+  return d;
+}
+
 async function play(item){
   const card=item.card,secs=Math.max(5,Math.min(60,item.seconds||12));
   if(card.fromTier){
-    const old=slot(card,card.fromTier);old.classList.add('in');entrance(card.fromTier);await wait(2600);
-    old.classList.remove('in');old.classList.add('charge');await wait(600);burst(card.tier);old.remove();
-    const now=slot(card);now.classList.add('reveal');entrance(card.tier);
-    const banner=[...now.querySelectorAll('span')].find(x=>x.textContent.trim()==='★ TIER UP ★')?.parentElement;
+    const old=slot(card,card.fromTier);old.dataset.tier=card.fromTier;await open(old,card.fromTier,{rank:false});await wait(1900);
+    old.classList.remove('live');old.classList.add('charge');
+    const c=ACCENT[card.fromTier][0];for(let i=0;i<6;i++)setTimeout(()=>sparks(rnd(500,1420),rnd(260,820),c,8,4),i*90);
+    await wait(600);burst(card.tier);old.remove();
+    stage.classList.add('shake');setTimeout(()=>stage.classList.remove('shake'),520);
+    sparks(960,540,ACCENT[card.tier][0],160,20,2);sparks(960,540,'#ffffff',60,14);
+    const now=slot(card);now.dataset.tier=card.tier;now.classList.add('on');
+    const banner=now.querySelector('[data-banner]');
+    await open(now,card.tier);
+    confetti([ACCENT[card.tier][0],'#ffffff',ACCENT[card.tier][0],'#ffd36b']);
     if(banner)setTimeout(()=>{banner.style.transition='opacity .8s';banner.style.opacity='0';},4500);
-    await wait(Math.max(secs,7)*1000);
-    now.classList.remove('reveal');now.style.opacity=1;now.classList.add('out');await wait(750);now.remove();return;
+    await wait(Math.max(secs,8)*1000);await close(now);return;
   }
-  const el=slot(card);el.classList.add('in');entrance(card.tier);
-  if(card.promotion){setTimeout(()=>burst(card.tier),700);const banner=[...el.querySelectorAll('span')].find(x=>x.textContent.trim()==='★ PROMOTED ★')?.parentElement;
-    if(banner)setTimeout(()=>{banner.style.transition='opacity .8s';banner.style.opacity='0';},5000);}
-  await wait((card.promotion?Math.max(secs,8):secs)*1000);
-  el.classList.remove('in');el.style.opacity=1;el.classList.add('out');await wait(750);el.remove();
+  if(card.promotion){
+    const t=titleCard(card);await wait(2300);t.classList.add('go');setTimeout(()=>t.remove(),700);await wait(250);
+    const el=slot(card);el.dataset.tier=card.tier;const banner=el.querySelector('[data-banner]');banner?.classList.add('hold');
+    await open(el,card.tier,{rank:true});await promote(el,card);
+    await wait(Math.max(secs,9)*1000);await close(el);return;
+  }
+  const el=slot(card);el.dataset.tier=card.tier;await open(el,card.tier);
+  await wait(secs*1000);await close(el);
 }
 const seen=new Set(),queue=[];let busy=false,first=true;const opened=Date.now();
 async function run(){if(busy)return;busy=true;while(queue.length){try{await play(queue.shift());}catch(e){console.error(e);}}busy=false;}

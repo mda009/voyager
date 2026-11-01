@@ -2,6 +2,15 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.16 (1 November 2026)
+
+**More exciting membership card reveals, promotions and tier-ups.**
+
+- **Every card (`!voyager`):** a warp-speed starburst, a beam of light that opens into the card like a hologram, stats that count up, medals that pop in one by one with sparks in their colour, and the naval rank stamping on with a gold shockwave. The card then floats gently with a light sweep across the glass, and folds back into a beam when it leaves.
+- **Promotions:** a gold **PROMOTED** title card slams in with the member's name and old → new rank. The card opens showing their old insignia, which charges up and flips to the new one with a shockwave, a fountain of gold embers, a screen shake, the rank name decoding to the new title and gold confetti, before the promotion banner appears.
+- **Tier-ups (Silver, Gold, Platinum):** the old card charges with sparks, then explodes in the new tier's colour with a screen shake before the new card opens, followed by confetti.
+- No Streamer.bot changes. Refresh the membership card browser source in OBS after updating. Use the preview buttons on the Membership cards and Ranks pages to see each one.
+
 ## 2.20.15 (1 November 2026)
 
 **Membership cards show each viewer's medals and naval rank clearly.**
