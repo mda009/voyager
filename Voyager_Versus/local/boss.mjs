@@ -120,6 +120,13 @@ export class BossFight{
     this.hit(p,dmg,kind==='gift'?'torpedo':'missile',false,p?null:name);this.note((p?.name||name)+' unleashed '+label+' · '+dmg.toLocaleString('en')+' damage!',kind);
     return {ok:true,damage:dmg};
   }
+  // 2.20.22 Comms Relay: chat charges the relay; when it fires, the whole fleet hits for a share of the hull.
+  relayStrike(pct,crew){
+    const b=this.battle;if(!b||b.phase!=='battle')return 0;
+    const dmg=Math.max(1,Math.round(b.maxHp*Math.max(.1,Math.min(20,Number(pct)||2))/100));
+    this.note('COMMS RELAY! '+crew+' crew charged a fleet barrage: '+dmg.toLocaleString('en')+' damage.','alert');
+    this.hit(null,dmg,'relay',false,'Comms relay');return dmg;
+  }
   hit(p,dmg,kind,crit,anonName){
     const b=this.battle,now=this.now();if(b.phase!=='battle')return;
     const real=Math.min(dmg,b.hp);b.hp-=real;if(p)p.damage+=real;else b.anonymous.damage+=real;

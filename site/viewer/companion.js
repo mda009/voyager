@@ -40,7 +40,7 @@ addEventListener('hashchange',()=>{const t=location.hash.slice(1);if(TABS.some((
 const st=document.createElement('style');st.textContent='section.off{display:none!important}'+(EMBED?' nav.tabbar{position:static!important;padding:0!important;background:none!important;border:0!important;margin-top:10px!important}.embed .wrap{padding-bottom:24px!important}':'');document.head.append(st);
 
 // ---------- now / on air ----------
-const COMMANDS=[['!voyager','your card on stream'],['!medals','your medals'],['!join','board the Dreadnought fight'],['!fire','attack'],['!enter','join a chat giveaway']];
+const COMMANDS=[['!report','report for duty'],['!voyager','your card on stream'],['!medals','your medals'],['!squadron','pick a team'],['!log','log a moment'],['!join','board the Dreadnought fight'],['!fire','attack'],['!enter','join a chat giveaway']];
 function copyChip(cmd,hint){const b=el('button','chip');b.type='button';b.append(el('code','',cmd),el('small','',hint));
  b.onclick=async()=>{try{await navigator.clipboard.writeText(cmd);b.classList.add('copied');const s=b.querySelector('small'),was=s.textContent;s.textContent='copied';setTimeout(()=>{b.classList.remove('copied');s.textContent=was;},1400);}catch{}};return b;}
 function renderNow(){
@@ -148,6 +148,28 @@ function renderRanks(){
  if(!(r.top||[]).length)off.append(el('li','empty','No ranks yet.'));
  const pr=$('promotions');pr.textContent='';$('promo-card').hidden=!(r.promotions||[]).length;
  for(const x of r.promotions||[]){const li=el('li');li.style.gridTemplateColumns='62px 1fr auto';const info=el('div');info.append(who(x),el('div','when','Promoted to '+(r.ladder?.[x.rank]?.name||'')));li.append(insignia(x.rank),info,el('span','when',ago(x.at)));pr.append(li);}
+}
+
+// ---------- squadrons and the Captain's Log (2.20.22) ----------
+const SQC={red:['#ff8a8a','#c0283c'],gold:['#ffe08a','#b8862b'],blue:['#97dfff','#1f5fd0']};
+function renderSquad(){
+ const q=feed.squadrons,sec=$('squad');sec.hidden=!q||!q.standings?.length;if(sec.hidden)return;
+ const box=$('squad-list');box.textContent='';const max=Math.max(1,...q.standings.map(x=>x.score));
+ const wins={};for(const h of q.history||[])wins[h.winner]=(wins[h.winner]||0)+1;
+ $('squad-lede').textContent='Pick a side with !squadron '+q.standings.map(x=>x.id).join(', ')+'. Chat, missions, Dreadnought damage and Versus wins score for your squadron'+(q.weekEndsAt?' · this week ends '+new Date(q.weekEndsAt).toLocaleDateString(undefined,{weekday:'long'}):'')+'.';
+ q.standings.forEach((x,i)=>{const [c1,c2]=SQC[x.id]||SQC.blue,card=el('article','card sqcard');card.style.setProperty('--c',c1);card.style.setProperty('--c2',c2);
+  const h=el('h3','',x.name);if(i===0&&x.score>0)h.append(el('span','lead-tag','LEADING'));
+  const bar=el('div','bar');const f=el('i');f.style.width=(x.score/max*100).toFixed(1)+'%';bar.append(f);
+  card.append(el('span','kind',fmt(x.crew)+' crew'+(wins[x.id]?' · '+wins[x.id]+' week'+(wins[x.id]===1?'':'s')+' won':'')),h,el('div','score',fmt(x.score)),bar);
+  if(x.top?.length){const ol=el('ol','rows');x.top.slice(0,5).forEach((p,j)=>{const li=el('li');li.append(el('span','rank',j+1),who(p),el('span','value',fmt(p.score)));ol.append(li);});card.append(ol);}
+  const cm=el('div','cmds');cm.style.marginTop='10px';cm.append(copyChip('!squadron '+x.id,'join '+x.name));card.append(cm);
+  box.append(card);});
+}
+function renderLog(){
+ const l=feed.log,sec=$('logbook');sec.hidden=!l||!l.entries?.length;if(sec.hidden)return;
+ $('logbook-lede').textContent='Moments from the stream on '+new Date(l.stream).toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long'})+', logged by the crew with !log.';
+ const ol=$('logbook-list');ol.textContent='';ol.className='rows logrows';
+ for(const e of l.entries){const li=el('li'),t=el('div');t.append(el('div','quote','“'+e.text+'”'),who(e));li.append(t,el('span','when',new Date(e.at).toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'})));ol.append(li);}
 }
 
 // ---------- find your card ----------
@@ -266,7 +288,7 @@ if(!EMBED&&'serviceWorker' in navigator&&location.protocol==='https:')addEventLi
 // ---------- feed ----------
 addEventListener('voyager:feed',e=>{
  feed=e.detail;
- try{renderNow();}catch{}try{renderDread();}catch{}try{renderRanks();}catch{}try{renderMedals();}catch{}
+ try{renderNow();}catch{}try{renderDread();}catch{}try{renderRanks();}catch{}try{renderMedals();}catch{}try{renderSquad();}catch{}try{renderLog();}catch{}
  $('arena').hidden=$('versus').hidden;
  $('find').hidden=!feed.crew;
  renderTabs();

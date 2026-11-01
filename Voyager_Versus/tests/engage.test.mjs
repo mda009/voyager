@@ -1,0 +1,85 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {mkdtemp} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {Engage,normalizeEngageSettings} from '../local/engage.mjs';
+import {BossFight} from '../local/boss.mjs';
+import {Community} from '../local/community.mjs';
+
+async function make(extra={}){
+  let now=new Date(2026,10,3,20,0,0).getTime();const said=[];const dir=await mkdtemp(join(tmpdir(),'voyager-engage-'));
+  const boss=await new BossFight({dataDir:dir,now:()=>now,random:()=>0.5}).load();
+  const e=await new Engage({dataDir:dir,now:()=>now,say:t=>said.push(t),boss:()=>boss,random:()=>0,...extra}).load();
+  return {e,boss,said,at:ms=>{now+=ms;},now:()=>now};
+}
+const msg=(name,text,platform='twitch')=>({platform,userId:'id-'+name,login:name.toLowerCase(),name,text});
+
+test('Comms Relay: plain chat during a fight fires a fleet barrage at the threshold; one message per viewer per few seconds',async()=>{
+  const {e,boss,said,at}=await make();
+  e.configure({relay:{threshold:5,damagePct:10,perUserSeconds:5}});
+  boss.configure({lobbySeconds:10,baseHp:1000,hpPerPilot:0,lateJoinHp:0});boss.call();boss.receive({kind:'join',platform:'twitch',userId:'1',login:'a',name:'A'});at(10000);boss.tick();
+  e.chat(msg('A','hello'));e.chat(msg('A','spam'));assert.equal(e.relayView().count,1,'same viewer within 5 s counts once');
+  e.chat(msg('A','!fire'));assert.equal(e.relayView().count,1,'commands do not charge it');
+  for(const n of ['B','C','D'])e.chat(msg(n,'go fleet',n==='C'?'kick':'twitch'));
+  const hp=boss.battle.hp;e.chat(msg('E','charge'));
+  assert.equal(boss.battle.hp,hp-100,'10% of the hull');assert.equal(e.relayView().count,0);assert.equal(e.relayView().fired,1);
+  assert.match(said.at(-1),/COMMS RELAY at 5! 5 crew/);assert.equal(boss.overlay().effects.at(-1).kind,'relay');
+});
+
+test('!report: once a stream, grouped chat line, streaks across streams, and a points reward listed for payment',async()=>{
+  const {e,said,at}=await make();
+  assert.equal(e.chat(msg('Nova','!report')).ok,true);assert.equal(e.chat(msg('Nova','!report')).already,true);e.chat(msg('Rook','!report','kick'));
+  at(21000);e.tick();assert.match(said.at(-1),/Reporting for duty: Nova, Rook · \+10 Voyager points each/);
+  at(5*3600000);assert.equal(e.chat(msg('Nova','!report')).streak,2,'next stream in a row');
+  const batches=e.rewardBatches();assert.equal(batches.length,2);assert.equal(batches[1].pilots.length,2);assert.equal(batches[0].reward,10);
+  assert.throws(()=>normalizeEngageSettings({report:{reward:51}}),/0 to 50/);
+});
+
+test('Bridge Quiz: first correct answer wins, answers are forgiving, time runs out with no winner',async()=>{
+  const {e,said,at}=await make();
+  e.setBank([{q:'Which planet has the Great Red Spot?',a:['Jupiter']},{q:'Closest star?',a:'Proxima Centauri|Proxima'}]);
+  const q=e.ask(e.state.quiz.bank[0].id);assert.match(said.at(-1),/BRIDGE QUIZ: Which planet/);assert.throws(()=>e.ask(),/already running/);
+  e.chat(msg('Rook','saturn?'));assert.equal(e.state.quiz.active.winner,null);
+  e.chat(msg('Nova','it is JUPITER!!'));assert.equal(e.state.quiz.active.winner.name,'Nova');e.chat(msg('Rook','jupiter'));assert.equal(e.state.quiz.active.winner.name,'Nova');
+  assert.equal(e.rewardBatches()[0].pilots[0].name,'Nova');assert.equal(e.rewardBatches()[0].reward,25);
+  e.ask(e.state.quiz.bank[1].id);at(61000);e.tick();assert.match(said.at(-1),/Nobody got it\. The answer was Proxima Centauri/);
+  assert.equal(e.overlay().quiz?.answer,'Proxima Centauri');assert.equal(q.reward,25);
+});
+
+test('Squadrons: enlist, chat counts per stream up to the cap, missions, damage and Versus wins add up; switching waits 30 days',async()=>{
+  const missions=[{key:'twitch:id-Nova'},{key:'twitch:id-Nova'}];let wins=3;
+  const {e,said,at}=await make({community:()=>({completions:()=>missions,state:{members:{}}}),pilots:()=>[{login:'nova',wins}]});
+  e.configure({squadrons:{chatCap:2}});
+  e.chat(msg('Nova','!squadron gold'));assert.match(said.at(-1),/welcome to Gold Wing/);e.chat(msg('Rook','!squadron red wing','kick'));
+  for(let i=0;i<5;i++)e.chat(msg('Nova','hi '+i));
+  e.observePilots();wins=5;e.observePilots();
+  e.observeBoss({pilots:[{key:'twitch:id-Nova',damage:300},{key:'kick:id-Rook',damage:45},{key:'twitch:id-Zed',damage:999}]});
+  const st=Object.fromEntries(e.standings().map(x=>[x.id,x]));
+  assert.equal(st.gold.score,2*1+2*25+30+2*50,'2 chats (cap) + 2 missions + 300/10 damage + 2 Versus wins');assert.equal(st.red.score,4);assert.equal(st.blue.crew,0);
+  assert.equal(e.standings()[0].id,'gold');
+  e.chat(msg('Nova','!squadron blue'));assert.match(said.at(-1),/once every 30 days/);
+  at(31*86400000);e.chat(msg('Nova','!squadron blue'));assert.match(said.at(-1),/welcome to Blue Wing/);
+  assert.equal(e.state.squadrons.history[0].winner,'gold','the old week is archived');
+});
+
+test('Arrival cards: first chat each stream for Silver and up, or after a promotion; Captain\'s Log limits and moderation',async()=>{
+  const members={'twitch:id-Nova':{tier:'gold',value:52000},'twitch:id-Bob':{tier:'blue',value:4000}};let rank=0;
+  const cards={state:{settings:{ranks:true},members:{}},board:()=>({place:new Map()}),rankOf:v=>v>=40000?3:rank};
+  const {e,at}=await make({cards:()=>cards,community:()=>({state:{members},completions:()=>[]})});
+  e.chat(msg('Nova','evening'));e.chat(msg('Nova','again'));e.chat(msg('Bob','hi'));
+  let t=e.overlay().toasts.filter(x=>x.kind==='arrival');assert.deepEqual(t.map(x=>[x.name,x.tier,x.rankName]),[['Nova','gold','Lieutenant']],'blue members only arrive after a promotion');
+  at(5*3600000);rank=1;e.chat(msg('Bob','back'));t=e.overlay().toasts.filter(x=>x.kind==='arrival');assert.equal(t.at(-1).name,'Bob');assert.equal(t.at(-1).promoted,true);
+  assert.equal(e.chat(msg('Nova','!log that torpedo was massive')).ok,true);assert.equal(e.chat(msg('Nova','!log another one')).cooldown,true);
+  assert.equal(e.chat(msg('Rook','!log see https://spam.example')).link,true);
+  const id=e.state.log[0].id;e.moderateLog(id,{pinned:true});assert.equal(e.publicView().log.entries[0].text,'that torpedo was massive');
+  e.moderateLog(id,{hidden:true});assert.equal(e.publicView().log,null);
+});
+
+test('Muster and quiz rewards appear in Missions › Points owed',async()=>{
+  const dir=await mkdtemp(join(tmpdir(),'voyager-engage-c-'));const c=await new Community({dataDir:dir}).load();
+  const {e}=await make();c.setEngage(()=>e.rewardBatches());c.state.members['twitch:id-Nova']={name:'Nova',login:'nova',platform:'twitch',value:10};
+  e.chat(msg('Nova','!report'));
+  const rows=c.payables().filter(r=>r.scope==='engage');assert.equal(rows.length,1);assert.equal(rows[0].reward,10);assert.equal(rows[0].payable,true);assert.equal(rows[0].label,'Muster');
+  c.recordPayout({week:rows[0].week,missionId:rows[0].missionId,key:rows[0].key,status:'paid'});assert.equal(c.payables().find(r=>r.scope==='engage').status,'paid');
+});

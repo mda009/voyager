@@ -289,6 +289,14 @@ nav.tabbar button:focus-visible{outline:2px solid var(--cyan);outline-offset:2px
 .card-foot{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;margin-top:14px}
 .card-foot .lede{margin:0}
 @media (prefers-reduced-motion:reduce){.card3d{transition:none}}
+.sqcard{border-top:4px solid var(--c,#59baff)}
+.sqcard h3{font:700 24px/1.1 var(--display);margin:4px 0 2px;color:var(--c)}
+.sqcard .score{font:700 34px/1 var(--display);margin:6px 0 4px}
+.sqcard .bar i{background:linear-gradient(90deg,var(--c2,#1f5fd0),var(--c,#97dfff))}
+.sqcard ol.rows li{grid-template-columns:28px 1fr auto}
+.lead-tag{display:inline-block;margin-left:8px;font:700 11px/1 var(--body);letter-spacing:1px;color:#07101c;background:#ffd36b;border-radius:4px;padding:3px 6px;vertical-align:4px}
+ol.logrows li{grid-template-columns:1fr auto}
+ol.logrows .quote{font-size:16px;color:var(--text)}
 </style>
 </head>
 <body>
@@ -315,6 +323,11 @@ nav.tabbar button:focus-visible{outline:2px solid var(--cyan);outline-offset:2px
  </section>
 
 
+ <section id="logbook" data-tab="live" aria-labelledby="h-logbook" hidden>
+  <h2 id="h-logbook">Captain's Log</h2><p class="lede" id="logbook-lede">Moments from the last stream, logged by the crew with !log.</p>
+  <div class="card"><ol class="rows" id="logbook-list"></ol></div>
+ </section>
+
  <section id="giveaways" data-tab="live" aria-labelledby="h-giveaways">
   <h2 id="h-giveaways">Giveaways</h2><p class="lede">Join from chat while the stream is live. Winners are announced on stream.</p>
   <div class="grid" id="giveaway-list"></div>
@@ -329,6 +342,11 @@ nav.tabbar button:focus-visible{outline:2px solid var(--cyan);outline-offset:2px
     <div class="enter" id="versus-enter"><span>Type in Twitch chat</span><code id="versus-cmd"></code><button type="button" data-copy="">Copy</button></div>
     <p class="lede" style="margin:0">Two viewers each type the command to start a battle. The winning pilot earns Voyager points.</p>
    </div>
+ </section>
+
+ <section id="squad" data-tab="boards" aria-labelledby="h-squad" hidden>
+  <h2 id="h-squad">Squadron war</h2><p class="lede" id="squad-lede">Pick a side with !squadron red, gold or blue. Chat, missions, Dreadnought damage and Versus wins score for your squadron each week.</p>
+  <div class="grid" id="squad-list"></div>
  </section>
 
  <section id="goals" data-tab="boards" aria-labelledby="h-goals" hidden>
@@ -408,7 +426,7 @@ nav.tabbar button:focus-visible{outline:2px solid var(--cyan);outline-offset:2px
  <footer><p id="updated">Updates every few minutes while the stream tools are running.</p><p>Voyager community site. Giveaway entry happens in stream chat only; this site never asks for passwords or payment.</p></footer>
 </div>
 <script src="fair-draw.js"></script>
-<script src="companion.js?v=2.20.21" defer></script>
+<script src="companion.js?v=2.20.22" defer></script>
 <script>
 (()=>{'use strict';
 // ?embed=1: shown inside another site. Report our height so the host page can size its frame.

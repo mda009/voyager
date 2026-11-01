@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Voyager • Chat engagement</title>
+<link rel="icon" href="brand-assets/voyager.png">
+<link rel="stylesheet" href="stream-command.css">
+<link rel="stylesheet" href="voyager-brand.css">
+<link rel="stylesheet" href="settings.css?v=2.18">
+<link rel="stylesheet" href="community.css?v=2.18">
+<link rel="stylesheet" href="voyager-glass.css?v=2.18">
+<style>
+.eg-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:start}
+.eg-card{padding:18px 22px;display:flex;flex-direction:column;gap:12px}
+.eg-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.eg-form label{display:flex;flex-direction:column;gap:5px;font-size:12px;color:#9ab0c5}
+.eg-form .check{flex-direction:row;align-items:center;gap:8px;grid-column:1/-1;font-size:13px;color:#c9d7e4}
+.eg-form input[type=number],.eg-form input[type=text],.eg-form select,.eg-q input{height:36px;padding:0 10px;border:1px solid rgba(151,223,255,.18);background:rgba(8,15,24,.55);color:#e6eef7;font:14px 'Segoe UI',sans-serif;min-width:0}
+.eg-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;max-height:320px;overflow:auto}
+.eg-list li{display:flex;gap:10px;align-items:center;padding:8px 10px;border:1px solid rgba(151,223,255,.1);background:rgba(8,15,24,.35);font-size:13px;color:#c9d7e4}
+.eg-list li b{color:#e6eef7}.eg-list .r{margin-left:auto;color:#8ea6bd;font-size:12px;white-space:nowrap;display:flex;gap:6px;align-items:center}
+.eg-list li.pin{border-color:rgba(255,211,107,.5)}
+.eg-q{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr) auto;gap:6px;margin-bottom:6px}
+.eg-live{padding:12px 14px;border:1px solid rgba(151,223,255,.2);background:rgba(8,15,24,.5)}
+.eg-live b{display:block;font:700 20px/1.2 Rajdhani,'Segoe UI',sans-serif;color:#fff}
+.eg-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.eg-sq{display:grid;grid-template-columns:120px 1fr 80px;gap:10px;align-items:center;font-size:13px}
+.eg-sq i{display:block;height:10px;background:linear-gradient(90deg,#1f5fd0,#97dfff)}
+.eg-sq .bar{background:rgba(151,223,255,.1)}
+.eg-check{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;font-size:13px;color:#c9d7e4}
+.eg-check li::before{content:'○ ';color:#8ea6bd}.eg-check li.ok::before{content:'✓ ';color:#7ce1cb}.eg-check li.info::before{content:'• ';color:#8ea6bd}
+@media(max-width:1100px){.eg-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body class="voyager-console voyager-settings voyager-community">
+<div class="shell">
+<aside class="rail"><a class="brand" href="Voyager_Command_Center.html"><img class="logo-voyager" src="brand-assets/voyager.png" alt="Voyager membership program" width="68" height="68"><span>VOYAGER<small>MDA009 · MISSION CONTROL</small></span></a></aside>
+<main>
+<header class="top"><div><span class="eyebrow">COMMUNITY</span><h1>Chat engagement</h1></div><div class="toolbar"><span class="st-note">!report · !squadron · !log · Bridge Quiz · Comms Relay</span><button type="button" class="primary" id="save">Save settings</button></div></header>
+<p class="st-notice" id="notice" hidden></p>
+<p class="st-notice" id="not-hosted" hidden>Open this page from the Voyager app (or START-VOYAGER-CONTROL.bat).</p>
+<div class="eg-grid">
+<section class="card eg-card">
+<span class="eyebrow">SET UP</span>
+<ul class="eg-check" id="checklist"></ul>
+<p class="st-hint">Add one <b>Browser</b> source to your main scene, 1920 × 1080, at this address. It's invisible until someone reports for duty, arrives, enlists, logs a moment, or a quiz runs.</p>
+<div class="cs-url"><code id="obs-url"></code><button type="button" id="obs-copy">Copy</button></div>
+<p class="st-hint">The Comms Relay shows inside the Dreadnought overlay. Muster and quiz points are listed in <a href="Voyager_Missions.html">Missions › Points owed</a> and paid from there (max 50 each).</p>
+</section>
+
+<section class="card eg-card">
+<div class="card-heading"><div><span class="eyebrow">1 · DURING DREADNOUGHT FIGHTS</span><h2>Comms Relay</h2></div><span class="st-pill" id="relay-pill" data-state="wait">No fight</span></div>
+<form class="eg-form" id="relay-form" autocomplete="off">
+<label class="check"><input type="checkbox" name="enabled"> Chat messages charge a fleet barrage</label>
+<label>Messages to fire<input type="number" name="threshold" min="5" max="1000"></label>
+<label>Damage (% of hull)<input type="number" name="damagePct" min="1" max="20"></label>
+<label>Seconds between a viewer's messages that count<input type="number" name="perUserSeconds" min="0" max="60"></label>
+</form>
+<p class="st-hint">Plain chat counts (not commands), on Twitch, Kick and YouTube. The meter shows under the Dreadnought's hull bar.</p>
+</section>
+
+<section class="card eg-card">
+<div class="card-heading"><div><span class="eyebrow">2 · ONCE A STREAM</span><h2>Daily muster · !report</h2></div><span class="st-pill" id="muster-pill" data-state="wait">0 this stream</span></div>
+<form class="eg-form" id="report-form" autocomplete="off">
+<label class="check"><input type="checkbox" name="enabled"> !report is on</label>
+<label>Points for reporting (0–50)<input type="number" name="reward" min="0" max="50"></label>
+</form>
+<ul class="eg-list" id="muster"></ul>
+<p class="st-hint">Each viewer can report once a stream. Names are grouped into one chat message every 20 seconds; streaks count streams in a row.</p>
+</section>
+
+<section class="card eg-card">
+<div class="card-heading"><div><span class="eyebrow">3 · TRIVIA</span><h2>Bridge Quiz</h2></div></div>
+<form class="eg-form" id="quiz-form" autocomplete="off">
+<label class="check"><input type="checkbox" name="enabled"> Bridge Quiz is on</label>
+<label>Points for the winner (0–50)<input type="number" name="reward" min="0" max="50"></label>
+<label>Seconds to answer<input type="number" name="seconds" min="15" max="600"></label>
+<label>Ask automatically every (minutes, 0 = off)<input type="number" name="autoMinutes" min="0" max="240"></label>
+</form>
+<div class="eg-live" id="quiz-live"></div>
+<div class="eg-row"><button type="button" class="primary" id="quiz-ask">Ask a random question</button><button type="button" id="quiz-cancel">Cancel question</button></div>
+<details><summary>Questions (<span id="bank-count">0</span>) · answers separated by |</summary><div id="bank" style="margin-top:10px"></div><div class="eg-row"><button type="button" id="bank-add">+ Add question</button><button type="button" id="bank-save">Save questions</button></div></details>
+<ul class="eg-list" id="quiz-history"></ul>
+</section>
+
+<section class="card eg-card">
+<div class="card-heading"><div><span class="eyebrow">4 · TEAMS</span><h2>Squadrons</h2></div><span class="st-pill" id="sq-pill" data-state="wait">0 crew</span></div>
+<div id="standings" style="display:flex;flex-direction:column;gap:8px"></div>
+<div class="eg-row"><button type="button" id="panel-show">Show on stream (60 s)</button><button type="button" id="panel-stay">Show until hidden</button><button type="button" id="panel-hide">Hide</button></div>
+<form class="eg-form" id="sq-form" autocomplete="off">
+<label class="check"><input type="checkbox" name="enabled"> Squadrons are on (!squadron red | gold | blue)</label>
+<label>Red name<input type="text" name="red" maxlength="24"></label><label>Gold name<input type="text" name="gold" maxlength="24"></label>
+<label>Blue name<input type="text" name="blue" maxlength="24"></label><label>Per chat message<input type="number" name="chat" min="0" max="100"></label>
+<label>Chat messages that count per stream<input type="number" name="chatCap" min="0" max="1000"></label><label>Per mission finished<input type="number" name="mission" min="0" max="1000"></label>
+<label>Dreadnought damage per point<input type="number" name="damageDiv" min="1" max="1000"></label><label>Per Versus win<input type="number" name="versusWin" min="0" max="1000"></label>
+</form>
+<p class="st-hint">Weekly war (Monday to Monday). Viewers can switch squadron once every 30 days. Squadron scores are for bragging rights: they never change anyone's points.</p>
+</section>
+
+<section class="card eg-card">
+<div class="card-heading"><div><span class="eyebrow">5 · FIRST CHAT EACH STREAM</span><h2>Arrival cards</h2></div></div>
+<form class="eg-form" id="arr-form" autocomplete="off">
+<label class="check"><input type="checkbox" name="enabled"> Show "now on the bridge" when members first chat</label>
+<label>From tier<select name="minTier"><option value="blue">Blue and above (everyone)</option><option value="silver">Silver and above</option><option value="gold">Gold and above</option><option value="platinum">Platinum only</option></select></label>
+<label class="check"><input type="checkbox" name="ranks"> Also anyone promoted since their last arrival</label>
+</form>
+</section>
+
+<section class="card eg-card">
+<div class="card-heading"><div><span class="eyebrow">6 · STREAM RECAP</span><h2>Captain's Log · !log</h2></div></div>
+<form class="eg-form" id="log-form" autocomplete="off">
+<label class="check"><input type="checkbox" name="enabled"> !log &lt;moment&gt; is on</label>
+<label>Entries per viewer per stream<input type="number" name="perStream" min="1" max="20"></label>
+</form>
+<p class="st-hint">Pin the best moments: pinned entries from your latest stream become the Captain's Log on voyagercommand.com. Hide removes one. Links are never accepted.</p>
+<ul class="eg-list" id="log"></ul>
+</section>
+</div>
+</main>
+</div>
+<script src="engage-control.js?v=2.20.22"></script>
+<script src="voyager-shell.js?v=2.20.22"></script>
+<script src="voyager-navigation.js"></script>
+</body>
+</html>

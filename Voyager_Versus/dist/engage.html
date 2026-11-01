@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Voyager chat engagement · OBS</title>
+<link rel="stylesheet" href="brand/fonts.css">
+<link rel="icon" href="brand/voyager.png" type="image/png">
+<style>
+/* 2.20.22: one OBS source for arrival cards, !report, squadron enlistments, Captain's Log entries, the Bridge Quiz and the squadron panel. */
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:transparent}
+#stage{position:absolute;left:0;top:0;width:1920px;height:1080px;transform-origin:0 0;font-family:Inter,'Segoe UI',sans-serif;color:#e6eef7}
+.glass{background:linear-gradient(160deg,rgba(255,255,255,.12),rgba(255,255,255,0) 40%),rgba(10,16,28,.86);border:1px solid rgba(151,223,255,.22);box-shadow:0 18px 40px rgba(0,0,0,.45)}
+.cut{clip-path:polygon(18px 0,100% 0,100% calc(100% - 18px),calc(100% - 18px) 100%,0 100%,0 18px)}
+#toasts{position:absolute;left:48px;bottom:56px;width:620px;display:flex;flex-direction:column-reverse;gap:12px}
+.toast{display:flex;align-items:center;gap:18px;padding:16px 22px;animation:tin .6s cubic-bezier(.2,1.2,.3,1) both}
+.toast.out{animation:tout .5s ease-in forwards}
+@keyframes tin{0%{opacity:0;transform:translateX(-80px);filter:brightness(2)}100%{opacity:1;transform:none;filter:none}}
+@keyframes tout{to{opacity:0;transform:translateX(-40px)}}
+.badge{flex:none;width:58px;height:58px;display:grid;place-items:center;clip-path:polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%)}
+.badge svg{width:28px;height:28px;fill:none;stroke:#fff;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.eb{display:block;font:700 13px/1 Rajdhani,sans-serif;letter-spacing:4px;text-transform:uppercase}
+.big{display:block;font:700 30px/1.08 Rajdhani,sans-serif;letter-spacing:.5px;margin:5px 0 3px;color:#fff}
+.sub{display:block;font:600 14px/1.35 Inter,sans-serif;color:rgba(235,242,250,.8)}
+#quiz{position:absolute;left:50%;top:48px;width:900px;margin-left:-450px;padding:22px 30px 20px;display:none;text-align:center}
+#quiz.on{display:block;animation:tin .6s cubic-bezier(.2,1.2,.3,1) both}
+#quiz .q{font:700 36px/1.15 Rajdhani,sans-serif;color:#fff;margin:8px 0 12px}
+#quiz .bar{height:10px;border-radius:5px;background:#06111f;border:1px solid #1d3d5c;overflow:hidden}
+#quiz .bar i{display:block;height:100%;background:linear-gradient(90deg,#3fb2ff,#97dfff);transform-origin:0 50%}
+#quiz .meta{display:flex;justify-content:space-between;margin-top:8px;font:700 15px/1 Rajdhani,sans-serif;letter-spacing:2px;color:#9fe3ff}
+#quiz .win{font:700 30px/1.1 Rajdhani,sans-serif;color:#ffd36b;margin-top:6px}
+#panel{position:absolute;right:48px;top:230px;width:520px;padding:22px 24px;display:none}
+#panel.on{display:block;animation:tin .6s both}
+#panel h2{margin:0 0 12px;font:700 26px/1 Rajdhani,sans-serif;letter-spacing:3px}
+.sq{display:grid;grid-template-columns:1fr auto;gap:6px 12px;align-items:end;margin-top:14px}
+.sq b{font:700 22px/1 Rajdhani,sans-serif;letter-spacing:1px}
+.sq span{font:700 24px/1 Rajdhani,sans-serif}
+.sq .bar{grid-column:1/-1;height:12px;border-radius:5px;background:#06111f;border:1px solid #1d3048;overflow:hidden}
+.sq .bar i{display:block;height:100%;transition:width .8s}
+.sq small{grid-column:1/-1;font:600 12px Inter,sans-serif;color:#9ab0c5}
+</style></head>
+<body><div id="stage"><div id="toasts"></div><div id="quiz" class="glass cut"></div><div id="panel" class="glass cut"></div></div>
+<script>
+(()=>{'use strict';
+const stage=document.getElementById('stage');function fit(){const s=Math.min(innerWidth/1920,innerHeight/1080);stage.style.transform='scale('+s+')';}addEventListener('resize',fit);fit();
+const el=(t,c,x)=>{const n=document.createElement(t);if(c)n.className=c;if(x!==undefined)n.textContent=String(x);return n;};
+const svgNS='http://www.w3.org/2000/svg';function icon(d){const s=document.createElementNS(svgNS,'svg');s.setAttribute('viewBox','0 0 24 24');s.setAttribute('aria-hidden','true');const p=document.createElementNS(svgNS,'path');p.setAttribute('d',d);s.append(p);return s;}
+const SQ={red:['#ff8a8a','#c0283c'],gold:['#ffe08a','#b8862b'],blue:['#97dfff','#1f5fd0']};
+const TIER={blue:['#3fb2ff','#0b4fd0','Blue Explorer'],silver:['#eef3f9','#55606d','Silver Sentinel'],gold:['#ffc53d','#7a4d00','Gold Commander'],platinum:['#c08bff','#3a1a8a','Platinum Vanguard']};
+const I={report:'M5 12l4 4L19 6',arrival:'M12 2l8 4.5v9L12 20l-8-4.5v-9z',enlist:'M3 8l4 4 5-7 5 7 4-4-2 11H5z',log:'M4 4h7a3 3 0 0 1 3 3v13a2 2 0 0 0-2-2H4z M20 4h-7a3 3 0 0 0-3 3v13a2 2 0 0 1 2-2h8z',quiz:'M9 9a3 3 0 1 1 4 2.8c-.8.4-1 1-1 2v.7 M12 18v.01'};
+function toastFor(t){
+ const box=el('div','toast glass cut'),b=el('div','badge'),txt=el('div');let colors=['#3fb2ff','#0b4fd0'];
+ if(t.kind==='report'){colors=['#7ff0b5','#1d7a52'];txt.append(el('span','eb','Reporting for duty'),el('span','big',t.name),el('span','sub',(t.streak>1?t.streak+' streams in a row · ':'')+'crew member '+t.count+' this stream · type !report'));}
+ else if(t.kind==='arrival'){const tc=TIER[t.tier]||TIER.blue;colors=[tc[0],tc[1]];txt.append(el('span','eb',t.promoted?'★ Promoted · now on the bridge':'Now on the bridge'),el('span','big',t.name),el('span','sub',tc[2]+(t.rankName?' · '+t.rankName:'')));}
+ else if(t.kind==='enlist'){colors=SQ[t.sq]||colors;txt.append(el('span','eb','Squadron enlistment'),el('span','big',t.name+' joins '+t.sqName),el('span','sub','Type !squadron to pick yours'));}
+ else if(t.kind==='log'){colors=['#ffd36b','#8a5a00'];txt.append(el('span','eb',"Captain's log · "+t.name),el('span','big','“'+t.text+'”'),el('span','sub','Add yours with !log'));}
+ else return null;
+ b.style.background='linear-gradient(180deg,'+colors[0]+','+colors[1]+')';b.append(icon(I[t.kind]||I.arrival));box.style.borderColor=colors[0]+'99';box.append(b,txt);return box;
+}
+const seen=new Set(),queue=[];let showing=0,first=true,opened=Date.now(),offset=0,quiz=null;
+function pump(){while(showing<3&&queue.length){const t=queue.shift(),n=toastFor(t);if(!n)continue;showing++;document.getElementById('toasts').append(n);setTimeout(()=>{n.classList.add('out');setTimeout(()=>{n.remove();showing--;pump();},500);},t.kind==='log'?7000:5500);}}
+function renderQuiz(){const box=document.getElementById('quiz');if(!quiz){box.className='glass cut';box.textContent='';return;}
+ if(box.dataset.id!==quiz.id+(quiz.winner?'w':'')+(quiz.answer?'a':'')){box.dataset.id=quiz.id+(quiz.winner?'w':'')+(quiz.answer?'a':'');box.textContent='';
+  box.append(el('span','eb','Bridge Quiz · first correct answer in chat wins'),el('div','q',quiz.q));
+  if(quiz.winner)box.append(el('div','win',quiz.winner.name+' got it: '+quiz.answer+' · +'+quiz.reward+' points'));
+  else if(quiz.answer)box.append(el('div','win','Time! The answer was '+quiz.answer));
+  else{const bar=el('div','bar'),i=el('i');bar.append(i);const meta=el('div','meta');meta.append(el('span','','+'+quiz.reward+' VOYAGER POINTS'),el('span','left',''));box.append(bar,meta);}
+  box.className='glass cut on';}
+ const i=box.querySelector('.bar i'),left=box.querySelector('.left');if(i){const ms=Math.max(0,quiz.endsAt-(Date.now()+offset));i.style.transform='scaleX('+Math.min(1,ms/(quiz.duration||60000)).toFixed(3)+')';left.textContent=Math.ceil(ms/1000)+'s';}}
+function renderPanel(p){const box=document.getElementById('panel');if(!p){box.className='glass cut';box.textContent='';box.dataset.k='';return;}
+ const k=JSON.stringify(p.standings);if(box.dataset.k===k)return;box.dataset.k=k;box.textContent='';box.append(el('h2','','SQUADRON WAR · THIS WEEK'));
+ const max=Math.max(1,...p.standings.map(s=>s.score));
+ p.standings.forEach((s,i)=>{const row=el('div','sq'),bar=el('div','bar'),fill=el('i');const c=SQ[s.id]||['#9fe3ff','#1f5fd0'];fill.style.background='linear-gradient(90deg,'+c[1]+','+c[0]+')';fill.style.width=(s.score/max*100).toFixed(1)+'%';bar.append(fill);
+  const name=el('b','',(i===0&&s.score>0?'★ ':'')+s.name);name.style.color=c[0];row.append(name,el('span','',s.score.toLocaleString('en')),bar,el('small','',s.crew+' crew'+(s.top[0]?' · top pilot '+s.top[0].name:'')+' · !squadron '+s.id));box.append(row);});
+ box.className='glass cut on';}
+async function poll(){
+ try{const r=await fetch('/api/engage/overlay',{cache:'no-store'}),d=await r.json();offset=d.serverAt-Date.now();
+  for(const t of d.toasts||[]){if(seen.has(t.id))continue;seen.add(t.id);if(first&&t.at<opened+offset-5000)continue;queue.push(t);}
+  first=false;quiz=d.quiz;renderPanel(d.squadrons);pump();
+ }catch{}
+ setTimeout(poll,1000);
+}
+setInterval(renderQuiz,200);poll();
+})();
+</script></body></html>

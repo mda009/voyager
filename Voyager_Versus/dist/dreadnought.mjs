@@ -227,6 +227,12 @@ function play(e){
     const to=(boss.children[0]||boss).localToWorld(v(180,-120,0));banner('GIFTED SUB TORPEDO · '+e.name.toUpperCase());
     projectile(e.slot>=0?gunPoint(e.slot):v(-1700,800,400),to,0xf2cd73,170,1.3,140,p=>{burst(p,0xfff0c0,1700,1.1,4);ring(p,0xf2cd73,1800,1.3);ring(p,0xffffff,900,.8);sparks(p,0xffe0a0,40,1400);shake=1.1;flash(.9);lightFlash(p,0xffd890,6e6,700);number(p,'-'+e.damage.toLocaleString('en'),'torpedo');shieldHit(p);
       for(let i=0;i<7;i++)setTimeout(()=>{const q=bossPoint();burst(q,0xffa050,600,.8,3);lightFlash(q,0xff8040,1.5e6,250);},i*85);});
+  }else if(e.kind==='relay'){
+    // 2.20.22 Comms Relay: chat charged a fleet-wide barrage.
+    banner('COMMS RELAY · FLEET BARRAGE');
+    for(let i=0;i<14;i++)setTimeout(()=>{const to=bossPoint(),slots=[...fleet.keys()],slot=slots.length?slots[Math.floor(Math.random()*slots.length)]:-1;
+      projectile(slot>=0?gunPoint(slot):v(-1700,600+Math.random()*400,200),to,0x72d8ff,40,.85,320,p=>{burst(p,0x9fe6ff,380,.6,3);ring(p,0x72d8ff,220,.5);sparks(p,0xbfefff,10,600);lightFlash(p,0x60c8ff,1e6,260);shieldHit(p);});},i*70);
+    setTimeout(()=>number(bossPoint(),'-'+e.damage.toLocaleString('en'),'missile'),1250);shake=Math.max(shake,.6);
   }else if(e.kind==='boss'){
     for(const slot of e.slots||[]){const f=fleet.get(slot);if(!f)continue;const t=bossParts.turrets[Math.floor(Math.random()*bossParts.turrets.length)];const from=t?t.localToWorld(v(-196,34,0)):boss.localToWorld(v(-700,60,0));
       const to=f.ship.position.clone();beam(from,to,0xff2e4d,9,.55,6);burst(from,0xff5060,160,.3,4);setTimeout(()=>{burst(to,0xff4050,480,.6,3);sparks(to,0xff8080,16,700);lightFlash(to,0xff3040,2e6,300);},80);}
@@ -246,6 +252,7 @@ function hud(now){
   {const tf=`scaleX(${frac.toFixed(4)})`,hi=$('hp').querySelector('i');if(hi.style.transform!==tf)hi.style.transform=tf;}if(frac<hpShown||frac>hpShown+.01){$('hp').querySelector('b').style.transform=`scaleX(${frac})`;hpShown=frac;}
   setText('hptext',d.hp.toLocaleString('en')+' / '+d.maxHp.toLocaleString('en')+' HULL · '+Math.ceil(frac*100)+'%');
   const tags=[];if(d.shield&&d.phase==='battle')tags.push('<span class="tag shield">◈ SHIELDS UP · !FIRE HALVED</span>');if(d.enraged&&d.phase==='battle')tags.push('<span class="tag rage">▲ ENRAGED</span>');const tg=tags.join('');if($('tags').dataset.k!==tg){$('tags').dataset.k=tg;$('tags').innerHTML=tg;}
+  {const r=d.relay,show=!!r&&r.enabled&&d.phase==='battle';$('relay').hidden=!show;if(show){const f=`scaleX(${Math.min(1,r.count/r.threshold).toFixed(3)})`,ri=$('relay').querySelector('i');if(ri.style.transform!==f)ri.style.transform=f;setText('relaynum',r.count+' / '+r.threshold);}}
   const left=d.endsAt-t;setText('clocktime',fmtTime(left));$('clock').classList.toggle('low',left<30000);
   setText('pilotcount',d.pilots+' pilot'+(d.pilots===1?'':'s'));
   const ol=$('leaders'),lk=JSON.stringify((d.leaders.length?d.leaders:d.fleet.slice(0,5)).map(p=>[p.name,p.platform,p.damage??null]));

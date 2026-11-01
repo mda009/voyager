@@ -19,6 +19,7 @@ import {Community} from './community.mjs';
 import {BossFight} from './boss.mjs';
 import {Medals,MEDAL_ICONS} from './medals.mjs';
 import {Cards} from './cards.mjs';
+import {Engage} from './engage.mjs';
 let VERSION='unknown';try{VERSION=JSON.parse(await readFile(new URL('../package.json',import.meta.url),'utf8')).version;}catch{}
 const major=Number(process.versions.node.split('.')[0]);
 if(major<22||typeof WebSocket==='undefined'){console.error('Voyager Versus requires Node.js 22.4 or newer. Install it from https://nodejs.org/');process.exit(1);}
@@ -84,10 +85,13 @@ async function findAction(name){
   return e;
 }
 async function actionStatus(name){if(!bot.status.connected)return {state:'offline'};try{const e=await findAction(name);return {state:e.state};}catch{return {state:'offline'};}}
+// Never throws: when Streamer.bot is offline a chat reply is simply skipped (an unhandled rejection would stop the host).
 async function runAction(name,args){
-  const e=await findAction(name);
-  if(!e.id)return false;
-  await bot.request('DoAction',{action:{id:e.id},args});return true;
+  try{
+    const e=await findAction(name);
+    if(!e.id)return false;
+    await bot.request('DoAction',{action:{id:e.id},args});return true;
+  }catch{return false;}
 }
 const medals=await new Medals({dataDir,say:text=>{void runAction('Voyager - Medals',{medalSay:String(text).slice(0,450)}).catch(()=>{});}}).load();
 let medalsAction={found:null,at:0};
@@ -107,9 +111,14 @@ function voyagerCommand(chat){
 }
 function medalTick(){try{if(community)medals.observeCommunity(community);medals.observePilots(savedRankings||[]);medals.evaluate();}catch(e){console.warn('Medals: '+e.message);}}
 function rankTick(){try{cards.tickRanks();}catch(e){console.warn('Ranks: '+e.message);}}
-const boss=await new BossFight({dataDir,say:text=>{void bossSay(text);},onResult:r=>medals.observeBoss(r)}).load();
+let engage=null;
+const boss=await new BossFight({dataDir,say:text=>{void bossSay(text);},onResult:r=>{medals.observeBoss(r);try{engage?.observeBoss(r);}catch{}}}).load();
+// 2.20.22 chat engagement: Comms Relay, !report, Bridge Quiz, Squadrons, arrival cards and the Captain's Log. Chat replies go out
+// through the Voyager - Medals action (it posts on Twitch, YouTube and Kick).
+engage=await new Engage({dataDir,say:text=>{void runAction('Voyager - Medals',{medalSay:String(text).slice(0,450)});},boss:()=>boss,cards:()=>cards,community:()=>community,pilots:()=>savedRankings||[]}).load();
 const bot=new StreamerBot({onOtherChat:chat=>{
   try{medals.chatSeen(chat);}catch{}
+  try{engage.chat(chat);}catch{}
   // Kick and YouTube (2.20.8): same direct commands as Twitch, except Voyager Versus (Twitch only).
   const word=chat.text.trim().toLowerCase().split(/\s+/)[0];
   if(word==='!voyager'){voyagerCommand(chat);return;}
@@ -121,6 +130,7 @@ const bot=new StreamerBot({onOtherChat:chat=>{
 },onChat:chat=>{
   lastChatAt=Date.now();
   try{medals.chatSeen({...chat,platform:chat.platform||'twitch'});}catch{}
+  try{engage.chat({...chat,platform:chat.platform||'twitch'});}catch{}
   // Dreadnought (2.20.3): Twitch !join and !fire also work straight from chat, so a missing Streamer.bot command trigger
   // can't stop the fight. The action's copy of the same message is ignored (already boarded / !fire cooldown).
   const word=chat.text.trim().toLowerCase().split(/\s+/)[0];
@@ -136,6 +146,7 @@ const bot=new StreamerBot({onOtherChat:chat=>{
     if(now-last>4000){game.note(`${chat.name}: ${result.message}`,'system');failures.set(chat.login,now);}
   }
 },onStreamOnline:async stream=>{
+  try{engage.newStream();}catch{}
   try{
     const response=await bot.request('GetBroadcaster');
     if(String(response.platforms?.twitch?.broadcastUserId||'')!==stream.channelId)return;
@@ -152,11 +163,11 @@ const pilots=new PilotLeaderboard({bot,records:()=>savedRankings});
 publicSite?.setVersus(()=>{const now=Date.now(),cooldown=Number(economy.data.cooldownUntil)||0;
   const status=cooldown>now?'cooldown':['calling','countdown','battle','result'].includes(game.phase)?'live':bot.status.connected?'ready':'offline';
   return {pilots:savedRankings||[],versus:{status,cooldownUntil:cooldown,winnerPoints:REWARDS.winner}};});
-community?.setPilots(()=>savedRankings||[]);community?.setMedals(()=>medals);community?.setBoss(()=>boss.rewardBatches());publicSite?.setCommunity(()=>community?.publicView()||null);
+community?.setPilots(()=>savedRankings||[]);community?.setMedals(()=>medals);community?.setBoss(()=>boss.rewardBatches());community?.setEngage(()=>engage.rewardBatches());publicSite?.setCommunity(()=>community?.publicView()||null);
 // 2.20.17: the public site as a stream companion. Only display names, tiers, ranks, medals and game results; never watch time, tickets or IDs.
 publicSite?.setCompanion(()=>{
-  const d=boss.overlay(),rv=cards.ranksView(25),cat=medals.catalogue().map(m=>({...m,icon:MEDAL_ICONS[m.id]||''}));
-  return {live:{onAir:Date.now()-lastChatAt<10*60000},
+  const ev=engage.publicView(),d=boss.overlay(),rv=cards.ranksView(25),cat=medals.catalogue().map(m=>({...m,icon:MEDAL_ICONS[m.id]||''}));
+  return {live:{onAir:Date.now()-lastChatAt<10*60000},squadrons:ev.squadrons,log:ev.log,
     dreadnought:{...d,history:boss.history.slice(0,6)},
     ranks:{ladder:rv.ranks,top:rv.members.slice(0,25),promotions:rv.promotions},
     medals:{catalogue:cat,honour:medals.leaderboard(10),recent:medals.state.recent.slice(0,12)}};
@@ -263,7 +274,24 @@ const server=http.createServer(async(req,res)=>{
       }catch(e){response(res,400,{ok:false,message:e.message});}
       return;
     }
-    if(url.pathname==='/api/boss/overlay'&&req.method==='GET'){res.setHeader('Cache-Control','no-store');response(res,200,boss.overlay());return;}
+    if(url.pathname==='/api/boss/overlay'&&req.method==='GET'){res.setHeader('Cache-Control','no-store');response(res,200,{...boss.overlay(),relay:engage.relayView()});return;}
+    if(url.pathname==='/api/engage/overlay'&&req.method==='GET'){res.setHeader('Cache-Control','no-store');response(res,200,engage.overlay());return;}
+    if(url.pathname.startsWith('/api/engage')){
+      if(!validToken(req)){response(res,403,{message:'Open Voyager Control › Chat engagement.'});return;}
+      if(url.pathname==='/api/engage'&&req.method==='GET'){response(res,200,{...engage.view(),connected:bot.status.connected,medalsAction:await actionStatus('Voyager - Medals'),lastChatAt,otherChat:bot.otherChat});return;}
+      if(req.method!=='POST'||!req.headers['content-type']?.startsWith('application/json')){response(res,405,{message:'Method not allowed.'});return;}
+      try{
+        const input=await body(req,262144)||{};
+        if(url.pathname==='/api/engage/settings'){response(res,200,{ok:true,...engage.configure(input)});return;}
+        if(url.pathname==='/api/engage/quiz/ask'){engage.ask(input.id||'');response(res,200,{ok:true,...engage.view()});return;}
+        if(url.pathname==='/api/engage/quiz/cancel'){engage.cancelQuiz();response(res,200,{ok:true,...engage.view()});return;}
+        if(url.pathname==='/api/engage/quiz/bank'){engage.setBank(input.bank);response(res,200,{ok:true,...engage.view()});return;}
+        if(url.pathname==='/api/engage/log'){engage.moderateLog(String(input.id||''),input);response(res,200,{ok:true,...engage.view()});return;}
+        if(url.pathname==='/api/engage/panel'){engage.showPanel(Number(input.seconds)||0);response(res,200,{ok:true,...engage.view()});return;}
+        response(res,404,{message:'Not found.'});
+      }catch(e){response(res,400,{ok:false,message:e.message});}
+      return;
+    }
     if(url.pathname.startsWith('/api/boss')){
       if(!validToken(req)){response(res,403,{message:'Open Voyager Control to run the Dreadnought.'});return;}
       if(url.pathname==='/api/boss'&&req.method==='GET'){response(res,200,{...boss.view(),connected:bot.status.connected,action:await actionStatus('Voyager - Dreadnought'),lastChatAt,otherChat:bot.otherChat});return;}
@@ -341,7 +369,7 @@ const server=http.createServer(async(req,res)=>{
 let ticks=0;const timer=setInterval(()=>{
   try{boss.tick();}catch{}
   try{game.tick(.1);}catch{game.paused=true;game.note('Host storage error. Check the game folder before restarting.');}ticks++;
-  if(ticks%10===0){community?.roll(Date.now());void publicSite?.tick();void pilots.tick();void rewards.tick();void announcements.tick();void matchChat.tick();}
+  if(ticks%10===0){try{engage.tick();engage.observePilots();}catch{}community?.roll(Date.now());void publicSite?.tick();void pilots.tick();void rewards.tick();void announcements.tick();void matchChat.tick();}
   // Medals: read the action's export every minute, work out medals every 30 s, post grouped chat lines.
   if(ticks%600===50)void medalSync();
   if(ticks%300===0)medalTick();

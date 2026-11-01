@@ -16,7 +16,7 @@ export const DEFAULT_SETTINGS=Object.freeze({
   channelName:'MDA009',
   tagline:'Explore · Earn · Excel. Giveaways, points and Voyager Versus for the MDA009 community.',
   links:{twitch:'',youtube:'',kick:'',discord:'',website:''},
-  sections:{giveaways:true,winners:true,goals:true,points:true,pilots:true,versus:true,program:true,missions:true,season:true,live:true,dreadnought:true,ranks:true,medals:true,crew:true,activity:true},
+  sections:{giveaways:true,winners:true,goals:true,points:true,pilots:true,versus:true,program:true,missions:true,season:true,live:true,dreadnought:true,ranks:true,medals:true,crew:true,activity:true,squadrons:true,log:true},
   showNames:true,
   leaderboardSize:10,
   commands:{impromptu:'!enter',tickets:'!entergiveaway',versus:'!versus'},
@@ -300,6 +300,12 @@ export function projectCompanion(raw,settings=DEFAULT_SETTINGS,online=true,crewC
         grades:Array.isArray(x.grades)?x.grades.slice(0,4).map(g=>int(g,0,1e9)??0):null,earned:Array.isArray(x.earned)?x.earned.slice(0,4).map(g=>int(g,0,1e7)??0):[0,0,0,0]})),
       honour:list(m.honour).slice(0,10).map((x,i)=>({place:i+1,...person(x),honour:int(x?.honour,0,1e6)??0,medals:int(x?.medals,0,100)??0})).filter(x=>x.name),
       recent:list(m.recent).slice(0,12).map(x=>({...person(x),medal:medalId(x?.medal),grade:int(x?.grade,0,3)??0,special:x?.special===true,at:time(x?.at)})).filter(x=>x.name&&x.medal&&x.at)};}
+  // 2.20.22 chat engagement: squadron standings (names of top pilots follow "Show viewer names") and pinned Captain's Log entries.
+  if(show.squadrons&&raw.squadrons){const q=raw.squadrons;
+    out.squadrons={weekEndsAt:time(q.weekEndsAt),standings:list(q.standings).slice(0,3).map(x=>({id:oneOf(x?.id,['red','gold','blue'],'red'),name:clean(x?.name,24),score:int(x?.score,0,1e12)??0,crew:int(x?.crew,0,1e6)??0,
+        top:list(x?.top).slice(0,5).map(p=>({...person(p),score:int(p?.score,0,1e12)??0})).filter(p=>p.name)})).filter(x=>x.name),
+      history:list(q.history).slice(0,6).map(h=>({week:time(h?.week),winner:oneOf(h?.winner,['red','gold','blue'],null)})).filter(h=>h.week&&h.winner)};}
+  if(show.log&&s.showNames&&raw.log){out.log={stream:time(raw.log.stream),entries:list(raw.log.entries).slice(0,12).map(e=>({...person(e),text:clean(e?.text,140),at:time(e?.at)})).filter(e=>e.name&&e.text&&e.at&&!/(https?:\/\/|www\.)/i.test(e.text))};}
   if(show.crew&&s.showNames&&crewCount>0)out.crew={file:'crew.json',count:int(crewCount,0,1e5)??0};
   return out;
 }

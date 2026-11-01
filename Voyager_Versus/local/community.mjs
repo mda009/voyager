@@ -146,6 +146,7 @@ export class Community{
   persist(){const data=JSON.stringify(this.state),tmp=join(this.dataDir,FILE+'.tmp');this.saving=this.saving.then(async()=>{await writeFile(tmp,data);await rename(tmp,join(this.dataDir,FILE));}).catch(()=>{});return this.saving;}
   setPilots(fn){this.pilots=fn;}
   setBoss(fn){this.boss=fn;}
+  setEngage(fn){this.engage=fn;}
   setMedals(fn){this.medals=fn;}
 
   // Called with the points ledger members (from the publisher page) about once a minute.
@@ -262,6 +263,12 @@ export class Community{
     for(const b of batches)for(const p of b.pilots||[]){
       const key=clean(p.key,120);if(!key)continue;const k=this.payKey(b.id,'boss',key);
       rows.push({missionId:'boss',title:b.title,reward:b.reward,key,name:s.members[key]?.name||p.name,platform:p.platform,week:b.id,scope:'boss',label:'Dreadnought',payable:!!s.members[key],status:s.payouts[k]?.status||'owed',paidAt:s.payouts[k]?.at||0,note:s.payouts[k]?.note||''});
+    }
+    // Chat engagement (2.20.22): daily muster (!report) and Bridge Quiz winners.
+    let engage=[];try{engage=this.engage?.()||[];}catch{}
+    for(const b of engage)for(const p of b.pilots||[]){
+      const key=clean(p.key,120);if(!key||!b.reward)continue;const k=this.payKey(b.stamp,b.missionId,key);
+      rows.push({missionId:b.missionId,title:b.title,reward:b.reward,key,name:s.members[key]?.name||p.name,platform:p.platform,week:b.stamp,scope:'engage',label:b.label,payable:!!s.members[key],status:s.payouts[k]?.status||'owed',paidAt:s.payouts[k]?.at||0,note:s.payouts[k]?.note||''});
     }
     return rows;
   }

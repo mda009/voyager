@@ -2,6 +2,22 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.22 (1 November 2026)
+
+**Chat engagement: six new ways to get chat talking (Community › Chat engagement).**
+
+1. **Comms Relay.** During a Dreadnought fight, plain chat charges a relay (meter under the hull bar). At 50 messages the whole fleet fires a barrage for 2% of the hull. One message per viewer every 5 seconds counts, on Twitch, Kick and YouTube.
+2. **Daily muster · `!report`.** Once a stream, viewers report for duty: an on-stream card, one grouped chat line every 20 seconds, a streak for streams in a row, and 10 Voyager points (0–50).
+3. **Bridge Quiz.** Ask a question (or set one every N minutes). The first correct answer in chat wins 25 points (0–50). Ten starter questions about space and Voyager; add your own, with several accepted answers each. Shown on stream with a countdown.
+4. **Squadrons · `!squadron red | gold | blue`.** A weekly squadron war: chat (up to 60 messages a stream), missions finished, Dreadnought damage and Versus wins score for your squadron. Viewers can switch once every 30 days. Show the standings on stream for 60 seconds or until hidden; the public site shows them under Boards.
+5. **Arrival cards.** The first time a Silver, Gold or Platinum member (your choice), or anyone promoted since last time, chats each stream, a "now on the bridge" card slides in with their tier and naval rank.
+6. **Captain's Log · `!log <moment>`.** Viewers log moments during the stream (3 each, no links). Pin the best in Voyager Control; pinned entries from your latest stream become the Captain's Log on voyagercommand.com.
+
+- **New OBS source:** one Browser source at `http://127.0.0.1:8740/engage.html` (1920 × 1080) for arrival, muster, enlistment and log cards, the quiz and the squadron panel.
+- Muster and quiz points are listed in Missions › Points owed and paid from there, like mission rewards. Chat replies go out through the Voyager - Medals action.
+- Public website: new switches for **Squadron war** and **Captain's Log**; new copy buttons for `!report`, `!squadron` and `!log`.
+- Fix: a chat reply while Streamer.bot was offline could stop the Voyager host. Replies are now skipped quietly instead.
+
 ## 2.20.21 (1 November 2026)
 
 **Missions and medals now work together, with mission rewards capped at 50 points.**

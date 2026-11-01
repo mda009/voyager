@@ -24,6 +24,10 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:transparent
 #hp span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:700 19px/1 var(--font);letter-spacing:2px;text-shadow:0 1px 4px #000}
 #tags{display:flex;gap:10px;justify-content:center;margin-top:10px;min-height:28px}
 .tag{font:700 15px/1 var(--font);letter-spacing:3px;padding:6px 14px;border:1px solid;background:rgba(0,0,0,.45)}
+#relay{display:flex;align-items:center;gap:12px;justify-content:center;margin-top:10px;font:700 14px/1 var(--font);letter-spacing:3px;color:#9fe3ff}
+#relay .rbar{position:relative;width:260px;height:10px;border:1px solid #2f6b9a;background:rgba(0,0,0,.5);overflow:hidden}
+#relay .rbar i{position:absolute;inset:0;transform-origin:0 50%;background:repeating-linear-gradient(90deg,#3fb2ff 0 8px,#97dfff 8px 10px);box-shadow:0 0 14px #3fb2ff;transition:transform .3s}
+#relay b{min-width:64px;text-align:left;color:#fff}
 .tag.shield{color:var(--cyan);border-color:var(--cyan);box-shadow:0 0 18px rgba(114,216,255,.4)}
 .tag.rage{color:var(--red);border-color:var(--red);box-shadow:0 0 18px rgba(255,77,94,.5);animation:pulse .7s infinite alternate}
 @keyframes pulse{to{opacity:.55}}
@@ -87,7 +91,7 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:transparent
  <canvas id="gl" width="1920" height="1080"></canvas>
  <div id="hud">
   <div id="labels"></div><div id="nums"></div>
-  <div id="bossbar" hidden><div class="eyebrow">⚠ HOSTILE CAPITAL SHIP</div><div id="bossname">The Dreadnought</div><div id="hp"><b></b><i></i><u style="left:50%"></u><u style="left:20%"></u><span id="hptext"></span></div><div id="tags"></div></div>
+  <div id="bossbar" hidden><div class="eyebrow">⚠ HOSTILE CAPITAL SHIP</div><div id="bossname">The Dreadnought</div><div id="hp"><b></b><i></i><u style="left:50%"></u><u style="left:20%"></u><span id="hptext"></span></div><div id="tags"></div><div id="relay" hidden><span class="rl">📡 COMMS RELAY · CHAT TO CHARGE</span><div class="rbar"><i></i></div><b id="relaynum"></b></div></div>
   <div id="clock" hidden><small>TIME LEFT</small><b id="clocktime">3:00</b></div>
   <div id="fleet" hidden><div class="head"><img src="brand/voyager.png" alt=""><div>VOYAGER FLEET<b id="pilotcount">0 pilots</b></div></div><ol id="leaders"></ol></div>
   <div id="feed"></div>
@@ -98,5 +102,5 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:transparent
   <div id="preview-tag" hidden>PREVIEW · SIMULATED CHAT</div>
  </div>
 </div>
-<script type="module" src="dreadnought.mjs?v=2.20.7"></script>
+<script type="module" src="dreadnought.mjs?v=2.20.22"></script>
 </body></html>
