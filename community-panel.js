@@ -7,7 +7,9 @@ const TITLES={season:'Season standings',goals:'Season sub goals',hall:'Hall of F
 const icons={twitch:'<path fill="currentColor" d="M4 2h18v13l-6 6h-5l-3 3v-3H4V2zm2 2v13h5v3l3-3h4l2-2V4H6zm5 3h2v6h-2V7zm5 0h2v6h-2V7z"/>',youtube:'<path fill="currentColor" d="M22 7c-.3-1.4-1.2-2.3-2.6-2.5C17.5 4.2 14 4 12 4s-5.5.2-7.4.5C3.2 4.7 2.3 5.6 2 7c-.3 1.4-.5 3.4-.5 5s.2 3.6.5 5c.3 1.4 1.2 2.3 2.6 2.5 1.9.3 5.4.5 7.4.5s5.5-.2 7.4-.5c1.4-.2 2.3-1.1 2.6-2.5.3-1.4.5-3.4.5-5s-.2-3.6-.5-5z"/><path fill="#171f2b" d="m10 8 6 4-6 4z"/>',kick:'<path fill="currentColor" d="M3 2h6v7h3V5h3V2h6v7h-3v3h-3v3h3v3h3v4h-6v-4h-3v-3H9v7H3z"/>'};
 const ON={all:'',twitch:' on Twitch',youtube:' on YouTube',kick:' on Kick'};
 const MISSION={streamDays:n=>'Earn points on '+n+' stream day'+(n===1?'':'s'),earnPoints:n=>'Earn '+Number(n).toLocaleString()+' points',versusWins:n=>'Win '+n+' Versus battle'+(n===1?'':'s'),
-  subscribe:(n,p)=>'Subscribe or renew'+(ON[p]||''),giftSubs:(n,p)=>'Gift '+n+' sub'+(n===1?'':'s')+(ON[p]||''),loyalSub:(n,p)=>'Renew at '+n+'+ months'+(ON[p]||'')};
+  subscribe:(n,p)=>'Subscribe or renew'+(ON[p]||''),giftSubs:(n,p)=>'Gift '+n+' sub'+(n===1?'':'s')+(ON[p]||''),loyalSub:(n,p)=>'Renew at '+n+'+ months'+(ON[p]||''),
+  watchHours:(n,p)=>'Watch '+n+' h live'+(ON[p]||''),chatMessages:(n,p)=>'Send '+n+' chat messages'+(ON[p]||''),streamStreak:n=>n+' streams in a row',dreadFights:n=>'Join '+n+' Dreadnought fight'+(n===1?'':'s'),
+  dreadVictory:n=>'Win '+n+' Dreadnought fight'+(n===1?'':'s'),dreadDamage:n=>'Deal '+n+' Dreadnought damage',dreadMvp:n=>'Be MVP in '+n+' fight'+(n===1?'':'s'),torpedo:n=>'Fire '+n+' torpedo'+(n===1?'':'es')};
 const METRIC={support:'subs & gifts',subs:'subs',gifts:'gifted subs'};
 let data=null,readAt=0,failed=false,rows=[],rowKey='',orderKey='',position=0,lastFrame=0;
 const node=(tag,text,cls)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(cls)n.className=cls;return n;};

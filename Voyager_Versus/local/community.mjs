@@ -14,20 +14,50 @@ export const TYPES={
   // 2.15 subscriber missions. Data: Voyager - Community Tracker (sub/member/gift events), sent by the publisher page.
   subscribe:{label:'Subscribe or renew (sub / membership)',unit:'sub',support:true,max:1},
   giftSubs:{label:'Gift subs or memberships',unit:'gifts',support:true,max:1000},
-  loyalSub:{label:'Renew with a long subscription',unit:'months',support:true,max:120}
+  loyalSub:{label:'Renew with a long subscription',unit:'months',support:true,max:120},
+  // 2.20.21 medal missions: each one counts this week's progress on the same counter a medal uses (Voyager Medals data).
+  watchHours:{label:'Watch the stream live',unit:'hours',medal:'watch',counter:'watch',scale:3600,max:40},
+  chatMessages:{label:'Chat on stream',unit:'messages',medal:'comms',counter:'msgs',max:2000},
+  streamStreak:{label:'Attend streams in a row',unit:'streams in a row',medal:'streak',streak:true,max:7},
+  dreadFights:{label:'Fight the Dreadnought',unit:'fights',medal:'slayer',counter:'fights',max:20},
+  dreadVictory:{label:'Win against the Dreadnought',unit:'victories',medal:'slayer',counter:'slayer',max:20},
+  dreadDamage:{label:'Deal Dreadnought damage',unit:'damage',medal:'topgun',counter:'damage',max:100000},
+  dreadMvp:{label:'Finish a fight as top damage (MVP)',unit:'MVPs',medal:'topgun',counter:'topgun',max:10},
+  torpedo:{label:'Fire a torpedo (gift a sub in a fight)',unit:'torpedoes',medal:'torpedo',counter:'torpedo',max:20,support:false}
 };
+// Which medal each mission type works toward (shown in Voyager Control, on stream and on the public site).
+export const MISSION_MEDALS={streamDays:'regular',earnPoints:'points',versusWins:'versus',subscribe:'subs',giftSubs:'gifter',loyalSub:'substreak',
+  ...Object.fromEntries(Object.entries(TYPES).filter(([,t])=>t.medal).map(([k,t])=>[k,t.medal]))};
+// 2.20.21: mission rewards are capped at 50 Voyager points (asked for); bigger rewards stay with season goals and the Dreadnought.
+export const MISSION_REWARD_MAX=50;
+// Ready-made ideas, each tied to a medal. Add them from Voyager Control > Missions.
+export const MISSION_IDEAS=[
+  {id:'night-shift',title:'Night Shift',type:'watchHours',target:3,reward:30,blurb:'Watch 3 hours live this week.'},
+  {id:'comms-check',title:'Comms Check',type:'chatMessages',target:25,reward:20,blurb:'Send 25 chat messages on stream this week.'},
+  {id:'hold-the-line',title:'Hold the Line',type:'streamStreak',target:3,reward:40,blurb:'Be at 3 streams in a row.'},
+  {id:'boarding-party',title:'Boarding Party',type:'dreadFights',target:2,reward:25,blurb:'Join 2 Dreadnought fights with !join.'},
+  {id:'dreadnought-down',title:'Dreadnought Down',type:'dreadVictory',target:1,reward:50,blurb:'Be in the fleet when the Dreadnought is destroyed.'},
+  {id:'heavy-hitter',title:'Heavy Hitter',type:'dreadDamage',target:500,reward:40,blurb:'Deal 500 damage to the Dreadnought this week.'},
+  {id:'top-gun',title:'Top Gun',type:'dreadMvp',target:1,reward:50,blurb:'Finish a Dreadnought fight as MVP.'},
+  {id:'torpedo-run',title:'Torpedo Run',type:'torpedo',target:1,reward:50,blurb:'Gift a sub during a Dreadnought fight.'},
+  {id:'arena-rookie',title:'Arena Rookie',type:'versusWins',target:1,reward:40,blurb:'Win a Voyager Versus battle.'},
+  {id:'shore-leave-cancelled',title:'Shore Leave Cancelled',type:'streamDays',target:4,reward:35,blurb:'Earn points on 4 different stream days.'},
+  {id:'quartermaster',title:'Quartermaster',type:'earnPoints',target:300,reward:25,blurb:'Earn 300 Voyager points this week.'},
+  {id:'care-package',title:'Care Package',type:'giftSubs',target:1,reward:50,blurb:'Gift a sub or membership.'},
+  {id:'re-enlist',title:'Re-enlist',type:'subscribe',target:1,reward:50,blurb:'Subscribe or renew this week.'}
+];
 export const PLATFORM_OPTIONS={all:'All platforms',twitch:'Twitch',youtube:'YouTube',kick:'Kick'};
 // Season goals (2.15): one shared target for the whole community; everyone who helped is rewarded once it's reached.
 export const GOAL_METRICS={support:'Subs, renewals and gifted subs',subs:'Subs and renewals',gifts:'Gifted subs'};
 export const DEFAULT_MISSIONS=[
-  {id:'regular',title:'Regular Pilot',type:'streamDays',target:3,reward:250,enabled:true},
-  {id:'collector',title:'Point Collector',type:'earnPoints',target:500,reward:150,enabled:true},
-  {id:'arena',title:'Ace of the Arena',type:'versusWins',target:1,reward:400,enabled:true}
+  {id:'regular',title:'Regular Pilot',type:'streamDays',target:3,reward:35,enabled:true},
+  {id:'collector',title:'Point Collector',type:'earnPoints',target:500,reward:25,enabled:true},
+  {id:'arena',title:'Ace of the Arena',type:'versusWins',target:1,reward:40,enabled:true}
 ];
 export const SUB_MISSIONS=[
-  {id:'supporter',title:'Crew Supporter',type:'subscribe',target:1,reward:250,platform:'all',enabled:true},
-  {id:'gifter',title:'Fleet Gifter',type:'giftSubs',target:3,reward:250,platform:'all',enabled:true},
-  {id:'veteran',title:'Veteran Crew',type:'loyalSub',target:6,reward:125,platform:'all',enabled:true}
+  {id:'supporter',title:'Crew Supporter',type:'subscribe',target:1,reward:50,platform:'all',enabled:true},
+  {id:'gifter',title:'Fleet Gifter',type:'giftSubs',target:3,reward:50,platform:'all',enabled:true},
+  {id:'veteran',title:'Veteran Crew',type:'loyalSub',target:6,reward:40,platform:'all',enabled:true}
 ];
 export const DEFAULT_GOALS=[
   {id:'crew',title:'Grow the Crew',metric:'support',platform:'all',target:50,reward:250},
@@ -62,7 +92,7 @@ export function normalizeMissions(raw){
     const title=clean(m.title,40);if(!title)throw new Error('Every mission needs a name.');
     const max=type==='earnPoints'?1e7:TYPES[type].max||7;
     const target=int(m.target,1,max);if(target===null)throw new Error(title+': the goal must be a whole number'+(type==='earnPoints'?'.':max===1?' (1).':' from 1 to '+max+'.'));
-    const reward=int(m.reward,0,1e6);if(reward===null)throw new Error(title+': the reward must be 0 to 1,000,000 points.');
+    const reward=int(m.reward,0,MISSION_REWARD_MAX);if(reward===null)throw new Error(title+': the reward must be 0 to '+MISSION_REWARD_MAX+' points (missions are capped at '+MISSION_REWARD_MAX+').');
     const platform=Object.hasOwn(PLATFORM_OPTIONS,m.platform??'all')?(m.platform??'all'):null;if(!platform)throw new Error(title+': unknown platform.');
     out.push({id,title,type,target,reward,platform,enabled:m.enabled!==false});
   }
@@ -90,7 +120,7 @@ export class Community{
     const now=this.now();
     return {schema:1,missions:normalizeMissions([...DEFAULT_MISSIONS,...SUB_MISSIONS]),subSeeded:true,rewards2161:true,members:{},support:{},supportAt:0,
       goals:DEFAULT_GOALS.map(g=>({...g})),supportBonus:DEFAULT_SUPPORT_BONUS,previousSeason:null,
-      week:{id:weekStart(now),baseline:{},days:{},versus:{},gifts:{}},previous:null,payouts:{},
+      week:{id:weekStart(now),baseline:{},days:{},versus:{},gifts:{},medal:{}},previous:null,payouts:{},
       season:this.newSeason(now,1,13),hall:[],panel:{config:{...PANEL_DEFAULTS},visible:false,expiresAt:0,revision:0}};
   }
   newSeason(now,number,weeks){return {number,name:'Season '+number,startedAt:now,endsAt:now+weeks*7*DAY,weeks,baseline:{},versus:{},support:{}};}
@@ -98,7 +128,7 @@ export class Community{
     try{
       const raw=JSON.parse(await readFile(join(this.dataDir,FILE),'utf8'));
       if(raw?.schema===1){
-        const s=this.state={...this.fresh(),...raw};s.missions=normalizeMissions(raw.missions);
+        const s=this.state={...this.fresh(),...raw};s.missions=normalizeMissions((Array.isArray(raw.missions)?raw.missions:[]).map(m=>m&&typeof m==='object'?{...m,reward:Math.min(MISSION_REWARD_MAX,Math.max(0,Math.round(Number(m.reward)||0)))}:m));
         // 2.15: add the subscriber missions once to an existing programme (room permitting; they can be switched off).
         if(!raw.subSeeded){for(const m of SUB_MISSIONS)if(s.missions.length<8&&!s.missions.some(x=>x.id===m.id||x.type===m.type))s.missions.push({...m});s.subSeeded=true;}
         try{s.goals=normalizeGoals(s.goals);}catch{s.goals=DEFAULT_GOALS.map(g=>({...g}));}
@@ -116,6 +146,7 @@ export class Community{
   persist(){const data=JSON.stringify(this.state),tmp=join(this.dataDir,FILE+'.tmp');this.saving=this.saving.then(async()=>{await writeFile(tmp,data);await rename(tmp,join(this.dataDir,FILE));}).catch(()=>{});return this.saving;}
   setPilots(fn){this.pilots=fn;}
   setBoss(fn){this.boss=fn;}
+  setMedals(fn){this.medals=fn;}
 
   // Called with the points ledger members (from the publisher page) about once a minute.
   receive(list){
@@ -132,7 +163,7 @@ export class Community{
       if(prev&&value>prev.value){const d=s.week.days[key]||(s.week.days[key]=[]);if(!d.includes(today)){d.push(today);changed=true;}}
       if(!prev||prev.value!==value)changed=true;
     }
-    this.notePilots();
+    this.notePilots();this.noteMedals();
     if(changed)this.persist();
     return this.view();
   }
@@ -161,6 +192,16 @@ export class Community{
     const v=this.state.support[key],b=this.state.season.support?.[key];if(!v||!b)return {subs:0,gifts:0};
     return {subs:Math.max(0,v.months-b.months),gifts:Math.max(0,v.gifts-b.gifts)};
   }
+  // Medal missions: snapshot each counter the first time it's seen this week (0 for viewers who first appeared this week).
+  medalViewers(){try{return this.medals?.()?.state?.viewers||{};}catch{return {};}}
+  // One snapshot per counter per week (taken when the week starts or the mission is added). Anyone missing from it had 0 then.
+  noteMedals(){
+    const s=this.state,need=[...new Set(s.missions.filter(m=>m.enabled&&TYPES[m.type]?.counter).map(m=>TYPES[m.type].counter))];
+    const base=s.week.medal||(s.week.medal={}),at=s.week.medalAt||(s.week.medalAt={});let changed=false;
+    const viewers=this.medalViewers();if(!Object.keys(viewers).length)return false;
+    for(const c of need){if(at[c])continue;const b=base[c]={};for(const [key,v] of Object.entries(viewers)){const n=Number(v.c?.[c])||0;if(n)b[key]=n;}at[c]=this.now();changed=true;}
+    return changed;
+  }
   notePilots(){
     const s=this.state;
     for(const p of this.pilotList()){if(s.week.versus[p.login]===undefined)s.week.versus[p.login]=p.wins;if(s.season.versus[p.login]===undefined)s.season.versus[p.login]=p.wins;}
@@ -169,7 +210,7 @@ export class Community{
   // New week: keep last week's completions so they can still be paid. Season end: archive to the Hall of Fame.
   roll(now){
     const s=this.state,w=weekStart(now);
-    if(w!==s.week.id){s.previous={id:s.week.id,completions:this.completions()};s.week={id:w,baseline:{},days:{},versus:{},gifts:{}};this.persist();}
+    if(w!==s.week.id){s.previous={id:s.week.id,completions:this.completions()};s.week={id:w,baseline:{},days:{},versus:{},gifts:{},medal:{},medalAt:{}};this.noteMedals();this.persist();}
     if(now>=s.season.endsAt)this.endSeason(now);
   }
   progressFor(m){
@@ -178,6 +219,15 @@ export class Community{
       if(!onPlatform(m.platform,'twitch'))return rows;
       const byLogin=new Map(Object.entries(s.members).filter(([k])=>k.startsWith('twitch:')).map(([k,v])=>[v.login,k]));
       for(const p of this.pilotList()){const base=s.week.versus[p.login];if(base===undefined)continue;const n=Math.max(0,p.wins-base);if(n>0)rows.push({key:byLogin.get(p.login)||'',name:p.name,platform:'twitch',progress:n});}
+    }else if(TYPES[m.type].counter||TYPES[m.type].streak){
+      const t=TYPES[m.type],base=s.week.medal?.[t.counter]||{};
+      for(const [key,v] of Object.entries(this.medalViewers())){
+        if(!onPlatform(m.platform,v.platform))continue;
+        let n=0;
+        if(t.streak){if((s.week.days[key]||[]).length)n=Number(v.c?.streak)||0;}
+        else{if(!s.week.medalAt?.[t.counter])continue;const now=Number(v.c?.[t.counter])||0,b=base[key]??0;n=Math.floor(Math.max(0,now-b)/(t.scale||1));}
+        if(n>0)rows.push({key,name:s.members[key]?.name||v.name,platform:v.platform,progress:n,account:!!s.members[key]});
+      }
     }else if(TYPES[m.type].support){
       for(const [key,v] of Object.entries(s.support||{})){
         if(!onPlatform(m.platform,v.platform))continue;
@@ -242,7 +292,7 @@ export class Community{
     const keys=Object.keys(this.state.payouts);if(keys.length>5000)for(const old of keys.slice(0,keys.length-5000))delete this.state.payouts[old];
     this.persist();return {ok:true};
   }
-  setMissions(list){this.state.missions=normalizeMissions(list);this.persist();return this.view();}
+  setMissions(list){this.state.missions=normalizeMissions(list);this.noteMedals();this.persist();return this.view();}
   standings(limit=50){
     const s=this.state,wins=new Map();
     for(const p of this.pilotList()){const b=s.season.versus[p.login];if(b!==undefined&&p.wins>b)wins.set(p.login,p.wins-b);}
@@ -283,7 +333,7 @@ export class Community{
   view(){
     const s=this.state,missions=s.missions.map(m=>{const p=this.progressFor(m);return {...m,typeLabel:TYPES[m.type].label,unit:TYPES[m.type].unit,started:p.length,completed:p.filter(x=>x.done).length,top:p.slice(0,8)};});
     return {missions,week:{id:s.week.id,endsAt:s.week.id+7*DAY},members:Object.keys(s.members).length,payables:this.payables(),
-      season:{number:s.season.number,name:s.season.name,startedAt:s.season.startedAt,endsAt:s.season.endsAt,weeks:s.season.weeks},standings:this.standings(),topPilot:this.topPilot(),hall:s.hall,types:TYPES,panel:this.panelView(),panelKinds:PANEL_KINDS,
+      season:{number:s.season.number,name:s.season.name,startedAt:s.season.startedAt,endsAt:s.season.endsAt,weeks:s.season.weeks},standings:this.standings(),topPilot:this.topPilot(),hall:s.hall,types:TYPES,missionMedals:MISSION_MEDALS,ideas:MISSION_IDEAS,rewardMax:MISSION_REWARD_MAX,panel:this.panelView(),panelKinds:PANEL_KINDS,
       platforms:PLATFORM_OPTIONS,goalMetrics:GOAL_METRICS,goals:this.goalProgress().map(g=>({...g,helpers:g.helpers.slice(0,10)})),supportBonus:s.supportBonus??DEFAULT_SUPPORT_BONUS,
       support:{tracked:Object.keys(s.support||{}).length,updatedAt:s.supportAt||0}};
   }
@@ -293,6 +343,6 @@ export class Community{
     return {season:{name:v.season.name,endsAt:v.season.endsAt,supportBonus:v.supportBonus,standings:v.standings.slice(0,10).map(r=>({rank:r.rank,name:r.name,platform:r.platform,points:r.score,earned:r.points,support:r.support,wins:r.wins})),
         goals:v.goals.map(g=>({title:g.title,metric:g.metric,platform:g.platform,target:g.target,total:g.total,reward:g.reward,reached:g.reached,helpers:g.helpers.length}))},
       hall:v.hall.slice(0,6).map(h=>({name:h.name,endedAt:h.endedAt,champion:h.champion,topPilot:h.topPilot})),
-      missions:v.missions.filter(m=>m.enabled).map(m=>({title:m.title,type:m.type,platform:m.platform,target:m.target,reward:m.reward,completed:m.completed})),weekEndsAt:v.week.endsAt};
+      missions:v.missions.filter(m=>m.enabled).map(m=>({title:m.title,type:m.type,platform:m.platform,target:m.target,reward:m.reward,completed:m.completed,medal:MISSION_MEDALS[m.type]||''})),weekEndsAt:v.week.endsAt};
   }
 }

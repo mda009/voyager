@@ -10,6 +10,13 @@
 <link rel="stylesheet" href="settings.css?v=2.16">
 <link rel="stylesheet" href="community.css?v=2.16.1">
 <link rel="stylesheet" href="voyager-glass.css?v=2.16">
+<style>
+.cm-medal{display:inline-block;margin-top:6px;font:600 12px/1.3 'Segoe UI',sans-serif;color:#f2cd73}
+.cm-ideas{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px;margin-top:10px}
+.cm-idea{display:flex;flex-direction:column;gap:4px;padding:12px;border:1px solid rgba(151,223,255,.14);background:rgba(8,15,24,.45)}
+.cm-idea b{font:700 16px/1.2 Rajdhani,'Segoe UI',sans-serif;color:#e6eef7}.cm-idea-what{font-size:13px;color:#9ab0c5}.cm-idea button{align-self:flex-start;margin-top:6px}
+.cm-ideas-card{padding:18px 22px;margin-top:16px}
+</style>
 </head>
 <body class="voyager-console voyager-settings voyager-community">
 <div class="shell">
@@ -26,6 +33,9 @@
 </section>
 <div class="cm-layout">
 <section class="cm-missions" id="missions" aria-label="This week's missions"></section>
+<section class="card cm-ideas-card" aria-labelledby="ideas-h"><div class="card-heading"><div><span class="eyebrow">MISSION IDEAS</span><h2 id="ideas-h">Missions that earn medals</h2></div></div>
+<p class="st-hint">Each idea counts this week's progress on the same thing a medal tracks, so finishing missions also moves viewers toward that medal (and every finished mission counts toward Mission Runner and Full Spectrum). Rewards are capped at 50 points per mission.</p>
+<div class="cm-ideas" id="ideas"></div></section>
 <aside class="card cm-pay">
 <div class="card-heading"><div><span class="eyebrow">REWARDS</span><h2>Points owed</h2></div><span class="st-pill" id="points-status" data-state="wait">Points Ledger…</span></div>
 <p class="st-hint">Completed missions from this week and last week. Paying uses your Points Ledger's own audited adjustment, one viewer at a time, and each payment shows in Points history.</p>
@@ -40,7 +50,7 @@
 <script src="giveaway-connection.js"></script>
 <script src="points-model.js?v=4.4"></script>
 <script src="points-connection.js?v=4.4"></script>
-<script src="missions.js?v=2.16.1"></script>
+<script src="missions.js?v=2.20.21"></script>
 <script src="voyager-shell.js?v=2.20"></script>
 <script src="voyager-navigation.js"></script>
 </body>

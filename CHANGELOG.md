@@ -2,6 +2,17 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.21 (1 November 2026)
+
+**Missions and medals now work together, with mission rewards capped at 50 points.**
+
+- **Every mission works toward a medal.** Missions › each mission shows the medal it advances (Regular Pilot, Point Collector, Versus Ace, Loyal Subscriber, Fleet Gifter, Sub Streak…), and finishing any mission still counts toward Mission Runner and Full Spectrum.
+- **New medal mission types**, each counting this week's progress on the same thing a medal tracks: watch hours live (Time Watched), chat messages (new **Comms Officer** medal), streams in a row (Unbreakable), Dreadnought fights and victories (Dreadnought Slayer), Dreadnought damage and MVPs (Top Gun), and torpedoes (Torpedo Run).
+- **Mission ideas:** 13 ready-made missions to add with one click: Night Shift, Comms Check, Hold the Line, Boarding Party, Dreadnought Down, Heavy Hitter, Top Gun, Torpedo Run, Arena Rookie, Shore Leave Cancelled, Quartermaster, Care Package and Re-enlist (up to 8 missions run at once).
+- **50-point cap:** each mission pays at most 50 Voyager points. Existing missions above 50 were lowered to 50 (unpaid rewards from this and last week now pay 50; anything already paid is unchanged). Match your Currency System also stops at 50 for missions; season goals keep their full rewards.
+- **New medal: Comms Officer** (100 / 1,000 / 5,000 / 20,000 chat messages), counted from 2.20.19.
+- The public site's mission cards say which medal each one works toward, and each medal lists this week's matching mission. The on-stream missions panel shows the new mission types.
+
 ## 2.20.20 (1 November 2026)
 
 **My card on voyagercommand.com: the front is the card from stream, the back has everything else.**

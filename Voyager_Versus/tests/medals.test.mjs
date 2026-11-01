@@ -126,5 +126,5 @@ test('Settings validate grade targets; switched-off medals are not awarded; sett
   const got=m.evaluate().map(a=>a.medal);assert.ok(!got.includes('watch'));assert.ok(got.includes('subs'));
   await m.flush();await m.saving;
   const saved=JSON.parse(await readFile(join(dir,'medals.json'),'utf8'));assert.deepEqual(saved.settings.off,['watch']);
-  assert.equal(MEDALS.filter(x=>x.grades).length,24);
+  assert.equal(MEDALS.filter(x=>x.grades).length,25);
 });

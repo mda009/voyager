@@ -152,7 +152,7 @@ const pilots=new PilotLeaderboard({bot,records:()=>savedRankings});
 publicSite?.setVersus(()=>{const now=Date.now(),cooldown=Number(economy.data.cooldownUntil)||0;
   const status=cooldown>now?'cooldown':['calling','countdown','battle','result'].includes(game.phase)?'live':bot.status.connected?'ready':'offline';
   return {pilots:savedRankings||[],versus:{status,cooldownUntil:cooldown,winnerPoints:REWARDS.winner}};});
-community?.setPilots(()=>savedRankings||[]);community?.setBoss(()=>boss.rewardBatches());publicSite?.setCommunity(()=>community?.publicView()||null);
+community?.setPilots(()=>savedRankings||[]);community?.setMedals(()=>medals);community?.setBoss(()=>boss.rewardBatches());publicSite?.setCommunity(()=>community?.publicView()||null);
 // 2.20.17: the public site as a stream companion. Only display names, tiers, ranks, medals and game results; never watch time, tickets or IDs.
 publicSite?.setCompanion(()=>{
   const d=boss.overlay(),rv=cards.ranksView(25),cat=medals.catalogue().map(m=>({...m,icon:MEDAL_ICONS[m.id]||''}));

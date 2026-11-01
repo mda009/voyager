@@ -132,6 +132,7 @@ function renderMedals(){
   for(const x of list){const c=el('article','card mcard');c.append(hex(x,x.kind==='count'||x.kind==='rank'?2:0));const body=el('div');body.append(el('h4','',x.name),el('p','',x.desc));
    if(x.grades){const g=el('div','grades');x.grades.forEach((t,i)=>{const sp=el('span');const dot=el('i');dot.style.background=LOOK[i][2];sp.append(dot,GRADES[i]+' '+(x.kind==='rank'?'top '+fmt(t):fmt(t)+' '+x.unit));g.append(sp);});body.append(g);}
    const total=(x.earned||[]).reduce((a,b)=>a+b,0);body.append(el('p','',total?fmt(total)+' crew have it':'Nobody has it yet'));
+   for(const ms of (feed.missions?.list||[]).filter(ms=>ms.medal===x.id))body.append(el('p','mission-tie','This week’s mission: '+ms.title+' · +'+fmt(ms.reward)+' pts'));
    c.append(body);grid.append(c);}
   wrap.append(grid);box.append(wrap);
  }

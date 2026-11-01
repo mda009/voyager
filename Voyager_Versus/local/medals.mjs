@@ -41,6 +41,7 @@ export const MEDALS=[
   {id:'spectrum',name:'Full Spectrum',cat:'community',kind:'count',unit:'mission types',grades:[2,3,4,6],desc:'Different mission types completed'},
   {id:'podium',name:'Season Podium',cat:'community',kind:'count',unit:'top-3 finishes',grades:[1,2,4,8],desc:'Seasons finished in the top 3'},
   {id:'champion',name:'Season Champion',cat:'community',kind:'count',unit:'#1 finishes',grades:[1,2,3,5],desc:'Seasons finished at #1'},
+  {id:'comms',name:'Comms Officer',cat:'community',kind:'count',unit:'chat messages',grades:[100,1000,5000,20000],desc:'Chat messages sent on stream (counted from November 2026)'},
   {id:'lucky',name:'Lucky Star',cat:'community',kind:'count',unit:'giveaway wins',grades:[1,3,5,10],desc:'Giveaways won and confirmed'},
   {id:'founding',name:'Founding Crew',cat:'special',kind:'special',desc:'With the crew before Season 2 ends. Can never be earned later.'},
   {id:'firstcontact',name:'First Contact',cat:'special',kind:'special',desc:'Typed !medals for the first time'},
@@ -59,7 +60,7 @@ export const MEDAL_ICONS={watch:'M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0-18 0 M12 7
   torpedo:'M12 2c3 3 4 7 4 11l-4 4-4-4c0-4 1-8 4-11z M8 13l-3 3v3l3-2 M16 13l3 3v3l-3-2 M12 9v.01',topgun:'M3 8l4 4 5-7 5 7 4-4-2 11H5z',
   points:'M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0-18 0 M12 7v10',missions:'M4 6h16v14H4z M8 12l3 3 5-6',spectrum:'M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.6 6.6 19.5l1.2-6L3.3 9.3l6.1-.7z',
   podium:'M7 4h10v5a5 5 0 0 1-10 0z M7 6H4a3 3 0 0 0 3 4 M17 6h3a3 3 0 0 1-3 4 M12 14v4 M8 21h8 M10 18h4',champion:'M3 8l4 4 5-7 5 7 4-4-2 11H5z',
-  lucky:'M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.6 6.6 19.5l1.2-6L3.3 9.3l6.1-.7z',founding:'M12 3l8 3v6c0 5-4 8-8 9-4-1-8-4-8-9V6z',
+  comms:'M4 5h16v11H9l-5 4z M8 9h8 M8 12h5',lucky:'M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.6 6.6 19.5l1.2-6L3.3 9.3l6.1-.7z',founding:'M12 3l8 3v6c0 5-4 8-8 9-4-1-8-4-8-9V6z',
   firstcontact:'M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0-6 0',laststand:'M12 12m-8 0a8 8 0 1 0 16 0a8 8 0 1 0-16 0 M12 8v5 M12 16v.01',
   nightwatch:'M20 14A8 8 0 1 1 10 4a6 6 0 0 0 10 10z',secret:'M9 9a3 3 0 1 1 4 2.8c-.8.4-1 1-1 2v.7 M12 18v.01'};
 const BY_ID=Object.fromEntries(MEDALS.map(m=>[m.id,m]));
@@ -248,7 +249,7 @@ export class Medals{
     return {watch:(c.watch||0)/3600,follow:Math.floor((now-v.first)/DAY),streak:c.bestStreak||0,regular:c.days||0,subs:c.months||0,substreak:c.subBest||0,
       gifter:c.gifts||0,giftbomb:c.giftMax||0,power:(c.bits||0)+(c.kicks||0)+(c.sc||0),goals:c.goals||0,seasonpatron:c.seasonPatron||0,
       versus:versus?.wins||0,hotstreak:versus?.best||0,slayer:c.slayer||0,torpedo:c.torpedo||0,topgun:c.topgun||0,points:c.points||0,
-      missions:c.missions||0,spectrum:(c.mtypes||[]).length,podium:c.podium||0,champion:c.champion||0,lucky:c.lucky||0};
+      comms:c.msgs||0,missions:c.missions||0,spectrum:(c.mtypes||[]).length,podium:c.podium||0,champion:c.champion||0,lucky:c.lucky||0};
   }
   scores(v,x){return {patron:(v.c.months||0)+(v.c.gifts||0)+Math.floor(x.power/500),elder:x.watch>=10?x.watch+x.follow/7:0};}
   evaluate(){

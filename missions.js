@@ -3,7 +3,7 @@
 (()=>{'use strict';
 const $=id=>document.getElementById(id),hosted=location.protocol==='http:'&&/^(127\.0\.0\.1|localhost)$/.test(location.hostname);
 const el=(t,c,x)=>{const n=document.createElement(t);if(c)n.className=c;if(x!==undefined)n.textContent=x;return n;};
-let token='',view=null,missions=[],paying=false,points=null;
+let token='',view=null,missions=[],paying=false,points=null,medalNames={};
 const notice=(text,bad)=>{const n=$('notice');n.hidden=!text;n.textContent=text||'';n.dataset.state=bad?'error':'ok';};
 async function api(path,body){
   if(!token)token=(await(await fetch('/api/admin')).json()).token;
@@ -27,11 +27,12 @@ function render(){
     const row=el('div','cm-fields');
     const type=el('select');for(const [k,t] of Object.entries(view.types)){const o=el('option','',t.label);o.value=k;o.selected=k===m.type;type.append(o);}type.onchange=()=>{m.type=type.value;render();};
     const lt=el('label','','What to do');lt.append(type);
+    const mid=view.missionMedals?.[m.type];if(mid){const tag=el('span','cm-medal','⬢ Works toward '+(medalNames[mid]||mid));tag.title='Progress this week counts toward the '+(medalNames[mid]||mid)+' medal too.';lt.append(tag);}
     const t=view.types[m.type]||{},max=m.type==='earnPoints'?10000000:t.max||7;if(t.max===1)m.target=1;
     const goal=el('input');goal.type='number';goal.min='1';goal.max=String(max);goal.value=m.target;goal.disabled=max===1;goal.oninput=()=>{m.target=Number(goal.value);};
     const lg=el('label','','Goal ('+(view.types[m.type]?.unit||'')+')');lg.append(goal);
-    const reward=el('input');reward.type='number';reward.min='0';reward.max='1000000';reward.value=m.reward;reward.oninput=()=>{m.reward=Number(reward.value);};
-    const lr=el('label','','Reward (points)');lr.append(reward);
+    const reward=el('input');reward.type='number';reward.min='0';reward.max=String(view.rewardMax||50);reward.value=m.reward;reward.oninput=()=>{m.reward=Math.min(view.rewardMax||50,Number(reward.value));};reward.onchange=()=>{reward.value=m.reward;};
+    const lr=el('label','','Reward (max '+(view.rewardMax||50)+' points)');lr.append(reward);
     const plat=el('select');for(const [k,label] of Object.entries(view.platforms||{all:'All platforms'})){const o=el('option','',label);o.value=k;o.selected=k===(m.platform||'all');plat.append(o);}plat.onchange=()=>{m.platform=plat.value;};
     const lp=el('label','','Platform');lp.append(plat);
     row.append(lt,lg,lr,lp);card.append(row);
@@ -46,6 +47,7 @@ function render(){
     box.append(card);
   });
   $('add-mission').disabled=missions.length>=8;
+  renderIdeas();
   const owed=$('owed');owed.textContent='';
   const rows=view.payables.slice().sort((a,b)=>(a.status==='paid')-(b.status==='paid')||b.week-a.week);
   for(const p of rows){
@@ -65,7 +67,20 @@ function render(){
 async function load(){try{view=await api('/api/community');if(!missions.length||!document.querySelector('.cm-missions input:focus'))missions=view.missions.map(({id,title,type,target,reward,platform,enabled})=>({id,title,type,target,reward,platform,enabled}));render();}catch(e){notice(e.message,true);}}
 $('show-missions').onclick=async()=>{try{const showing=view?.panel?.visible&&view.panel.config.kind==='missions';const r=await api('/api/community/panel',showing?{visible:false}:{config:{...(view?.panel?.config||{}),kind:'missions'},visible:true});view.panel=r.panel;notice(showing?'Missions panel hidden.':'Missions panel is on stream. Change its size and position in Seasons › Show on stream.');renderShow();}catch(e){notice(e.message,true);}};
 function renderShow(){const on=view?.panel?.visible&&view.panel.config.kind==='missions';$('show-missions').textContent=on?'Hide from stream':'Show on stream';}
-$('add-mission').onclick=()=>{missions.push({id:'m'+Date.now().toString(36),title:'New mission',type:'earnPoints',target:300,reward:100,enabled:true});render();};
+$('add-mission').onclick=()=>{missions.push({id:'m'+Date.now().toString(36),title:'New mission',type:'earnPoints',target:300,reward:25,enabled:true});render();};
+// 2.20.21: mission ideas, each tied to a medal. Add one, then Save missions.
+function renderIdeas(){
+  const box=$('ideas');if(!box||!view?.ideas)return;box.textContent='';
+  for(const idea of view.ideas){
+    const have=missions.some(m=>m.id===idea.id),card=el('div','cm-idea');
+    const mid=view.missionMedals?.[idea.type];
+    card.append(el('b','',idea.title),el('span','cm-idea-what',idea.blurb),el('span','cm-medal','⬢ '+(medalNames[mid]||mid||'')+' · +'+idea.reward+' pts'));
+    const b=el('button','',have?'Added':'+ Add');b.type='button';b.disabled=have||missions.length>=8;
+    b.onclick=()=>{missions.push({id:idea.id,title:idea.title,type:idea.type,target:idea.target,reward:idea.reward,platform:'all',enabled:true});render();notice(idea.title+' added. Save missions to start it (up to 8 missions).');};
+    card.append(b);box.append(card);
+  }
+}
+(async()=>{try{if(!hosted)return;const r=await fetch('/api/admin');token=token||(await r.json()).token;const m=await(await fetch('/api/medals',{headers:{'X-Voyager-Token':token}})).json();medalNames=Object.fromEntries((m.catalogue||[]).map(x=>[x.id,x.name]));if(view)render();}catch{}})();
 $('save-missions').onclick=async()=>{try{view=await api('/api/community/missions',{missions});missions=view.missions.map(({id,title,type,target,reward,platform,enabled})=>({id,title,type,target,reward,platform,enabled}));notice('Missions saved.');render();}catch(e){notice(e.message,true);}};
 $('pay-all').onclick=async()=>{
   const due=view.payables.filter(p=>p.status!=='paid'&&p.payable);if(!due.length)return;
@@ -105,11 +120,12 @@ function renderAlign(){
 for(const id of ['align-gift','align-sub'])$(id).addEventListener('input',()=>{alignEdited=true;});
 async function applyAlign(gift,sub,auto){
   const G=Number.isInteger(gift)&&gift>=0?gift:sub,S=Number.isInteger(sub)&&sub>=0?sub:gift;if(!Number.isInteger(G)||!Number.isInteger(S))throw new Error('Enter the points per gifted sub (and per sub if different).');
-  const next=missions.map(m=>m.type==='subscribe'?{...m,reward:S}:m.type==='giftSubs'?{...m,reward:G}:m.type==='loyalSub'?{...m,reward:Math.round(S/2)}:m);
+  const cap=v=>Math.min(view?.rewardMax||50,v);// missions are capped at 50 points (2.20.21); season goals keep the full payout
+  const next=missions.map(m=>m.type==='subscribe'?{...m,reward:cap(S)}:m.type==='giftSubs'?{...m,reward:cap(G)}:m.type==='loyalSub'?{...m,reward:cap(Math.round(S/2))}:m);
   view=await api('/api/community/missions',{missions:next});missions=view.missions.map(({id,title,type,target,reward,platform,enabled})=>({id,title,type,target,reward,platform,enabled}));
   const goals=(view.goals||[]).map(({id,title,metric,platform,target})=>({id,title,metric,platform,target,reward:metric==='subs'?S:G}));
   view=await api('/api/community/season',{goals,supportBonus:G});
-  $('align-note').textContent=(auto?'Matched automatically: ':'Saved: ')+'Crew Supporter '+S+', Fleet Gifter '+G+', Veteran Crew '+Math.round(S/2)+', season goals '+G+' per helper, supporter bonus '+G+'.';
+  $('align-note').textContent=(auto?'Matched automatically: ':'Saved: ')+'Crew Supporter '+cap(S)+', Fleet Gifter '+cap(G)+', Veteran Crew '+cap(Math.round(S/2))+' (missions max '+(view?.rewardMax||50)+'), season goals '+G+' per helper, supporter bonus '+G+'.';
   render();
 }
 $('align-apply').onclick=async()=>{try{await applyAlign(parseInt($('align-gift').value,10),parseInt($('align-sub').value,10),false);notice('Subscriber rewards now match your Currency System.');}catch(e){notice(e.message,true);}};

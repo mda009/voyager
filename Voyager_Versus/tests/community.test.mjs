@@ -88,7 +88,7 @@ test('Subscriber missions: subscribe or renew, gift subs and long subscriptions,
   assert.equal(by.veteran.completed,1,'only Nova is at 6+ months');
   const owed=c.payables().filter(p=>p.missionId==='supporter');
   assert.equal(owed.find(p=>p.key==='twitch:9').payable,false,'no points account, so it cannot be paid yet');
-  c.setMissions([{id:'kick-subs',title:'Kick Crew',type:'subscribe',target:1,reward:100,platform:'kick'},{id:'yt',title:'YT',type:'subscribe',target:1,reward:100,platform:'youtube'}]);
+  c.setMissions([{id:'kick-subs',title:'Kick Crew',type:'subscribe',target:1,reward:50,platform:'kick'},{id:'yt',title:'YT',type:'subscribe',target:1,reward:50,platform:'youtube'}]);
   const v=Object.fromEntries(c.view().missions.map(m=>[m.id,m]));
   assert.equal(v['kick-subs'].completed,0);assert.equal(v.yt.completed,1);
   assert.throws(()=>normalizeMissions([{title:'X',type:'subscribe',target:2,reward:1}]),/\(1\)/);
@@ -131,5 +131,25 @@ test('2.16.1 lowers untouched 2.15 subscriber rewards once, and keeps rewards yo
   old.goals=[{id:'crew',title:'Grow the Crew',metric:'support',platform:'all',target:50,reward:300},{id:'gift-fleet',title:'Gift Fleet',metric:'gifts',platform:'all',target:25,reward:200}];
   await writeFile(join(dir,'community.json'),JSON.stringify(old));
   const c=await new Community({dataDir:dir,now:()=>monday}).load(),r=Object.fromEntries([...c.state.missions,...c.state.goals].map(x=>[x.id,x.reward]));
-  assert.deepEqual([r.supporter,r.gifter,r.veteran,r.crew,r['gift-fleet']],[250,999,125,250,200]);
+  assert.deepEqual([r.supporter,r.gifter,r.veteran,r.crew,r['gift-fleet']],[50,50,50,250,200],'2.20.21: missions are capped at 50; season goals keep theirs');
+});
+
+test('2.20.21 medal missions: weekly progress on medal counters, linked medals, ideas and the 50-point cap',async()=>{
+  const {MISSION_MEDALS,MISSION_IDEAS,MISSION_REWARD_MAX,TYPES}=await import('../local/community.mjs');
+  assert.equal(MISSION_REWARD_MAX,50);
+  assert.throws(()=>normalizeMissions([{title:'Big',type:'earnPoints',target:5,reward:51}]),/0 to 50/);
+  for(const i of MISSION_IDEAS){assert.ok(i.reward<=50,i.title);assert.ok(TYPES[i.type],i.type);assert.ok(MISSION_MEDALS[i.type],i.type+' links a medal');}
+  assert.doesNotThrow(()=>normalizeMissions(MISSION_IDEAS.slice(0,8)));
+  const dir=await mkdtemp(join(tmpdir(),'voyager-community-'));let now=monday+DAY;
+  const viewers={'twitch:1':{name:'Nova',platform:'twitch',first:monday-30*DAY,c:{watch:10*3600,msgs:40,fights:1,slayer:0,streak:2}},'kick:2':{name:'Rook',platform:'kick',first:monday+2*3600000,c:{msgs:12}}};
+  const c=await new Community({dataDir:dir,now:()=>now}).load();c.setMedals(()=>({state:{viewers}}));
+  c.setMissions([{id:'watch',title:'Night Shift',type:'watchHours',target:3,reward:30},{id:'chat',title:'Comms Check',type:'chatMessages',target:25,reward:20},{id:'fight',title:'Boarding Party',type:'dreadFights',target:2,reward:25}]);
+  viewers['twitch:3']={name:'Old',platform:'twitch',first:monday-60*DAY,c:{}};
+  viewers['twitch:3'].c.msgs=26;
+  viewers['twitch:1'].c.watch+=3*3600+5;viewers['twitch:1'].c.msgs+=30;viewers['twitch:1'].c.fights+=2;viewers['kick:2'].c.msgs+=20;
+  const p=id=>c.progressFor(c.state.missions.find(m=>m.id===id));
+  assert.deepEqual(p('watch').map(r=>[r.name,r.progress,r.done]),[['Nova',3,true]],'only this week counts (10 h before the week ignored)');
+  assert.deepEqual(p('chat').map(r=>[r.name,r.progress,r.done]),[['Nova',25,true],['Old',25,true],['Rook',20,false]],'counts from the snapshot (when the mission was added); anyone not in it counts from 0');
+  assert.deepEqual(p('fight').map(r=>[r.name,r.done]),[['Nova',true]]);
+  assert.equal(c.view().missionMedals.watchHours,'watch');assert.equal(c.publicView().missions[0].medal,'watch');
 });

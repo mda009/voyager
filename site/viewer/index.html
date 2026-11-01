@@ -146,6 +146,9 @@ dialog.proof::backdrop{background:#020913cc;backdrop-filter:blur(4px)}
 .mission h3{font:700 22px/1.15 var(--display);margin:6px 0 4px}
 .mission .reward{font:700 18px/1 var(--display);color:#f2cd73}
 .mission .done{color:var(--muted);font-size:14px;margin-top:10px}
+.medal-link{display:inline-block;font:700 13px/1.3 var(--display);letter-spacing:.6px;color:#f2cd73;text-decoration:none;margin-top:2px}
+.medal-link:hover{text-decoration:underline}
+.mcard .mission-tie{color:#f2cd73;font-size:13px;margin:6px 0 0}
 .mission.sub{border-color:rgba(242,205,115,.35)}
 .goal-bar{height:8px;border-radius:4px;background:rgba(151,223,255,.12);overflow:hidden;margin-top:10px}.goal-bar i{display:block;height:100%;background:linear-gradient(90deg,#97dfff,#f2cd73)}
 #sub-goal-list{margin-bottom:18px}
@@ -405,7 +408,7 @@ nav.tabbar button:focus-visible{outline:2px solid var(--cyan);outline-offset:2px
  <footer><p id="updated">Updates every few minutes while the stream tools are running.</p><p>Voyager community site. Giveaway entry happens in stream chat only; this site never asks for passwords or payment.</p></footer>
 </div>
 <script src="fair-draw.js"></script>
-<script src="companion.js?v=2.20.20" defer></script>
+<script src="companion.js?v=2.20.21" defer></script>
 <script>
 (()=>{'use strict';
 // ?embed=1: shown inside another site. Report our height so the host page can size its frame.
@@ -559,12 +562,16 @@ $('proof-dialog').addEventListener('click',e=>{if(e.target===$('proof-dialog'))$
 const ON={all:'',twitch:' on Twitch',youtube:' on YouTube',kick:' on Kick'};
 const MISSION_TEXT={streamDays:(n)=>'Earn points on '+n+' different stream day'+(n===1?'':'s')+' this week',earnPoints:(n)=>'Earn '+fmt(n)+' Voyager points this week',versusWins:(n)=>'Win '+(n===1?'a Voyager Versus battle':n+' Voyager Versus battles')+' this week',
  subscribe:(n,p)=>(p==='youtube'?'Join or renew your YouTube membership':p==='all'||!p?'Subscribe or renew (Twitch sub, YouTube membership or Kick sub)':'Subscribe or renew'+ON[p])+' this week',
- giftSubs:(n,p)=>'Gift '+(n===1?'a sub':fmt(n)+' subs')+(ON[p]||'')+' this week',loyalSub:(n,p)=>'Renew'+(ON[p]||'')+' this week with '+n+'+ months subscribed'};
+ giftSubs:(n,p)=>'Gift '+(n===1?'a sub':fmt(n)+' subs')+(ON[p]||'')+' this week',loyalSub:(n,p)=>'Renew'+(ON[p]||'')+' this week with '+n+'+ months subscribed',
+ watchHours:(n,p)=>'Watch '+n+' hour'+(n===1?'':'s')+' live'+(ON[p]||'')+' this week',chatMessages:(n,p)=>'Send '+fmt(n)+' chat messages'+(ON[p]||'')+' this week',streamStreak:(n)=>'Be at '+n+' streams in a row',
+ dreadFights:(n)=>'Join '+(n===1?'a Dreadnought fight':n+' Dreadnought fights')+' this week (!join)',dreadVictory:(n)=>'Be in the fleet for '+(n===1?'a Dreadnought victory':n+' Dreadnought victories')+' this week',
+ dreadDamage:(n)=>'Deal '+fmt(n)+' damage to the Dreadnought this week',dreadMvp:(n)=>'Finish '+(n===1?'a Dreadnought fight':n+' fights')+' as MVP this week',torpedo:(n)=>'Fire '+(n===1?'a torpedo':n+' torpedoes')+' (gift a sub during a Dreadnought fight)'};
 const GOAL_TEXT={support:'subs, renewals and gifted subs',subs:'subs and renewals',gifts:'gifted subs'};
 function renderMissions(){
  const m=feed.missions,box=$('mission-list');box.textContent='';$('missions').hidden=!m||!m.list?.length;if(!m)return;
  $('missions-lede').textContent='Finish a mission to earn Voyager points. New missions every Monday'+(m.endsAt?' · this week ends '+new Date(m.endsAt).toLocaleDateString(undefined,{weekday:'long'}):'')+'.';
- for(const x of m.list){const c=el('article','card mission'+(['subscribe','giftSubs','loyalSub'].includes(x.type)?' sub':''));const top=el('div','gw-top');top.append(el('span','kind','Weekly mission'),el('span','reward','+'+fmt(x.reward)+' pts'));c.append(top,el('h3','',x.title),el('p','who',(MISSION_TEXT[x.type]||(()=>''))(x.target,x.platform)),el('p','done',x.completed?fmt(x.completed)+(x.completed===1?' viewer has':' viewers have')+' finished it':'Be the first to finish it'));box.append(c);}
+ for(const x of m.list){const c=el('article','card mission'+(['subscribe','giftSubs','loyalSub'].includes(x.type)?' sub':''));const top=el('div','gw-top');top.append(el('span','kind','Weekly mission'),el('span','reward','+'+fmt(x.reward)+' pts'));const medalName=(feed.medals?.catalogue||[]).find(md=>md.id===x.medal)?.name;
+  c.append(top,el('h3','',x.title),el('p','who',(MISSION_TEXT[x.type]||(()=>''))(x.target,x.platform)));if(medalName){const mt=el('a','medal-link','⬢ Works toward the '+medalName+' medal');mt.href='#medals';c.append(mt);}c.append(el('p','done',x.completed?fmt(x.completed)+(x.completed===1?' viewer has':' viewers have')+' finished it':'Be the first to finish it'));box.append(c);}
 }
 function renderSeason(){
  const s=feed.season;$('season').hidden=!s;if(!s)return;
