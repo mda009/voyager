@@ -28,7 +28,9 @@ function ticketReveal(){const mode=ticketState?.view,event=mode==='reveal'?ticke
  const live=!!ticketState?.campaign&&!!event&&Number.isFinite(event.at)&&event.at>=(state?.updatedAt||0)&&now>=event.at-5000&&now<expiresAt;
  const key=live?mode+':'+(event.id||event.at):'',play=live&&(!arbiter||arbiter.mayPlay(key));
  arbiter?.beat(ticketConnected,play?key:'');
- if(!play){clearTicketAnimation();return false;}
+ if(!play){clearTicketAnimation();
+  // 2.20.14: while another source plays the reveal, keep the list off screen too so it never sits over the animation.
+  if(live){$('panel').hidden=true;return true;}return false;}
  $('panel').hidden=true;const frame=$('ticket-animation');frame.hidden=false;
  if(!animationKey){animationKey='sequence';frame.src='Voyager_Giveaway_Sequence.html';}
  sendTicketSequence();return true;

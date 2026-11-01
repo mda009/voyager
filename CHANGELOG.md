@@ -2,6 +2,15 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.14 (1 November 2026)
+
+**Ticketed giveaway: show and hide the on-screen panel any time, and it gets out of the way of the winner reveal.**
+
+- **Show ticket panel** and **Hide ticket panel** in Ticket controls now work at any time, with or without a ticketed giveaway running. Before, both were greyed out until a giveaway existed, so a panel already on screen couldn't be hidden. Hide takes the shared panel off screen whatever it is showing.
+- **Draw winner**, **Reroll** and **Confirm** no longer pop the panel onto the stream. They hide it instead, and the countdown, buildup, wheel and winner play on their own. Press Show ticket panel to bring the list back afterwards.
+- While a reveal plays in another source (such as the main Giveaway overlay), the Leaderboard panel keeps its list off screen so it never sits over the animation.
+- No Streamer.bot changes. Refresh the Leaderboard panel browser source in OBS after updating.
+
 ## 2.20.13 (1 November 2026)
 
 **New Ranks page in Voyager Control (Community › Ranks).**

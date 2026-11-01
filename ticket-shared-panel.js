@@ -50,8 +50,8 @@
       try {
         const state = await this.refresh();
         if (gen !== this.generation || !state) throw Error('The panel connection changed. Try again once connected.');
-        // Hiding tickets must never hide a leaderboard selected in another dock.
-        if (operation === 'hide' && state.config.kind !== 'tickets') return state;
+        // 2.20.14: Hide takes whatever the shared panel is showing off screen (asked for: hide it at any time).
+        if (operation === 'hide' && !state.visible) return state;
         const config = M.config({...state.config, kind: 'tickets', platform: 'all'});
         let next;
         if (this.demo) next = {...state, config, revision: state.revision + 1, updatedAt: Date.now(),
