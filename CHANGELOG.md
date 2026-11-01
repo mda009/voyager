@@ -2,6 +2,15 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.15 (1 November 2026)
+
+**Membership cards show each viewer's medals and naval rank clearly.**
+
+- **Medals:** the medal row on the front of the card now shows each earned medal in its grade's metal (bronze, silver, gold or prismatic Legend), with a clearer icon and the medal's name underneath. Up to six are shown, best first. A viewer with none yet sees how to start earning them.
+- **Rank:** the naval rank now has its own panel under the tier emblem: "NAVAL RANK", a larger sleeve-lace insignia, the rank name, and their all-time place and lifetime points.
+- **Fairer ranks:** lifetime points are now never less than the points someone currently holds. Before, points earned before Voyager started counting were missed, so long-time members showed a lower rank than they'd earned.
+- No Streamer.bot changes. Refresh the membership card browser source in OBS after updating.
+
 ## 2.20.14 (1 November 2026)
 
 **Ticketed giveaway: show and hide the on-screen panel any time, and it gets out of the way of the winner reveal.**

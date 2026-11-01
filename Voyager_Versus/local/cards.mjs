@@ -33,6 +33,15 @@ const clean=(v,max)=>String(v??'').replace(/[\u0000-\u001f\u007f]/g,' ').trim().
 const num=v=>{const n=Number(v);return Number.isFinite(n)?n:0;};
 const fmt=n=>Math.round(num(n)).toLocaleString('en');
 const KEY=/^(twitch|youtube|kick):[^\s]{1,128}$/;
+// 2.20.15: lifetime points are what Voyager has seen earned, but never less than the points someone holds right now
+// (balances from before Voyager started counting were earned too).
+const lifetimeOf=m=>m?Math.max(num(m.value),num(m.balance)):0;
+// Medal grade metals for the card's medal row.
+const GRADE_LOOK=[
+  {metal:'linear-gradient(180deg,#ffe6cc 0%,#f0a868 30%,#a5582a 52%,#6e3510 60%,#d68a4c 84%,#ffd9b0 100%)',ink:'#fff3e6',tag:'#f0b07a'},
+  {metal:'linear-gradient(180deg,#ffffff 0%,#eef2f6 26%,#9aa6b4 50%,#55606d 58%,#cfd8e2 84%,#ffffff 100%)',ink:'#ffffff',tag:'#dfe6ee'},
+  {metal:'linear-gradient(180deg,#fffbe0 0%,#ffe07a 26%,#e0a420 48%,#7a4d00 56%,#ffcf4a 82%,#fff3b8 100%)',ink:'#fff8dc',tag:'#ffd257'},
+  {metal:'linear-gradient(135deg,#8ff6ff 0%,#9fb4ff 30%,#c58bff 52%,#ff8fe0 74%,#ffe28a 100%)',ink:'#ffffff',tag:'#d6a8ff'}];
 
 export function normalizeCardSettings(raw={},base=CARD_DEFAULTS){
   const r=raw&&typeof raw==='object'?raw:{},s=structuredClone(base);
@@ -138,7 +147,7 @@ export class Cards{
   // All-time leaderboard of lifetime points (Points Ledger "captured in"), bucket accounts left out.
   board(){
     const members=this.community()?.state?.members||{};
-    const rows=Object.entries(members).filter(([,m])=>!BUCKETS.has(m.login)&&num(m.value)>0).map(([key,m])=>({key,value:num(m.value)})).sort((a,b)=>b.value-a.value);
+    const rows=Object.entries(members).filter(([,m])=>!BUCKETS.has(m.login)&&lifetimeOf(m)>0).map(([key,m])=>({key,value:lifetimeOf(m)})).sort((a,b)=>b.value-a.value);
     const place=new Map();rows.forEach((r,i)=>place.set(r.key,i+1));
     return {rows,place};
   }
@@ -197,7 +206,7 @@ export class Cards{
     const community=this.community(),cm=sample?{value:214560}:community?.state?.members?.[who.key]||null;
     const since=Math.min(v?.first||now,now),hidden=!!m.private;
     const balance=who.hasPoints?who.points:num(cm?.balance);
-    const lifetime=num(cm?.value);
+    const lifetime=sample?num(cm?.value):lifetimeOf(cm);
     const allTime=sample?6:this.board().place.get(who.key)||0;
     const rv=this.rankView(who.key,lifetime,allTime);
     // Versus
@@ -236,7 +245,8 @@ export class Cards{
       {label:'DREADNOUGHT',value:c.topgun?'MVP ×'+c.topgun:c.slayer?fmt(c.slayer)+' victories':c.fights?fmt(c.fights)+' fights':'—'},
       {label:'SUBSCRIBED',value:hidden?'Private':c.months?fmt(c.months)+' months':'—'},
       {label:'HONOUR',value:'★ '+fmt(honour)+(earned.length?' · '+earned.length+' medals':'')}];
-    const badge=e=>({icon:MEDAL_ICONS[e.id]||MEDAL_ICONS.spectrum,name:e.m.name,sub:e.m.grades?GRADE_NAMES[e.g]:'Special',op:'1',filter:'none'});
+    const badge=e=>{const look=e.m.grades?GRADE_LOOK[Math.max(0,Math.min(3,e.g|0))]:null;
+      return {icon:MEDAL_ICONS[e.id]||MEDAL_ICONS.spectrum,name:e.m.name,sub:e.m.grades?GRADE_NAMES[e.g]:'Special',op:'1',filter:'none',metal:look?.metal||'',ink:look?.ink||'',tag:look?.tag||''};};
     const equipped=earned.slice(0,6).map(badge);
     const x=v&&medals?medals.metrics(v,now):{};
     const locked=MEDALS.filter(md=>!v?.m?.[md.id]&&md.kind!=='secret').map(md=>{
