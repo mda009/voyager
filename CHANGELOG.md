@@ -2,6 +2,17 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.18 (1 November 2026)
+
+**Find your card shows both sides of the membership card.**
+
+- On voyagercommand.com › My card, the card now has a **front** and a **back**. Tap the card (or use the Front / Back buttons) and it flips over in 3D.
+- **Front:** tier, name, all-time place and lifetime points, naval rank with insignia and progress to the next rank, and the top six medals with Honour.
+- **Back (service record):** Honour, Dreadnought (fights, victories, MVPs, damage), Voyager Versus record and win rate, missions completed, season place and points, giveaways won and when they joined the crew, then the full medal wall with the medals still to earn.
+- The back only uses games, missions, seasons and wins (already shown on stream); watch time, subs, gifts and Bits are never published.
+- A link straight to `voyagercommand.com/#crew` now opens My card.
+- Update the app so it publishes the service record; until then the back shows the medal wall only.
+
 ## 2.20.17 (1 November 2026)
 
 **The public website is now a stream companion app (voyagercommand.com).**

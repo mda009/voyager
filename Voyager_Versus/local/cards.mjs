@@ -290,9 +290,17 @@ export class Cards{
   overlay(){const now=this.now();return {serverAt:now,items:this.state.queue.filter(x=>now-x.at<10*60000)};}
   // 2.20.17: rows for the public site's crew lookup (crew.json): name, platform, tier, rank, all-time place, lifetime points and medals.
   crewRows(limit=2000){
-    const viewers=this.medals?.state?.viewers||{};
-    return this.ranksView(limit).members.map(m=>({name:m.name,platform:m.platform,tier:m.tier,rank:m.rank,place:m.place,lifetime:m.lifetime,
-      medals:Object.entries(viewers[m.key]?.m||{}).sort((a,b)=>b[1].g-a[1].g||b[1].at-a[1].at).map(([id,e])=>[id,e.g])}));
+    const viewers=this.medals?.state?.viewers||{},members=this.community()?.state?.members||{};
+    const pilots=new Map((this.rankings()||[]).filter(p=>p&&p.login).map(p=>[String(p.login).toLowerCase(),p]));
+    let standings=[];try{standings=this.community()?.standings(1000)||[];}catch{}
+    const season=new Map(standings.map(r=>[r.key,r]));
+    return this.ranksView(limit).members.map(m=>{const v=viewers[m.key],c=v?.c||{},login=String(members[m.key]?.login||'').toLowerCase(),p=m.platform==='twitch'?pilots.get(login):null,sr=season.get(m.key);
+      return {name:m.name,platform:m.platform,tier:m.tier,rank:m.rank,place:m.place,lifetime:m.lifetime,
+        medals:Object.entries(v?.m||{}).sort((a,b)=>b[1].g-a[1].g||b[1].at-a[1].at).map(([id,e])=>[id,e.g]),
+        // 2.20.18: the back of the card (service record). Games, missions, season and wins only: never watch time, subs, gifts or Bits.
+        record:{honour:v&&this.medals?this.medals.honour(v):0,fights:c.fights||0,victories:c.slayer||0,mvp:c.topgun||0,damage:c.damage||0,
+          wins:num(p?.wins),losses:num(p?.losses),missions:c.missions||0,giveaways:c.lucky||0,podiums:c.podium||0,seasonPlace:sr?.rank||0,seasonPoints:sr?.score||0,
+          since:v?.first?new Date(v.first).toISOString().slice(0,7):''}};});
   }
   // 2.20.13: the Ranks page in Voyager Control. Everyone with lifetime points, their rank, all-time place and progress.
   ranksView(limit=1000){

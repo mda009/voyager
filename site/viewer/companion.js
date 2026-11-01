@@ -20,12 +20,12 @@ const TABS=[
  ['boards','Boards','M4 20V10 M10 20V4 M16 20v-7 M22 20H2'],
  ['winners','Winners','M7 4h10v5a5 5 0 0 1-10 0z M7 6H4a3 3 0 0 0 3 4 M17 6h3a3 3 0 0 1-3 4 M12 14v4 M8 21h8'],
  ['guide','Guide','M4 4h7a3 3 0 0 1 3 3v13a2 2 0 0 0-2-2H4z M20 4h-7a3 3 0 0 0-3 3v13a2 2 0 0 1 2-2h8z']];
-let tab=(location.hash.slice(1)||'live');
+let tab=(location.hash.slice(1)||'live'),wanted=tab; // a link to #crew waits for the feed before it can open that tab
 function sectionsOf(t){return [...document.querySelectorAll('section[data-tab="'+t+'"]')];}
 function available(t){return sectionsOf(t).some(s=>!s.hidden);}
 function renderTabs(){
  const bar=$('tabbar');bar.textContent='';bar.setAttribute('role','tablist');
- const shown=TABS.filter(([t])=>available(t));if(!shown.some(([t])=>t===tab))tab=shown[0]?.[0]||'live';
+ const shown=TABS.filter(([t])=>available(t));if(wanted&&shown.some(([t])=>t===wanted)){tab=wanted;if(feed)wanted=null;}if(!shown.some(([t])=>t===tab))tab=shown[0]?.[0]||'live';
  const busy=feed&&(feed.live?.onAir||['lobby','battle'].includes(feed.dreadnought?.phase));
  for(const [t,label,path] of shown){
   const b=el('button');b.type='button';b.setAttribute('role','tab');b.setAttribute('aria-selected',String(t===tab));b.setAttribute('aria-controls',sectionsOf(t)[0]?.id||'');
@@ -35,7 +35,7 @@ function renderTabs(){
  }
  for(const s of document.querySelectorAll('section[data-tab]'))s.classList.toggle('off',s.dataset.tab!==tab);
 }
-function go(t,push=true){tab=t;if(push)history.replaceState(null,'','#'+t);renderTabs();if(t==='crew')loadCrew();window.scrollTo({top:0,behavior:'smooth'});}
+function go(t,push=true){tab=t;wanted=null;if(push)history.replaceState(null,'','#'+t);renderTabs();if(t==='crew')loadCrew();window.scrollTo({top:0,behavior:'smooth'});}
 addEventListener('hashchange',()=>{const t=location.hash.slice(1);if(TABS.some(([x])=>x===t))go(t,false);});
 const st=document.createElement('style');st.textContent='section.off{display:none!important}'+(EMBED?' nav.tabbar{position:static!important;padding:0!important;background:none!important;border:0!important;margin-top:10px!important}.embed .wrap{padding-bottom:24px!important}':'');document.head.append(st);
 
@@ -157,7 +157,7 @@ async function loadCrew(force=false){
  if(crewLoading)return crewLoading;
  $('crew-note').textContent='Loading the crew list…';
  crewLoading=(async()=>{try{const r=await fetch(crewUrl()+'?t='+Math.floor(Date.now()/300000),{cache:'no-store'});if(!r.ok)throw new Error();const d=await r.json();if(d?.schema!==1||!Array.isArray(d.members))throw new Error();
-  crew=d.members.map(m=>({name:String(m[0]),platform:m[1],tier:m[2],rank:m[3]|0,place:m[4]|0,lifetime:Number(m[5])||0,medals:Array.isArray(m[6])?m[6]:[],key:String(m[0]).toLowerCase()}));crewAt=Date.now();
+  crew=d.members.map(m=>({name:String(m[0]),platform:m[1],tier:m[2],rank:m[3]|0,place:m[4]|0,lifetime:Number(m[5])||0,medals:Array.isArray(m[6])?m[6]:[],record:Array.isArray(m[7])?m[7]:null,key:String(m[0]).toLowerCase()}));crewAt=Date.now();
   $('crew-note').textContent=fmt(crew.length)+' crew members · updated '+ago(d.generatedAt)+'. Not listed? Earn some Voyager points on stream and check back.';
   search();
   try{const saved=localStorage.getItem('voyager-me');if(saved&&!selected){const me=crew.find(m=>m.key===saved);if(me)show(me,false);}}catch{}
@@ -170,25 +170,62 @@ function search(){
  for(const m of hits){const li=el('li'),b=el('button');b.type='button';b.append(who(m),el('span','meta',(feed?.ranks?.ladder?.[m.rank]?.name||'')+' · #'+fmt(m.place)));b.onclick=()=>show(m);li.append(b);out.append(li);}
  if(!hits.length)out.append(el('li','lede small','No one by that name yet.'));
 }
-function show(m,remember=true){
+// 2.20.18: the card has a front and a back (the service record), like the card on stream. Tap it or use the buttons to flip.
+function medalTile(md,g,i,locked){const d=el('div','medal'+(locked?' locked':''));d.append(hex(md,locked?0:g,locked?0:120+i*70),el('span','',md?.name||'Medal'),el('small','',locked?'Locked':md&&['count','rank'].includes(md.kind)?GRADES[g]:'Special'));return d;}
+const plural=(n,one,many)=>fmt(n)+' '+(n===1?one:many);
+function tile(label,value,sub){const t=el('div','rtile');t.append(el('small','',label),el('b','',value));if(sub)t.append(el('span','',sub));return t;}
+function show(m,remember=true,side='front'){
  selected=m;$('crew-results').textContent='';$('crew-search').value='';
  if(remember)try{localStorage.setItem('voyager-me',m.key);}catch{}
- const [title,c1,c2]=TIER[m.tier]||TIER.blue,box=$('member');box.hidden=false;box.textContent='';
- box.style.setProperty('--t',c1);box.style.setProperty('--t2',c2);box.style.animation='none';void box.offsetWidth;box.style.animation='';
- const ladder=feed?.ranks?.ladder||[],rk=ladder[m.rank],next=ladder[m.rank+1];
- box.append(el('div','tiername',title),el('div','who',m.name),el('div','plat',(PLATFORM[m.platform]||'')+' · #'+fmt(m.place)+' all-time · '+fmt(m.lifetime)+' lifetime points'));
- if(rk){const row=el('div','rankrow');const t=el('div');t.append(el('small','','Naval rank'),el('b','',rk.name));row.append(insignia(m.rank),t);box.append(row);
+ const [title,c1,c2]=TIER[m.tier]||TIER.blue,box=$('member');box.hidden=false;box.textContent='';box.className='member-wrap';
+ box.style.setProperty('--t',c1);box.style.setProperty('--t2',c2);
+ const ladder=feed?.ranks?.ladder||[],rk=ladder[m.rank],next=ladder[m.rank+1],total=catalogue.size||0;
+ const rec=m.record?{honour:m.record[0],fights:m.record[1],victories:m.record[2],mvp:m.record[3],damage:m.record[4],wins:m.record[5],losses:m.record[6],missions:m.record[7],giveaways:m.record[8],podiums:m.record[9],seasonPlace:m.record[10],seasonPoints:m.record[11],since:m.record[12]}:null;
+ // controls
+ const ctl=el('div','sides');ctl.setAttribute('role','tablist');ctl.setAttribute('aria-label','Card side');
+ const fb=el('button','','Front'),bb=el('button','','Back');
+ for(const b of [fb,bb]){b.type='button';b.setAttribute('role','tab');ctl.append(b);}
+ const flipper=el('div','card3d'),front=el('div','member face front'),back=el('div','member face back');
+ const setSide=s=>{flipper.classList.toggle('flipped',s==='back');fb.setAttribute('aria-selected',String(s==='front'));bb.setAttribute('aria-selected',String(s==='back'));front.setAttribute('aria-hidden',String(s==='back'));back.setAttribute('aria-hidden',String(s==='front'));};
+ fb.onclick=()=>setSide('front');bb.onclick=()=>setSide('back');
+ flipper.onclick=e=>{if(e.target.closest('button'))return;setSide(flipper.classList.contains('flipped')?'front':'back');};
+ flipper.tabIndex=0;flipper.setAttribute('aria-label','Membership card. Press Enter to flip.');flipper.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();flipper.click();}};
+ // front
+ front.append(el('div','tiername',title),el('div','who',m.name),el('div','plat',(PLATFORM[m.platform]||'')+' · #'+fmt(m.place)+' all-time · '+fmt(m.lifetime)+' lifetime points'));
+ if(rk){const row=el('div','rankrow');const t=el('div');t.append(el('small','','Naval rank'),el('b','',rk.name));row.append(insignia(m.rank),t);front.append(row);
   if(next){const need=Math.max(0,next.points-m.lifetime),span=next.points-rk.points,pct=span?Math.max(0,Math.min(100,(m.lifetime-rk.points)/span*100)):100;
-   box.append(el('p','next',need?fmt(need)+' points to '+next.name+(next.top?' (and top '+next.top+' all-time)':''):'Needs a top '+next.top+' all-time place for '+next.name));const bar=el('div','bar');const f=el('i');f.style.width=pct.toFixed(1)+'%';bar.append(f);box.append(bar);}
-  else box.append(el('p','next','The highest rank in the Voyager fleet.'));}
- box.append(el('h4','','Medals · '+m.medals.length+' of '+(catalogue.size||'–')));
- const grid=el('div','medal-grid');
- m.medals.forEach(([id,g],i)=>{const md=catalogue.get(id);const d=el('div','medal');d.append(hex(md,g,120+i*70),el('span','',md?.name||id),el('small','',md&&['count','rank'].includes(md.kind)?GRADES[g]:'Special'));grid.append(d);});
- const earned=new Set(m.medals.map(x=>x[0]));
- for(const md of catalogue.values()){if(earned.has(md.id)||md.kind==='secret')continue;const d=el('div','medal locked');d.append(hex(md,0),el('span','',md.name),el('small','','Locked'));grid.append(d);}
- box.append(grid);
- const again=el('button','chip','Not you? Search again');again.type='button';again.style.marginTop='16px';again.onclick=()=>{try{localStorage.removeItem('voyager-me');}catch{}selected=null;box.hidden=true;$('crew-search').focus();};box.append(again);
- box.append(el('p','lede small','Type !voyager in chat to show your card on stream.'));
+   front.append(el('p','next',need?fmt(need)+' points to '+next.name+(next.top?' (and top '+next.top+' all-time)':''):'Needs a top '+next.top+' all-time place for '+next.name));const bar=el('div','bar');const f=el('i');f.style.width=pct.toFixed(1)+'%';bar.append(f);front.append(bar);}
+  else front.append(el('p','next','The highest rank in the Voyager fleet.'));}
+ front.append(el('h4','','Medals · '+m.medals.length+' of '+(total||'–')+(rec?.honour?' · ★ '+fmt(rec.honour)+' honour':'')));
+ const top6=el('div','medal-grid');m.medals.slice(0,6).forEach(([id,g],i)=>top6.append(medalTile(catalogue.get(id),g,i)));
+ if(!m.medals.length)top6.append(el('p','lede small','No medals yet. Watch, chat and play on stream to earn them.'));
+ front.append(top6,el('p','hint','Tap the card to see the back ↻'));
+ // back: service record + medal wall
+ back.append(el('div','tiername','Service record'),el('div','who small-who',m.name));
+ if(rec){
+  const g=el('div','rgrid');
+  const battles=rec.wins+rec.losses;
+  g.append(tile('Honour','★ '+fmt(rec.honour),m.medals.length+' of '+(total||'–')+' medals'),
+   tile('Dreadnought',rec.mvp?'MVP ×'+fmt(rec.mvp):rec.victories?plural(rec.victories,'victory','victories'):plural(rec.fights,'fight','fights'),plural(rec.fights,'fight','fights')+' · '+plural(rec.victories,'victory','victories')+' · '+fmt(rec.damage)+' damage'),
+   tile('Voyager Versus',battles?fmt(rec.wins)+'–'+fmt(rec.losses):'—',battles?Math.round(rec.wins/battles*100)+'% win rate':'Type !versus to battle'),
+   tile('Missions',fmt(rec.missions),'weekly missions completed'),
+   tile((feed?.season?.name||'Season'),rec.seasonPlace?'#'+fmt(rec.seasonPlace):'Unranked',rec.seasonPlace?fmt(rec.seasonPoints)+' points'+(rec.podiums?' · '+rec.podiums+' podiums':''):rec.podiums?rec.podiums+' podium finishes':'Earn points to climb'),
+   tile('Giveaways won',fmt(rec.giveaways),'confirmed wins'));
+  back.append(g);
+  if(rec.since){const [y,mo]=rec.since.split('-').map(Number);back.append(el('p','plat','With the crew since '+new Date(y,mo-1,1).toLocaleDateString(undefined,{month:'long',year:'numeric'})));}
+ }else back.append(el('p','lede small','The full service record appears after the next update from the stream.'));
+ back.append(el('h4','','Medal wall · '+m.medals.length+' of '+(total||'–')+' unlocked'));
+ const wall=el('div','medal-grid');m.medals.forEach(([id,g],i)=>wall.append(medalTile(catalogue.get(id),g,i)));
+ const earned=new Set(m.medals.map(x=>x[0])),locked=[...catalogue.values()].filter(md=>!earned.has(md.id)&&md.kind!=='secret');
+ if(!m.medals.length)wall.append(el('p','lede small','No medals yet.'));
+ back.append(wall);
+ if(locked.length){const det=el('details','locked-list');det.append(el('summary','','Still to earn · '+locked.length));const lg=el('div','medal-grid');for(const md of locked)lg.append(medalTile(md,0,0,true));det.append(lg);
+  det.addEventListener('click',e=>e.stopPropagation());back.append(det);}
+ back.append(el('p','hint','Tap the card to see the front ↻'));
+ flipper.append(front,back);
+ const again=el('button','chip','Not you? Search again');again.type='button';again.onclick=()=>{try{localStorage.removeItem('voyager-me');}catch{}selected=null;box.hidden=true;$('crew-search').focus();};
+ const foot=el('div','card-foot');foot.append(again,el('span','lede small','Type !voyager in chat to show your card on stream · !voyager stats for the back.'));
+ box.append(ctl,flipper,foot);setSide(side);
 }
 $('crew-search').addEventListener('input',()=>{if(!crew)loadCrew();search();});
 $('crew-search').addEventListener('focus',()=>loadCrew());
