@@ -165,7 +165,7 @@ test('Stream companion: live status, Dreadnought, ranks and medals are allow-lis
   const off=M.buildFeed({collected:{},settings:{sections:{ranks:false,medals:false,dreadnought:false,live:false,crew:false}},companion,crewCount:3});
   for(const k of ['ranks','medals','dreadnought','live','crew'])assert.equal(off[k],undefined,k);
   const crew=M.buildCrew([{name:'Nova',platform:'twitch',tier:'gold',rank:3,place:1,lifetime:52000,medals:[['watch',1],['bad id!',2]],key:'twitch:1'}],{});
-  assert.deepEqual(crew.members,[['Nova','twitch','gold',3,1,52000,[['watch',1]],null]]);
+  assert.deepEqual(crew.members,[['Nova','twitch','gold',3,1,52000,[['watch',1]],null,null]]);
   const rec=M.buildCrew([{name:'Nova',record:{honour:22,fights:4,victories:2,mvp:1,damage:3000,wins:5,losses:2,missions:9,giveaways:1,podiums:0,seasonPlace:3,seasonPoints:1800,since:'2025-03',watchSeconds:99,months:14}}],{sections:{activity:false}}).members[0][7];
   assert.deepEqual(rec,[22,4,2,1,3000,5,2,9,1,0,3,1800,'2025-03'],'with Activity off: no watch time or months');
   assert.equal(M.buildCrew([{name:'Nova'}],{showNames:false}),null);

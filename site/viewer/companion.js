@@ -157,7 +157,7 @@ async function loadCrew(force=false){
  if(crewLoading)return crewLoading;
  $('crew-note').textContent='Loading the crew list…';
  crewLoading=(async()=>{try{const r=await fetch(crewUrl()+'?t='+Math.floor(Date.now()/300000),{cache:'no-store'});if(!r.ok)throw new Error();const d=await r.json();if(d?.schema!==1||!Array.isArray(d.members))throw new Error();
-  crew=d.members.map(m=>({name:String(m[0]),platform:m[1],tier:m[2],rank:m[3]|0,place:m[4]|0,lifetime:Number(m[5])||0,medals:Array.isArray(m[6])?m[6]:[],record:Array.isArray(m[7])?m[7]:null,key:String(m[0]).toLowerCase()}));crewAt=Date.now();
+  crew=d.members.map(m=>({name:String(m[0]),platform:m[1],tier:m[2],rank:m[3]|0,place:m[4]|0,lifetime:Number(m[5])||0,medals:Array.isArray(m[6])?m[6]:[],record:Array.isArray(m[7])?m[7]:null,front:m[8]&&typeof m[8]==='object'?m[8]:null,key:String(m[0]).toLowerCase()}));crewAt=Date.now();
   $('crew-note').textContent=fmt(crew.length)+' crew members · updated '+ago(d.generatedAt)+'. Not listed? Earn some Voyager points on stream and check back.';
   search();
   try{const saved=localStorage.getItem('voyager-me');if(saved&&!selected){const me=crew.find(m=>m.key===saved);if(me)show(me,false);}}catch{}
@@ -170,74 +170,88 @@ function search(){
  for(const m of hits){const li=el('li'),b=el('button');b.type='button';b.append(who(m),el('span','meta',(feed?.ranks?.ladder?.[m.rank]?.name||'')+' · #'+fmt(m.place)));b.onclick=()=>show(m);li.append(b);out.append(li);}
  if(!hits.length)out.append(el('li','lede small','No one by that name yet.'));
 }
-// 2.20.18: the card has a front and a back (the service record), like the card on stream. Tap it or use the buttons to flip.
+// 2.20.20: the FRONT is the very card shown on stream for !voyager (Voyager's own card template, drawn from the same data);
+// the BACK holds everything the front doesn't show. Tap the card or use the buttons to flip.
 function medalTile(md,g,i,locked){const d=el('div','medal'+(locked?' locked':''));d.append(hex(md,locked?0:g,locked?0:120+i*70),el('span','',md?.name||'Medal'),el('small','',locked?'Locked':md&&['count','rank'].includes(md.kind)?GRADES[g]:'Special'));return d;}
 const plural=(n,one,many)=>fmt(n)+' '+(n===1?one:many);
 function tile(label,value,sub){const t=el('div','rtile');t.append(el('small','',label),el('b','',value));if(sub)t.append(el('span','',sub));return t;}
+const FIELD_ICONS=['M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8z M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7','M3 5h18v14H3z M7 10a2 2 0 1 0 4 0 2 2 0 0 0-4 0 M6 16c.6-1.6 1.8-2.4 3-2.4s2.4.8 3 2.4 M14 9h4 M14 13h4','M4 6h16v15H4z M4 10h16 M8 3v5 M16 3v5 M8 14h2 M12 14h2 M16 14h2 M8 17h2 M12 17h2'];
+const FIELD_LABELS=['MEMBER NAME','MEMBER ID','MEMBER SINCE'];
+// The same grade metals as the stream card.
+const CARD_LOOK=[{metal:'linear-gradient(180deg,#ffe6cc 0%,#f0a868 30%,#a5582a 52%,#6e3510 60%,#d68a4c 84%,#ffd9b0 100%)',ink:'#fff3e6',tag:'#f0b07a'},
+ {metal:'linear-gradient(180deg,#ffffff 0%,#eef2f6 26%,#9aa6b4 50%,#55606d 58%,#cfd8e2 84%,#ffffff 100%)',ink:'#ffffff',tag:'#dfe6ee'},
+ {metal:'linear-gradient(180deg,#fffbe0 0%,#ffe07a 26%,#e0a420 48%,#7a4d00 56%,#ffcf4a 82%,#fff3b8 100%)',ink:'#fff8dc',tag:'#ffd257'},
+ {metal:'linear-gradient(135deg,#8ff6ff 0%,#9fb4ff 30%,#c58bff 52%,#ff8fe0 74%,#ffe28a 100%)',ink:'#ffffff',tag:'#d6a8ff'}];
+const RANK_IDS=['mid','aslt','slt','lt','lcdr','cdr','capt','cdre','radm','vadm','adml','af'];
+let template=null;
+function loadTemplate(){return template||(template=import('./card-template.js?v=2.20.20').catch(()=>null));}
+async function drawFront(host,f){
+ const T=await loadTemplate();if(!T||!f){host.append(el('p','lede small','The full card appears after the next update from the stream.'));return false;}
+ const byName=new Map([...catalogue.values()].map(md=>[md.name,md]));
+ const t={...T.TIERS[f.tier]||T.TIERS.blue,next:f.next,pct:f.pct,need:f.need};
+ const v={front:'block',stats:'none',badges:'none',banner:'none',bannerEyebrow:'',bannerText:''};
+ const c={callsign:f.callsign,badgeCount:f.badgeCount,statsEyebrow:'',badgesEyebrow:'',alsoEarned:'',promoted:''};
+ const d={fields:f.fields.map((value,i)=>({label:FIELD_LABELS[i],value,icon:FIELD_ICONS[i]})),stats:f.stats.map(([label,value,sub])=>({label,value,sub})),extras:f.extras.map(([label,value])=>({label,value})),
+  equipped:f.equipped.map(([name,sub])=>{const md=byName.get(name),g=GRADES.indexOf(sub),look=g>=0?CARD_LOOK[g]:null;return {icon:md?.icon||'',name,sub,op:'1',filter:'none',metal:look?.metal||'',ink:look?.ink||'',tag:look?.tag||''};}),
+  badges:[],dread:[],versus:[],missions:[],community:[]};
+ const k=f.rank?{show:'flex',roleShow:'none',name:f.rank.name,place:f.rank.place}:{show:'none',roleShow:'inline',name:'',place:''};
+ for(const id of RANK_IDS)k['s_'+id]=f.rank&&f.rank.id===id?'inline-flex':'none';
+ // The template escapes every value itself (it is what the stream overlay uses).
+ const scale=el('div','cardscale'),stage=el('div','cardstage');stage.innerHTML=T.cardHTML(t,v,c,d,k);scale.append(stage);host.append(scale);
+ const fit=()=>{
+  if(document.fullscreenElement===host){const k=Math.min(innerWidth/1200,innerHeight/720);scale.style.transform='translate('+((innerWidth-1200*k)/2)+'px,'+((innerHeight-720*k)/2)+'px) scale('+k+')';return;}
+  const w=host.clientWidth||600;scale.style.transform='scale('+(w/1200)+')';host.style.height=(720*w/1200)+'px';};
+ fit();new ResizeObserver(fit).observe(host);addEventListener('resize',fit);document.addEventListener('fullscreenchange',()=>{fit();if(!document.fullscreenElement)try{screen.orientation?.unlock?.();}catch{}});
+ // Small screens: show the card full screen (sideways on phones) so every detail is readable.
+ if(host.requestFullscreen){const b=el('button','fs-btn','⤢ Full screen');b.type='button';b.onclick=async e=>{e.stopPropagation();try{await host.requestFullscreen();await screen.orientation?.lock?.('landscape');}catch{}};host.append(b);}
+ return true;
+}
 function show(m,remember=true,side='front'){
  selected=m;$('crew-results').textContent='';$('crew-search').value='';
  if(remember)try{localStorage.setItem('voyager-me',m.key);}catch{}
  const [title,c1,c2]=TIER[m.tier]||TIER.blue,box=$('member');box.hidden=false;box.textContent='';box.className='member-wrap';
  box.style.setProperty('--t',c1);box.style.setProperty('--t2',c2);
- const ladder=feed?.ranks?.ladder||[],rk=ladder[m.rank],next=ladder[m.rank+1],total=catalogue.size||0;
- const rec=m.record?{honour:m.record[0],fights:m.record[1],victories:m.record[2],mvp:m.record[3],damage:m.record[4],wins:m.record[5],losses:m.record[6],missions:m.record[7],giveaways:m.record[8],podiums:m.record[9],seasonPlace:m.record[10],seasonPoints:m.record[11],since:m.record[12],
-  activity:m.record.length>=25?{hours:m.record[13],months:m.record[14],subBest:m.record[15],gifts:m.record[16],streams:m.record[17],streak:m.record[18],bestStreak:m.record[19],messages:m.record[20],followDays:m.record[21],versusBest:m.record[22],points:m.record[23],private:m.record[24]===1}:null}:null;
- // controls
+ const total=catalogue.size||0,r=m.record||[];
+ const rec=m.record?{honour:r[0],fights:r[1],victories:r[2],mvp:r[3],damage:r[4],wins:r[5],losses:r[6],missions:r[7],giveaways:r[8],podiums:r[9],seasonPlace:r[10],seasonPoints:r[11],since:r[12],
+  activity:r.length>=25?{hours:r[13],months:r[14],subBest:r[15],gifts:r[16],streams:r[17],streak:r[18],bestStreak:r[19],messages:r[20],followDays:r[21],versusBest:r[22],points:r[23],private:r[24]===1}:null}:null;
  const ctl=el('div','sides');ctl.setAttribute('role','tablist');ctl.setAttribute('aria-label','Card side');
- const fb=el('button','','Front'),bb=el('button','','Back');
- for(const b of [fb,bb]){b.type='button';b.setAttribute('role','tab');ctl.append(b);}
- const flipper=el('div','card3d'),front=el('div','member face front'),back=el('div','member face back');
- const setSide=s=>{flipper.classList.toggle('flipped',s==='back');fb.setAttribute('aria-selected',String(s==='front'));bb.setAttribute('aria-selected',String(s==='back'));front.setAttribute('aria-hidden',String(s==='back'));back.setAttribute('aria-hidden',String(s==='front'));};
+ const fb=el('button','','Front'),bb=el('button','','Back');for(const b of [fb,bb]){b.type='button';b.setAttribute('role','tab');ctl.append(b);}
+ const flipper=el('div','card3d'),front=el('div','face front cardface'),back=el('div','member face back');
+ let current=side,busy=false;
+ const paint=s=>{front.hidden=s!=='front';back.hidden=s!=='back';fb.setAttribute('aria-selected',String(s==='front'));bb.setAttribute('aria-selected',String(s==='back'));};
+ const setSide=async s=>{if(s===current||busy)return;busy=true;flipper.classList.add('turn');await new Promise(r=>setTimeout(r,230));current=s;paint(s);flipper.classList.remove('turn');flipper.classList.add('turned');requestAnimationFrame(()=>requestAnimationFrame(()=>flipper.classList.remove('turned')));setTimeout(()=>busy=false,260);};
  fb.onclick=()=>setSide('front');bb.onclick=()=>setSide('back');
- flipper.onclick=e=>{if(e.target.closest('button'))return;setSide(flipper.classList.contains('flipped')?'front':'back');};
+ flipper.onclick=e=>{if(e.target.closest('button,summary,details'))return;setSide(current==='front'?'back':'front');};
  flipper.tabIndex=0;flipper.setAttribute('aria-label','Membership card. Press Enter to flip.');flipper.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();flipper.click();}};
- // front
- front.append(el('div','tiername',title),el('div','who',m.name),el('div','plat',(PLATFORM[m.platform]||'')+' · #'+fmt(m.place)+' all-time · '+fmt(m.lifetime)+' lifetime points'));
- if(rk){const row=el('div','rankrow');const t=el('div');t.append(el('small','','Naval rank'),el('b','',rk.name));row.append(insignia(m.rank),t);front.append(row);
-  if(next){const need=Math.max(0,next.points-m.lifetime),span=next.points-rk.points,pct=span?Math.max(0,Math.min(100,(m.lifetime-rk.points)/span*100)):100;
-   front.append(el('p','next',need?fmt(need)+' points to '+next.name+(next.top?' (and top '+next.top+' all-time)':''):'Needs a top '+next.top+' all-time place for '+next.name));const bar=el('div','bar');const f=el('i');f.style.width=pct.toFixed(1)+'%';bar.append(f);front.append(bar);}
-  else front.append(el('p','next','The highest rank in the Voyager fleet.'));}
- front.append(el('h4','','Medals · '+m.medals.length+' of '+(total||'–')+(rec?.honour?' · ★ '+fmt(rec.honour)+' honour':'')));
- const top6=el('div','medal-grid');m.medals.slice(0,6).forEach(([id,g],i)=>top6.append(medalTile(catalogue.get(id),g,i)));
- if(!m.medals.length)top6.append(el('p','lede small','No medals yet. Watch, chat and play on stream to earn them.'));
- front.append(top6,el('p','hint','Tap the card to see the back ↻'));
- // back: service record + medal wall
- back.append(el('div','tiername','Service record'),el('div','who small-who',m.name));
+ // FRONT: the stream card.
+ drawFront(front,m.front);
+ // BACK: everything the front doesn't show.
+ back.append(el('div','tiername',title+' · service record'),el('div','who small-who',m.name));
  if(rec){
-  const g=el('div','rgrid');
-  const battles=rec.wins+rec.losses;
-  g.append(tile('Honour','★ '+fmt(rec.honour),m.medals.length+' of '+(total||'–')+' medals'),
-   tile('Dreadnought',rec.mvp?'MVP ×'+fmt(rec.mvp):rec.victories?plural(rec.victories,'victory','victories'):plural(rec.fights,'fight','fights'),plural(rec.fights,'fight','fights')+' · '+plural(rec.victories,'victory','victories')+' · '+fmt(rec.damage)+' damage'),
-   tile('Voyager Versus',battles?fmt(rec.wins)+'–'+fmt(rec.losses):'—',battles?Math.round(rec.wins/battles*100)+'% win rate':'Type !versus to battle'),
+  const battles=rec.wins+rec.losses,a=rec.activity,g=el('div','rgrid');
+  g.append(tile('Dreadnought',plural(rec.victories,'victory','victories'),plural(rec.fights,'fight','fights')+' · MVP ×'+fmt(rec.mvp)+' · '+fmt(rec.damage)+' damage'),
+   tile('Voyager Versus',plural(battles,'battle','battles'),battles?fmt(rec.wins)+' won · '+Math.round(rec.wins/battles*100)+'%'+(a?' · best streak '+fmt(a.versusBest):''):'Type !versus to battle'),
    tile('Missions',fmt(rec.missions),'weekly missions completed'),
-   tile((feed?.season?.name||'Season'),rec.seasonPlace?'#'+fmt(rec.seasonPlace):'Unranked',rec.seasonPlace?fmt(rec.seasonPoints)+' points'+(rec.podiums?' · '+rec.podiums+' podiums':''):rec.podiums?rec.podiums+' podium finishes':'Earn points to climb'),
+   tile('Season',fmt(rec.seasonPoints)+' pts',rec.podiums?plural(rec.podiums,'podium finish','podium finishes'):'season score'),
    tile('Giveaways won',fmt(rec.giveaways),'confirmed wins'));
+  if(a){g.append(tile('Streams attended',fmt(a.streams),'best watch streak '+plural(a.bestStreak,'stream','streams')),
+   tile('Chat messages',fmt(a.messages),'counted since November 2026'),
+   tile('Gifted subs',fmt(a.gifts),'gifted to the crew'),
+   tile('Sub streak',a.private?'Private':plural(a.subBest,'month','months'),a.private?'Hidden by !voyager private':'best run in a row'),
+   tile('With the crew',plural(a.followDays,'day','days'),rec.since?(()=>{const [y,mo]=rec.since.split('-').map(Number);return 'since '+new Date(y,mo-1,1).toLocaleDateString(undefined,{month:'long',year:'numeric'});})():'since first seen'));}
   back.append(g);
-  const a=rec.activity;
-  if(a){back.append(el('h4','','Activity'));const ag=el('div','rgrid');
-   ag.append(tile('Hours watched',a.private?'Private':fmt(a.hours)+' h',a.private?'Hidden by !voyager private':plural(a.streams,'stream','streams')+' attended'),
-    tile('Watch streak',plural(a.streak,'stream','streams'),'best ever '+fmt(a.bestStreak)),
-    tile('Chat messages',fmt(a.messages),'counted since November 2026'),
-    tile('Subscribed',a.private?'Private':plural(a.months,'month','months'),a.private?'Hidden by !voyager private':a.subBest?'best streak '+plural(a.subBest,'month','months'):'any platform'),
-    tile('Gifted subs',fmt(a.gifts),'gifted to the crew'),
-    tile('Voyager points',fmt(a.points),'balance for !upgrade'),
-    tile('With the crew',plural(a.followDays,'day','days'),'since first seen'),
-    tile('Versus streak',fmt(a.versusBest),'best wins in a row'));
-   back.append(ag);}
-  if(rec.since){const [y,mo]=rec.since.split('-').map(Number);back.append(el('p','plat','With the crew since '+new Date(y,mo-1,1).toLocaleDateString(undefined,{month:'long',year:'numeric'})));}
  }else back.append(el('p','lede small','The full service record appears after the next update from the stream.'));
  back.append(el('h4','','Medal wall · '+m.medals.length+' of '+(total||'–')+' unlocked'));
  const wall=el('div','medal-grid');m.medals.forEach(([id,g],i)=>wall.append(medalTile(catalogue.get(id),g,i)));
  const earned=new Set(m.medals.map(x=>x[0])),locked=[...catalogue.values()].filter(md=>!earned.has(md.id)&&md.kind!=='secret');
  if(!m.medals.length)wall.append(el('p','lede small','No medals yet.'));
  back.append(wall);
- if(locked.length){const det=el('details','locked-list');det.append(el('summary','','Still to earn · '+locked.length));const lg=el('div','medal-grid');for(const md of locked)lg.append(medalTile(md,0,0,true));det.append(lg);
-  det.addEventListener('click',e=>e.stopPropagation());back.append(det);}
+ if(locked.length){const det=el('details','locked-list');det.append(el('summary','','Still to earn · '+locked.length));const lg=el('div','medal-grid');for(const md of locked)lg.append(medalTile(md,0,0,true));det.append(lg);back.append(det);}
  back.append(el('p','hint','Tap the card to see the front ↻'));
- flipper.append(front,back);
+ flipper.append(front,back);paint(current);
  const again=el('button','chip','Not you? Search again');again.type='button';again.onclick=()=>{try{localStorage.removeItem('voyager-me');}catch{}selected=null;box.hidden=true;$('crew-search').focus();};
- const foot=el('div','card-foot');foot.append(again,el('span','lede small','Type !voyager in chat to show your card on stream · !voyager stats for the back.'));
- box.append(ctl,flipper,foot);setSide(side);
+ const foot=el('div','card-foot');foot.append(again,el('span','lede small','Tap the card to flip it · type !voyager in chat to show it on stream.'));
+ box.append(ctl,flipper,foot);
 }
 $('crew-search').addEventListener('input',()=>{if(!crew)loadCrew();search();});
 $('crew-search').addEventListener('focus',()=>loadCrew());

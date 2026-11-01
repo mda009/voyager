@@ -109,3 +109,12 @@ test('Ranks page: roster with rank, place and progress, holders per rank, insign
   cards.tickRanks();members['twitch:3'].value=6_000;cards.tickRanks();
   v=cards.ranksView();assert.equal(v.promotions.length,1);assert.equal(v.promotions[0].name,'Rook');assert.equal(v.ranks[v.promotions[0].to].name,'Acting Sub-Lieutenant');
 });
+
+test('Public crew rows carry the stream card front, built by the same code, without creating card members',async()=>{
+  const {cards}=await make();
+  const rows=cards.crewRows(10);const f=rows[0].front;
+  assert.equal(rows[0].name,'Nova');assert.equal(f.tier,'blue');assert.deepEqual(f.fields.slice(0,1),['Nova']);
+  assert.equal(f.stats[0][0],'VOYAGER POINTS');assert.equal(f.stats[1][0],'LIFETIME POINTS');assert.equal(f.rank.name,'LIEUTENANT');
+  assert.equal(Object.keys(cards.state.members).length,0,'building the public front never adds card members');
+  assert.equal(cards.memo,null);
+});

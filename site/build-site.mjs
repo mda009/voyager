@@ -20,6 +20,9 @@ export async function buildSite(repo,out){
   await copyFile(join(root,'site','viewer','fair-draw.js'),join(out,'fair-draw.js'));
   // 2.20.17 stream companion: tabs, Dreadnought, ranks, medals and find-your-card, installable as an app.
   for(const f of ['companion.js','manifest.webmanifest','sw.js'])await copyFile(join(root,'site','viewer',f),join(out,f));
+  // 2.20.20: the membership card template the stream overlay uses, so My card shows the very same front.
+  await copyFile(join(root,'Voyager_Versus','dist','card-template.mjs'),join(out,'card-template.js'));
+  await mkdir(join(out,'brand'),{recursive:true});await copyFile(join(root,'brand-assets','voyager.png'),join(out,'brand','voyager.png'));
   await writeFile(join(out,'download','index.html'),(await readFile(join(root,'site','download.html'),'utf8')).replaceAll('__REPO__',repo));
   await writeFile(join(out,'.nojekyll'),'');
   return {out,feed};

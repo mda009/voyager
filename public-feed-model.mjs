@@ -311,11 +311,20 @@ function record(x,activity){if(!x||typeof x!=='object')return null;const n=(k,ma
     typeof x.since==='string'&&/^20\d\d-(0[1-9]|1[0-2])$/.test(x.since)?x.since:''];
   if(!activity)return base;const priv=x.private===true;
   return base.concat([priv?0:n('hours',1e6),priv?0:n('months',1e4),priv?0:n('subBest',1e4),n('gifts',1e6),n('streams',1e5),n('streak',1e5),n('bestStreak',1e5),n('messages',1e8),n('followDays',1e5),n('versusBest',1e4),n('points',1e12),priv?1:0]);}
+// The front of the card exactly as it shows on stream (built by the same code), as text only. With Activity off,
+// time watched and months subscribed are replaced by "Hidden".
+const TIER_KEYS=['blue','silver','gold','platinum'];
+function front(f,activity){if(!f||typeof f!=='object')return null;const t=(v,max=90)=>clean(v,max);
+  const stats=list(f.stats).slice(0,4).map(x=>[t(x?.[0],30),t(x?.[1],30),t(x?.[2],90)]),extras=list(f.extras).slice(0,4).map(x=>[t(x?.[0],30),t(x?.[1],40)]);
+  if(!activity){for(const x of stats)if(x[0]==='TIME WATCHED'){x[1]='Hidden';x[2]='';}for(const x of extras)if(x[0]==='SUBSCRIBED')x[1]='Hidden';}
+  return {tier:oneOf(f.tier,TIER_KEYS,'blue'),next:t(f.next,40),pct:/^\d{1,3}%$/.test(f.pct)?f.pct:'0%',need:t(f.need,120),callsign:t(f.callsign,40),badgeCount:t(f.badgeCount,40),
+    fields:list(f.fields).slice(0,3).map(x=>t(x,60)),stats,extras,equipped:list(f.equipped).slice(0,6).map(x=>[t(x?.[0],40),t(x?.[1],20)]),
+    rank:f.rank&&typeof f.rank==='object'?{id:typeof f.rank.id==='string'&&/^[a-z]{2,5}$/.test(f.rank.id)?f.rank.id:'mid',name:t(f.rank.name,30),place:t(f.rank.place,80)}:null};}
 // crew.json: one compact row per member for "find your card". Names only with "Show viewer names" on.
 export function buildCrew(rows,settings=DEFAULT_SETTINGS,now=Date.now(),limit=2000){
   const s=normalizeSettings(settings);if(!s.sections.crew||!s.showNames)return null;
   const members=list(rows).slice(0,limit).map(r=>{const n=clean(r?.name,LIMITS.name);if(!n)return null;
     return [n,oneOf(r.platform,Object.keys(PLATFORMS),''),oneOf(r.tier,TIERS_ALL,'blue'),int(r.rank,0,RANK_COUNT-1)??0,int(r.place,0,1e6)??0,int(r.lifetime,0,1e12)??0,
-      list(r.medals).filter(m=>medalId(m?.[0])).slice(0,40).map(m=>[m[0],int(m[1],0,3)??0]),record(r.record,s.sections.activity)];}).filter(Boolean);
+      list(r.medals).filter(m=>medalId(m?.[0])).slice(0,40).map(m=>[m[0],int(m[1],0,3)??0]),record(r.record,s.sections.activity),front(r.front,s.sections.activity)];}).filter(Boolean);
   return {schema:1,generatedAt:now,members};
 }

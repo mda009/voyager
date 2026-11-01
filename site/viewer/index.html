@@ -262,13 +262,17 @@ nav.tabbar button:focus-visible{outline:2px solid var(--cyan);outline-offset:2px
 .sides{display:inline-flex;gap:4px;padding:4px;border:1px solid var(--line);border-radius:12px;background:#0a1421;margin-bottom:12px}
 .sides button{font:700 14px/1 var(--display);letter-spacing:1.2px;text-transform:uppercase;background:transparent;color:var(--muted);border:0;border-radius:9px;padding:9px 18px;cursor:pointer}
 .sides button[aria-selected=true]{background:color-mix(in srgb,var(--t) 26%,#13253c);color:#fff}
-.card3d{display:grid;transform-style:preserve-3d;transition:transform .8s cubic-bezier(.3,1.3,.4,1);cursor:pointer;outline:none;border-radius:18px}
+.card3d{transition:transform .23s ease-in;cursor:pointer;outline:none;border-radius:18px;transform-origin:50% 50%}
 .card3d:focus-visible{box-shadow:0 0 0 2px var(--cyan)}
-.card3d.flipped{transform:rotateY(180deg)}
-.card3d .face{grid-area:1/1;margin-top:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;animation:none}
-.member-wrap{animation:cardIn .7s cubic-bezier(.2,.9,.25,1) both}
-.card3d .face.back{transform:rotateY(180deg)}
-.card3d .face[aria-hidden=true]{pointer-events:none}
+.card3d.turn{transform:rotateY(90deg)}
+.card3d.turned{transform:rotateY(-90deg);transition:none}
+.card3d .face{margin-top:0}
+.cardface{position:relative;width:100%;filter:drop-shadow(0 18px 30px rgba(0,0,0,.55))}
+.cardscale{position:absolute;left:0;top:0;width:1200px;height:720px;transform-origin:0 0;overflow:hidden;clip-path:polygon(40px 0,1160px 0,1200px 40px,1200px 680px,1160px 720px,40px 720px,0 680px,0 40px)}
+.fs-btn{position:absolute;right:10px;bottom:10px;z-index:2;font:700 12px/1 var(--display);letter-spacing:1px;text-transform:uppercase;background:#000a;color:#fff;border:1px solid #ffffff40;border-radius:999px;padding:8px 12px;cursor:pointer;backdrop-filter:blur(6px)}
+.cardface:fullscreen{background:#04070d;height:100vh!important}
+.cardface:fullscreen .fs-btn{display:none}
+.cardstage{position:absolute;left:-80px;top:-80px;width:1360px;height:880px}
 .member .small-who{font-size:clamp(22px,5vw,30px)}
 .member .hint{margin:14px 0 0;font-size:12px;color:var(--faint);letter-spacing:.4px}
 .rgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:10px;margin:14px 0 6px}
@@ -401,7 +405,7 @@ nav.tabbar button:focus-visible{outline:2px solid var(--cyan);outline-offset:2px
  <footer><p id="updated">Updates every few minutes while the stream tools are running.</p><p>Voyager community site. Giveaway entry happens in stream chat only; this site never asks for passwords or payment.</p></footer>
 </div>
 <script src="fair-draw.js"></script>
-<script src="companion.js?v=2.20.19" defer></script>
+<script src="companion.js?v=2.20.20" defer></script>
 <script>
 (()=>{'use strict';
 // ?embed=1: shown inside another site. Report our height so the host page can size its frame.

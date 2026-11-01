@@ -2,6 +2,16 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.20 (1 November 2026)
+
+**My card on voyagercommand.com: the front is the card from stream, the back has everything else.**
+
+- **Front:** the exact membership card viewers see on stream when they type `!voyager`. It uses the same card design and is built by the same code, so the tier, callsign, member ID, member since, points, lifetime points, time watched, Versus, season, Dreadnought, months subscribed, Honour, six medals, naval rank and next-tier bar all match. On phones, **⤢ Full screen** shows it sideways at full size.
+- **Back:** only what the front doesn't show: Dreadnought victories, MVPs and damage, Versus battles and best streak, missions, season points and podiums, giveaways won, streams attended and best watch streak, chat messages, gifted subs, best sub streak, days with the crew, and the full medal wall with the medals still to earn.
+- Tap the card (or use Front / Back) to flip it.
+- With **Activity on cards** off, the front shows "Hidden" for time watched and months subscribed. `!voyager private` shows "Private", as on stream.
+- Update the app so it publishes the card fronts; until then My card shows the back only with a note.
+
 ## 2.20.19 (1 November 2026)
 
 **More on the back of each card at voyagercommand.com › My card.**

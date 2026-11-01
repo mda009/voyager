@@ -146,10 +146,11 @@ export class Cards{
   // ---------- naval ranks ----------
   // All-time leaderboard of lifetime points (Points Ledger "captured in"), bucket accounts left out.
   board(){
+    if(this.memo?.board)return this.memo.board;
     const members=this.community()?.state?.members||{};
     const rows=Object.entries(members).filter(([,m])=>!BUCKETS.has(m.login)&&lifetimeOf(m)>0).map(([key,m])=>({key,value:lifetimeOf(m)})).sort((a,b)=>b.value-a.value);
     const place=new Map();rows.forEach((r,i)=>place.set(r.key,i+1));
-    return {rows,place};
+    const out={rows,place};if(this.memo)this.memo.board=out;return out;
   }
   rankOf(lifetime,place){
     const pts=this.state.settings.rankPoints;let i=0;
@@ -201,7 +202,7 @@ export class Cards{
     return Object.entries(v.m||{}).map(([id,e])=>({id,g:e.g,m:medalById(id)})).filter(x=>x.m).sort((a,b)=>b.g-a.g||a.m.name.localeCompare(b.m.name)).map(x=>({id:x.id,name:x.m.name}));
   }
   build(who,side,fromTier,sample=false,fromRank=null){
-    const now=this.now(),s=this.state.settings,m=sample?{}:this.member(who.key),medals=this.medals;
+    const now=this.now(),s=this.state.settings,m=sample?{}:(this.state.members[who.key]||{}),medals=this.medals;
     const v=sample?SAMPLE_VIEWER(now):medals?.state?.viewers?.[who.key]||null,c=v?.c||{};
     const community=this.community(),cm=sample?{value:214560}:community?.state?.members?.[who.key]||null;
     const since=Math.min(v?.first||now,now),hidden=!!m.private;
@@ -214,7 +215,7 @@ export class Cards{
     const vRank=pilot?[...pilots].sort((a,b)=>num(b.wins)-num(a.wins)).findIndex(p=>p===pilot)+1:0;
     const wins=num(pilot?.wins),losses=num(pilot?.losses),draws=num(pilot?.draws),battles=wins+losses+draws,vs=sample?{best:7}:medals?.state?.versus?.[who.login];
     // Season
-    let standings=[];try{standings=community?.standings(1000)||[];}catch{}
+    let standings=this.memo?.standings||[];if(!this.memo?.standings){try{standings=community?.standings(1000)||[];}catch{}if(this.memo)this.memo.standings=standings;}
     const season=sample?{rank:2,score:18940}:standings.find(r=>r.key===who.key),seasonName=community?.state?.season?.name||'Season';
     // Medals
     const earned=Object.entries(v?.m||{}).map(([id,e])=>({id,g:e.g,at:e.at,m:medalById(id)})).filter(x=>x.m);
@@ -290,6 +291,9 @@ export class Cards{
   overlay(){const now=this.now();return {serverAt:now,items:this.state.queue.filter(x=>now-x.at<10*60000)};}
   // 2.20.17: rows for the public site's crew lookup (crew.json): name, platform, tier, rank, all-time place, lifetime points and medals.
   crewRows(limit=2000){
+    this.memo={};try{return this.crewRowsInner(limit);}finally{this.memo=null;}
+  }
+  crewRowsInner(limit){
     const viewers=this.medals?.state?.viewers||{},members=this.community()?.state?.members||{};
     const pilots=new Map((this.rankings()||[]).filter(p=>p&&p.login).map(p=>[String(p.login).toLowerCase(),p]));
     let standings=[];try{standings=this.community()?.standings(1000)||[];}catch{}
@@ -304,7 +308,15 @@ export class Cards{
           // 2.20.19 (asked for): activity. Members who typed !voyager private keep hours watched and months subscribed hidden, as on their card.
           ...(()=>{const x=v&&this.medals?this.medals.metrics(v,this.now()):{},priv=!!this.state.members[m.key]?.private;
             return {private:priv,hours:priv?0:Math.floor(x.watch||0),months:priv?0:c.months||0,subBest:priv?0:c.subBest||0,gifts:c.gifts||0,streams:c.days||0,streak:c.streak||0,bestStreak:c.bestStreak||0,
-              messages:c.msgs||0,followDays:x.follow||0,versusBest:num(this.medals?.state?.versus?.[login]?.best),points:num(members[m.key]?.balance)};})()}};});
+              messages:c.msgs||0,followDays:x.follow||0,versusBest:num(this.medals?.state?.versus?.[login]?.best),points:num(members[m.key]?.balance)};})()},
+        // 2.20.20: the front exactly as the !voyager card shows it on stream (same builder), for the public site.
+        front:(()=>{try{const cm=members[m.key]||{};return this.publicFront(this.build({key:m.key,platform:m.platform,login,name:m.name,tier:m.tier,points:num(cm.balance),hasPoints:Number.isFinite(cm.balance),rank:0,members:0},'front',null));}catch{return null;}})()};});
+  }
+  // The front of a built card, trimmed to what the template draws (no medal icons or tier styling: the site has those).
+  publicFront(card){
+    return {tier:card.tier,next:card.t.next,pct:card.t.pct,need:card.t.need,callsign:card.c.callsign,badgeCount:card.c.badgeCount,
+      fields:card.d.fields.map(f=>f.value),stats:card.d.stats.map(x=>[x.label,x.value,x.sub]),extras:card.d.extras.map(x=>[x.label,x.value]),equipped:card.d.equipped.map(b=>[b.name,b.sub]),
+      rank:card.k.show==='none'?null:{id:card.rank,name:card.k.name,place:card.k.place}};
   }
   // 2.20.13: the Ranks page in Voyager Control. Everyone with lifetime points, their rank, all-time place and progress.
   ranksView(limit=1000){
