@@ -2,6 +2,15 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.19 (1 November 2026)
+
+**More on the back of each card at voyagercommand.com › My card.**
+
+- New **Activity** section on the back: hours watched and streams attended, watch streak (and best ever), chat messages, months subscribed (and best sub streak), gifted subs, Voyager points balance, days with the crew and best Versus win streak — alongside the Dreadnought, Versus record, missions, season and giveaways already there.
+- **Chat messages** are now counted by Voyager for Twitch, Kick and YouTube (from this version on, so everyone starts at 0).
+- Members who type **!voyager private** keep their hours watched and months subscribed hidden on the site, as on their card. Bits and other money are never published.
+- New switch in Public website › What is shared: **Activity on cards** (on). Turn it off to publish only the service record and medals.
+
 ## 2.20.18 (1 November 2026)
 
 **Find your card shows both sides of the membership card.**

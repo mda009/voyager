@@ -123,6 +123,8 @@ export class Medals{
     return v;
   }
   first(v,at){at=num(at);if(at&&at<v.first)v.first=at;}
+  // 2.20.19: chat messages seen by Voyager (Twitch, Kick and YouTube), counted from this version on. Saved with the medals file.
+  chatSeen(chat){const key=chat?.platform&&chat?.userId?chat.platform+':'+chat.userId:'';const v=this.viewer(key,{name:chat?.name,login:chat?.login,platform:chat?.platform});if(!v)return;v.c.msgs=(v.c.msgs||0)+1;this.persist();}
   max(v,k,value){value=num(value);if(value>(v.c[k]||0)){v.c[k]=value;return true;}return false;}
   inc(v,k,by=1){v.c[k]=(v.c[k]||0)+by;}
   seen(kind,id,limit=5000){

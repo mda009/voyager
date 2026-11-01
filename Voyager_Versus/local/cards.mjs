@@ -300,7 +300,11 @@ export class Cards{
         // 2.20.18: the back of the card (service record). Games, missions, season and wins only: never watch time, subs, gifts or Bits.
         record:{honour:v&&this.medals?this.medals.honour(v):0,fights:c.fights||0,victories:c.slayer||0,mvp:c.topgun||0,damage:c.damage||0,
           wins:num(p?.wins),losses:num(p?.losses),missions:c.missions||0,giveaways:c.lucky||0,podiums:c.podium||0,seasonPlace:sr?.rank||0,seasonPoints:sr?.score||0,
-          since:v?.first?new Date(v.first).toISOString().slice(0,7):''}};});
+          since:v?.first?new Date(v.first).toISOString().slice(0,7):'',
+          // 2.20.19 (asked for): activity. Members who typed !voyager private keep hours watched and months subscribed hidden, as on their card.
+          ...(()=>{const x=v&&this.medals?this.medals.metrics(v,this.now()):{},priv=!!this.state.members[m.key]?.private;
+            return {private:priv,hours:priv?0:Math.floor(x.watch||0),months:priv?0:c.months||0,subBest:priv?0:c.subBest||0,gifts:c.gifts||0,streams:c.days||0,streak:c.streak||0,bestStreak:c.bestStreak||0,
+              messages:c.msgs||0,followDays:x.follow||0,versusBest:num(this.medals?.state?.versus?.[login]?.best),points:num(members[m.key]?.balance)};})()}};});
   }
   // 2.20.13: the Ranks page in Voyager Control. Everyone with lifetime points, their rank, all-time place and progress.
   ranksView(limit=1000){

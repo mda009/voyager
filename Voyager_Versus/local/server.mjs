@@ -109,6 +109,7 @@ function medalTick(){try{if(community)medals.observeCommunity(community);medals.
 function rankTick(){try{cards.tickRanks();}catch(e){console.warn('Ranks: '+e.message);}}
 const boss=await new BossFight({dataDir,say:text=>{void bossSay(text);},onResult:r=>medals.observeBoss(r)}).load();
 const bot=new StreamerBot({onOtherChat:chat=>{
+  try{medals.chatSeen(chat);}catch{}
   // Kick and YouTube (2.20.8): same direct commands as Twitch, except Voyager Versus (Twitch only).
   const word=chat.text.trim().toLowerCase().split(/\s+/)[0];
   if(word==='!voyager'){voyagerCommand(chat);return;}
@@ -119,6 +120,7 @@ const bot=new StreamerBot({onOtherChat:chat=>{
   boss.receive(ev);
 },onChat:chat=>{
   lastChatAt=Date.now();
+  try{medals.chatSeen({...chat,platform:chat.platform||'twitch'});}catch{}
   // Dreadnought (2.20.3): Twitch !join and !fire also work straight from chat, so a missing Streamer.bot command trigger
   // can't stop the fight. The action's copy of the same message is ignored (already boarded / !fire cooldown).
   const word=chat.text.trim().toLowerCase().split(/\s+/)[0];

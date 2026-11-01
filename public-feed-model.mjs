@@ -16,7 +16,7 @@ export const DEFAULT_SETTINGS=Object.freeze({
   channelName:'MDA009',
   tagline:'Explore · Earn · Excel. Giveaways, points and Voyager Versus for the MDA009 community.',
   links:{twitch:'',youtube:'',kick:'',discord:'',website:''},
-  sections:{giveaways:true,winners:true,goals:true,points:true,pilots:true,versus:true,program:true,missions:true,season:true,live:true,dreadnought:true,ranks:true,medals:true,crew:true},
+  sections:{giveaways:true,winners:true,goals:true,points:true,pilots:true,versus:true,program:true,missions:true,season:true,live:true,dreadnought:true,ranks:true,medals:true,crew:true,activity:true},
   showNames:true,
   leaderboardSize:10,
   commands:{impromptu:'!enter',tickets:'!entergiveaway',versus:'!versus'},
@@ -303,16 +303,19 @@ export function projectCompanion(raw,settings=DEFAULT_SETTINGS,online=true,crewC
   if(show.crew&&s.showNames&&crewCount>0)out.crew={file:'crew.json',count:int(crewCount,0,1e5)??0};
   return out;
 }
-// The back of the card: [honour, fights, victories, MVPs, damage, Versus wins, losses, missions, giveaways won, season podiums, season place, season points, 'YYYY-MM' first seen].
-// Games, missions, seasons and wins only (all already shown on stream); never watch time, subs, gifts or Bits.
-function record(x){if(!x||typeof x!=='object')return null;const n=(k,max=1e9)=>int(x[k],0,max)??0;
-  return [n('honour',1e6),n('fights',1e6),n('victories',1e6),n('mvp',1e6),n('damage',1e12),n('wins',1e6),n('losses',1e6),n('missions',1e6),n('giveaways',1e6),n('podiums',1e4),n('seasonPlace',1e6),n('seasonPoints',1e12),
-    typeof x.since==='string'&&/^20\d\d-(0[1-9]|1[0-2])$/.test(x.since)?x.since:''];}
+// The back of the card: [honour, fights, victories, MVPs, damage, Versus wins, losses, missions, giveaways won, season podiums, season place, season points, 'YYYY-MM' first seen,
+//   then (2.20.19, "Activity" switch) hours watched, months subscribed, best sub streak, gifted subs, streams attended, watch streak, best watch streak, chat messages, days with the crew, best Versus streak, points balance, private (1/0)].
+// Never Bits or other money. A member who typed !voyager private keeps hours watched and months subscribed hidden.
+function record(x,activity){if(!x||typeof x!=='object')return null;const n=(k,max=1e9)=>int(x[k],0,max)??0;
+  const base=[n('honour',1e6),n('fights',1e6),n('victories',1e6),n('mvp',1e6),n('damage',1e12),n('wins',1e6),n('losses',1e6),n('missions',1e6),n('giveaways',1e6),n('podiums',1e4),n('seasonPlace',1e6),n('seasonPoints',1e12),
+    typeof x.since==='string'&&/^20\d\d-(0[1-9]|1[0-2])$/.test(x.since)?x.since:''];
+  if(!activity)return base;const priv=x.private===true;
+  return base.concat([priv?0:n('hours',1e6),priv?0:n('months',1e4),priv?0:n('subBest',1e4),n('gifts',1e6),n('streams',1e5),n('streak',1e5),n('bestStreak',1e5),n('messages',1e8),n('followDays',1e5),n('versusBest',1e4),n('points',1e12),priv?1:0]);}
 // crew.json: one compact row per member for "find your card". Names only with "Show viewer names" on.
 export function buildCrew(rows,settings=DEFAULT_SETTINGS,now=Date.now(),limit=2000){
   const s=normalizeSettings(settings);if(!s.sections.crew||!s.showNames)return null;
   const members=list(rows).slice(0,limit).map(r=>{const n=clean(r?.name,LIMITS.name);if(!n)return null;
     return [n,oneOf(r.platform,Object.keys(PLATFORMS),''),oneOf(r.tier,TIERS_ALL,'blue'),int(r.rank,0,RANK_COUNT-1)??0,int(r.place,0,1e6)??0,int(r.lifetime,0,1e12)??0,
-      list(r.medals).filter(m=>medalId(m?.[0])).slice(0,40).map(m=>[m[0],int(m[1],0,3)??0]),record(r.record)];}).filter(Boolean);
+      list(r.medals).filter(m=>medalId(m?.[0])).slice(0,40).map(m=>[m[0],int(m[1],0,3)??0]),record(r.record,s.sections.activity)];}).filter(Boolean);
   return {schema:1,generatedAt:now,members};
 }

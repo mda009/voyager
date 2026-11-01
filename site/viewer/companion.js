@@ -180,7 +180,8 @@ function show(m,remember=true,side='front'){
  const [title,c1,c2]=TIER[m.tier]||TIER.blue,box=$('member');box.hidden=false;box.textContent='';box.className='member-wrap';
  box.style.setProperty('--t',c1);box.style.setProperty('--t2',c2);
  const ladder=feed?.ranks?.ladder||[],rk=ladder[m.rank],next=ladder[m.rank+1],total=catalogue.size||0;
- const rec=m.record?{honour:m.record[0],fights:m.record[1],victories:m.record[2],mvp:m.record[3],damage:m.record[4],wins:m.record[5],losses:m.record[6],missions:m.record[7],giveaways:m.record[8],podiums:m.record[9],seasonPlace:m.record[10],seasonPoints:m.record[11],since:m.record[12]}:null;
+ const rec=m.record?{honour:m.record[0],fights:m.record[1],victories:m.record[2],mvp:m.record[3],damage:m.record[4],wins:m.record[5],losses:m.record[6],missions:m.record[7],giveaways:m.record[8],podiums:m.record[9],seasonPlace:m.record[10],seasonPoints:m.record[11],since:m.record[12],
+  activity:m.record.length>=25?{hours:m.record[13],months:m.record[14],subBest:m.record[15],gifts:m.record[16],streams:m.record[17],streak:m.record[18],bestStreak:m.record[19],messages:m.record[20],followDays:m.record[21],versusBest:m.record[22],points:m.record[23],private:m.record[24]===1}:null}:null;
  // controls
  const ctl=el('div','sides');ctl.setAttribute('role','tablist');ctl.setAttribute('aria-label','Card side');
  const fb=el('button','','Front'),bb=el('button','','Back');
@@ -212,6 +213,17 @@ function show(m,remember=true,side='front'){
    tile((feed?.season?.name||'Season'),rec.seasonPlace?'#'+fmt(rec.seasonPlace):'Unranked',rec.seasonPlace?fmt(rec.seasonPoints)+' points'+(rec.podiums?' · '+rec.podiums+' podiums':''):rec.podiums?rec.podiums+' podium finishes':'Earn points to climb'),
    tile('Giveaways won',fmt(rec.giveaways),'confirmed wins'));
   back.append(g);
+  const a=rec.activity;
+  if(a){back.append(el('h4','','Activity'));const ag=el('div','rgrid');
+   ag.append(tile('Hours watched',a.private?'Private':fmt(a.hours)+' h',a.private?'Hidden by !voyager private':plural(a.streams,'stream','streams')+' attended'),
+    tile('Watch streak',plural(a.streak,'stream','streams'),'best ever '+fmt(a.bestStreak)),
+    tile('Chat messages',fmt(a.messages),'counted since November 2026'),
+    tile('Subscribed',a.private?'Private':plural(a.months,'month','months'),a.private?'Hidden by !voyager private':a.subBest?'best streak '+plural(a.subBest,'month','months'):'any platform'),
+    tile('Gifted subs',fmt(a.gifts),'gifted to the crew'),
+    tile('Voyager points',fmt(a.points),'balance for !upgrade'),
+    tile('With the crew',plural(a.followDays,'day','days'),'since first seen'),
+    tile('Versus streak',fmt(a.versusBest),'best wins in a row'));
+   back.append(ag);}
   if(rec.since){const [y,mo]=rec.since.split('-').map(Number);back.append(el('p','plat','With the crew since '+new Date(y,mo-1,1).toLocaleDateString(undefined,{month:'long',year:'numeric'})));}
  }else back.append(el('p','lede small','The full service record appears after the next update from the stream.'));
  back.append(el('h4','','Medal wall · '+m.medals.length+' of '+(total||'–')+' unlocked'));
