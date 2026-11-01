@@ -7,8 +7,14 @@ import {readFile,writeFile,rename} from 'node:fs/promises';
 import {join} from 'node:path';
 
 const FILE='dreadnought.json';
-export const BOSS_DEFAULTS={name:'The Dreadnought',lobbySeconds:60,battleSeconds:180,baseHp:4000,hpPerPilot:350,lateJoinHp:150,
-  fireMin:12,fireMax:22,fireCooldown:4,bitDamage:2.5,giftDamage:600,victoryPoints:100,chatCall:true,announce:true};
+// 2.20.12: easier to defeat. Less hull (1,000 + 150 per pilot, was 4,000 + 350), harder-hitting !fire (15–30, was 12–22)
+// every 3 s (was 4), four minutes on the clock (was three), and the Dreadnought's return fire knocks pilots out for 6 s
+// (was 10) every 20 s (was 15). Cheers and gifted subs are unchanged.
+export const BOSS_DEFAULTS={name:'The Dreadnought',lobbySeconds:60,battleSeconds:240,baseHp:1000,hpPerPilot:150,lateJoinHp:75,
+  fireMin:15,fireMax:30,fireCooldown:3,bitDamage:2.5,giftDamage:600,victoryPoints:100,chatCall:true,announce:true};
+// Saved settings still on the old 2.20 balance move to the new one; anything you changed yourself is kept.
+const OLD_BALANCE={battleSeconds:180,baseHp:4000,hpPerPilot:350,lateJoinHp:150,fireMin:12,fireMax:22,fireCooldown:4};
+const BALANCE=2,STUN_MS=6000,ATTACK_MS=20000,ENRAGED_ATTACK_MS=10000;
 const LIMITS={lobbySeconds:[10,300],battleSeconds:[60,900],baseHp:[500,1e6],hpPerPilot:[0,1e5],lateJoinHp:[0,1e5],fireMin:[1,1000],fireMax:[1,2000],
   fireCooldown:[1,60],bitDamage:[0,100],giftDamage:[0,1e5],victoryPoints:[0,1e6]};
 const RESULT_MS=25000,FEED=12,EFFECTS=40;
@@ -29,8 +35,8 @@ export class BossFight{
     this.onResult=onResult;this.dataDir=dataDir;this.now=now;this.random=random;this.say=say;this.settings={...BOSS_DEFAULTS};this.history=[];this.battle=null;
     this.receipts=new Map();this.saving=Promise.resolve();this.seq=0;
   }
-  async load(){try{const raw=JSON.parse(await readFile(join(this.dataDir,FILE),'utf8'));this.settings=normalizeBossSettings(raw.settings||{});this.history=Array.isArray(raw.history)?raw.history.slice(0,30):[];}catch{}return this;}
-  persist(){if(!this.dataDir)return this.saving;const data=JSON.stringify({schema:1,settings:this.settings,history:this.history}),tmp=join(this.dataDir,FILE+'.tmp');this.saving=this.saving.then(async()=>{await writeFile(tmp,data);await rename(tmp,join(this.dataDir,FILE));}).catch(()=>{});return this.saving;}
+  async load(){try{const raw=JSON.parse(await readFile(join(this.dataDir,FILE),'utf8'));const saved={...(raw.settings||{})};if(raw.balance!==BALANCE)for(const [k,v] of Object.entries(OLD_BALANCE))if(saved[k]===v)delete saved[k];this.settings=normalizeBossSettings(saved);if(raw.balance!==BALANCE)this.persist();this.history=Array.isArray(raw.history)?raw.history.slice(0,30):[];}catch{}return this;}
+  persist(){if(!this.dataDir)return this.saving;const data=JSON.stringify({schema:1,balance:BALANCE,settings:this.settings,history:this.history}),tmp=join(this.dataDir,FILE+'.tmp');this.saving=this.saving.then(async()=>{await writeFile(tmp,data);await rename(tmp,join(this.dataDir,FILE));}).catch(()=>{});return this.saving;}
   configure(raw){if(this.active())throw new Error('Change settings between fights.');this.settings=normalizeBossSettings({...this.settings,...raw});this.persist();return this.view();}
   active(){return !!this.battle&&['lobby','battle'].includes(this.battle.phase);}
   busy(){return !!this.battle&&this.battle.phase!=='done';}
@@ -51,7 +57,7 @@ export class BossFight{
   cancel(){if(!this.busy())throw new Error('No fight is running.');const demo=this.battle.demo;this.battle=null;if(!demo)this.announce('The Dreadnought has withdrawn. Stand down, pilots.');return this.view();}
   begin(now){
     const b=this.battle,s=this.settings;b.phase='battle';b.startedAt=now;b.endsAt=now+s.battleSeconds*1000;
-    b.maxHp=b.hp=s.baseHp+s.hpPerPilot*b.pilots.size;b.nextAttackAt=now+15000;
+    b.maxHp=b.hp=s.baseHp+s.hpPerPilot*b.pilots.size;b.nextAttackAt=now+ATTACK_MS;
     this.note('Battle stations! '+b.pilots.size+' pilot'+(b.pilots.size===1?'':'s')+' engage '+s.name+'.','alert');
     this.announce('🚀 '+b.pilots.size+' pilot'+(b.pilots.size===1?'':'s')+' engage '+s.name+'! Type !fire to attack. '+Math.round(s.battleSeconds/60*10)/10+' minutes on the clock. Late pilots can still !join.');
   }
@@ -127,9 +133,9 @@ export class BossFight{
   bossAttack(now){
     const b=this.battle,ready=[...b.pilots.values()].filter(p=>p.stunnedUntil<=now);if(!ready.length)return;
     const n=Math.max(1,Math.min(5,Math.floor(ready.length/5)+(b.enraged?1:0))),hits=[];
-    for(let i=0;i<n&&ready.length;i++){const p=ready.splice(Math.floor(this.random()*ready.length),1)[0];p.stunnedUntil=now+10000;hits.push(p);}
+    for(let i=0;i<n&&ready.length;i++){const p=ready.splice(Math.floor(this.random()*ready.length),1)[0];p.stunnedUntil=now+STUN_MS;hits.push(p);}
     b.effects.push({id:++this.seq,at:now,kind:'boss',slots:hits.map(p=>p.slot),names:hits.map(p=>p.name)});
-    this.note(this.settings.name+' hit '+hits.map(p=>p.name).join(', ')+'! Systems down for 10 seconds.','boss');
+    this.note(this.settings.name+' hit '+hits.map(p=>p.name).join(', ')+'! Systems down for '+STUN_MS/1000+' seconds.','boss');
   }
   finish(outcome){
     const b=this.battle,now=this.now(),s=this.settings;if(!b||b.phase!=='battle')return;
@@ -160,7 +166,7 @@ export class BossFight{
       this.begin(now);for(const x of b.pending||[])this.hit(x.key?b.pilots.get(x.key):null,x.dmg,x.kind==='gift'?'torpedo':'missile',false,x.name);b.pending=[];
     }
     if(b.phase==='battle'){
-      if(now>=b.nextAttackAt){this.bossAttack(now);b.nextAttackAt=now+(b.enraged?8000:15000);}
+      if(now>=b.nextAttackAt){this.bossAttack(now);b.nextAttackAt=now+(b.enraged?ENRAGED_ATTACK_MS:ATTACK_MS);}
       if(now>=b.endsAt)this.finish('escaped');
     }
     if(b.phase==='result'&&now-b.endedAt>RESULT_MS)b.phase='done';

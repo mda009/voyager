@@ -2,6 +2,18 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.12 (1 November 2026)
+
+**The Dreadnought is easier to defeat.**
+
+- Less hull: 1,000 plus 150 per pilot (was 4,000 plus 350), and 75 per late joiner (was 150). With 10 pilots it now has 2,500 hull instead of 7,500.
+- `!fire` hits harder and more often: 15–30 damage (was 12–22) every 3 seconds (was 4). Critical hits still triple it.
+- Four minutes on the clock (was three).
+- Its return fire knocks pilots out for 6 seconds (was 10), every 20 seconds (was 15; 10 when enraged, was 8).
+- Cheers, gifted subs, the shield at 50% and victory points are unchanged.
+- If your saved Dreadnought settings were still on the old defaults they move to the new ones automatically; any value you changed yourself is kept. Everything can still be tuned on the Dreadnought page.
+- No Streamer.bot or OBS changes.
+
 ## 2.20.11 (1 November 2026)
 
 **Ticketed giveaway reveals now always play on stream, in exactly one OBS source.**

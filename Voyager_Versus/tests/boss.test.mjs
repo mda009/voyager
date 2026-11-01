@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtemp} from 'node:fs/promises';
+import {mkdtemp,writeFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {BossFight,normalizeBossSettings} from '../local/boss.mjs';
@@ -20,10 +20,10 @@ test('Only joined pilots can fire, !fire is free and rate-limited, and the fight
   b.receive(ev('join','nova'));b.receive(ev('join','lyra',{platform:'kick'}));b.receive(ev('join','nova'));
   at(30000);let o=b.overlay();assert.equal(o.phase,'battle');assert.equal(o.maxHp,1200);assert.equal(o.pilots,2);
   assert.equal(b.receive(ev('fire','orion')).ignored,true,'must !join first');
-  const first=b.receive(ev('fire','nova'));assert.ok(first.ok&&first.damage>=12&&first.damage<=22);
+  const first=b.receive(ev('fire','nova'));assert.ok(first.ok&&first.damage>=15&&first.damage<=30);
   assert.equal(b.receive(ev('fire','nova')).ignored,true,'cooldown');
-  at(4000);assert.equal(b.receive(ev('fire','nova')).ok,true);
-  b.receive(ev('join','late'));assert.equal(b.overlay().maxHp,1350,'late pilots add hull');
+  at(3000);assert.equal(b.receive(ev('fire','nova')).ok,true);
+  b.receive(ev('join','late'));assert.equal(b.overlay().maxHp,1275,'late pilots add hull');
 });
 
 test('Cheers hit harder than !fire and gifted subs hardest; paid support boards automatically',async()=>{
@@ -54,8 +54,8 @@ test('Shields halve !fire at 50% hull, the boss knocks pilots out, and only mode
   assert.equal(b.receive(ev('call','mod',{role:3})).ok,true);
   for(const n of ['a','b','c','d','e','f'])b.receive(ev('join',n));at(10000);
   b.receive(ev('bits','x',{amount:200}));assert.equal(b.overlay().shield,true);
-  assert.equal(b.receive(ev('fire','a')).damage,9,'17 halved');
-  at(15000);assert.ok(b.overlay().fleet.some(p=>p.stunned),'boss attack');
+  assert.equal(b.receive(ev('fire','a')).damage,12,'random 0.5 → 23, halved');
+  at(20000);assert.ok(b.overlay().fleet.some(p=>p.stunned),'boss attack');
   assert.throws(()=>b.configure({fireMin:50,fireMax:10}),/between fights|at least/);
   assert.throws(()=>normalizeBossSettings({fireMin:50,fireMax:10}),/at least/);
 });
@@ -95,4 +95,14 @@ test('!join and !fire still work when the chat event has no user ID (keyed by lo
   assert.equal(b.receive({kind:'join',platform:'twitch',userId:'',login:'nova',name:'Nova'}).ok,true);
   assert.equal(b.receive({kind:'join',platform:'twitch',userId:'',login:'nova',name:'Nova'}).ignored,true,'boards once');
   now+=10000;b.tick();assert.equal(b.receive({kind:'fire',platform:'twitch',userId:'',login:'nova'}).ok,true);
+});
+
+test('2.20.12 balance: saved settings on the old defaults move to the easier ones; your own changes stay',async()=>{
+  const dir=await mkdtemp(join(tmpdir(),'voyager-boss-'));
+  await writeFile(join(dir,'dreadnought.json'),JSON.stringify({schema:1,settings:{baseHp:4000,hpPerPilot:350,lateJoinHp:150,fireMin:12,fireMax:22,fireCooldown:4,battleSeconds:300,victoryPoints:250},history:[]}));
+  const b=await new BossFight({dataDir:dir}).load();
+  assert.equal(b.settings.baseHp,1000);assert.equal(b.settings.hpPerPilot,150);assert.equal(b.settings.fireMin,15);assert.equal(b.settings.fireCooldown,3);
+  assert.equal(b.settings.battleSeconds,300,'changed by the streamer, kept');assert.equal(b.settings.victoryPoints,250);
+  b.configure({baseHp:4000});await b.saving;
+  assert.equal((await new BossFight({dataDir:dir}).load()).settings.baseHp,4000,'choosing the old value again after the update sticks');
 });
