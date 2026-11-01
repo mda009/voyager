@@ -4,6 +4,7 @@
 - `viewer/companion.js`: tabs, on-air status, the Dreadnought, find-your-card, naval ranks and medals.
 - `viewer/manifest.webmanifest`, `viewer/sw.js`: install to the home screen and offline support.
 - `download.html`: the app download page, served at `/download/`.
+- `manual/manual.pdf`, `manual/cover.jpg`: the member manual, served at `/manual.pdf` and shown in the Guide tab.
 - `build-site.mjs`: builds both pages into `_site/`.
 - `cloudflare.mjs`: adds Cloudflare deploy settings and security headers.
 

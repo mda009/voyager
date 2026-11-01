@@ -37,7 +37,8 @@ test('The download page is built for the given repository with its assets',async
     const viewer=await rf(join(out,'index.html'),'utf8'),dl=await rf(join(out,'download','index.html'),'utf8');
     assert.equal(r.feed,'https://raw.githubusercontent.com/mda009/voyager/public-data/feed.json');assert.ok(viewer.includes('content="'+r.feed+'"'));
     assert.ok(!dl.includes('__REPO__'));assert.match(dl,/github\.com\/mda009\/voyager\/releases\/latest/);
-    for(const f of ['assets/voyager.png','assets/icon.png','assets/Rajdhani-700.ttf','download/assets/voyager.png','.nojekyll'])await access(join(out,f));
+    for(const f of ['assets/voyager.png','assets/icon.png','assets/Rajdhani-700.ttf','download/assets/voyager.png','.nojekyll','manual.pdf','assets/manual-cover.jpg'])await access(join(out,f));
+    assert.ok(viewer.includes('href="manual.pdf"'),'the Guide tab links the member manual');
     await assert.rejects(buildSite('not a repo',out),/owner\/name/);
   }finally{await rm(out,{recursive:true,force:true});}
 });
@@ -49,5 +50,6 @@ test('Cloudflare settings: security headers allow only your store to embed the s
   const h=headersFile();
   assert.match(h,/frame-ancestors 'self' https:\/\/theunprofessionalsgroup\.com https:\/\/www\.theunprofessionalsgroup\.com https:\/\/\*\.fourthwall\.com/);
   assert.match(h,/connect-src 'self' https:\/\/raw\.githubusercontent\.com https:\/\/api\.github\.com/);
+  assert.match(h,/object-src 'self'/,'Chromium needs this to show the manual PDF');assert.match(h,/\/manual\.pdf\n  Content-Disposition: inline/);
   const w=wranglerConfig('./_site');assert.equal(w.name,WORKER_NAME);assert.equal(w.assets.directory,'./_site');assert.ok(!('main' in w),'assets-only, no server code');
 });

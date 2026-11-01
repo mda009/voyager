@@ -22,6 +22,9 @@ export async function buildSite(repo,out){
   for(const f of ['companion.js','manifest.webmanifest','sw.js'])await copyFile(join(root,'site','viewer',f),join(out,f));
   // 2.20.20: the membership card template the stream overlay uses, so My card shows the very same front.
   await copyFile(join(root,'Voyager_Versus','dist','card-template.mjs'),join(out,'card-template.js'));
+  // The member manual (PDF) at /manual.pdf, with its cover for the Guide tab.
+  await copyFile(join(root,'site','manual','manual.pdf'),join(out,'manual.pdf'));
+  await copyFile(join(root,'site','manual','cover.jpg'),join(out,'assets','manual-cover.jpg'));
   await mkdir(join(out,'brand'),{recursive:true});await copyFile(join(root,'brand-assets','voyager.png'),join(out,'brand','voyager.png'));
   await writeFile(join(out,'download','index.html'),(await readFile(join(root,'site','download.html'),'utf8')).replaceAll('__REPO__',repo));
   await writeFile(join(out,'.nojekyll'),'');

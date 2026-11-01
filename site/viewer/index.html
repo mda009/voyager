@@ -107,6 +107,14 @@ td:first-child{white-space:nowrap;width:1%}
 td code{font:700 15px/1.3 ui-monospace,Consolas,monospace;color:#dcecff;background:#15263b;border-radius:6px;padding:3px 7px}
 td:last-child{color:var(--muted)}
 footer{margin-top:48px;color:var(--faint);font-size:13px;border-top:1px solid #1a2a3d;padding-top:16px}
+footer a{color:var(--muted)}
+.manual{display:grid;grid-template-columns:150px 1fr;gap:18px;align-items:center}
+.manual .cover{display:block;border-radius:8px;overflow:hidden;border:1px solid var(--line-strong);box-shadow:0 10px 24px rgba(0,0,0,.45)}
+.manual .cover img{display:block;width:100%;height:auto}
+.manual p{margin:8px 0 0;color:var(--muted)}
+.manual p.small{font-size:13px;color:var(--faint)}
+.manual .links{margin-top:12px}
+@media (max-width:520px){.manual{grid-template-columns:96px 1fr;gap:14px}.manual p:not(.small){font-size:14px}}
 [hidden]{display:none!important}
 /* Embedded in another site (e.g. a Fourthwall page via ?embed=1): that page supplies the header. */
 .embed body{min-height:0;background:var(--bg)}
@@ -413,6 +421,18 @@ ol.logrows .quote{font-size:16px;color:var(--text)}
   <div id="catalogue"></div>
  </section>
 
+ <section id="manual" data-tab="guide" aria-labelledby="h-manual">
+  <h2 id="h-manual">Member manual</h2>
+  <div class="card manual">
+   <a href="manual.pdf" target="_blank" rel="noopener" class="cover"><img src="assets/manual-cover.jpg" width="360" height="466" alt="Cover of the Voyager member manual" loading="lazy"></a>
+   <div><span class="kind">Official member manual &amp; FAQ · November 2026</span>
+    <p>Everything about Voyager in one place: the tiers, your membership card, naval ranks, all 29 medals, missions and seasons, the Dreadnought and Voyager Versus, chat engagement, giveaways and every chat command.</p>
+    <p class="small">25 pages · PDF · about 5 MB</p>
+    <div class="links"><a class="watch" href="manual.pdf" target="_blank" rel="noopener">Read the manual</a><a href="manual.pdf" download="Voyager-Member-Manual.pdf">Download PDF</a></div>
+   </div>
+  </div>
+ </section>
+
  <section id="program" data-tab="guide" aria-labelledby="h-program" hidden>
   <h2 id="h-program">How Voyager works</h2><p class="lede" id="program-intro"></p>
   <div class="tiers" id="tier-list"></div>
@@ -423,7 +443,7 @@ ol.logrows .quote{font-size:16px;color:var(--text)}
   <div class="proof-head"><h3 id="proof-title">Fair-draw check</h3><button type="button" id="proof-close" aria-label="Close">✕</button></div>
   <div class="proof-body" id="proof-body"></div>
  </dialog>
- <footer><p id="updated">Updates every few minutes while the stream tools are running.</p><p>Voyager community site. Giveaway entry happens in stream chat only; this site never asks for passwords or payment.</p></footer>
+ <footer><p id="updated">Updates every few minutes while the stream tools are running.</p><p><a href="manual.pdf" target="_blank" rel="noopener">Voyager member manual (PDF)</a></p><p>Voyager community site. Giveaway entry happens in stream chat only; this site never asks for passwords or payment.</p></footer>
 </div>
 <script src="fair-draw.js"></script>
 <script src="companion.js?v=2.20.22" defer></script>

@@ -21,10 +21,11 @@ export function embedOrigins(raw){
   return [...new Set(out)];
 }
 
+// object-src 'self' (not 'none'): Chromium will not show the member manual PDF without it.
 export function headersFile(origins=DEFAULT_EMBED_ORIGINS){
   const csp=["default-src 'self'","script-src 'self' 'unsafe-inline'","style-src 'self' 'unsafe-inline'","img-src 'self' data:","font-src 'self'",
     "connect-src 'self' https://raw.githubusercontent.com https://api.github.com","frame-ancestors 'self' "+origins.join(' '),
-    "base-uri 'none'","form-action 'none'","object-src 'none'"].join('; ');
+    "base-uri 'none'","form-action 'none'","object-src 'self'"].join('; ');
   return `/*
   Content-Security-Policy: ${csp}
   X-Content-Type-Options: nosniff
@@ -32,6 +33,9 @@ export function headersFile(origins=DEFAULT_EMBED_ORIGINS){
   Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
 /assets/*
   Cache-Control: public, max-age=604800
+/manual.pdf
+  Content-Disposition: inline; filename="Voyager-Member-Manual.pdf"
+  Cache-Control: public, max-age=3600
 `;
 }
 
