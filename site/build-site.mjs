@@ -18,6 +18,8 @@ export async function buildSite(repo,out){
   if(!viewer.includes(feed))throw new Error('Viewer page is missing its feed placeholder.');
   await writeFile(join(out,'index.html'),viewer);
   await copyFile(join(root,'site','viewer','fair-draw.js'),join(out,'fair-draw.js'));
+  // 2.20.17 stream companion: tabs, Dreadnought, ranks, medals and find-your-card, installable as an app.
+  for(const f of ['companion.js','manifest.webmanifest','sw.js'])await copyFile(join(root,'site','viewer',f),join(out,f));
   await writeFile(join(out,'download','index.html'),(await readFile(join(root,'site','download.html'),'utf8')).replaceAll('__REPO__',repo));
   await writeFile(join(out,'.nojekyll'),'');
   return {out,feed};

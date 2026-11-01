@@ -50,7 +50,7 @@ export class PublicSite{
       this.token=t;
     }
     if(input.clearToken===true)this.token='';
-    this.settings=next;this.upload.lastError='';this.upload.failures=0;this.upload.nextAt=0;
+    this.settings=next;this.crewAt=0;this.upload.lastError='';this.upload.failures=0;this.upload.nextAt=0;
     await this.persist();this.rebuild();return this.view();
   }
   // Fair-draw proofs: the latest version of each giveaway's proof, newest 20 kept.
@@ -65,7 +65,7 @@ export class PublicSite{
     if(changed){const data=JSON.stringify(this.proofs),tmp=join(this.dataDir,PROOFS+'.tmp');this.saving=this.saving.then(async()=>{await writeFile(tmp,data);await rename(tmp,join(this.dataDir,PROOFS));}).catch(()=>{});}
     return changed;
   }
-  proofFiles(){return Object.entries(this.proofs).map(([id,p])=>({path:'proofs/'+id+'.json',content:JSON.stringify(this.model.publicProof(p,this.settings))}));}
+  proofFiles(){const files=Object.entries(this.proofs).map(([id,p])=>({path:'proofs/'+id+'.json',content:JSON.stringify(this.model.publicProof(p,this.settings))}));const crew=this.crewFile();if(crew)files.push({path:'crew.json',content:crew});return files;}
   proof(id){const p=this.proofs[id];return p?this.model.publicProof(p,this.settings):null;}
   receive(raw){
     this.collected=this.model.sanitizeCollected(raw);this.collectedAt=this.now();
@@ -77,10 +77,18 @@ export class PublicSite{
   }
   setVersus(fn){this.versusSource=fn;}
   setCommunity(fn){this.communitySource=fn;}
+  // 2.20.17 stream companion: live status, Dreadnought, ranks and medals in the feed; the crew lookup as crew.json (rebuilt every 10 minutes).
+  setCompanion(fn){this.companionSource=fn;}
+  setCrew(fn){this.crewSource=fn;}
+  crewFile(){
+    if(!this.crewSource||!this.model.buildCrew)return null;
+    if(!this.crewJson||this.now()-(this.crewAt||0)>=600000){let c=null;try{c=this.model.buildCrew(this.crewSource(),this.settings,this.now());}catch{}this.crewAt=this.now();this.crewCount=c?.members.length||0;this.crewJson=c?JSON.stringify(c):'';}
+    return this.crewJson||null;
+  }
   rebuild(online=true){
     const v=this.versusSource?.()||{};
     const live=online&&this.now()-this.collectedAt<COLLECT_STALE_MS;
-    this.feed=this.model.buildFeed({collected:this.collected||{},settings:this.settings,pilots:v.pilots||[],versus:v.versus||null,winners:this.winners,online:live,now:this.now(),proofIds:new Set(Object.keys(this.proofs)),community:this.communitySource?.()||null});
+    this.feed=this.model.buildFeed({collected:this.collected||{},settings:this.settings,pilots:v.pilots||[],versus:v.versus||null,winners:this.winners,online:live,now:this.now(),proofIds:new Set(Object.keys(this.proofs)),community:this.communitySource?.()||null,companion:(()=>{try{return this.companionSource?.()||null;}catch{return null;}})(),crewCount:(this.crewFile(),this.crewCount||0)});
     const comparable=JSON.stringify({...this.feed,generatedAt:0,proofs:this.proofsChangedAt||0});
     this.feedJson=JSON.stringify(this.feed);this.rebuiltAt=this.now();
     if(comparable!==this.comparable||this.now()-(this.writtenAt||0)>=60000){
@@ -128,7 +136,7 @@ export async function uploadFeed({fetchImpl,apiBase,repo,token,content,files=[],
     if(!r.ok){const e=new Error(explain(r.status));e.status=r.status;throw e;}
     return r.json();
   };
-  const tree=await call('POST','/git/trees',{tree:[{path:'feed.json',mode:'100644',type:'blob',content},...files.filter(f=>/^proofs\/[a-z0-9]{1,16}\.json$/i.test(f.path)).map(f=>({path:f.path,mode:'100644',type:'blob',content:f.content}))]});
+  const tree=await call('POST','/git/trees',{tree:[{path:'feed.json',mode:'100644',type:'blob',content},...files.filter(f=>/^proofs\/[a-z0-9]{1,16}\.json$/i.test(f.path)||f.path==='crew.json').map(f=>({path:f.path,mode:'100644',type:'blob',content:f.content}))]});
   const commit=await call('POST','/git/commits',{message:'Update Voyager public feed',tree:tree.sha,parents:[]});
   try{await call('PATCH','/git/refs/heads/'+BRANCH,{sha:commit.sha,force:true});}
   catch(e){if(e.status!==404&&e.status!==422)throw e;await call('POST','/git/refs',{ref:'refs/heads/'+BRANCH,sha:commit.sha});}

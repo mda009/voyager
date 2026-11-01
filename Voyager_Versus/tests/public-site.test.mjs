@@ -146,3 +146,25 @@ test('Season sub goals and subscriber missions publish totals and counts only, n
   assert.deepEqual(feed.missions.list.map(m=>[m.type,m.platform]),[['subscribe','kick'],['earnPoints','all']]);
   for(const s of SECRET)assert.ok(!text.includes(s),'leaked '+s);
 });
+
+test('Stream companion: live status, Dreadnought, ranks and medals are allow-listed; crew.json only with names on',async()=>{
+  const M=await import('../../public-feed-model.mjs');
+  const companion={live:{onAir:true},
+    dreadnought:{phase:'battle',name:'The Dreadnought',hp:400,maxHp:1000,pilots:7,victoryPoints:100,endsAt:Date.now()+60000,leaders:[{name:'Nova',platform:'twitch',damage:300,key:'twitch:1',login:'nova'}],history:[{outcome:'victory',endedAt:Date.now()-1000,pilots:5,mvp:{name:'Rook',platform:'kick',damage:900},rewarded:['twitch:1']}]},
+    ranks:{ladder:[{id:'mid',name:'Midshipman',abbr:'MIDN',points:0,top:0,holders:9}],top:[{key:'twitch:1',name:'Nova',platform:'twitch',rank:3,lifetime:52000,tier:'gold',need:1}],promotions:[{key:'twitch:1',name:'Nova',platform:'twitch',from:2,rank:3,at:Date.now()}]},
+    medals:{catalogue:[{id:'watch',name:'Time Watched',cat:'loyalty',kind:'count',unit:'hours',grades:[10,100,500,1500],earned:[3,1,0,0],desc:'Hours',icon:'M12 7v5'},{id:'nightwatch',name:'Night Watch',cat:'special',kind:'secret',desc:'Earned points at night',icon:'<script>'}],
+      honour:[{key:'twitch:1',name:'Nova',platform:'twitch',honour:22,medals:7}],recent:[{key:'twitch:1',name:'Nova',platform:'twitch',medal:'watch',grade:1,at:Date.now(),id:5}]}};
+  const f=M.buildFeed({collected:{},settings:{},companion,crewCount:3});
+  assert.equal(f.live.onAir,true);assert.equal(f.dreadnought.phase,'battle');assert.equal(f.dreadnought.leaders[0].name,'Nova');
+  const text=JSON.stringify(f);
+  for(const banned of ['twitch:1','"login"','rewarded','<script>','Earned points at night','watchSeconds'])assert.ok(!text.includes(banned),banned+' must not be published');
+  assert.equal(f.medals.catalogue[1].desc,'Secret medal. How to earn it is for you to discover.');assert.equal(f.medals.catalogue[1].icon,'');
+  assert.deepEqual(f.crew,{file:'crew.json',count:3});
+  const offline=M.buildFeed({collected:{},settings:{},companion,online:false});assert.equal(offline.live.onAir,false);assert.equal(offline.dreadnought.phase,'idle');
+  const hidden=M.buildFeed({collected:{},settings:{showNames:false},companion,crewCount:3});assert.equal(hidden.crew,undefined);assert.equal(hidden.ranks.top[0].name,M.initials('Nova'));
+  const off=M.buildFeed({collected:{},settings:{sections:{ranks:false,medals:false,dreadnought:false,live:false,crew:false}},companion,crewCount:3});
+  for(const k of ['ranks','medals','dreadnought','live','crew'])assert.equal(off[k],undefined,k);
+  const crew=M.buildCrew([{name:'Nova',platform:'twitch',tier:'gold',rank:3,place:1,lifetime:52000,medals:[['watch',1],['bad id!',2]],key:'twitch:1'}],{});
+  assert.deepEqual(crew.members,[['Nova','twitch','gold',3,1,52000,[['watch',1]]]]);
+  assert.equal(M.buildCrew([{name:'Nova'}],{showNames:false}),null);
+});

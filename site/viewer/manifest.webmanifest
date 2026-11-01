@@ -1,0 +1,15 @@
+{
+  "name": "Voyager · Stream companion",
+  "short_name": "Voyager",
+  "description": "Giveaways, the Dreadnought, your membership card, naval ranks and medals, live from the MDA009 stream.",
+  "start_url": "./#live",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#070d16",
+  "theme_color": "#070d16",
+  "icons": [
+    {"src": "assets/icon.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+    {"src": "assets/icon.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}

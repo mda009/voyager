@@ -17,7 +17,7 @@ import {PublicSite} from './public-site.mjs';
 import {readConnection,updateConnection} from './connection-config.mjs';
 import {Community} from './community.mjs';
 import {BossFight} from './boss.mjs';
-import {Medals} from './medals.mjs';
+import {Medals,MEDAL_ICONS} from './medals.mjs';
 import {Cards} from './cards.mjs';
 let VERSION='unknown';try{VERSION=JSON.parse(await readFile(new URL('../package.json',import.meta.url),'utf8')).version;}catch{}
 const major=Number(process.versions.node.split('.')[0]);
@@ -151,6 +151,15 @@ publicSite?.setVersus(()=>{const now=Date.now(),cooldown=Number(economy.data.coo
   const status=cooldown>now?'cooldown':['calling','countdown','battle','result'].includes(game.phase)?'live':bot.status.connected?'ready':'offline';
   return {pilots:savedRankings||[],versus:{status,cooldownUntil:cooldown,winnerPoints:REWARDS.winner}};});
 community?.setPilots(()=>savedRankings||[]);community?.setBoss(()=>boss.rewardBatches());publicSite?.setCommunity(()=>community?.publicView()||null);
+// 2.20.17: the public site as a stream companion. Only display names, tiers, ranks, medals and game results; never watch time, tickets or IDs.
+publicSite?.setCompanion(()=>{
+  const d=boss.overlay(),rv=cards.ranksView(25),cat=medals.catalogue().map(m=>({...m,icon:MEDAL_ICONS[m.id]||''}));
+  return {live:{onAir:Date.now()-lastChatAt<10*60000},
+    dreadnought:{...d,history:boss.history.slice(0,6)},
+    ranks:{ladder:rv.ranks,top:rv.members.slice(0,25),promotions:rv.promotions},
+    medals:{catalogue:cat,honour:medals.leaderboard(10),recent:medals.state.recent.slice(0,12)}};
+});
+publicSite?.setCrew(()=>cards.crewRows(2000));
 const rewards=new RewardDispatcher({store:economy,bot,onCredit:r=>{game.note(`${r.name}: +${r.amount} Voyager points credited.`, 'reward');matchChat.credit(r);}});
 const announcements=new AvailabilityAnnouncer({store:economy,bot,game,action:()=>rewards.ready?rewards.action:null});
 const matchChat=new MatchChat({directory:dataDir,game,bot,action:()=>rewards.ready?rewards.action:null,protocol:()=>rewards.chatProtocol,reward:id=>economy.data.rewards.find(r=>r.id===id)});
@@ -209,9 +218,10 @@ const server=http.createServer(async(req,res)=>{
       if(url.pathname==='/public'){res.writeHead(302,{Location:'/public/'});res.end();return;}
       const proofMatch=/^\/public\/proofs\/([a-z0-9]{1,16})\.json$/i.exec(url.pathname);
       if(proofMatch&&req.method==='GET'){const p=publicSite.proof(proofMatch[1]);if(!p){response(res,404,{message:'No proof for that giveaway.'});return;}res.writeHead(200,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'});res.end(JSON.stringify(p));return;}
+      if(url.pathname==='/public/crew.json'&&req.method==='GET'){const c=publicSite.crewFile();if(!c){response(res,404,{message:'The crew lookup is off.'});return;}res.writeHead(200,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'});res.end(c);return;}
       if(url.pathname==='/public/feed.json'&&req.method==='GET'){if(!publicSite.feed)publicSite.rebuild();res.writeHead(200,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','Access-Control-Allow-Origin':'*'});res.end(publicSite.feedJson);return;}
       if(url.pathname.startsWith('/public/')&&req.method==='GET'){
-        const assets={'':'site/viewer/index.html','index.html':'site/viewer/index.html','fair-draw.js':'site/viewer/fair-draw.js','assets/voyager.png':'brand-assets/voyager.png','assets/icon.png':'desktop/build/icon.png','assets/Rajdhani-600.ttf':'brand-assets/Rajdhani-600.ttf','assets/Rajdhani-700.ttf':'brand-assets/Rajdhani-700.ttf'};
+        const assets={'':'site/viewer/index.html','index.html':'site/viewer/index.html','fair-draw.js':'site/viewer/fair-draw.js','assets/voyager.png':'brand-assets/voyager.png','assets/icon.png':'desktop/build/icon.png','assets/Rajdhani-600.ttf':'brand-assets/Rajdhani-600.ttf','assets/Rajdhani-700.ttf':'brand-assets/Rajdhani-700.ttf','manifest.webmanifest':'site/viewer/manifest.webmanifest','sw.js':'site/viewer/sw.js','companion.js':'site/viewer/companion.js'};
         const name=url.pathname.slice('/public/'.length);if(!Object.hasOwn(assets,name)){response(res,404,{message:'File not found.'});return;}
         const file=resolve(controlRoot,assets[name]),bytes=await readFile(file);res.writeHead(200,{'Content-Type':mime[extname(file)]||'application/octet-stream','Cache-Control':'no-cache','Content-Length':bytes.length});res.end(bytes);return;
       }

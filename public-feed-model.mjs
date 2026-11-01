@@ -16,7 +16,7 @@ export const DEFAULT_SETTINGS=Object.freeze({
   channelName:'MDA009',
   tagline:'Explore · Earn · Excel. Giveaways, points and Voyager Versus for the MDA009 community.',
   links:{twitch:'',youtube:'',kick:'',discord:'',website:''},
-  sections:{giveaways:true,winners:true,goals:true,points:true,pilots:true,versus:true,program:true,missions:true,season:true},
+  sections:{giveaways:true,winners:true,goals:true,points:true,pilots:true,versus:true,program:true,missions:true,season:true,live:true,dreadnought:true,ranks:true,medals:true,crew:true},
   showNames:true,
   leaderboardSize:10,
   commands:{impromptu:'!enter',tickets:'!entergiveaway',versus:'!versus'},
@@ -215,7 +215,7 @@ export function sanitizeCollected(raw){
   return {giveaways,points:{available:r.points?.available===true,leaders,goals},sources:{giveaway:r.sources?.giveaway===true,tickets:r.sources?.tickets===true,points:r.sources?.points===true}};
 }
 
-export function buildFeed({collected,settings,pilots=[],versus=null,winners=[],online=true,now=Date.now(),proofIds=new Set(),community=null}){
+export function buildFeed({collected,settings,pilots=[],versus=null,winners=[],online=true,now=Date.now(),proofIds=new Set(),community=null,companion=null,crewCount=0}){
   const s=normalizeSettings(settings),c=sanitizeCollected(collected),show=s.sections;
   const name=n=>s.showNames?n:initials(n);
   const feed={schema:SCHEMA,generatedAt:now,online:online===true,
@@ -241,6 +241,7 @@ export function buildFeed({collected,settings,pilots=[],versus=null,winners=[],o
       goals:list(community.season.goals).slice(0,4).map(g=>({title:clean(g.title,40),metric:oneOf(g.metric,['support','subs','gifts'],'support'),platform:oneOf(g.platform,['all','twitch','youtube','kick'],'all'),target:int(g.target,1,1e5)??1,total:int(g.total,0,1e9)??0,reward:int(g.reward,0,1e6)??0,reached:g.reached===true,helpers:int(g.helpers,0,1e7)??0})).filter(g=>g.title),
       hall:list(community.hall).slice(0,6).map(h=>({name:clean(h.name,40),endedAt:time(h.endedAt),champion:h.champion?{...person(h.champion),points:int(h.champion.points,0,1e12)??0}:null,topPilot:h.topPilot?{name:name(clean(h.topPilot.name,LIMITS.name)),wins:int(h.topPilot.wins,0,1e9)??0}:null}))};
   }
+  if(companion&&typeof companion==='object')Object.assign(feed,projectCompanion(companion,s,online===true,crewCount));
   if(show.program)feed.program={intro:s.program.intro,tiers:s.program.tiers.map(t=>({key:t.key,name:t.name,description:t.description})),commands:s.program.commands.map(c=>({...c}))};
   return feed;
 }
@@ -271,4 +272,42 @@ window.addEventListener('message',function(e){
   var h=Number(e.data.height);if(h>200&&h<20000)document.getElementById('voyager-frame').style.height=Math.ceil(h)+'px';
 });
 </script>`;
+}
+
+
+// ---------- stream companion (2.20.17) ----------
+// What viewers follow on their phone during the stream: whether we're on air, the Dreadnought fight,
+// naval ranks, medals and a lookup of each member's card (tier, rank and medals; never watch time, tickets or IDs).
+const RANK_COUNT=12,MEDAL_CATS=['loyalty','support','honour','games','community','special'],TIERS_ALL=['blue','silver','gold','platinum'];
+const medalId=v=>typeof v==='string'&&/^[a-z]{2,20}$/.test(v)?v:null;
+export function projectCompanion(raw,settings=DEFAULT_SETTINGS,online=true,crewCount=0){
+  const s=normalizeSettings(settings),show=s.sections,name=n=>s.showNames?n:initials(n),out={};
+  const person=p=>{const n=clean(p?.name,LIMITS.name);return n?{name:name(n),platform:oneOf(p?.platform,Object.keys(PLATFORMS),'')}:null;};
+  if(show.live)out.live={onAir:online&&raw.live?.onAir===true};
+  if(show.dreadnought&&raw.dreadnought){const d=raw.dreadnought,phase=oneOf(d.phase,['idle','lobby','battle','result'],'idle');
+    out.dreadnought={phase:online?phase:'idle',name:clean(d.name,40)||'The Dreadnought',hp:int(d.hp,0,1e9)??0,maxHp:int(d.maxHp,0,1e9)??0,lobbyEndsAt:time(d.lobbyEndsAt),endsAt:time(d.endsAt),endedAt:time(d.endedAt),
+      outcome:oneOf(d.outcome,['victory','escaped'],null),pilots:int(d.pilots,0,1e5)??0,victoryPoints:int(d.victoryPoints,0,1e6)??0,
+      leaders:list(d.leaders).slice(0,5).map(l=>({...person(l),damage:int(l?.damage,0,1e9)??0})).filter(l=>l.name),
+      history:list(d.history).slice(0,6).map(h=>({outcome:oneOf(h?.outcome,['victory','escaped'],'escaped'),endedAt:time(h?.endedAt),pilots:int(h?.pilots,0,1e5)??0,mvp:h?.mvp?{...person(h.mvp),damage:int(h.mvp.damage,0,1e9)??0}:null})).filter(h=>h.endedAt)};}
+  if(show.ranks&&raw.ranks){const r=raw.ranks;
+    out.ranks={ladder:list(r.ladder).slice(0,RANK_COUNT).map(x=>({id:clean(x?.id,8),name:clean(x?.name,30),abbr:clean(x?.abbr,6),points:int(x?.points,0,1e12)??0,top:int(x?.top,0,100)??0,holders:int(x?.holders,0,1e7)??0})).filter(x=>x.name),
+      top:list(r.top).slice(0,25).map((x,i)=>({place:i+1,...person(x),rank:int(x?.rank,0,RANK_COUNT-1)??0,lifetime:int(x?.lifetime,0,1e12)??0})).filter(x=>x.name),
+      promotions:list(r.promotions).slice(0,12).map(x=>({...person(x),rank:int(x?.rank,0,RANK_COUNT-1)??0,at:time(x?.at)})).filter(x=>x.name&&x.at)};}
+  if(show.medals&&raw.medals){const m=raw.medals;
+    out.medals={catalogue:list(m.catalogue).filter(x=>medalId(x?.id)).slice(0,40).map(x=>({id:x.id,name:clean(x.name,30),cat:oneOf(x.cat,MEDAL_CATS,'community'),kind:oneOf(x.kind,['count','rank','special','secret'],'count'),unit:clean(x.unit,30),icon:typeof x.icon==='string'&&/^[MLHVCSQTAZmlhvcsqtaz0-9 .,-]{1,600}$/.test(x.icon)?x.icon:'',
+        // Secret medals keep their secret: the name shows (it appears on cards) but not how to earn it.
+        desc:x.kind==='secret'?'Secret medal. How to earn it is for you to discover.':clean(x.desc,160),
+        grades:Array.isArray(x.grades)?x.grades.slice(0,4).map(g=>int(g,0,1e9)??0):null,earned:Array.isArray(x.earned)?x.earned.slice(0,4).map(g=>int(g,0,1e7)??0):[0,0,0,0]})),
+      honour:list(m.honour).slice(0,10).map((x,i)=>({place:i+1,...person(x),honour:int(x?.honour,0,1e6)??0,medals:int(x?.medals,0,100)??0})).filter(x=>x.name),
+      recent:list(m.recent).slice(0,12).map(x=>({...person(x),medal:medalId(x?.medal),grade:int(x?.grade,0,3)??0,special:x?.special===true,at:time(x?.at)})).filter(x=>x.name&&x.medal&&x.at)};}
+  if(show.crew&&s.showNames&&crewCount>0)out.crew={file:'crew.json',count:int(crewCount,0,1e5)??0};
+  return out;
+}
+// crew.json: one compact row per member for "find your card". Names only with "Show viewer names" on.
+export function buildCrew(rows,settings=DEFAULT_SETTINGS,now=Date.now(),limit=2000){
+  const s=normalizeSettings(settings);if(!s.sections.crew||!s.showNames)return null;
+  const members=list(rows).slice(0,limit).map(r=>{const n=clean(r?.name,LIMITS.name);if(!n)return null;
+    return [n,oneOf(r.platform,Object.keys(PLATFORMS),''),oneOf(r.tier,TIERS_ALL,'blue'),int(r.rank,0,RANK_COUNT-1)??0,int(r.place,0,1e6)??0,int(r.lifetime,0,1e12)??0,
+      list(r.medals).filter(m=>medalId(m?.[0])).slice(0,40).map(m=>[m[0],int(m[1],0,3)??0])];}).filter(Boolean);
+  return {schema:1,generatedAt:now,members};
 }

@@ -1,6 +1,8 @@
 # Voyager public website
 
-- `viewer/index.html`: the viewer site (giveaways, winners, goals, leaderboards). It reads the live feed from the `public-data` branch.
+- `viewer/index.html`: the stream companion (tabs: Live, My card, Medals, Boards, Winners, Guide). It reads the live feed (and `crew.json` for the card lookup) from the `public-data` branch.
+- `viewer/companion.js`: tabs, on-air status, the Dreadnought, find-your-card, naval ranks and medals.
+- `viewer/manifest.webmanifest`, `viewer/sw.js`: install to the home screen and offline support.
 - `download.html`: the app download page, served at `/download/`.
 - `build-site.mjs`: builds both pages into `_site/`.
 - `cloudflare.mjs`: adds Cloudflare deploy settings and security headers.

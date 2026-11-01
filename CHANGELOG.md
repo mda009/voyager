@@ -2,6 +2,18 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.17 (1 November 2026)
+
+**The public website is now a stream companion app (voyagercommand.com).**
+
+- **Tabs:** Live, My card, Medals, Boards, Winners and Guide. On phones they sit along the bottom like an app; the site can be installed to the home screen and opens instantly, even offline (showing the last update).
+- **Live:** an on-air badge (from chat activity), watch links, one-tap copy buttons for `!voyager`, `!medals`, `!join`, `!fire`, `!enter` and `!entergiveaway`, the **Dreadnought** (boarding countdown, hull bar, pilots, time left and top pilots during a fight; results and recent fights afterwards), giveaways, Voyager Versus and this week's missions.
+- **My card:** viewers search their name to see their membership tier, naval rank with insignia and progress to the next rank, all-time place, lifetime points and every medal (earned in their grade's colour, the rest locked). The page remembers who they are next time.
+- **Medals:** the Hall of Honour, the latest medals awarded, and every medal with how to earn it and its four grade targets. Secret medals keep their secret.
+- **Ranks:** the twelve-rank ladder with how many crew hold each, the senior officers and recent promotions.
+- **Privacy:** five new switches in Public website › What is shared (on air, Dreadnought, ranks, medals, crew lookup). The crew lookup (`crew.json`, top 2,000 by lifetime points, refreshed every 10 minutes) is only published with Show viewer names on. Never published: watch time (only medal grades, as on the cards), ticket balances, user IDs or logins.
+- Update the app so it publishes the new information; the website itself is already live.
+
 ## 2.20.16 (1 November 2026)
 
 **More exciting membership card reveals, promotions and tier-ups.**

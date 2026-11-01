@@ -288,6 +288,12 @@ export class Cards{
   }
   configure(raw){this.state.settings=normalizeCardSettings({...this.state.settings,...raw},this.state.settings);this.persist();return this.view();}
   overlay(){const now=this.now();return {serverAt:now,items:this.state.queue.filter(x=>now-x.at<10*60000)};}
+  // 2.20.17: rows for the public site's crew lookup (crew.json): name, platform, tier, rank, all-time place, lifetime points and medals.
+  crewRows(limit=2000){
+    const viewers=this.medals?.state?.viewers||{};
+    return this.ranksView(limit).members.map(m=>({name:m.name,platform:m.platform,tier:m.tier,rank:m.rank,place:m.place,lifetime:m.lifetime,
+      medals:Object.entries(viewers[m.key]?.m||{}).sort((a,b)=>b[1].g-a[1].g||b[1].at-a[1].at).map(([id,e])=>[id,e.g])}));
+  }
   // 2.20.13: the Ranks page in Voyager Control. Everyone with lifetime points, their rank, all-time place and progress.
   ranksView(limit=1000){
     const {rows,place}=this.board(),members=this.community()?.state?.members||{},pts=this.state.settings.rankPoints,count=new Array(RANKS.length).fill(0);

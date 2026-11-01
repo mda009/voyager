@@ -4,8 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="voyager-feed" content="feed.json">
-<title>Voyager · Giveaways and community</title>
-<meta name="description" content="Live giveaways, winners, community goals and leaderboards for the Voyager community.">
+<title>Voyager · Stream companion</title>
+<meta name="description" content="The Voyager stream companion: what's on now, giveaways, the Dreadnought, your membership card, naval ranks, medals and leaderboards.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="assets/icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#070d16">
 <link rel="icon" href="assets/icon.png" type="image/png">
 <style>
@@ -147,36 +152,163 @@ dialog.proof::backdrop{background:#020913cc;backdrop-filter:blur(4px)}
 ol.hall li{grid-template-columns:34px 1fr}
 ol.rows li.empty{display:block;border:0;color:var(--muted);padding:10px 4px}
 #season .two{align-items:start}
+
+/* ---------- 2.20.17 stream companion ---------- */
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+header.top{position:sticky;top:0;z-index:20;margin:0 -16px;padding:10px 16px;background:#070d16ee;backdrop-filter:blur(10px);border-bottom:1px solid #1a2a3d}
+header.top img{width:40px;height:40px}
+header.top .brand{flex:1;min-width:0}
+header.top .status{font-size:12px;padding:5px 10px 5px 8px}
+.brandname{font-size:20px}
+nav.tabbar{display:flex;gap:4px;margin:14px 0 0;overflow-x:auto;scrollbar-width:none}
+nav.tabbar::-webkit-scrollbar{display:none}
+nav.tabbar button{flex:1 0 auto;display:flex;align-items:center;justify-content:center;gap:8px;background:transparent;border:1px solid transparent;color:var(--muted);font:700 15px/1 var(--display);letter-spacing:1.2px;text-transform:uppercase;padding:10px 14px;border-radius:10px;cursor:pointer}
+nav.tabbar button svg{width:20px;height:20px;flex:none}
+nav.tabbar button[aria-selected=true]{color:var(--text);background:#13253c;border-color:var(--line-strong)}
+nav.tabbar button .pip{width:7px;height:7px;border-radius:50%;background:var(--rose);box-shadow:0 0 8px var(--rose)}
+nav.tabbar button:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+@media (max-width:760px){
+ nav.tabbar{position:fixed;left:0;right:0;bottom:0;margin:0;z-index:30;gap:0;padding:6px max(6px,env(safe-area-inset-left,0px)) max(8px,env(safe-area-inset-bottom,0px));background:#08111dF2;backdrop-filter:blur(12px);border-top:1px solid #1d3048;overflow:visible}
+ nav.tabbar button{flex:1 1 0;flex-direction:column;gap:4px;font-size:10.5px;letter-spacing:.6px;padding:6px 2px;border-radius:12px;min-width:0}
+ nav.tabbar button[aria-selected=true]{background:#13253c}
+ .wrap{padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))}
+ footer{margin-bottom:10px}
+}
+.now-card{position:relative;overflow:hidden;background:radial-gradient(ellipse 80% 120% at 100% 0,#1c3e6e88,transparent 60%),linear-gradient(170deg,var(--panel-2),var(--panel) 60%)}
+.now-card h1{font:700 clamp(30px,6vw,46px)/1.02 var(--display);margin:10px 0 8px}
+.now-card p{color:var(--muted);margin:0 0 14px;max-width:640px}
+.now-top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.onair{display:inline-flex;align-items:center;gap:9px;font:700 14px/1 var(--display);letter-spacing:2px;text-transform:uppercase;padding:8px 14px;border-radius:999px;background:#1a2433;color:var(--muted)}
+.onair i{width:10px;height:10px;border-radius:50%;background:var(--faint)}
+.onair[data-on=true]{background:#3a0f1c;color:#ffd1dc}
+.onair[data-on=true] i{background:#ff3d6e;box-shadow:0 0 0 0 #ff3d6e99;animation:ping2 1.6s infinite}
+@keyframes ping2{70%{box-shadow:0 0 0 10px #ff3d6e00}100%{box-shadow:0 0 0 0 #ff3d6e00}}
+.links a.watch{background:#13253c;border-color:var(--line-strong)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.chip{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:#0b1626;border-radius:999px;padding:7px 12px 7px 10px;color:var(--text);cursor:pointer;font:600 14px/1 var(--body)}
+.chip code{font:700 14px/1 ui-monospace,Consolas,monospace;color:#9fe3ff}
+.chip small{color:var(--faint);font-size:12px}
+.chip.copied{border-color:#2f6b52;background:#0b2a1f}
+.install{display:flex;align-items:center;gap:12px;margin-top:16px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:#0b1626;font-size:14px;color:var(--muted)}
+.install button{margin-left:auto;font:700 14px/1 var(--display);letter-spacing:1px;text-transform:uppercase;background:linear-gradient(180deg,#2a7cff,#1d5fd0);color:#fff;border:0;border-radius:9px;padding:10px 14px;cursor:pointer}
+/* Dreadnought */
+.dread{background:radial-gradient(ellipse 90% 90% at 85% 10%,#5a1a2a66,transparent 60%),linear-gradient(170deg,var(--panel-2),var(--panel) 60%)}
+.dread .phase{font:700 30px/1.05 var(--display);margin:4px 0 6px}
+.dread .phase.lobby{color:#ffd27a}.dread .phase.battle{color:#ff7c93}.dread .phase.victory{color:#7ff0b5}.dread .phase.escaped{color:#c9d3df}
+.hull{height:18px;border-radius:6px;background:#1a0b10;border:1px solid #5a2433;overflow:hidden;margin:12px 0 6px;position:relative}
+.hull i{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,#ff3d6e,#ff9a3d);box-shadow:0 0 20px #ff3d6e88;transition:width .8s ease}
+.hull-meta{display:flex;justify-content:space-between;color:var(--muted);font-size:13px;font-variant-numeric:tabular-nums}
+.dread .cmds{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 4px}
+.dread h4{font:700 13px/1 var(--display);letter-spacing:1.6px;text-transform:uppercase;color:#8abbd8;margin:18px 0 6px}
+/* Crew lookup */
+.search{display:block}
+.search input{width:100%;height:50px;border-radius:12px;border:1px solid var(--line-strong);background:#0a1421;color:var(--text);font:600 18px/1 var(--body);padding:0 16px}
+.search input:focus{outline:2px solid var(--cyan);outline-offset:1px}
+.results{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:4px}
+.results button{width:100%;display:flex;align-items:center;gap:10px;text-align:left;background:#0b1626;border:1px solid var(--line);border-radius:10px;padding:10px 12px;color:var(--text);font:600 15px/1.2 var(--body);cursor:pointer}
+.results button:hover,.results button:focus-visible{border-color:var(--line-strong);outline:none}
+.results .meta{margin-left:auto;color:var(--faint);font-size:12px;white-space:nowrap}
+.small{font-size:13px;margin:12px 0 0}
+.member{--t:#59baff;--t2:#0b2c6e;margin-top:14px;border-radius:18px;padding:20px;position:relative;overflow:hidden;border:1px solid color-mix(in srgb,var(--t) 50%,transparent);
+ background:radial-gradient(ellipse 90% 120% at 90% 0,color-mix(in srgb,var(--t) 28%,transparent),transparent 60%),linear-gradient(160deg,color-mix(in srgb,var(--t2) 70%,#0e1a2a),#0a1220 70%);
+ box-shadow:0 20px 50px -20px color-mix(in srgb,var(--t) 50%,transparent);animation:cardIn .7s cubic-bezier(.2,.9,.25,1) both}
+@keyframes cardIn{0%{opacity:0;transform:translateY(16px) scale(.97);filter:brightness(2)}100%{opacity:1;transform:none;filter:none}}
+.member::after{content:'';position:absolute;top:-40%;left:-30%;width:25%;height:180%;transform:rotate(20deg);background:linear-gradient(90deg,transparent,rgba(255,255,255,.12),transparent);animation:sweep2 5s ease-in-out 1s infinite;pointer-events:none}
+@keyframes sweep2{0%{left:-30%}40%,100%{left:130%}}
+.member .tiername{font:700 13px/1 var(--display);letter-spacing:3px;color:var(--t);text-transform:uppercase}
+.member .who{font:700 clamp(28px,6vw,38px)/1.05 var(--display);margin:6px 0 2px;overflow-wrap:anywhere}
+.member .plat{color:var(--muted);font-size:14px}
+.member .rankrow{display:flex;align-items:center;gap:14px;margin:16px 0 4px;padding:12px 14px;border-radius:12px;background:#0006;border:1px solid #f2c14e33}
+.member .rankrow b{display:block;font:700 22px/1.05 var(--display);letter-spacing:1px;color:#f6e2a6;text-transform:uppercase}
+.member .rankrow small{color:var(--muted);font-size:13px}
+.member .next{margin:10px 0 0;font-size:13px;color:var(--muted)}
+.member .bar{height:8px;margin-top:6px}
+.member .bar i{background:linear-gradient(90deg,#b8862b,#f2cd73)}
+.member h4{font:700 13px/1 var(--display);letter-spacing:1.6px;text-transform:uppercase;color:var(--t);margin:18px 0 10px}
+.medal-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:12px 8px}
+.medal{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center}
+.medal span{font:700 12px/1.1 var(--display);letter-spacing:.3px;text-transform:uppercase}
+.medal small{font-size:11px;color:var(--faint)}
+.medal.locked{opacity:.35;filter:grayscale(1)}
+.hex{width:54px;height:54px;display:grid;place-items:center;clip-path:polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%);background:var(--metal,linear-gradient(180deg,#e6f5ff,#5fb8ff 45%,#0b4fd0 52%,#8fd2ff))}
+.hex>div{width:46px;height:46px;display:grid;place-items:center;clip-path:polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%);background:radial-gradient(circle at 50% 24%,#ffffff2a,transparent 62%),#0a0f19}
+.hex svg{width:24px;height:24px;fill:none;stroke:var(--ink,#fff);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.member .hex{animation:popIn .55s cubic-bezier(.2,1.6,.4,1) both}
+@keyframes popIn{0%{opacity:0;transform:scale(.3) rotate(-30deg)}100%{opacity:1;transform:none}}
+/* Ranks */
+.ladder{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column-reverse;gap:6px}
+.ladder li{display:grid;grid-template-columns:62px 1fr auto;gap:12px;align-items:center;padding:8px 10px;border:1px solid #1b2b3f;border-radius:10px;background:#0b1422}
+.ladder li.flag{background:linear-gradient(90deg,#f2c14e14,#0b1422 60%)}
+.ladder b{display:block;font:700 16px/1.1 var(--display);letter-spacing:.4px}
+.ladder small{color:var(--faint);font-size:12px}
+.ladder .pts{text-align:right;font:700 15px/1.1 var(--display);color:#9fe3ff}
+.ladder .pts small{display:block;font:400 12px var(--body);color:var(--faint)}
+.lace{width:56px;height:30px;flex:none}
+.stack{display:grid;gap:14px;align-content:start}
+.one{display:grid;gap:14px}
+/* Medal catalogue */
+.cat{margin-top:18px}
+.cat h3{font:700 18px/1 var(--display);letter-spacing:1.4px;text-transform:uppercase;color:#8abbd8;margin:0 0 10px}
+.cat .grid{grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}
+.mcard{display:flex;gap:14px;align-items:flex-start;padding:14px}
+.mcard h4{margin:0;font:700 18px/1.1 var(--display)}
+.mcard p{margin:4px 0 8px;color:var(--muted);font-size:14px}
+.grades{display:flex;flex-wrap:wrap;gap:6px}
+.grades span{font:600 12px/1 var(--body);padding:5px 8px;border-radius:999px;background:#0a1421;border:1px solid var(--line);color:var(--muted);white-space:nowrap}
+.grades span i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;vertical-align:0}
 </style>
 </head>
 <body>
 <div class="wrap">
- <header class="top"><img src="assets/voyager.png" alt="" width="52" height="52"><div><div class="brandname" id="channel">VOYAGER</div><div class="brandsub">Voyager community</div></div></header>
- <div class="hero">
-  <h1>Giveaways, goals and leaderboards</h1>
-  <p id="tagline">Everything happening in the Voyager community, live from the stream.</p>
-  <span class="status" id="status" data-state="loading" role="status"><i></i><span>Connecting…</span></span><a class="open-full" id="open-full" href="./" target="_blank" rel="noopener">Open full page ↗</a>
-  <div class="links" id="links"></div>
-  <div class="banner" id="offline" hidden></div>
- </div>
- <nav class="jump" aria-label="Sections" id="jump"></nav>
+ <header class="top"><img src="assets/voyager.png" alt="" width="44" height="44"><div class="brand"><div class="brandname" id="channel">VOYAGER</div><div class="brandsub">Stream companion</div></div>
+  <span class="status" id="status" data-state="loading" role="status"><i></i><span>Connecting…</span></span><a class="open-full" id="open-full" href="./" target="_blank" rel="noopener">Open full page ↗</a></header>
+ <nav class="tabbar" id="tabbar" aria-label="Companion"></nav>
+ <div class="banner" id="offline" hidden></div>
 
- <section id="giveaways" aria-labelledby="h-giveaways">
+ <section id="now" data-tab="live" aria-labelledby="h-now">
+  <div class="card now-card" id="now-card">
+   <div class="now-top"><span class="onair" id="onair" data-on="false"><i></i><b id="onair-text">Off air</b></span><span class="when" id="updated-short"></span></div>
+   <h1 id="h-now">Your Voyager companion</h1>
+   <p id="tagline">Keep this open while you watch: giveaways, the Dreadnought, your card, ranks and medals, live from the stream.</p>
+   <div class="links" id="links"></div>
+   <div class="chips" id="chips" aria-label="Chat commands to copy"></div>
+   <div class="install" id="install" hidden><span>Add Voyager to your home screen for one-tap access.</span><button type="button" id="install-btn">Install</button></div>
+  </div>
+ </section>
+
+ <section id="dread" data-tab="live" aria-labelledby="h-dread" hidden>
+  <h2 id="h-dread">The Dreadnought</h2><p class="lede" id="dread-lede">A co-op boss fight in chat. Everyone who fights earns points when it's destroyed.</p>
+  <div class="card dread" id="dread-card"></div>
+ </section>
+
+
+ <section id="giveaways" data-tab="live" aria-labelledby="h-giveaways">
   <h2 id="h-giveaways">Giveaways</h2><p class="lede">Join from chat while the stream is live. Winners are announced on stream.</p>
   <div class="grid" id="giveaway-list"></div>
  </section>
 
- <section id="goals" aria-labelledby="h-goals" hidden>
+ <section id="arena" data-tab="live" aria-labelledby="h-arena" hidden>
+  <h2 id="h-arena">Voyager Versus</h2><p class="lede">One-on-one dogfights called from chat.</p>
+   <div class="card" id="versus" hidden>
+    <span class="kind">Voyager Versus</span>
+    <div class="versus-state" id="versus-state"></div>
+    <p class="lede" id="versus-detail" style="margin:0 0 12px"></p>
+    <div class="enter" id="versus-enter"><span>Type in Twitch chat</span><code id="versus-cmd"></code><button type="button" data-copy="">Copy</button></div>
+    <p class="lede" style="margin:0">Two viewers each type the command to start a battle. The winning pilot earns Voyager points.</p>
+   </div>
+ </section>
+
+ <section id="goals" data-tab="boards" aria-labelledby="h-goals" hidden>
   <h2 id="h-goals">Community goals</h2><p class="lede">Voyager points pooled by the community toward the next giveaways.</p>
   <div class="card" id="goal-list"></div>
  </section>
 
- <section id="missions" aria-labelledby="h-missions" hidden>
+ <section id="missions" data-tab="live" aria-labelledby="h-missions" hidden>
   <h2 id="h-missions">This week's missions</h2><p class="lede" id="missions-lede">Finish a mission to earn Voyager points.</p>
   <div class="grid" id="mission-list"></div>
  </section>
 
- <section id="season" aria-labelledby="h-season" hidden>
+ <section id="season" data-tab="boards" aria-labelledby="h-season" hidden>
   <h2 id="h-season">Season</h2><p class="lede" id="season-lede"></p>
   <div class="grid" id="sub-goal-list" hidden></div>
   <div class="two">
@@ -185,29 +317,52 @@ ol.rows li.empty{display:block;border:0;color:var(--muted);padding:10px 4px}
   </div>
  </section>
 
- <section id="winners" aria-labelledby="h-winners" hidden>
+ <section id="winners" data-tab="winners" aria-labelledby="h-winners" hidden>
   <h2 id="h-winners">Recent winners</h2><p class="lede">Congratulations to everyone who won.</p>
   <div class="card"><ol class="rows" id="winner-list"></ol></div>
  </section>
 
- <section id="leaderboards" aria-labelledby="h-leaders" hidden>
+ <section id="leaderboards" data-tab="boards" aria-labelledby="h-leaders" hidden>
   <h2 id="h-leaders">Leaderboards</h2><p class="lede" id="leader-lede">Top of the Voyager community.</p>
-  <div class="two">
+  <div class="one">
    <div class="card">
     <div class="tabs" role="tablist" id="tabs"></div>
     <ol class="rows" id="leader-list" role="tabpanel"></ol>
    </div>
-   <div class="card" id="versus" hidden>
-    <span class="kind">Voyager Versus</span>
-    <div class="versus-state" id="versus-state"></div>
-    <p class="lede" id="versus-detail" style="margin:0 0 12px"></p>
-    <div class="enter" id="versus-enter"><span>Type in Twitch chat</span><code id="versus-cmd"></code><button type="button" data-copy="">Copy</button></div>
-    <p class="lede" style="margin:0">Two viewers each type the command to start a battle. The winning pilot earns Voyager points.</p>
+  </div>
+ </section>
+
+ <section id="find" data-tab="crew" aria-labelledby="h-find" hidden>
+  <h2 id="h-find">Find your card</h2><p class="lede">Search your name to see your membership tier, naval rank and medals.</p>
+  <div class="card">
+   <label class="search"><span class="sr">Your name</span><input id="crew-search" type="search" placeholder="Type your name…" autocomplete="off" autocapitalize="off" spellcheck="false"></label>
+   <ul class="results" id="crew-results"></ul>
+   <div id="member" class="member" hidden></div>
+   <p class="lede small" id="crew-note"></p>
+  </div>
+ </section>
+
+ <section id="ranks" data-tab="crew" aria-labelledby="h-ranks" hidden>
+  <h2 id="h-ranks">Naval ranks</h2><p class="lede">Ranks come from lifetime Voyager points, so spending never lowers yours. The top three ranks also need an all-time leaderboard place.</p>
+  <div class="two">
+   <div class="card"><span class="kind">The ladder</span><ol class="ladder" id="ladder"></ol></div>
+   <div class="stack">
+    <div class="card"><span class="kind">Senior officers · all time</span><ol class="rows" id="officers"></ol></div>
+    <div class="card" id="promo-card"><span class="kind">Recent promotions</span><ol class="rows" id="promotions"></ol></div>
    </div>
   </div>
  </section>
 
- <section id="program" aria-labelledby="h-program" hidden>
+ <section id="medal-sec" data-tab="medals" aria-labelledby="h-medals" hidden>
+  <h2 id="h-medals">Medals</h2><p class="lede">Earned by watching, supporting, playing and showing up. Most have four grades: Bronze, Silver, Gold and Legend.</p>
+  <div class="two">
+   <div class="card"><span class="kind">Hall of Honour</span><ol class="rows" id="honour"></ol></div>
+   <div class="card"><span class="kind">Just awarded</span><ol class="rows" id="awards"></ol></div>
+  </div>
+  <div id="catalogue"></div>
+ </section>
+
+ <section id="program" data-tab="guide" aria-labelledby="h-program" hidden>
   <h2 id="h-program">How Voyager works</h2><p class="lede" id="program-intro"></p>
   <div class="tiers" id="tier-list"></div>
   <div class="card" id="command-card" style="margin-top:14px"><table><tbody id="command-list"></tbody></table></div>
@@ -220,6 +375,7 @@ ol.rows li.empty{display:block;border:0;color:var(--muted);padding:10px 4px}
  <footer><p id="updated">Updates every few minutes while the stream tools are running.</p><p>Voyager community site. Giveaway entry happens in stream chat only; this site never asks for passwords or payment.</p></footer>
 </div>
 <script src="fair-draw.js"></script>
+<script src="companion.js?v=2.20.17" defer></script>
 <script>
 (()=>{'use strict';
 // ?embed=1: shown inside another site. Report our height so the host page can size its frame.
@@ -393,7 +549,7 @@ function renderSeason(){
  const hall=$('hall-list');hall.textContent='';$('hall-card').hidden=!(s.hall||[]).length;
  for(const h of s.hall||[]){const li=el('li');const info=el('div');info.append(el('b','',h.champion?h.champion.name:'—'),el('div','when',h.name+(h.champion?' champion · '+fmt(h.champion.points)+' pts':'')+(h.topPilot?' · top pilot '+h.topPilot.name:'')));li.append(el('span','rank','★'),info);hall.append(li);}
 }
-function render(){if(!feed)return;renderHeader();renderGiveaways();renderGoals();renderMissions();renderSeason();renderWinners();renderLeaders();renderProgram();renderJump();$('updated').textContent='Updated '+ago(feed.generatedAt)+'. This page refreshes itself every minute.';}
+function render(){if(!feed)return;renderHeader();renderGiveaways();renderGoals();renderMissions();renderSeason();renderWinners();renderLeaders();renderProgram();window.dispatchEvent(new CustomEvent('voyager:feed',{detail:feed}));$('updated').textContent='Updated '+ago(feed.generatedAt)+'. This page refreshes itself every minute.';}
 
 async function load(){
  try{
