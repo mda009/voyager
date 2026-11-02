@@ -18,9 +18,11 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:transparent
 .right .toast.in{animation-name:inr}@keyframes inr{from{opacity:0;transform:translateX(70px)}to{opacity:1;transform:none}}
 .edge{position:absolute;inset:0;pointer-events:none;border:1.5px solid var(--accent);opacity:.65;clip-path:inherit}
 .glow{position:absolute;left:-40px;top:-40px;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,var(--accent),transparent 65%);opacity:.28;filter:blur(18px)}
-.medal{position:relative;flex:none;width:120px;height:120px;display:flex;align-items:center;justify-content:center;clip-path:polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%);background:var(--metal);filter:drop-shadow(0 8px 12px rgba(0,0,0,.6))}
-.medal .in{width:100px;height:100px;display:flex;align-items:center;justify-content:center;clip-path:polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%);background:radial-gradient(circle at 50% 22%,rgba(255,255,255,.2),rgba(255,255,255,0) 60%),#070b13}
-.medal svg{width:52px;height:52px;stroke:var(--accent);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+/* 2.20.26: round medals modelled on the Voyager roundel (ticked rim, space disc, star at the top). */
+.medal{position:relative;flex:none;width:120px;height:120px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:repeating-conic-gradient(from 7.5deg,rgba(0,0,0,.28) 0 2.4deg,rgba(0,0,0,0) 2.4deg 15deg),var(--metal);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.35),inset 0 0 0 7px rgba(0,0,0,.35);filter:drop-shadow(0 8px 12px rgba(0,0,0,.6))}
+.medal .in{position:relative;width:96px;height:96px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:radial-gradient(ellipse at 50% 118%,rgba(90,160,255,.5),rgba(90,160,255,0) 52%),radial-gradient(circle at 50% 26%,rgba(255,255,255,.2),rgba(255,255,255,0) 62%),#070b13;box-shadow:inset 0 0 0 2px rgba(0,0,0,.7),inset 0 0 0 3.5px rgba(255,255,255,.28)}
+.medal .star{position:absolute;left:50%;top:9%;width:22px;height:22px;transform:translateX(-50%);fill:var(--accent);stroke:none;opacity:.9}
+.medal svg.mark{width:48px;height:48px;margin-top:9px;stroke:var(--accent);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .toast.in .medal{animation:pop .9s cubic-bezier(.2,1.4,.4,1) .15s both}
 @keyframes pop{from{transform:scale(.2) rotate(-90deg);opacity:0}to{transform:none;opacity:1}}
 .flash{position:absolute;left:90px;top:82px;width:24px;height:24px;margin:-12px 0 0 -12px;border-radius:50%;background:radial-gradient(circle,#fff,rgba(255,255,255,.4) 40%,transparent 70%);opacity:0}
@@ -60,7 +62,7 @@ const seen=new Set(),queue=[];let busy=false,started=Date.now(),serverOffset=0,f
 function show(t){
   busy=true;const [metal,accent]=t.special?SPECIAL:GRADES[t.grade]||GRADES[0];
   const d=document.createElement('div');d.className='toast';d.style.setProperty('--metal',metal);d.style.setProperty('--accent',accent);
-  const svg='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="'+(ICONS[t.medal]||ICONS.spectrum)+'"></path></svg>';
+  const svg='<svg class="star" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1.5l1.6 6.9L20.5 10l-6.9 1.6L12 18.5l-1.6-6.9L3.5 10l6.9-1.6z"></path></svg><svg class="mark" viewBox="0 0 24 24" aria-hidden="true"><path d="'+(ICONS[t.medal]||ICONS.spectrum)+'"></path></svg>';
   d.innerHTML='<div class="glow"></div><div class="edge"></div><div class="medal"><div class="in">'+svg+'</div></div><div class="flash"></div><div class="sheen"></div><div class="text"><span class="eb"></span><span class="title"></span><span class="who"></span><span class="next"></span></div>';
   d.querySelector('.eb').textContent=t.special?'★ SPECIAL MEDAL ★':t.upgrade?'★ MEDAL UPGRADED · '+t.gradeName.toUpperCase()+' ★':'MEDAL UNLOCKED · '+t.gradeName.toUpperCase();
   d.querySelector('.title').textContent=t.title+(t.special?'':' '+['I','II','III','IV'][t.grade]);

@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.26 (2 November 2026)
+
+**Round medals, modelled on the Voyager roundel.** Every medal symbol is now a round medallion in the style of the Voyager emblem: a lettered metal rim in the grade's metal (bronze, silver, gold, legend), a dark space disc with a horizon glow, the four-point Voyager star at the top and the medal's own mark in the centre. The same mark is used everywhere a medal appears: the membership card's medal row and medal wall, the on-stream medal announcements (`medals.html`), the companion site (Medals tab, Hall of Honour, card back) and the member manual.
+
 ## 2.20.25 (2 November 2026)
 
 **Chat replies stay on their platform.** The `!report` muster line is now posted on the platform the reports came from (one line per platform; a Kick report is announced on Kick only), and `!squadron` / `!log` replies go to the viewer's own platform. The Bridge Quiz and Comms Relay still post everywhere. **Needs the updated `Voyager_Medals.cs`** pasted into the Voyager - Medals action (Compile, Save); until then lines go to every platform as before. See the Medals setup guide.

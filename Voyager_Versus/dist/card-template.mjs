@@ -27,6 +27,16 @@ export const TIERS = {
         motto: 'LEAD • DEFEND • INSPIRE', line: 'VANGUARD IN PURPOSE. UNITED IN THE VERSE.' }
     };
 const e=x=>String(x??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+// 2.20.26: medals are round, modelled on the Voyager roundel: a lettered metal rim (tick marks), a dark
+// space disc with a horizon glow, the four-point Voyager star at the top and the medal's own mark in the centre.
+export const MEDAL_STAR='M12 1.5l1.6 6.9L20.5 10l-6.9 1.6L12 18.5l-1.6-6.9L3.5 10l6.9-1.6z';
+export function medalMark({icon,metal,ink,size=48,bg='#0a0f19',shadow=true}={}){
+  const inner=Math.round(size*0.8),ico=Math.round(size*0.44),star=Math.round(size*0.2),sw=size>=56?1.8:2,rim=Math.max(2,Math.round(size*.055)),top=Math.round(size*.08);
+  return '<div style="width: '+size+'px; height: '+size+'px; flex: none; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: repeating-conic-gradient(from 7.5deg, rgba(0,0,0,.28) 0 2.4deg, rgba(0,0,0,0) 2.4deg 15deg), '+e(metal)+'; box-shadow: inset 0 0 0 1px rgba(255,255,255,.35), inset 0 0 0 '+rim+'px rgba(0,0,0,.35)'+(shadow?'; filter: drop-shadow(0 3px 6px rgba(0,0,0,.55))':'')+'">'
+    +'<div style="position: relative; width: '+inner+'px; height: '+inner+'px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: radial-gradient(ellipse at 50% 118%, rgba(90,160,255,.5), rgba(90,160,255,0) 52%), radial-gradient(circle at 50% 26%, rgba(255,255,255,.2), rgba(255,255,255,0) 62%), '+e(bg)+'; box-shadow: inset 0 0 0 1.5px rgba(0,0,0,.7), inset 0 0 0 2.5px rgba(255,255,255,.28)">'
+    +'<svg viewBox="0 0 24 24" width="'+star+'" height="'+star+'" aria-hidden="true" style="position: absolute; left: 50%; top: 9%; transform: translateX(-50%)" fill="'+e(ink)+'" opacity=".9"><path d="'+MEDAL_STAR+'"></path></svg>'
+    +'<svg viewBox="0 0 24 24" width="'+ico+'" height="'+ico+'" aria-hidden="true" style="margin-top: '+top+'px" fill="none" stroke="'+e(ink)+'" stroke-width="'+sw+'" stroke-linecap="round" stroke-linejoin="round"><path d="'+e(icon)+'"></path></svg></div></div>';
+}
 export function cardHTML(t,v,c,d,k={show:'none',roleShow:'inline'}){
   return `<div style="width: 1360px; height: 880px; position: relative; overflow: hidden; font-family: Rajdhani, 'Segoe UI', sans-serif; color: #f4f7fb; background: ${e(t.space)}">
   <div style="position: absolute; inset: 0; background-image: radial-gradient(1px 1px at 8% 14%, rgba(255,255,255,.8) 50%, transparent 51%), radial-gradient(.8px .8px at 18% 40%, rgba(255,255,255,.6) 50%, transparent 51%), radial-gradient(.8px .8px at 38% 22%, rgba(255,255,255,.5) 50%, transparent 51%), radial-gradient(1.8px 1.8px at 64% 12%, #fff 50%, transparent 51%), radial-gradient(.8px .8px at 86% 8%, rgba(255,255,255,.6) 50%, transparent 51%), radial-gradient(.8px .8px at 44% 94%, rgba(255,255,255,.5) 50%, transparent 51%), radial-gradient(1px 1px at 27% 86%, rgba(255,255,255,.6) 50%, transparent 51%), radial-gradient(1.4px 1.4px at 52% 6%, rgba(255,255,255,.8) 50%, transparent 51%), radial-gradient(1px 1px at 74% 30%, rgba(255,255,255,.6) 50%, transparent 51%), radial-gradient(1px 1px at 95% 52%, rgba(255,255,255,.7) 50%, transparent 51%), radial-gradient(1.4px 1.4px at 4% 64%, rgba(255,255,255,.7) 50%, transparent 51%)"></div>
@@ -179,7 +189,7 @@ export function cardHTML(t,v,c,d,k={show:'none',roleShow:'inline'}){
       <div data-medals="1" style="display: flex; gap: 6px; align-items: flex-start">
         ${(d.equipped||[]).map(b=>`
           <div data-medal="1" style="width: 58px; flex: none; display: flex; flex-direction: column; align-items: center; gap: 4px" title="${e(b.name+' · '+b.sub)}">
-            <div style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; clip-path: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%); background: ${e(b.metal||t.metal)}; filter: drop-shadow(0 3px 6px rgba(0,0,0,.55))"><div style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; clip-path: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%); background: radial-gradient(circle at 50% 24%, rgba(255,255,255,.22), rgba(255,255,255,0) 62%), #0a0f19"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="${e(b.ink||t.accent)}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="${e(b.icon)}"></path></svg></div></div>
+            ${medalMark({icon:b.icon,metal:b.metal||t.metal,ink:b.ink||t.accent,size:50})}
             <span style="width: 58px; text-align: center; font: 700 10px/1.05 Rajdhani, sans-serif; letter-spacing: .4px; color: #ffffff; text-transform: uppercase; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden${Math.max(...String(b.name).split(/\s+/).map(w=>w.length))>9?"; font-size: 9px; letter-spacing: 0":""}">${e(b.name)}</span>
           </div>
         `).join('')}
@@ -269,7 +279,7 @@ export function cardHTML(t,v,c,d,k={show:'none',roleShow:'inline'}){
       <div style="position: absolute; left: 36px; top: 150px; width: 1128px; display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); row-gap: 14px; column-gap: 12px">
         ${(d.badges||[]).map(b=>`
           <div style="display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; opacity: ${e(b.op)}; filter: ${e(b.filter)}">
-            <div style="width: 62px; height: 62px; flex: none; display: flex; align-items: center; justify-content: center; clip-path: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%); background: ${e(t.metal)}"><div style="width: 52px; height: 52px; display: flex; align-items: center; justify-content: center; clip-path: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%); background: radial-gradient(circle at 50% 22%, rgba(255,255,255,.18), rgba(255,255,255,0) 60%), ${e(t.iconBg)}, #070b13"><svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" fill="none" stroke="${e(t.accent)}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="${e(b.icon)}"></path></svg></div></div>
+            ${medalMark({icon:b.icon,metal:b.metal||t.metal,ink:b.ink||t.accent,size:62,shadow:false})}
             <span style="font: 700 15px/1 Rajdhani, sans-serif; letter-spacing: .6px; color: #ffffff">${e(b.name)}</span>
             <span style="font: 500 11px/1.25 Inter, 'Segoe UI', Arial, sans-serif; color: rgba(235,242,250,.66)">${e(b.sub)}</span>
           </div>

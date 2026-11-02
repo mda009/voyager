@@ -114,7 +114,8 @@ let catalogue=new Map();
 function hex(medal,grade,delay=0){
  const graded=medal&&['count','rank'].includes(medal.kind),look=graded?LOOK[Math.max(0,Math.min(3,grade|0))]:SPECIAL;
  const h=el('div','hex');h.style.setProperty('--metal',look[0]);h.style.setProperty('--ink',look[1]);if(delay)h.style.animationDelay=delay+'ms';
- const inner=el('div');const s=svg('svg',{viewBox:'0 0 24 24','aria-hidden':'true'});if(medal?.icon)s.append(svg('path',{d:medal.icon}));inner.append(s);h.append(inner);return h;
+ const inner=el('div');const st=svg('svg',{viewBox:'0 0 24 24','aria-hidden':'true',class:'star'});st.append(svg('path',{d:'M12 1.5l1.6 6.9L20.5 10l-6.9 1.6L12 18.5l-1.6-6.9L3.5 10l6.9-1.6z'}));inner.append(st);
+ const s=svg('svg',{viewBox:'0 0 24 24','aria-hidden':'true',class:'mark'});if(medal?.icon)s.append(svg('path',{d:medal.icon}));inner.append(s);h.append(inner);return h;
 }
 function medalLabel(m,g){return !m?'Medal':['count','rank'].includes(m.kind)?m.name+' '+GRADES[g]:m.name;}
 function renderMedals(){
@@ -207,7 +208,7 @@ const CARD_LOOK=[{metal:'linear-gradient(180deg,#ffe6cc 0%,#f0a868 30%,#a5582a 5
  {metal:'linear-gradient(135deg,#8ff6ff 0%,#9fb4ff 30%,#c58bff 52%,#ff8fe0 74%,#ffe28a 100%)',ink:'#ffffff',tag:'#d6a8ff'}];
 const RANK_IDS=['mid','aslt','slt','lt','lcdr','cdr','capt','cdre','radm','vadm','adml','af'];
 let template=null;
-function loadTemplate(){return template||(template=import('./card-template.js?v=2.20.20').catch(()=>null));}
+function loadTemplate(){return template||(template=import('./card-template.js?v=2.20.26').catch(()=>null));}
 async function drawFront(host,f){
  const T=await loadTemplate();if(!T||!f){host.append(el('p','lede small','The full card appears after the next update from the stream.'));return false;}
  const byName=new Map([...catalogue.values()].map(md=>[md.name,md]));
