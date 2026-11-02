@@ -208,7 +208,7 @@ const CARD_LOOK=[{metal:'linear-gradient(180deg,#ffe6cc 0%,#f0a868 30%,#a5582a 5
  {metal:'linear-gradient(135deg,#8ff6ff 0%,#9fb4ff 30%,#c58bff 52%,#ff8fe0 74%,#ffe28a 100%)',ink:'#ffffff',tag:'#d6a8ff'}];
 const RANK_IDS=['mid','aslt','slt','lt','lcdr','cdr','capt','cdre','radm','vadm','adml','af'];
 let template=null;
-function loadTemplate(){return template||(template=import('./card-template.js?v=2.20.28').catch(()=>null));}
+function loadTemplate(){return template||(template=import('./card-template.js?v=2.20.29').catch(()=>null));}
 async function drawFront(host,f){
  const T=await loadTemplate();if(!T||!f){host.append(el('p','lede small','The full card appears after the next update from the stream.'));return false;}
  const byName=new Map([...catalogue.values()].map(md=>[md.name,md]));

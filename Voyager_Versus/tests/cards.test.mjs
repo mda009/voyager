@@ -161,4 +161,11 @@ test('Ruby VIP ribbon (2.20.28): members in the VIP group get the ribbon on ever
   item=cards.receive(ev({input:'badges'}));assert.equal(item.card.vip,true);assert.equal(item.card.v.vip,'flex');
   assert.match(cardHTML({...TIERS[item.card.tier],...item.card.t},item.card.v,item.card.c,item.card.d,item.card.k),/RUBY VIP/);
   assert.equal(cards.preview({tier:'gold',vip:true}).card.vip,true);assert.equal(cards.preview({tier:'gold'}).card.vip,false);
+  // Emerald Elite (2.20.29): green ribbon; with VIP too, one red-into-green ribbon so the title stays clear.
+  cards.community().state.members['twitch:1'].emerald=true;at(61000);
+  item=cards.receive(ev());assert.equal(item.card.emerald,true);assert.equal(item.card.v.emerald,'none','merged into the VIP ribbon');assert.equal(item.card.v.vipText,'★ RUBY VIP · EMERALD ★');
+  delete cards.community().state.members['twitch:1'].vip;at(61000);
+  item=cards.receive(ev());assert.equal(item.card.v.vip,'none');assert.equal(item.card.v.emerald,'flex');assert.equal(item.card.v.ribbonPad,'160px');
+  assert.match(cardHTML({...TIERS[item.card.tier],...item.card.t},item.card.v,item.card.c,item.card.d,item.card.k),/EMERALD ELITE/);
+  assert.equal(cards.preview({tier:'silver',emerald:true}).card.emerald,true);
 });

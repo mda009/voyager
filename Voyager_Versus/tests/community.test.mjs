@@ -19,6 +19,7 @@ test('Weekly missions: stream days, points earned and Versus wins, from data Voy
   c.receive([{key:'twitch:1',name:'Nova',login:'nova',capturedIn:1000},{key:'kick:2',name:'Orion',capturedIn:50}]);
   c.receive([{key:'twitch:1',name:'Nova',login:'nova',capturedIn:1000,vip:true}]);assert.equal(c.state.members['twitch:1'].vip,true,'VIP group flag kept (2.20.28)');
   c.receive([{key:'twitch:1',name:'Nova',login:'nova',capturedIn:1000,vip:false}]);assert.equal(c.state.members['twitch:1'].vip,undefined,'and dropped when they leave the group');
+  c.receive([{key:'twitch:1',name:'Nova',login:'nova',capturedIn:1000,emerald:true}]);assert.equal(c.state.members['twitch:1'].emerald,true,'Emerald (mods group) flag kept (2.20.29)');
   for(let d=0;d<3;d++){set(monday+d*DAY+20*3600000);c.receive([{key:'twitch:1',name:'Nova',login:'nova',capturedIn:1100+d*200},{key:'kick:2',name:'Orion',capturedIn:60}]);}
   pilots([{login:'nova',name:'Nova',wins:5}]);
   const v=c.view(),by=Object.fromEntries(v.missions.map(m=>[m.id,m]));

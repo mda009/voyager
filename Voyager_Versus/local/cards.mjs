@@ -285,20 +285,24 @@ export class Cards{
     const promo=fromRank!==null&&fromRank!==undefined&&!fromTier;
     if(promo)cc.promoted=who.name+' has been promoted · '+RANKS[fromRank].name+' to '+rv.rank.name;
     const vip=sample?!!who.vip:cm?.vip===true; // Ruby VIP ribbon (2.20.28): VIP GROUP members, via the Points Ledger
-    const vv={front:side==='front'?'block':'none',stats:side==='stats'?'block':'none',badges:side==='badges'?'block':'none',banner:fromTier||promo?'flex':'none',vip:vip?'flex':'none',
+    const emerald=sample?!!who.emerald:cm?.emerald===true; // Emerald Elite ribbon (2.20.29): the moderators' group
+    const vv={front:side==='front'?'block':'none',stats:side==='stats'?'block':'none',badges:side==='badges'?'block':'none',banner:fromTier||promo?'flex':'none',vip:vip?'flex':'none',emerald:emerald&&!vip?'flex':'none',ribbonPad:vip||emerald?'160px':'0',
+      // Both: one ribbon, red into green, so neither covers the title or the rank shield.
+      vipText:vip&&emerald?'★ RUBY VIP · EMERALD ★':'★ RUBY VIP ★',vipFont:vip&&emerald?'15px':'17px',vipSpacing:vip&&emerald?'3px':'5px',
+      vipBg:vip&&emerald?'linear-gradient(90deg, #e0313f 0%, #e0313f 44%, #22b04c 56%, #22b04c 100%)':'linear-gradient(90deg, #e0313f, #e0313f)',
       bannerEyebrow:promo?'★ PROMOTED ★':'★ TIER UP ★',
       bannerText:fromTier?TIER_INFO[fromTier].title+' → '+TIER_INFO[who.tier].title:promo?RANKS[fromRank].name.toUpperCase()+' → '+rv.rank.name.toUpperCase():''};
-    return {tier:who.tier,vip,fromTier:fromTier||'',promotion:promo,fromRankId:promo?RANKS[fromRank].id:'',fromRankName:promo?RANKS[fromRank].name.toUpperCase():'',side,name:who.name,platform:who.platform,t,v:vv,c:cc,d,k:rv.k,rank:rv.rank.id};
+    return {tier:who.tier,vip,emerald,fromTier:fromTier||'',promotion:promo,fromRankId:promo?RANKS[fromRank].id:'',fromRankName:promo?RANKS[fromRank].name.toUpperCase():'',side,name:who.name,platform:who.platform,t,v:vv,c:cc,d,k:rv.k,rank:rv.rank.id};
   }
 
   // ---------- control page and OBS ----------
-  preview({tier='gold',side='front',tierUp=false,promotion=false,fleet='',vip=false}={}){
+  preview({tier='gold',side='front',tierUp=false,promotion=false,fleet='',vip=false,emerald=false}={}){
     if(fleet){const stage=FLEET_KINDS.indexOf(fleet);if(stage<1)throw new Error('Unknown fleet preview.');
       const e={id:'preview',stage,name:fleet==='follow'?'StarboundAce':'NebulaKnight',platform:'twitch',userId:fleet==='follow'?'preview-new':'preview',amount:fleet==='gift'?5:fleet==='bits'?500:1,months:fleet==='resub'?14:1,tier:fleet==='sub'?'Tier 1':'',test:true};
       // A new follower has no record yet: their card is built from nothing, like the real thing.
       return this.fleetCard(e,this.now(),fleet!=='follow');}
     if(!TIER_ORDER.includes(tier)||!['front','stats','badges'].includes(side))throw new Error('Unknown card preview.');
-    const who={key:'twitch:preview',platform:'twitch',login:'nebulaknight',name:'NebulaKnight',tier,points:1450,rank:4,members:312,hasPoints:true,vip:vip===true};
+    const who={key:'twitch:preview',platform:'twitch',login:'nebulaknight',name:'NebulaKnight',tier,points:1450,rank:4,members:312,hasPoints:true,vip:vip===true,emerald:emerald===true};
     const card=this.build(who,side,tierUp&&tier!=='blue'?TIER_ORDER[TIER_ORDER.indexOf(tier)-1]:null,true,promotion?4:null);
     const item={id:++this.state.seq,at:this.now(),seconds:this.state.settings.seconds,card,preview:true};
     this.state.queue=[...this.state.queue,item].slice(-20);return item;

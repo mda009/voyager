@@ -211,7 +211,7 @@ export function cardHTML(t,v,c,d,k={show:'none',roleShow:'inline'}){
     </div>
 
     <div style="position: absolute; inset: 0; display: ${e(v.stats)}">
-      <div style="position: absolute; left: 36px; top: 30px; width: 1128px; display: flex; align-items: flex-end; justify-content: space-between">
+      <div style="position: absolute; left: 36px; top: 30px; width: 1128px; display: flex; align-items: flex-end; justify-content: space-between; padding-right: ${e(v.ribbonPad||'0')}; box-sizing: border-box">
         <div style="display: flex; flex-direction: column; gap: 8px">
           <div style="display: flex; align-items: center; gap: 12px; font: 700 14px/1 Rajdhani, sans-serif; letter-spacing: 4px; color: rgba(235,242,250,.82)"><span style="width: 34px; height: 1.5px; background: ${e(t.accent)}"></span>${e(c.statsEyebrow)}</div>
           <div style="font: 700 60px/0.95 Rajdhani, sans-serif; letter-spacing: 2px; background: ${e(t.metal)}; -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 -1px 0 rgba(255,255,255,.35)) drop-shadow(0 2px 0 rgba(0,0,0,.65)) drop-shadow(0 0 24px ${e(t.glow)})">FLEET RECORD</div>
@@ -266,7 +266,7 @@ export function cardHTML(t,v,c,d,k={show:'none',roleShow:'inline'}){
     </div>
 
     <div style="position: absolute; inset: 0; display: ${e(v.badges)}">
-      <div style="position: absolute; left: 36px; top: 30px; width: 1128px; display: flex; align-items: flex-end; justify-content: space-between">
+      <div style="position: absolute; left: 36px; top: 30px; width: 1128px; display: flex; align-items: flex-end; justify-content: space-between; padding-right: ${e(v.ribbonPad||'0')}; box-sizing: border-box">
         <div style="display: flex; flex-direction: column; gap: 8px">
           <div style="display: flex; align-items: center; gap: 12px; font: 700 14px/1 Rajdhani, sans-serif; letter-spacing: 4px; color: rgba(235,242,250,.82)"><span style="width: 34px; height: 1.5px; background: ${e(t.accent)}"></span>${e(c.badgesEyebrow)}</div>
           <div style="font: 700 60px/0.95 Rajdhani, sans-serif; letter-spacing: 2px; background: ${e(t.metal)}; -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 -1px 0 rgba(255,255,255,.35)) drop-shadow(0 2px 0 rgba(0,0,0,.65)) drop-shadow(0 0 24px ${e(t.glow)})">MEDAL WALL</div>
@@ -315,9 +315,16 @@ export function cardHTML(t,v,c,d,k={show:'none',roleShow:'inline'}){
     </div>
     <!-- 2.20.28: Ruby VIP ribbon over the top-right corner for members in the VIP group -->
     <div style="position: absolute; inset: 0; clip-path: polygon(40px 0, 1160px 0, 1200px 40px, 1200px 680px, 1160px 720px, 40px 720px, 0 680px, 0 40px); pointer-events: none; display: ${e(v.vip||'none')}">
-    <div data-vip="1" style="position: absolute; left: 930px; top: 78px; width: 360px; height: 36px; display: flex; align-items: center; justify-content: center; gap: 10px; transform: rotate(45deg); transform-origin: 50% 50%; background: linear-gradient(180deg, #ff8d96 0%, #e0313f 42%, #a3141f 58%, #ff6b78 100%); box-shadow: 0 4px 14px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.45), inset 0 -1px 0 rgba(0,0,0,.35); z-index: 5">
+    <div data-vip="1" style="position: absolute; left: 930px; top: 78px; width: 360px; height: 36px; display: flex; align-items: center; justify-content: center; gap: 10px; transform: rotate(45deg); transform-origin: 50% 50%; background: linear-gradient(180deg, rgba(255,255,255,.4) 0%, rgba(255,255,255,0) 42%, rgba(0,0,0,.3) 58%, rgba(255,255,255,.25) 100%), ${e(v.vipBg||'linear-gradient(90deg, #e0313f, #e0313f)')}; box-shadow: 0 4px 14px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.45), inset 0 -1px 0 rgba(0,0,0,.35); z-index: 5">
       <span style="position: absolute; left: 0; right: 0; top: 4px; height: 1px; background: rgba(255,255,255,.55)"></span><span style="position: absolute; left: 0; right: 0; bottom: 4px; height: 1px; background: rgba(255,255,255,.35)"></span>
-      <span style="font: 700 17px/1 Rajdhani, sans-serif; letter-spacing: 5px; color: #fff6f7; text-shadow: 0 1px 2px rgba(0,0,0,.6)">★ RUBY VIP ★</span>
+      <span style="font: 700 ${e(v.vipFont||'17px')}/1 Rajdhani, sans-serif; letter-spacing: ${e(v.vipSpacing||'5px')}; color: #fff6f7; text-shadow: 0 1px 2px rgba(0,0,0,.6)">${e(v.vipText||'★ RUBY VIP ★')}</span>
+    </div>
+    </div>
+    <!-- 2.20.29: Emerald Elite ribbon (the moderators' group); sits inside the VIP ribbon when both apply -->
+    <div style="position: absolute; inset: 0; clip-path: polygon(40px 0, 1160px 0, 1200px 40px, 1200px 680px, 1160px 720px, 40px 720px, 0 680px, 0 40px); pointer-events: none; display: ${e(v.emerald||'none')}">
+    <div data-emerald="1" style="position: absolute; left: ${e(v.emeraldLeft||'930px')}; top: ${e(v.emeraldTop||'78px')}; width: 360px; height: 36px; display: flex; align-items: center; justify-content: center; gap: 10px; transform: rotate(45deg); transform-origin: 50% 50%; background: linear-gradient(180deg, #8df0b4 0%, #22b04c 42%, #0f6e2e 58%, #6fe39c 100%); box-shadow: 0 4px 14px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.45), inset 0 -1px 0 rgba(0,0,0,.35); z-index: 5">
+      <span style="position: absolute; left: 0; right: 0; top: 4px; height: 1px; background: rgba(255,255,255,.55)"></span><span style="position: absolute; left: 0; right: 0; bottom: 4px; height: 1px; background: rgba(255,255,255,.35)"></span>
+      <span style="font: 700 17px/1 Rajdhani, sans-serif; letter-spacing: 5px; color: #f3fff7; text-shadow: 0 1px 2px rgba(0,0,0,.6)">★ EMERALD ELITE ★</span>
     </div>
     </div>
   </div>

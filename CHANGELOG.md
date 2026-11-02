@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.29 (2 November 2026)
+
+**Emerald Elite ribbon.** Members of your moderators' group in Streamer.bot get a green "★ EMERALD ELITE ★" ribbon on their membership card, on every side, on stream and on voyagercommand.com. Someone who is both VIP and Emerald gets one ribbon that runs red into green ("RUBY VIP · EMERALD"), so nothing covers the card title. **Needs the updated `Voyager_Points_Engine.cs`** in the Voyager - Points Ledger action (see the Points setup guide): the ledger now also reads the first group it finds named EMERALD GROUP, MODS GROUP, MOD GROUP, MODS, MODERATORS, MODERATOR GROUP or MODERATORS GROUP. Previews: Membership cards › Emerald Elite ribbon, VIP + Emerald.
+
 ## 2.20.28 (2 November 2026)
 
 **Ruby VIP ribbon.** Members currently in your Streamer.bot VIP GROUP get a red "★ RUBY VIP ★" ribbon across the top-right corner of their membership card, on the front, the stats side and the medal wall, on stream and on voyagercommand.com. It follows the group: when VIP status is removed the ribbon goes. The VIP flag travels with the Points Ledger members the Public website page already sends to Voyager (keep that page open as before). Preview: Membership cards › Ruby VIP ribbon.

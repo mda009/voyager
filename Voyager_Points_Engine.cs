@@ -21,6 +21,9 @@ public class CPHInline
     private const bool Persisted = true;
     private static readonly string[] GroupKeys = { "blue", "silver", "gold", "platinum", "vip", "emerald" };
     private static readonly string[] GroupNames = { "BLUE GROUP", "SILVER GROUP", "GOLD GROUP", "PLATINUM GROUP", "VIP GROUP", "" };
+    // Emerald Elite (2.20.29): your moderators' group. The first of these group names that exists is used.
+    private static readonly string[] EmeraldGroupNames = { "EMERALD GROUP", "MODS GROUP", "MOD GROUP", "MODS", "MODERATORS", "MODERATOR GROUP", "MODERATORS GROUP", "EMERALD" };
+    private string EmeraldGroup() { foreach (string name in EmeraldGroupNames) { try { if (CPH.GroupExists(name)) return name; } catch { } } return ""; }
     private static readonly string[] BucketKeys = { "silver", "gold", "platinum" };
     private static readonly string[] BucketLogins = { "mdavoyagersilver", "mdavoyagergold", "mdavoyagerplatinum" };
     private static readonly decimal[] BucketTargets = { 72000m, 120000m, 200000m };
@@ -1020,12 +1023,13 @@ public class CPHInline
         bool groupsOK = true;
         for (int g = 0; g < GroupNames.Length; g++)
         {
-            if (String.IsNullOrWhiteSpace(GroupNames[g])) continue;
+            string groupName = g == 5 ? EmeraldGroup() : GroupNames[g];
+            if (String.IsNullOrWhiteSpace(groupName)) continue; // no Emerald/mods group yet: nobody is Emerald, not an error
             try
             {
-                if (!CPH.GroupExists(GroupNames[g])) throw new Exception("Group not found: " + GroupNames[g]);
-                var members = CPH.UsersInGroup(GroupNames[g]);
-                if (members == null) throw new Exception("Group could not be read: " + GroupNames[g]);
+                if (!CPH.GroupExists(groupName)) throw new Exception("Group not found: " + groupName);
+                var members = CPH.UsersInGroup(groupName);
+                if (members == null) throw new Exception("Group could not be read: " + groupName);
                 foreach (var member in members)
                 {
                     string platform = (member.Type ?? "").Trim().ToLowerInvariant(), id = member.Id ?? "", login = (member.Login ?? "").ToLowerInvariant();
