@@ -26,7 +26,7 @@ function buttons(){
 async function preview(o){try{await api('/api/cards/preview',o);notice('Preview queued: it plays in OBS and in the live view.');}catch(e){notice(e.message,true);}}
 function render(){
   if(!view)return;const s=view.settings,f=$('settings').elements;
-  if(!editing){f.enabled.checked=s.enabled;f.chat.checked=s.chat;f.seconds.value=s.seconds;f.cooldown.value=s.cooldown;for(const k of ['silver','gold','platinum'])f[k].value=s.costs[k];f.tierUpSound.checked=s.sound?.tierUp!==false;f.tierUpVolume.value=s.sound?.volume??80;
+  if(!editing){f.enabled.checked=s.enabled;f.chat.checked=s.chat;f.seconds.value=s.seconds;f.cooldown.value=s.cooldown;for(const k of ['silver','gold','platinum'])f[k].value=s.costs[k];
     const g=$('fleet').elements,fl=s.fleet||{};g.welcome.checked=fl.welcome!==false;g.support.checked=fl.support!==false;for(const k of ['follow','sub','resub','gift','bits'])g[k].value=fl.points?.[k]??0;}
   const ev=view.lastEvent,pill=$('state-pill');pill.dataset.state=ev?'ok':'wait';pill.textContent=ev?'Last card event '+ago(ev.at):'Waiting for !voyager';
   const R=$('recent');R.textContent='';
@@ -46,13 +46,12 @@ function render(){
   const cl=$('checklist');cl.textContent='';for(const [ok,t] of checks)cl.append(el('li',ok===null?'info':ok?'ok':'',t));
 }
 async function load(){try{view=await api('/api/cards');render();}catch(e){notice(e.message,true);}}
-$('settings').addEventListener('focusin',()=>{editing=true;});
-$('sound-test').onclick=()=>{const a=new Audio('/sounds/tierup.mp3');a.volume=Math.max(0,Math.min(1,Number($('settings').elements.tierUpVolume.value||80)/100));a.play().catch(e=>notice('Could not play: '+e.message,true));};$('fleet').addEventListener('focusin',()=>{editing=true;});
+$('settings').addEventListener('focusin',()=>{editing=true;});$('fleet').addEventListener('focusin',()=>{editing=true;});
 $('save-fleet').onclick=async()=>{try{const g=$('fleet').elements;
   view={...view,...await api('/api/cards/settings',{fleet:{welcome:g.welcome.checked,support:g.support.checked,points:Object.fromEntries(['follow','sub','resub','gift','bits'].map(k=>[k,Number(g[k].value)]))}})};
   editing=false;notice('Fleet card settings saved.');render();}catch(e){notice(e.message,true);}};
 $('save').onclick=async()=>{try{const f=$('settings').elements;
-  view={...view,...await api('/api/cards/settings',{enabled:f.enabled.checked,chat:f.chat.checked,seconds:Number(f.seconds.value),cooldown:Number(f.cooldown.value),costs:{silver:Number(f.silver.value),gold:Number(f.gold.value),platinum:Number(f.platinum.value)},sound:{tierUp:f.tierUpSound.checked,volume:Number(f.tierUpVolume.value)}})};
+  view={...view,...await api('/api/cards/settings',{enabled:f.enabled.checked,chat:f.chat.checked,seconds:Number(f.seconds.value),cooldown:Number(f.cooldown.value),costs:{silver:Number(f.silver.value),gold:Number(f.gold.value),platinum:Number(f.platinum.value)}})};
   editing=false;notice('Card settings saved.');render();}catch(e){notice(e.message,true);}};
 $('obs-url').textContent=location.origin+'/card.html';
 $('obs-copy').onclick=async()=>{try{await navigator.clipboard.writeText($('obs-url').textContent);$('obs-copy').textContent='Copied';setTimeout(()=>$('obs-copy').textContent='Copy',1500);}catch{}};

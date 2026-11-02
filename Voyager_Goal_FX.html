@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Voyager Goal FX · OBS</title>
+<link rel="stylesheet" href="voyager-brand.css"><link rel="icon" href="brand-assets/voyager.png" type="image/png">
+<style>
+/* Voyager Goal FX 2.0 (Voyager 2.20.40). Full-screen transparent OBS source "Voyager Goal FX", 1920 x 1080.
+   Fed by the Streamer.bot reader "Voyager - Read OBS Percentages" (mda009.voyager.goals, schema 3) every 2 s.
+   When a tier crosses its giveaway threshold: the tier's glass tile lifts off the goals strip, flies to the centre and
+   opens into the celebration (emblem, GOAL REACHED in the tier metal, rings, sparks), then folds back to the strip.
+   No sound here: Streamer.bot plays the audio. Celebrations queue behind the upgrade media hold (Hold/Release steps)
+   and only play while this source is in Program.
+   Address options: ?from=x,y,spread  where the strip's three tiles sit on a 1920 x 1080 scene (centre of the gold
+   tile, and the distance between tile centres). Default 960,62,300 = strip across the top. ?test=gold plays one. */
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:transparent!important}
+#stage{position:absolute;left:0;top:0;width:1920px;height:1080px;transform-origin:0 0;font-family:Rajdhani,'Segoe UI',sans-serif;pointer-events:none}
+.fx{position:absolute;pointer-events:none}
+/* the tile that lifts off the strip, built like the strip's glass tiles */
+.tile{position:absolute;width:380px;height:150px;left:0;top:0;transform:translate(-50%,-50%) scale(.33);opacity:0;
+ clip-path:polygon(14px 0,100% 0,100% calc(100% - 14px),calc(100% - 14px) 100%,0 100%,0 14px);
+ background:linear-gradient(160deg,rgba(255,255,255,.12),rgba(255,255,255,0) 40%),linear-gradient(0deg,rgba(0,0,0,.25),rgba(0,0,0,0) 30%),rgba(10,16,28,.82);
+ box-shadow:inset 0 0 0 1.5px var(--edge),inset 0 1px 0 rgba(255,255,255,.18);will-change:transform,opacity}
+.tile:before{content:'';position:absolute;top:0;left:14px;right:0;height:2px;background:linear-gradient(90deg,var(--tier),transparent 80%)}
+.tile .h{position:absolute;left:24px;top:16px;font:700 22px/1 Rajdhani,sans-serif;letter-spacing:2px;color:var(--tier);display:flex;align-items:center;gap:9px}
+.tile .h:before{content:'';width:7px;height:7px;transform:rotate(45deg);background:var(--tier)}
+.tile .pct{position:absolute;right:24px;top:8px;font:700 54px/1 Rajdhani,sans-serif;letter-spacing:-1px;background:var(--metal);-webkit-background-clip:text;background-clip:text;color:transparent}
+.tile .track{position:absolute;left:24px;right:24px;top:84px;height:8px;border-radius:2px;background:rgba(0,0,0,.4);box-shadow:inset 0 0 0 1px rgba(255,255,255,.12);overflow:hidden}
+.tile .track i{display:block;height:100%;width:100%;background:var(--bar);box-shadow:0 0 10px var(--tier);transform-origin:left;transform:scaleX(.9)}
+.tile .bal{position:absolute;left:24px;top:102px;font:600 18px/1 Rajdhani,sans-serif;color:#dfebf4}
+.tile .note{position:absolute;right:24px;top:98px;font:700 12px/1 Rajdhani,sans-serif;letter-spacing:1.5px;color:var(--tier);padding:4px 8px;border:1px solid currentColor;border-radius:3px}
+/* phases */
+.tile.lift{animation:lift 1.5s cubic-bezier(.3,.9,.2,1) both}
+@keyframes lift{0%{opacity:0;transform:translate(-50%,-50%) scale(.33)}15%{opacity:1;transform:translate(-50%,-50%) scale(.36)}100%{opacity:1;transform:translate(-50%,-50%) translateY(var(--dy)) translateX(var(--dx)) scale(1.15)}}
+.tile.hold{opacity:1;transform:translate(-50%,-50%) translateY(var(--dy)) translateX(var(--dx)) scale(1.15)}
+.tile.hold .track i{animation:fillUp 1.1s cubic-bezier(.22,1,.36,1) both}
+@keyframes fillUp{from{transform:scaleX(.9)}to{transform:scaleX(1)}}
+.tile.ret{animation:ret .9s cubic-bezier(.6,0,.8,.4) both}
+@keyframes ret{0%{opacity:1;transform:translate(-50%,-50%) translateY(var(--dy)) translateX(var(--dx)) scale(1.15)}85%{opacity:1}100%{opacity:0;transform:translate(-50%,-50%) scale(.33)}}
+.trail{width:6px;height:220px;left:0;top:0;transform:translate(-50%,0);background:linear-gradient(180deg,var(--tier),transparent);filter:blur(3px);opacity:0;animation:trail 1.4s ease-out .1s both}
+@keyframes trail{0%{opacity:0;transform:translate(-50%,0) scaleY(.2)}30%{opacity:.9}100%{opacity:0;transform:translate(-50%,var(--dy)) scaleY(1.6)}}
+/* the celebration at centre */
+.cel{left:960px;top:540px;width:0;height:0}
+.emblem{position:absolute;left:0;top:-225px;width:260px;height:260px;transform:translate(-50%,-50%) scale(.2);opacity:0;object-fit:contain;filter:drop-shadow(0 0 30px var(--tier)) drop-shadow(0 12px 24px rgba(0,0,0,.6));animation:emblemIn 1s cubic-bezier(.2,1.4,.3,1) both,hover 4s ease-in-out 1s infinite}
+@keyframes emblemIn{0%{opacity:0;transform:translate(-50%,-50%) scale(.2) rotate(-30deg);filter:brightness(3)}100%{opacity:1;transform:translate(-50%,-50%) scale(1);filter:drop-shadow(0 0 30px var(--tier)) drop-shadow(0 12px 24px rgba(0,0,0,.6))}}
+@keyframes hover{0%,100%{margin-top:0}50%{margin-top:-10px}}
+.emblem.away{animation:emblemOut .6s ease-in forwards!important}
+@keyframes emblemOut{to{opacity:0;transform:translate(-50%,-50%) scale(.3);filter:brightness(3)}}
+.ring{position:absolute;left:0;top:-225px;width:60px;height:60px;margin:-30px 0 0 -30px;border-radius:50%;border:3px solid var(--tier);box-shadow:0 0 24px var(--tier),inset 0 0 20px var(--tier);opacity:0;animation:ringOut 1.4s cubic-bezier(.1,.8,.3,1) both}
+@keyframes ringOut{0%{opacity:1;transform:scale(.3)}100%{opacity:0;transform:scale(14) scaleY(.45)}}
+.text{position:absolute;left:0;top:104px;width:1400px;margin-left:-700px;text-align:center;opacity:0}
+.text .eb{display:block;font:700 22px/1 Rajdhani,sans-serif;letter-spacing:12px;color:var(--tier);opacity:0;animation:fadeUp .6s ease-out .2s both}
+.text .big{display:block;margin:10px 0 8px;font:700 150px/1 Rajdhani,sans-serif;letter-spacing:6px;background:var(--metal);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 6px 18px rgba(0,0,0,.6)) drop-shadow(0 0 30px var(--glow));opacity:0;animation:slam .5s cubic-bezier(.2,1.4,.4,1) .35s both}
+.text .sub{display:block;font:700 30px/1.1 Rajdhani,sans-serif;letter-spacing:7px;color:#fff;text-shadow:0 2px 12px rgba(0,0,0,.8);opacity:0;animation:fadeUp .6s ease-out .9s both}
+.text.on{opacity:1}.text.off{animation:textOut .6s ease-in forwards}
+@keyframes fadeUp{0%{opacity:0;transform:translateY(16px)}100%{opacity:1;transform:none}}
+@keyframes slam{0%{opacity:0;transform:scale(3) translateY(-30px);filter:blur(8px)}100%{opacity:1;transform:none}}
+@keyframes textOut{to{opacity:0;transform:translateY(-40px) scale(.8);filter:blur(6px)}}
+.spark{position:absolute;left:0;top:-225px;width:6px;height:6px;margin:-3px 0 0 -3px;border-radius:50%;background:#fff;box-shadow:0 0 10px var(--tier);opacity:0;animation:sparkFly 1.6s cubic-bezier(.1,.7,.3,1) both}
+@keyframes sparkFly{0%{opacity:1;transform:translate(0,0) scale(1.4)}100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(.3)}}
+.conf{position:absolute;left:0;top:0;width:12px;height:6px;margin:-3px 0 0 -6px;opacity:0;animation:confFall 3.2s cubic-bezier(.2,.6,.4,1) both}
+@keyframes confFall{0%{opacity:0;transform:translate(0,0) rotate(0)}8%{opacity:1}100%{opacity:0;transform:translate(var(--dx),var(--dy)) rotate(var(--rot))}}
+.dim{left:0;top:0;width:1920px;height:1080px;background:radial-gradient(ellipse at 50% 45%,rgba(0,0,0,.1),rgba(0,0,0,.5) 75%);opacity:0;animation:dim 9.5s ease-in-out both}
+@keyframes dim{0%{opacity:0}15%,75%{opacity:1}100%{opacity:0}}
+/* setup panel (press D in Interact) */
+#panel{position:absolute;left:24px;bottom:24px;width:560px;padding:14px 16px;background:rgba(8,14,24,.92);border:1px solid #2a4a6a;border-radius:10px;color:#d9e5f5;font:14px/1.5 'Segoe UI',Arial,sans-serif;display:none;pointer-events:auto}
+#panel.on{display:block}#panel h3{margin:0 0 6px;font:700 16px/1 Rajdhani,sans-serif;letter-spacing:2px;color:#9fe3ff}
+#panel button{margin:4px 6px 4px 0;padding:6px 12px;border:1px solid #3a5a7a;border-radius:6px;background:#122034;color:#e8f3ff;font:600 13px 'Segoe UI',sans-serif;cursor:pointer}
+#panel dl{display:grid;grid-template-columns:150px 1fr;gap:2px 10px;margin:8px 0 0;font-size:12.5px}#panel dt{color:#8aafd8}#panel dd{margin:0}
+@media(prefers-reduced-motion:reduce){.tile.lift,.tile.ret,.trail,.ring,.spark,.conf{animation-duration:.01s}}
+</style></head>
+<body><div id="stage"></div>
+<div id="panel"><h3>VOYAGER GOAL FX 2.0 · SETUP</h3><div><button data-test="silver">Test Silver</button><button data-test="gold">Test Gold</button><button data-test="platinum">Test Platinum</button><button id="rearm">Re-arm all tiers</button><button id="hide">Hide panel</button></div>
+<dl><dt>Streamer.bot</dt><dd id="d-conn">connecting…</dd><dt>Last reading</dt><dd id="d-read">—</dd><dt>Upgrade hold</dt><dd id="d-gate">—</dd><dt>In Program</dt><dd id="d-prog">—</dd><dt>Celebrated</dt><dd id="d-done">—</dd><dt>Queue</dt><dd id="d-queue">—</dd><dt>Origin (?from=)</dt><dd id="d-from">—</dd></dl></div>
+<script src="config.js"></script>
+<script>
+(()=>{'use strict';
+const q=new URLSearchParams(location.search),stage=document.getElementById('stage'),$=id=>document.getElementById(id);
+function fit(){const s=Math.min(innerWidth/1920,innerHeight/1080);stage.style.transform='scale('+s+')';}addEventListener('resize',fit);fit();
+const TIERS={silver:{name:'SILVER SENTINEL',tier:'#eef3f9',edge:'rgba(214,228,244,.5)',glow:'rgba(214,228,244,.6)',metal:'linear-gradient(180deg,#ffffff 0%,#eef2f6 26%,#9aa6b4 50%,#55606d 58%,#cfd8e2 84%,#ffffff 100%)',bar:'linear-gradient(90deg,#55606d,#cfd8e2 60%,#ffffff)',conf:['#ffffff','#cfd8e2','#9aa6b4'],target:72000,i:0},
+ gold:{name:'GOLD COMMANDER',tier:'#ffc53d',edge:'rgba(255,197,61,.55)',glow:'rgba(255,165,20,.7)',metal:'linear-gradient(180deg,#fffbe0 0%,#ffe07a 26%,#e0a420 48%,#7a4d00 56%,#ffcf4a 82%,#fff3b8 100%)',bar:'linear-gradient(90deg,#7a4d00,#e0a420 55%,#ffe07a)',conf:['#ffd36b','#fff3c4','#f2b52e','#ffffff'],target:120000,i:1},
+ platinum:{name:'PLATINUM VANGUARD',tier:'#c08bff',edge:'rgba(192,139,255,.55)',glow:'rgba(150,60,255,.8)',metal:'linear-gradient(180deg,#ffffff 0%,#e6d6ff 26%,#b48cff 50%,#3a1a8a 58%,#d6b8ff 84%,#ffffff 100%)',bar:'linear-gradient(90deg,#3a1a8a,#8f6bd8 55%,#d6b8ff)',conf:['#d6b8ff','#ffffff','#8f6bd8'],target:200000,i:2}};
+// Where the goals strip sits on the scene: centre of the Gold tile and the spacing between tiles (1920 x 1080 coordinates).
+const from=(q.get('from')||'960,62,300').split(',').map(Number);const ORIGIN={x:Number.isFinite(from[0])?from[0]:960,y:Number.isFinite(from[1])?from[1]:62,spread:Number.isFinite(from[2])?from[2]:300};
+$('d-from').textContent=ORIGIN.x+', '+ORIGIN.y+', '+ORIGIN.spread;
+const fmt=n=>Math.round(n).toLocaleString('en');
+const wait=ms=>new Promise(r=>setTimeout(r,ms));
+let active=false;const queue=[];
+function el(tag,cls,css){const n=document.createElement(tag);if(cls)n.className=cls;if(css)n.style.cssText=css;return n;}
+async function play(key,points){
+ const T=TIERS[key];if(!T)return;active=true;renderPanel();
+ const ox=ORIGIN.x+(T.i-1)*ORIGIN.spread,oy=ORIGIN.y,dx=960-ox,dy=540-oy;
+ const vars=`--tier:${T.tier};--edge:${T.edge};--glow:${T.glow};--metal:${T.metal};--bar:${T.bar};--dx:${dx}px;--dy:${dy}px`;
+ const dim=el('div','fx dim');stage.append(dim);
+ const tile=el('div','tile lift',vars+`;left:${ox}px;top:${oy}px`);
+ tile.innerHTML=`<div class="h">${T.name.split(' ')[0]}</div><div class="pct">100.0%</div><div class="track"><i></i></div><div class="bal">${fmt(points||T.target)} / ${fmt(T.target)} pts</div><div class="note">GOAL MET</div>`;
+ const trail=el('div','fx trail',vars+`;left:${ox}px;top:${oy}px`);stage.append(trail,tile);
+ await wait(1500);tile.classList.remove('lift');tile.classList.add('hold');
+ // the celebration opens from the tile
+ const cel=el('div','fx cel',vars);stage.append(cel);
+ for(let i=0;i<3;i++){const r=el('i','ring');r.style.animationDelay=(i*.18)+'s';cel.append(r);}
+ const emb=el('img','emblem');emb.src='goal-fx/emblem-'+key+'.png';emb.alt='';cel.append(emb);
+ for(let i=0;i<70;i++){const s=el('i','spark');const a=Math.random()*Math.PI*2,d=160+Math.random()*420;s.style.setProperty('--dx',Math.round(Math.cos(a)*d)+'px');s.style.setProperty('--dy',Math.round(Math.sin(a)*d*.7)+'px');s.style.animationDelay=(Math.random()*.25).toFixed(2)+'s';cel.append(s);}
+ const text=el('div','text');text.innerHTML=`<span class="eb">★ ${T.name} ★</span><span class="big">GOAL REACHED</span><span class="sub">GIVEAWAY UNLOCKED · STELLAR SUNDAY</span>`;cel.append(text);
+ await wait(350);text.classList.add('on');
+ // confetti in the tier colours, falling across the width
+ await wait(500);for(let i=0;i<160;i++){const c=el('i','conf');c.style.background=T.conf[i%T.conf.length];const x=-700+Math.random()*1400;c.style.left=x+'px';c.style.top=(-520+Math.random()*120)+'px';c.style.setProperty('--dx',Math.round(-60+Math.random()*120)+'px');c.style.setProperty('--dy',Math.round(700+Math.random()*500)+'px');c.style.setProperty('--rot',Math.round(360+Math.random()*720)+'deg');c.style.animationDelay=(Math.random()*1.2).toFixed(2)+'s';cel.append(c);}
+ await wait(5200);
+ text.classList.add('off');emb.classList.add('away');await wait(650);cel.remove();
+ tile.classList.remove('hold');tile.classList.add('ret');await wait(950);tile.remove();trail.remove();
+ await wait(400);dim.remove();active=false;renderPanel();next();
+}
+function next(){if(active||gateBusy||!inProgram||awaitFresh)return;const key=queue.shift();if(key){lastGoal=key;play(key,TIERS[key].target);}renderPanel();}
+function trigger(key){if(!TIERS[key])return;if(!queue.includes(key))queue.push(key);renderPanel();next();}
+
+// ---------- state: remembered celebrations, upgrade hold, Program check ----------
+const store=k=>{try{return JSON.parse(localStorage.getItem(k)||'null');}catch{return null;}},save=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));}catch{}};
+let done=store('voyager.goalfx.done')||{},last=store('voyager.goalfx.last')||{},gateBusy=false,gateRev=0,awaitFresh=false,inProgram=true,lastGoal='',lastRead=0,status='connecting…';
+function sample(packet){
+ const s=packet.samples||{};lastRead=Date.now();
+ if(packet.overlayActive===false)inProgram=false;else inProgram=true;
+ if(packet.upgradeGate){const g=packet.upgradeGate;if(g.revision>=gateRev){gateRev=g.revision;if(gateBusy&&!g.busy)awaitFresh=false;gateBusy=!!g.busy;}}
+ for(const key of Object.keys(TIERS)){const x=s[key];if(!x||typeof x.points!=='number')continue;
+  const target=Number(x.targetPoints)||TIERS[key].target;TIERS[key].target=target;
+  const prev=last[key];last[key]=x.points;
+  if(x.points<target*.5&&done[key]){delete done[key];} // bucket reset after a draw: re-arm
+  if(typeof prev==='number'&&prev<target&&x.points>=target&&!done[key]){done[key]=Date.now();trigger(key);}
+  else if(typeof prev!=='number'&&x.points>=target&&!done[key]){done[key]=Date.now();} // already over on first sight: no replay
+ }
+ save('voyager.goalfx.done',done);save('voyager.goalfx.last',last);renderPanel();next();
+}
+function gateMessage(packet){const g=packet.upgradeGate;if(!g)return;if(g.revision>=gateRev){gateRev=g.revision;if(g.busy){gateBusy=true;awaitFresh=true;}else{gateBusy=false;}}renderPanel();}
+function renderPanel(){$('d-conn').textContent=status;$('d-read').textContent=lastRead?Math.round((Date.now()-lastRead)/1000)+' s ago · '+Object.keys(TIERS).map(k=>k+' '+(typeof last[k]==='number'?fmt(last[k]):'—')).join(' · '):'none yet';
+ $('d-gate').textContent=gateBusy?'Upgrade hold active':awaitFresh?'Released · waiting for a fresh reading':'Clear';$('d-prog').textContent=inProgram?'yes':'no (celebrations wait)';
+ $('d-done').textContent=Object.keys(done).join(', ')||'none';$('d-queue').textContent=(active?'playing '+lastGoal+' · ':'')+(queue.join(', ')||'empty');}
+setInterval(renderPanel,2000);
+// ---------- Streamer.bot WebSocket (read-only: subscribe to Custom events) ----------
+const cfg={host:'127.0.0.1',port:8080,password:'',path:'/',secure:false,...(window.VOYAGER_CONFIG||{})};
+async function sha(text){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(text));return btoa(String.fromCharCode(...new Uint8Array(b)));}
+let ws=null,seq=0;
+function connect(){
+ try{ws=new WebSocket((cfg.secure?'wss://':'ws://')+cfg.host+':'+cfg.port+(cfg.path||'/'));}catch{status='bad address';setTimeout(connect,5000);return;}
+ const send=o=>{try{ws.send(JSON.stringify(o));}catch{}};
+ ws.onopen=()=>{status='connected · waiting for Hello';renderPanel();};
+ ws.onmessage=async e=>{let m;try{m=JSON.parse(e.data);}catch{return;}
+  if(m.request==='Hello'){if(m.authentication){if(!cfg.password){status='password required in config.js';return;}const secret=await sha(cfg.password+m.authentication.salt);send({request:'Authenticate',id:'gfx-auth',authentication:await sha(secret+m.authentication.challenge)});}
+   send({request:'Subscribe',id:'gfx-sub',events:{General:['Custom']}});status='connected · subscribed';renderPanel();return;}
+  let d=m;for(let i=0;i<4;i++){if(typeof d==='string'){try{d=JSON.parse(d);}catch{return;}}if(d&&d.channel==='mda009.voyager.goals')break;d=d?.data;}
+  if(!d||d.channel!=='mda009.voyager.goals')return;
+  if(d.kind==='upgrade-gate')gateMessage(d);else if(d.samples)sample(d);};
+ ws.onclose=()=>{status='disconnected · retrying';renderPanel();setTimeout(connect,4000);};ws.onerror=()=>{try{ws.close();}catch{}};
+}
+connect();
+// ---------- setup panel and tests ----------
+for(const b of document.querySelectorAll('[data-test]'))b.onclick=()=>{queue.push(b.dataset.test);const g=gateBusy,p=inProgram,a=awaitFresh;gateBusy=false;inProgram=true;awaitFresh=false;next();gateBusy=g;inProgram=p;awaitFresh=a;};
+$('rearm').onclick=()=>{done={};save('voyager.goalfx.done',done);renderPanel();};$('hide').onclick=()=>$('panel').classList.remove('on');
+addEventListener('keydown',e=>{if(e.key==='d'||e.key==='D')$('panel').classList.toggle('on');if(e.key==='Escape')$('panel').classList.remove('on');});
+if(TIERS[q.get('test')])setTimeout(()=>{queue.push(q.get('test'));const g=gateBusy;gateBusy=false;inProgram=true;next();gateBusy=g;},800);
+})();
+</script></body></html>

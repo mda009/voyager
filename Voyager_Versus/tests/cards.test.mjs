@@ -180,10 +180,3 @@ test('Crew rows (2.20.34): Kick, YouTube and Silver+ members are included even b
   const rows=cards.crewRows(10),names=rows.map(r=>r.name);
   assert.equal(rows.length,13);assert.ok(names.includes('KickLow')&&names.includes('TubeLow')&&names.includes('GoldLow'));assert.ok(!names.includes('BlueLow'),'low Blue Twitch members stay outside the cut-off');
 });
-
-test('Tier-up sound settings (2.20.37) validate and reach the overlay',async()=>{
-  const {cards}=await make();
-  assert.deepEqual(cards.overlay().sound,{tierUp:true,volume:80});
-  cards.configure({sound:{tierUp:false,volume:35}});assert.deepEqual(cards.overlay().sound,{tierUp:false,volume:35});
-  assert.throws(()=>cards.configure({sound:{volume:120}}),/0 to 100/);
-});

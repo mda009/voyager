@@ -2,6 +2,12 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.40 (3 November 2026)
+
+**Goal FX 2.0 in the glass design, lifting off the goals strip.** The giveaway-goal celebration now ships with Voyager as `Voyager_Goal_FX.html` (point your existing "Voyager Goal FX" browser source at it): the tier's glass tile lifts off the goals strip (`?from=x,y,spread` says where the strip sits), flies to the centre and opens into the tier emblem, GOAL REACHED in the tier metal, rings, sparks and confetti, then folds back. Same Streamer.bot reader and upgrade hold as Goal FX v1.3. `goal-fx/Voyager_OBS_Bridge.cs` is the reader with the Platinum target corrected to 200,000 (was 220,000): paste it into Voyager - Read OBS Percentages. Setup: Voyager guide › Goal FX.
+
+**Doubled sounds removed.** The 2.20.37 upgrade sound on the tier-up card and the 2.20.38 goals-strip celebration and sound are gone: Streamer.bot's upgrade animation groups already play the alert, and Goal FX celebrates met goals.
+
 ## 2.20.39 (3 November 2026)
 
 **Goals strip celebration off by default.** The existing full-screen Voyager Goal FX source (Goal FX package v1.3, with its Streamer.bot reader) already celebrates a met giveaway goal, so the strip's own 2.20.38 goal-met animation and sound now only run with `?goalfx=1` on the source address. Nothing else changes.

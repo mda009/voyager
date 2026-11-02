@@ -45,7 +45,7 @@
 <div class="mc-main">
 <section class="card mc-card">
 <div class="card-heading"><div><span class="eyebrow">ON STREAM</span><h2>Live view</h2></div><span class="st-pill" id="state-pill" data-state="wait">Standing by</span></div>
-<div class="mc-preview"><iframe id="preview" title="Membership card overlay preview" src="/card.html?bg=04070d&mute=1"></iframe></div>
+<div class="mc-preview"><iframe id="preview" title="Membership card overlay preview" src="/card.html?bg=04070d"></iframe></div>
 <div class="mc-buttons" id="previews"></div>
 <p class="st-hint">Previews use sample data and show only here and in OBS; nothing is posted in chat.</p>
 </section>
@@ -71,9 +71,6 @@
 <label>Silver price (points)<input name="silver" type="number" min="0"></label>
 <label>Silver → Gold (points)<input name="gold" type="number" min="0"></label>
 <label>Gold → Platinum (points)<input name="platinum" type="number" min="0"></label>
-<label class="check"><input type="checkbox" name="tierUpSound"> Play the upgrade alert sound when someone upgrades (tier-up card)</label>
-<label>Upgrade alert volume (0–100)<input name="tierUpVolume" type="number" min="0" max="100"></label>
-<p class="eg-row"><button type="button" id="sound-test">Play the alert sound here</button><span class="st-hint">The live view above is muted; on stream the sound comes from the card.html browser source (set its volume in OBS too).</span></p>
 </form>
 <p class="st-hint">Prices only drive the card's next-tier bar. They match your Streamer.bot purchase actions (1,200 / 1,800 / 17,000); if you change those, change these too.</p>
 </section>

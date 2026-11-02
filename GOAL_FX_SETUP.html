@@ -1,0 +1,21 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Voyager • Goal FX setup</title>
+<style>:root{color-scheme:dark;font-family:"Segoe UI",Arial,sans-serif;background:#09111b;color:#dce7f3}*{box-sizing:border-box}body{margin:0;padding:36px 24px}main{max-width:980px;margin:auto}a{color:#b2cef5}h1{font-size:30px;margin:0 0 6px}h2{font-size:20px;margin:28px 0 8px;color:#e9f1fb}code{background:#122034;padding:2px 6px;border-radius:4px}ol li,ul li{margin:6px 0}.card{background:#0f1b2b;border:1px solid #1e3049;border-radius:10px;padding:16px 18px;margin:14px 0}table{border-collapse:collapse;width:100%}td,th{text-align:left;padding:7px 10px;border-bottom:1px solid #1e3049;vertical-align:top}</style></head>
+<body><main>
+<p><a href="Voyager_Guide.html">← Voyager guide</a></p>
+<h1>Goal FX 2.0: giveaway goal met</h1>
+<p>When Silver, Gold or Platinum community points cross their threshold, the full-screen <strong>Voyager Goal FX</strong> source celebrates it in the glass design: that tier's tile lifts off the goals strip, flies to the centre and opens into the tier emblem, <strong>GOAL REACHED</strong> in the tier metal, shock rings, sparks and confetti, then folds back onto the strip. About 10 seconds. No sound comes from this source; your Streamer.bot actions play the audio as before.</p>
+<div class="card"><h2 style="margin-top:0">Upgrading from Goal FX v1.3</h2>
+<ol><li><strong>OBS:</strong> open the properties of your existing <strong>Voyager Goal FX</strong> browser source and point its local file at <code>Voyager_Goal_FX.html</code> in your Voyager folder (1920 × 1080). Keep the source name exactly <code>Voyager Goal FX</code>: the Streamer.bot reader checks it is in Program. Refresh the cache.</li>
+<li><strong>Streamer.bot:</strong> open the action <strong>Voyager - Read OBS Percentages</strong> › its Execute C# Code, replace the code with <code>goal-fx/Voyager_OBS_Bridge.cs</code> from your Voyager folder, click <strong>Compile</strong>, then <strong>Save and Compile</strong>. The only change is the Platinum target, now <strong>200,000</strong> (it was 220,000), matching the Points Ledger and the goals strip. Keep its 2-second timer and the Hold/Release steps in your Upgrade Animation groups: the new overlay honours the same upgrade hold.</li>
+<li>Right-click the source › <strong>Interact</strong>, press <strong>D</strong>: the panel should say <em>connected · subscribed</em> and show fresh readings. <strong>Test Gold</strong> plays the celebration without changing points. Press D or Escape to hide the panel before going live.</li></ol></div>
+<h2>Where the animation starts from</h2>
+<p>The tile lifts off from where your goals strip sits on the scene. Tell the source where that is with <code>?from=x,y,spread</code> on the file address: the centre of the <em>Gold</em> tile in 1920 × 1080 scene coordinates and the distance between tile centres. The default, <code>?from=960,62,300</code>, suits the strip across the top of the scene at 960 × 120. For a strip at the bottom use something like <code>?from=960,1020,300</code>.</p>
+<h2>Behaviour</h2>
+<table><tr><th>Situation</th><th>What happens</th></tr>
+<tr><td>Threshold crossed while live</td><td>Celebration plays within a couple of seconds (the reader runs every 2 s).</td></tr>
+<tr><td>Upgrade media playing (hold active)</td><td>The celebration queues and plays after the media, the 1-second gap and a fresh reading, as in v1.3.</td></tr>
+<tr><td>Source not in Program</td><td>Queues until it is.</td></tr>
+<tr><td>Already over the target when the source opens</td><td>No replay. It remembers celebrated tiers in the browser; a tier re-arms when its bucket drops below half the target after a draw. <em>Re-arm all tiers</em> in the D panel clears the memory.</td></tr>
+<tr><td>Testing</td><td>D panel buttons, or add <code>?test=gold</code> (silver, platinum) to the address for one play on load.</td></tr></table>
+<p><a href="Voyager_Goal_FX.html?test=gold" target="_blank">Open a preview ↗</a> (plays Gold once on load, no Streamer.bot needed).</p>
+</main></body></html>

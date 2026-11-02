@@ -22,9 +22,7 @@ export const CARD_DEFAULTS={enabled:true,seconds:12,cooldown:60,chat:true,costs:
   ranks:true,promoChat:true,promoMin:4,rankPoints:[0,5000,15000,40000,80000,150000,300000,600000,1000000,2000000,3500000,10000000],
   // 2.20.23: cards after Fleet alerts. welcome = a new follower's card is presented; support = a member's card shows the
   // sub, resub, gift subs or bits landing on it. points = what your Streamer.bot currency pays for each (0 hides the points line).
-  fleet:{welcome:true,support:true,points:{follow:50,sub:250,resub:5,gift:100,bits:1}},
-  // 2.20.37: the tier-up alert sound (sounds/tierup.mp3) when someone upgrades. volume 0–100.
-  sound:{tierUp:true,volume:80}};
+  fleet:{welcome:true,support:true,points:{follow:50,sub:250,resub:5,gift:100,bits:1}}};
 const FLEET_KINDS=['','follow','sub','gift','resub','bits'];
 // Naval ranks (2.20): earned by lifetime Voyager points (never reduced by spending) and the all-time leaderboard of them.
 // top = also needs this all-time place. Royal Australian Navy officer ranks and sleeve lace.
@@ -61,8 +59,6 @@ export function normalizeCardSettings(raw={},base=CARD_DEFAULTS){
     s.rankPoints=v;
   }
   if(r.costs!==undefined){for(const k of ['silver','gold','platinum']){if(r.costs?.[k]===undefined)continue;const n=Number(r.costs[k]);if(!Number.isInteger(n)||n<0||n>1e9)throw new Error('Upgrade prices must be whole numbers of points.');s.costs[k]=n;}}
-  if(r.sound!==undefined){const so=r.sound&&typeof r.sound==='object'?r.sound:{};if(so.tierUp!==undefined)s.sound.tierUp=so.tierUp===true;
-    if(so.volume!==undefined){const n=Number(so.volume);if(!Number.isInteger(n)||n<0||n>100)throw new Error('Volume must be 0 to 100.');s.sound.volume=n;}}
   if(r.fleet!==undefined){
     const fl=r.fleet&&typeof r.fleet==='object'?r.fleet:{};
     for(const k of ['welcome','support'])if(fl[k]!==undefined)s.fleet[k]=fl[k]===true;
@@ -312,7 +308,7 @@ export class Cards{
     this.state.queue=[...this.state.queue,item].slice(-20);return item;
   }
   configure(raw){this.state.settings=normalizeCardSettings({...this.state.settings,...raw},this.state.settings);this.persist();return this.view();}
-  overlay(){const now=this.now();return {serverAt:now,sound:this.state.settings.sound,items:this.state.queue.filter(x=>x.at<=now&&now-x.at<10*60000)};}
+  overlay(){const now=this.now();return {serverAt:now,items:this.state.queue.filter(x=>x.at<=now&&now-x.at<10*60000)};}
 
   // ---------- after Fleet alerts (2.20.23) ----------
   // The "Voyager - Fleet Alerts" action broadcasts its queue (startAt/endAt per alert, serial). Each follow, sub, gift,
