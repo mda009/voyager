@@ -12,7 +12,8 @@ const num=(k,d,min,max)=>{const n=Number(params.get(k));return Number.isFinite(n
 const always=params.get('always')==='1'||(preview&&params.get('cycle')!=='1'),everyMs=num('every',300,45,86400)*1000,showMs=num('show',30,8,600)*1000;
 let visible=always,cycleTimer=0,hideTimer=0,shownOnce=false,hideAt=0;
 // 2.20.38: goal met. The alert sound and a flare on the tile when a tier crosses its threshold while this source is open.
-const soundOn=params.get('sound')!=='0',volume=Math.max(0,Math.min(100,num('volume',80,0,100)))/100,ALERT_MS=24000;
+// Off unless ?goalfx=1: your separate full-screen "Voyager Goal FX" source (Streamer.bot reader + Voyager_Goal_Overlay.html) already celebrates a met goal.
+const goalFx=params.get('goalfx')==='1',soundOn=goalFx&&params.get('sound')!=='0',volume=Math.max(0,Math.min(100,num('volume',80,0,100)))/100,ALERT_MS=24000;
 const alertAudio=new Audio('Voyager_Versus/dist/sounds/tierup.mp3?v=2.20.37');alertAudio.preload='auto';
 const wasComplete=new Map(); // per tier: last seen complete flag (undefined until the first live snapshot)
 function hold(ms){if(always||!visible)return;const until=Date.now()+ms;if(until<=hideAt)return;clearTimeout(hideTimer);hideAt=until;
@@ -36,7 +37,7 @@ function render(){
  for(const key of M.tiers){
   const b=M.bucket(data,key),row=rows.get(key),track=row.querySelector('.track');
   row.classList.toggle('complete',b.complete);row.classList.toggle('unavailable',!b.available);
-  if(b.available){const prev=wasComplete.get(key);if(prev===false&&b.complete)setTimeout(()=>celebrate(key),0);wasComplete.set(key,b.complete);}
+  if(b.available){const prev=wasComplete.get(key);if(goalFx&&prev===false&&b.complete)setTimeout(()=>celebrate(key),0);wasComplete.set(key,b.complete);}
   row.querySelector('.percentage').textContent=b.percentage;
   row.querySelector('.balance').textContent=b.balance;row.querySelector('.balance').title=b.balance;
   row.querySelector('.goal-note').textContent=b.note;

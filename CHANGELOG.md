@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.39 (3 November 2026)
+
+**Goals strip celebration off by default.** The existing full-screen Voyager Goal FX source (Goal FX package v1.3, with its Streamer.bot reader) already celebrates a met giveaway goal, so the strip's own 2.20.38 goal-met animation and sound now only run with `?goalfx=1` on the source address. Nothing else changes.
+
 ## 2.20.38 (3 November 2026)
 
 **Giveaway trigger met: animation and sound.** When Silver, Gold or Platinum community points cross their threshold live, the goals strip (`Voyager_Bucket_Overlay.html`) comes on screen, that tier's tile flares with a shockwave and sparks, a GOAL MET · GIVEAWAY UNLOCKED · STELLAR SUNDAY stamp slams in, and the upgrade alert sound plays; the strip stays up until the sound ends. `?sound=0` silences it, `?volume=60` sets the level. Only a crossing seen live fires it. The design preview has a "Gold goal met" button.
