@@ -10,9 +10,12 @@ import {weekStart} from './community.mjs';
 const FILE='engage.json',HOUR=3600000,DAY=86400000,SESSION_GAP=4*HOUR;
 export const SQUADRONS=['red','gold','blue'];
 export const REWARD_MAX=50;
+// 2.20.24: !report pays at most 2 points. Accounts are per platform (Twitch, Kick and YouTube never merge), so one person
+// on all three can muster three times a stream; a small reward keeps that fair.
+export const REPORT_MAX=2;
 export const ENGAGE_DEFAULTS={
   relay:{enabled:true,threshold:50,damagePct:2,perUserSeconds:5},
-  report:{enabled:true,reward:10},
+  report:{enabled:true,reward:2},
   quiz:{enabled:true,reward:25,seconds:60,autoMinutes:0},
   squadrons:{enabled:true,names:{red:'Red Wing',gold:'Gold Wing',blue:'Blue Wing'},chat:1,chatCap:60,mission:25,damageDiv:10,versusWin:50},
   arrivals:{enabled:true,minTier:'silver',ranks:true},
@@ -41,7 +44,7 @@ export function normalizeEngageSettings(raw={},base=ENGAGE_DEFAULTS){
   const r=raw&&typeof raw==='object'?raw:{},s=structuredClone(base);
   for(const k of Object.keys(ENGAGE_DEFAULTS))if(r[k]?.enabled!==undefined)s[k].enabled=r[k].enabled===true;
   if(r.relay){for(const [k,min,max] of [['threshold',5,1000],['damagePct',1,20],['perUserSeconds',0,60]])if(r.relay[k]!==undefined)s.relay[k]=int(r.relay[k],min,max,'Comms Relay '+k);}
-  if(r.report?.reward!==undefined)s.report.reward=int(r.report.reward,0,REWARD_MAX,'The !report reward');
+  if(r.report?.reward!==undefined)s.report.reward=int(r.report.reward,0,REPORT_MAX,'The !report reward');
   if(r.quiz){if(r.quiz.reward!==undefined)s.quiz.reward=int(r.quiz.reward,0,REWARD_MAX,'The quiz reward');if(r.quiz.seconds!==undefined)s.quiz.seconds=int(r.quiz.seconds,15,600,'Quiz time (seconds)');if(r.quiz.autoMinutes!==undefined)s.quiz.autoMinutes=int(r.quiz.autoMinutes,0,240,'Automatic quiz (minutes)');}
   if(r.squadrons){const q=r.squadrons;
     if(q.names)for(const k of SQUADRONS)if(q.names[k]!==undefined){const n=clean(q.names[k],24);if(!n)throw new Error('Every squadron needs a name.');s.squadrons.names[k]=n;}
@@ -61,6 +64,8 @@ export class Engage{
     squadrons:{members:{},week:{id:weekStart(now),chat:{},damage:{},versusBase:{},versus:{}},history:[]},
     arrivals:{stream:0,seen:{},ranks:{}},log:[],rewards:[],toasts:[]};}
   async load(){try{const raw=JSON.parse(await readFile(join(this.dataDir,FILE),'utf8'));if(raw?.schema===1){const f=this.fresh();this.state={...f,...raw,quiz:{...f.quiz,...raw.quiz},squadrons:{...f.squadrons,...raw.squadrons},arrivals:{...f.arrivals,...raw.arrivals}};
+    // Settings saved before 2.20.24 may pay !report more than the new cap: bring them down rather than resetting everything.
+    if(raw.settings?.report&&Number(raw.settings.report.reward)>REPORT_MAX)raw.settings.report.reward=REPORT_MAX;
     try{this.state.settings=normalizeEngageSettings(raw.settings||{});}catch{this.state.settings=structuredClone(ENGAGE_DEFAULTS);}}}catch{}return this;}
   persist(force=false){if(!this.dataDir)return this.saving;if(!force&&this.now()-this.savedAt<15000){this.dirty=true;return this.saving;}
     this.savedAt=this.now();this.dirty=false;const data=JSON.stringify(this.state),tmp=join(this.dataDir,FILE+'.tmp');

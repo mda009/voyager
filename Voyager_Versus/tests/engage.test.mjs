@@ -30,10 +30,10 @@ test('Comms Relay: plain chat during a fight fires a fleet barrage at the thresh
 test('!report: once a stream, grouped chat line, streaks across streams, and a points reward listed for payment',async()=>{
   const {e,said,at}=await make();
   assert.equal(e.chat(msg('Nova','!report')).ok,true);assert.equal(e.chat(msg('Nova','!report')).already,true);e.chat(msg('Rook','!report','kick'));
-  at(21000);e.tick();assert.match(said.at(-1),/Reporting for duty: Nova, Rook · \+10 Voyager points each/);
+  at(21000);e.tick();assert.match(said.at(-1),/Reporting for duty: Nova, Rook · \+2 Voyager points each/);
   at(5*3600000);assert.equal(e.chat(msg('Nova','!report')).streak,2,'next stream in a row');
-  const batches=e.rewardBatches();assert.equal(batches.length,2);assert.equal(batches[1].pilots.length,2);assert.equal(batches[0].reward,10);
-  assert.throws(()=>normalizeEngageSettings({report:{reward:51}}),/0 to 50/);
+  const batches=e.rewardBatches();assert.equal(batches.length,2);assert.equal(batches[1].pilots.length,2);assert.equal(batches[0].reward,2);
+  assert.throws(()=>normalizeEngageSettings({report:{reward:3}}),/0 to 2/);assert.equal(normalizeEngageSettings({report:{reward:2}}).report.reward,2);
 });
 
 test('Bridge Quiz: first correct answer wins, answers are forgiving, time runs out with no winner',async()=>{
@@ -80,6 +80,17 @@ test('Muster and quiz rewards appear in Missions › Points owed',async()=>{
   const dir=await mkdtemp(join(tmpdir(),'voyager-engage-c-'));const c=await new Community({dataDir:dir}).load();
   const {e}=await make();c.setEngage(()=>e.rewardBatches());c.state.members['twitch:id-Nova']={name:'Nova',login:'nova',platform:'twitch',value:10};
   e.chat(msg('Nova','!report'));
-  const rows=c.payables().filter(r=>r.scope==='engage');assert.equal(rows.length,1);assert.equal(rows[0].reward,10);assert.equal(rows[0].payable,true);assert.equal(rows[0].label,'Muster');
+  const rows=c.payables().filter(r=>r.scope==='engage');assert.equal(rows.length,1);assert.equal(rows[0].reward,2);assert.equal(rows[0].payable,true);assert.equal(rows[0].label,'Muster');
   c.recordPayout({week:rows[0].week,missionId:rows[0].missionId,key:rows[0].key,status:'paid'});assert.equal(c.payables().find(r=>r.scope==='engage').status,'paid');
+});
+
+test('!report: accounts are per platform, and a saved reward above the 2-point cap is brought down on load',async()=>{
+  const dir=await mkdtemp(join(tmpdir(),'voyager-engage-cap-'));
+  const {writeFile}=await import('node:fs/promises');
+  await writeFile(join(dir,'engage.json'),JSON.stringify({schema:1,settings:{report:{enabled:true,reward:5},quiz:{reward:25}}}));
+  const e=await new Engage({dataDir:dir,say:()=>{},boss:()=>null}).load();
+  assert.equal(e.state.settings.report.reward,2,'5 becomes 2');assert.equal(e.state.settings.quiz.reward,25,'other settings survive');
+  // The same person on Twitch and Kick is two accounts: two musters, 2 points each.
+  assert.equal(e.chat(msg('Nova','!report','twitch')).ok,true);assert.equal(e.chat(msg('Nova','!report','kick')).ok,true);assert.equal(e.chat(msg('Nova','!report','twitch')).already,true);
+  assert.deepEqual(e.rewardBatches()[0].pilots.map(p=>p.key),['twitch:id-Nova','kick:id-Nova']);assert.equal(e.rewardBatches()[0].reward,2);
 });

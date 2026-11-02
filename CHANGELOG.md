@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.24 (2 November 2026)
+
+**!report pays at most 2 points.** Accounts are per platform (a Twitch, Kick and YouTube account never merge), so one person on all three can muster three times a stream. The reward is now capped at 2 points per report (Chat engagement › Daily muster, 0–2); a saved reward above that is brought down to 2 on start. The hint on that page now says where muster points are paid from: Missions › Points owed › Pay all. Member manual updated to match.
+
 ## 2.20.23 (2 November 2026)
 
 **Cards after Fleet alerts: new followers are presented, and support lands on members' cards live (Community › Membership cards).**
