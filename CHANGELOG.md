@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.36 (2 November 2026)
+
+**Gifted subs: 100 points each.** The card ceremony after a gift-sub Fleet alert now shows +100 points per gifted sub by default (Membership cards › After Fleet alerts; saved settings keep whatever you set), and the member manual's points table says 100 per gifted sub. The points themselves are paid by the Currency System in Streamer.bot: set its Gift Sub amount to 100 there.
+
 ## 2.20.35 (2 November 2026)
 
 **Reset for a new stream (Community › Chat engagement › Daily muster).** A button that resets the per-stream counters on the spot: everyone can `!report` again, squadron chat points start counting again for this stream, arrival cards can play again and Captain's Log allowances return. Points already earned or owed are not touched. The page also shows when the current stream started. Voyager still resets on its own when Twitch goes live or after 4 hours without chat.

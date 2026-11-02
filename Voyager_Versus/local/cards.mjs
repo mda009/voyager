@@ -22,7 +22,7 @@ export const CARD_DEFAULTS={enabled:true,seconds:12,cooldown:60,chat:true,costs:
   ranks:true,promoChat:true,promoMin:4,rankPoints:[0,5000,15000,40000,80000,150000,300000,600000,1000000,2000000,3500000,10000000],
   // 2.20.23: cards after Fleet alerts. welcome = a new follower's card is presented; support = a member's card shows the
   // sub, resub, gift subs or bits landing on it. points = what your Streamer.bot currency pays for each (0 hides the points line).
-  fleet:{welcome:true,support:true,points:{follow:50,sub:250,resub:5,gift:20,bits:1}}};
+  fleet:{welcome:true,support:true,points:{follow:50,sub:250,resub:5,gift:100,bits:1}}};
 const FLEET_KINDS=['','follow','sub','gift','resub','bits'];
 // Naval ranks (2.20): earned by lifetime Voyager points (never reduced by spending) and the all-time leaderboard of them.
 // top = also needs this all-time place. Royal Australian Navy officer ranks and sleeve lace.
