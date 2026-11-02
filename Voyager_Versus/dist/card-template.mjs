@@ -169,14 +169,14 @@ export function cardHTML(t,v,c,d,k={show:'none',roleShow:'inline'}){
       ${(d.extras||[]).map(x=>`
         <div style="flex: 1; display: flex; flex-direction: column; gap: 5px; padding: 4px 18px; border-left: 1px solid ${e(t.edgeSoft)}">
           <span style="font: 600 11px/1 Inter, 'Segoe UI', Arial, sans-serif; letter-spacing: 1.4px; color: rgba(235,242,250,.62)">${e(x.label)}</span>
-          <span style="font: 700 22px/1.1 Rajdhani, sans-serif; color: #f4f7fb">${e(x.value)}</span>
+          <span data-extra="1" style="font: 700 22px/1.1 Rajdhani, sans-serif; color: #f4f7fb">${e(x.value)}</span>
         </div>
       `).join('')}
     </div>
 
     <div style="position: absolute; left: 36px; top: 516px; width: 380px; display: flex; flex-direction: column; gap: 9px">
-      <span style="display: flex; align-items: center; gap: 8px; font: 600 11px/1 Inter, 'Segoe UI', Arial, sans-serif; letter-spacing: 1.4px; color: rgba(235,242,250,.66)"><span style="width: 6px; height: 6px; background: ${e(t.accent)}; transform: rotate(45deg)"></span>${e(c.badgeCount)}<span style="flex: 1; height: 1px; background: linear-gradient(90deg, ${e(t.edgeSoft)}, transparent)"></span></span>
-      <div style="display: flex; gap: 6px; align-items: flex-start">
+      <span style="display: flex; align-items: center; gap: 8px; font: 600 11px/1 Inter, 'Segoe UI', Arial, sans-serif; letter-spacing: 1.4px; color: rgba(235,242,250,.66)"><span style="width: 6px; height: 6px; background: ${e(t.accent)}; transform: rotate(45deg)"></span><span data-medal-count="1">${e(c.badgeCount)}</span><span style="flex: 1; height: 1px; background: linear-gradient(90deg, ${e(t.edgeSoft)}, transparent)"></span></span>
+      <div data-medals="1" style="display: flex; gap: 6px; align-items: flex-start">
         ${(d.equipped||[]).map(b=>`
           <div data-medal="1" style="width: 58px; flex: none; display: flex; flex-direction: column; align-items: center; gap: 4px" title="${e(b.name+' · '+b.sub)}">
             <div style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; clip-path: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%); background: ${e(b.metal||t.metal)}; filter: drop-shadow(0 3px 6px rgba(0,0,0,.55))"><div style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; clip-path: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%); background: radial-gradient(circle at 50% 24%, rgba(255,255,255,.22), rgba(255,255,255,0) 62%), #0a0f19"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="${e(b.ink||t.accent)}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="${e(b.icon)}"></path></svg></div></div>
@@ -308,9 +308,9 @@ export function cardHTML(t,v,c,d,k={show:'none',roleShow:'inline'}){
     <div style="position: absolute; left: 10%; right: 10%; top: 0; height: 2px; background: linear-gradient(90deg, transparent, ${e(t.accent)}, #ffffff, ${e(t.accent)}, transparent); box-shadow: 0 0 18px ${e(t.glow)}"></div>
     <div style="position: absolute; left: 10%; right: 10%; bottom: 0; height: 2px; background: linear-gradient(90deg, transparent, ${e(t.accent)}, #ffffff, ${e(t.accent)}, transparent); box-shadow: 0 0 18px ${e(t.glow)}"></div>
     <div style="position: absolute; left: 30%; top: 0; width: 22%; height: 100%; background: linear-gradient(100deg, transparent, rgba(255,255,255,.14), transparent)"></div>
-    <span style="font: 700 16px/1 Rajdhani, sans-serif; letter-spacing: 9px; color: ${e(t.accent)}">${e(v.bannerEyebrow)}</span>
-    <span style="font: 700 54px/1 Rajdhani, sans-serif; letter-spacing: 3px; background: ${e(t.metal)}; -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 0 22px ${e(t.glow)})">${e(v.bannerText)}</span>
-    <span style="font: 600 15px/1 Inter, 'Segoe UI', Arial, sans-serif; color: rgba(235,242,250,.78)">${e(c.promoted)}</span>
+    <span data-banner-eyebrow="1" style="font: 700 16px/1 Rajdhani, sans-serif; letter-spacing: 9px; color: ${e(t.accent)}">${e(v.bannerEyebrow)}</span>
+    <span style="font: 700 54px/1 Rajdhani, sans-serif; letter-spacing: 3px; background: ${e(t.metal)}; -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 0 22px ${e(t.glow)})" data-banner-text="1">${e(v.bannerText)}</span>
+    <span data-banner-note="1" style="font: 600 15px/1 Inter, 'Segoe UI', Arial, sans-serif; color: rgba(235,242,250,.78)">${e(c.promoted)}</span>
   </div>
 </div>`;
 }

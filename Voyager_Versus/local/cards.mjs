@@ -19,7 +19,11 @@ export const TIER_ORDER=['blue','silver','gold','platinum'];
 export const TIER_INFO={blue:{title:'BLUE EXPLORER',tier:'TIER 1'},silver:{title:'SILVER SENTINEL',tier:'TIER 2'},gold:{title:'GOLD COMMANDER',tier:'TIER 3'},platinum:{title:'PLATINUM VANGUARD',tier:'TIER VANGUARD'}};
 // Upgrade prices from your Streamer.bot actions: Silver Membership Purchase 1,200, Silver > Gold Logic 1,800, Gold > Platinum Logic 17,000.
 export const CARD_DEFAULTS={enabled:true,seconds:12,cooldown:60,chat:true,costs:{silver:1200,gold:1800,platinum:17000},
-  ranks:true,promoChat:true,promoMin:4,rankPoints:[0,5000,15000,40000,80000,150000,300000,600000,1000000,2000000,3500000,10000000]};
+  ranks:true,promoChat:true,promoMin:4,rankPoints:[0,5000,15000,40000,80000,150000,300000,600000,1000000,2000000,3500000,10000000],
+  // 2.20.23: cards after Fleet alerts. welcome = a new follower's card is presented; support = a member's card shows the
+  // sub, resub, gift subs or bits landing on it. points = what your Streamer.bot currency pays for each (0 hides the points line).
+  fleet:{welcome:true,support:true,points:{follow:50,sub:250,resub:5,gift:20,bits:1}}};
+const FLEET_KINDS=['','follow','sub','gift','resub','bits'];
 // Naval ranks (2.20): earned by lifetime Voyager points (never reduced by spending) and the all-time leaderboard of them.
 // top = also needs this all-time place. Royal Australian Navy officer ranks and sleeve lace.
 export const RANKS=[
@@ -55,6 +59,11 @@ export function normalizeCardSettings(raw={},base=CARD_DEFAULTS){
     s.rankPoints=v;
   }
   if(r.costs!==undefined){for(const k of ['silver','gold','platinum']){if(r.costs?.[k]===undefined)continue;const n=Number(r.costs[k]);if(!Number.isInteger(n)||n<0||n>1e9)throw new Error('Upgrade prices must be whole numbers of points.');s.costs[k]=n;}}
+  if(r.fleet!==undefined){
+    const fl=r.fleet&&typeof r.fleet==='object'?r.fleet:{};
+    for(const k of ['welcome','support'])if(fl[k]!==undefined)s.fleet[k]=fl[k]===true;
+    for(const k of ['follow','sub','resub','gift','bits']){if(fl.points?.[k]===undefined)continue;const n=Number(fl.points[k]);if(!Number.isInteger(n)||n<0||n>1e6)throw new Error('Fleet points must be whole numbers from 0 to 1,000,000.');s.fleet.points[k]=n;}
+  }
   return s;
 }
 export function memberId(key,since){
@@ -201,13 +210,15 @@ export class Cards{
     const v=this.medals?.state?.viewers?.[key];if(!v)return [];
     return Object.entries(v.m||{}).map(([id,e])=>({id,g:e.g,m:medalById(id)})).filter(x=>x.m).sort((a,b)=>b.g-a.g||a.m.name.localeCompare(b.m.name)).map(x=>({id:x.id,name:x.m.name}));
   }
-  build(who,side,fromTier,sample=false,fromRank=null){
+  build(who,side,fromTier,sample=false,fromRank=null,over=null){
     const now=this.now(),s=this.state.settings,m=sample?{}:(this.state.members[who.key]||{}),medals=this.medals;
-    const v=sample?SAMPLE_VIEWER(now):medals?.state?.viewers?.[who.key]||null,c=v?.c||{};
+    let v=sample?SAMPLE_VIEWER(now):medals?.state?.viewers?.[who.key]||null;
+    if(over)v={name:who.name,login:who.login,platform:who.platform,first:now,...v,c:{...(v?.c||{}),...(over.c||{})},m:{...(v?.m||{}),...(over.m||{})}};
+    const c=v?.c||{};
     const community=this.community(),cm=sample?{value:214560}:community?.state?.members?.[who.key]||null;
     const since=Math.min(v?.first||now,now),hidden=!!m.private;
     const balance=who.hasPoints?who.points:num(cm?.balance);
-    const lifetime=sample?num(cm?.value):lifetimeOf(cm);
+    const lifetime=sample?num(cm?.value):over?Math.max(lifetimeOf(cm),balance):lifetimeOf(cm);
     const allTime=sample?6:this.board().place.get(who.key)||0;
     const rv=this.rankView(who.key,lifetime,allTime);
     // Versus
@@ -280,7 +291,11 @@ export class Cards{
   }
 
   // ---------- control page and OBS ----------
-  preview({tier='gold',side='front',tierUp=false,promotion=false}={}){
+  preview({tier='gold',side='front',tierUp=false,promotion=false,fleet=''}={}){
+    if(fleet){const stage=FLEET_KINDS.indexOf(fleet);if(stage<1)throw new Error('Unknown fleet preview.');
+      const e={id:'preview',stage,name:fleet==='follow'?'StarboundAce':'NebulaKnight',platform:'twitch',userId:fleet==='follow'?'preview-new':'preview',amount:fleet==='gift'?5:fleet==='bits'?500:1,months:fleet==='resub'?14:1,tier:fleet==='sub'?'Tier 1':'',test:true};
+      // A new follower has no record yet: their card is built from nothing, like the real thing.
+      return this.fleetCard(e,this.now(),fleet!=='follow');}
     if(!TIER_ORDER.includes(tier)||!['front','stats','badges'].includes(side))throw new Error('Unknown card preview.');
     const who={key:'twitch:preview',platform:'twitch',login:'nebulaknight',name:'NebulaKnight',tier,points:1450,rank:4,members:312,hasPoints:true};
     const card=this.build(who,side,tierUp&&tier!=='blue'?TIER_ORDER[TIER_ORDER.indexOf(tier)-1]:null,true,promotion?4:null);
@@ -288,7 +303,67 @@ export class Cards{
     this.state.queue=[...this.state.queue,item].slice(-20);return item;
   }
   configure(raw){this.state.settings=normalizeCardSettings({...this.state.settings,...raw},this.state.settings);this.persist();return this.view();}
-  overlay(){const now=this.now();return {serverAt:now,items:this.state.queue.filter(x=>now-x.at<10*60000)};}
+  overlay(){const now=this.now();return {serverAt:now,items:this.state.queue.filter(x=>x.at<=now&&now-x.at<10*60000)};}
+
+  // ---------- after Fleet alerts (2.20.23) ----------
+  // The "Voyager - Fleet Alerts" action broadcasts its queue (startAt/endAt per alert, serial). Each follow, sub, gift,
+  // resub or bits alert gets a card that plays once the Fleet animation (and any alerts queued right behind it) has ended:
+  // a new follower's card is presented; a member's card shows the support landing on it live.
+  fromFleet(state,serverAt){
+    const s=this.state.settings;if(!s.enabled||!state||!Array.isArray(state.queue))return [];
+    const now=this.now(),skew=Number.isFinite(Number(serverAt))&&serverAt>0?now-Number(serverAt):0;
+    this.fleetSeen||=new Map();
+    const queue=state.queue.filter(e=>e&&typeof e.id==='string'&&e.status==='queued'&&Number.isFinite(Number(e.startAt))&&Number.isFinite(Number(e.endAt))).sort((a,b)=>a.startAt-b.startAt);
+    const made=[];
+    queue.forEach((e,i)=>{
+      let end=Number(e.endAt);for(let j=i+1;j<queue.length;j++){if(Number(queue[j].startAt)-end>2500)break;end=Number(queue[j].endAt);}
+      const at=end+skew+500,prev=this.fleetSeen.get(e.id);
+      if(prev!==undefined){const it=this.state.queue.find(x=>x.id===prev);if(it&&it.at>now&&it.at!==at){it.at=at;this.persist();}return;}
+      this.fleetSeen.set(e.id,0);if(this.fleetSeen.size>600)this.fleetSeen.delete(this.fleetSeen.keys().next().value);
+      if(Number(e.endAt)+skew<now-30000)return; // already over before Voyager heard of it
+      const stage=Number(e.stage);if(!(stage>=1&&stage<=5))return; // raids have no supporter
+      if(stage===1?!s.fleet.welcome:!s.fleet.support)return;
+      const item=this.fleetCard(e,at);if(!item)return;
+      this.fleetSeen.set(e.id,item.id);made.push(item);
+    });
+    return made;
+  }
+  fleetCard(e,at,sample=false){
+    const platform=clean(e.platform||'twitch',10).toLowerCase();if(!PLATFORM[platform])return null;
+    const id=clean(e.userId,128),name=clean(e.name,60),login=clean(e.login,60).toLowerCase()||name.toLowerCase();if(!name)return null;
+    const key=id?platform+':'+id:this.findKey(platform,login)||platform+':fleet-'+login.replace(/[^a-z0-9_]/g,'').slice(0,40);
+    if(!KEY.test(key))return null;
+    const stage=Number(e.stage),kind=FLEET_KINDS[stage],amount=Math.max(0,Math.round(num(e.amount))),months=Math.max(0,Math.round(num(e.months)));
+    const medals=this.medals,v=sample?SAMPLE_VIEWER(this.now()):medals?.state?.viewers?.[key],c=v?.c||{},cm=sample?{tier:'gold',balance:2380}:this.community()?.state?.members?.[key];
+    const tier=TIER_ORDER.includes(cm?.tier)?cm.tier:TIER_ORDER.includes(this.state.members[key]?.tier)?this.state.members[key].tier:'blue';
+    const balance=Number.isFinite(cm?.balance)?num(cm.balance):-1,P=this.state.settings.fleet.points;
+    const over={c:{},m:{}};let points=0,text='',note='',eyebrow='★ FLEET SUPPORT ★',unit=platform==='kick'?'KICKS':platform==='youtube'?'SUPER CHAT':'BITS';
+    if(kind==='follow'){points=P.follow;eyebrow='★ NEW FOLLOWER ★';text='WELCOME ABOARD';note=name+' joined the fleet · Blue Explorer · type !voyager any time to show your card';}
+    if(kind==='sub'){over.c.months=(c.months||0)+1;points=P.sub;text='SUBSCRIBED'+(e.tier?' · '+clean(e.tier,20).toUpperCase():'');note='Thank you for the subscription, '+name+' · you are a legend';}
+    if(kind==='resub'){over.c.months=Math.max((c.months||0)+1,months);points=P.resub;text='RESUBSCRIBED · '+fmt(over.c.months)+' MONTHS';note='Welcome back to the fleet, '+name;}
+    if(kind==='gift'){over.c.gifts=(c.gifts||0)+amount;over.c.giftMax=Math.max(c.giftMax||0,amount);points=P.gift*amount;text=fmt(amount)+' GIFT SUB'+(amount===1?'':'S');note='Thank you for growing the fleet, '+name;}
+    if(kind==='bits'){const k=platform==='kick'?'kicks':platform==='youtube'?'sc':'bits';over.c[k]=(c[k]||0)+amount;points=P.bits*amount;text=fmt(amount)+' '+unit;note='Thank you for powering the fleet, '+name;}
+    // A medal the support just earned or upgraded (Loyal Subscriber, Fleet Gifter, Gift Bomb, Power Supply).
+    let medal=null;
+    if(medals){const x={subs:over.c.months,gifter:over.c.gifts,giftbomb:over.c.giftMax,power:over.c.bits!==undefined||over.c.kicks!==undefined||over.c.sc!==undefined?(over.c.bits??c.bits??0)+(over.c.kicks??c.kicks??0)+(over.c.sc??c.sc??0):undefined};
+      for(const [mid,val] of Object.entries(x)){if(val===undefined)continue;const md=medalById(mid);if(!md?.grades)continue;const t=medals.grades(md);let g=-1;for(let i=3;i>=0;i--)if(val>=t[i]){g=i;break;}
+        const had=v?.m?.[mid]?.g??-1;if(g>had){over.m[mid]={g,at:this.now()};if(!medal||g>medal.grade)medal={id:mid,name:md.name,grade:g,gradeName:GRADE_NAMES[g],upgrade:had>=0};}}}
+    const who={key,platform,login,name,tier,points:balance,rank:0,members:0,hasPoints:balance>=0};
+    const before=this.build(who,'front',null,sample,null);
+    const after=this.build({...who,points:balance<0?points:balance+points,hasPoints:balance>=0||points>0},'front',null,sample,null,over);
+    // The medal just earned always makes the card's medal row, so the ceremony can pop it in.
+    if(medal&&!after.d.equipped.some(b=>b.name===medal.name)){const b=after.d.badges.find(x=>x.name===medal.name);if(b){after.d.equipped.splice(Math.min(5,after.d.equipped.length),0,b);after.d.equipped.length=Math.min(after.d.equipped.length,6);}}
+    const delta=[];
+    before.d.stats.forEach((st,i)=>{if(after.d.stats[i]&&after.d.stats[i].value!==st.value)delta.push({kind:'stat',i,label:st.label,from:st.value,to:after.d.stats[i].value});});
+    before.d.extras.forEach((ex,i)=>{if(after.d.extras[i]&&after.d.extras[i].value!==ex.value)delta.push({kind:'extra',i,label:ex.label,from:ex.value,to:after.d.extras[i].value});});
+    const title=kind==='follow'?{eyebrow:'★ VOYAGER FLEET ★',word:'WELCOME',sub:name+' · NEW RECRUIT · BLUE EXPLORER'}:null;
+    const item={id:++this.state.seq,at,seconds:this.state.settings.seconds,card:before,live:{kind,eyebrow,text,note,points,delta,medal,title,test:e.test===true,after},preview:sample||e.id==='preview'||undefined};
+    if(item.preview){this.state.queue=[...this.state.queue,item].slice(-20);return item;}
+    this.member(key).tier=tier;
+    this.state.queue=[...this.state.queue.filter(x=>this.now()-x.at<10*60000),item].slice(-20);
+    this.state.recent=[{id:item.id,at,name,platform,tier,side:'front',tierUp:false,promotion:'',fleet:kind},...this.state.recent].slice(0,30);
+    this.persist();return item;
+  }
   // 2.20.17: rows for the public site's crew lookup (crew.json): name, platform, tier, rank, all-time place, lifetime points and medals.
   crewRows(limit=2000){
     this.memo={};try{return this.crewRowsInner(limit);}finally{this.memo=null;}

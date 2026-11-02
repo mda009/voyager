@@ -2,6 +2,20 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.23 (2 November 2026)
+
+**Cards after Fleet alerts: new followers are presented, and support lands on members' cards live (Community › Membership cards).**
+
+Voyager now listens to the "Voyager - Fleet Alerts" queue. When a follow, sub, resub, gift-sub or bits alert plays its Fleet animation, a card follows on the same `card.html` source once the animation (and any alerts queued right behind it) has finished:
+
+- **New follower.** A gold WELCOME title card, then the follower's brand-new Blue Explorer card is presented: NEW RECRUIT, member since today, and the follow reward counting onto it.
+- **Subs, resubs, gift subs and bits.** The member's card opens, a data-link sweep crosses it and a ★ FLEET SUPPORT ★ banner names the event (RESUBSCRIBED · 15 MONTHS, 5 GIFT SUBS, 500 BITS). The banner clears and the tiles that changed flash and count to their new values with floating tags (+1 MONTH, +250 POINTS, +2 HONOUR), a "+points" headline plays, and a medal the support just earned or upgraded (Loyal Subscriber, Fleet Gifter, Gift Bomb, Power Supply) slams onto the medal row with NEW MEDAL / UPGRADED.
+- **Settings:** switch the follower card and the support update on or off, and set the points each event pays (defaults 50 / 250 / 5 / 20 per gift / 1 per Bit; 0 leaves points out). Months, gifts and medals come from the alert itself.
+- **Previews** for each of the five ceremonies in Membership cards; Fleet Control's "Send test to OBS" also plays its card.
+- Raids have no supporter card. Alerts that ended more than 30 seconds before Voyager heard of them are skipped.
+
+Also: the tier-up and promotion banners now fade as intended, and long single-word medal names fit under their tiles.
+
 ## 2.20.22 (1 November 2026)
 
 **Chat engagement: six new ways to get chat talking (Community › Chat engagement).**

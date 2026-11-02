@@ -74,6 +74,20 @@
 <p class="st-hint">Prices only drive the card's next-tier bar. They match your Streamer.bot purchase actions (1,200 / 1,800 / 17,000); if you change those, change these too.</p>
 </section>
 <section class="card mc-card">
+<div class="card-heading"><div><span class="eyebrow">AFTER FLEET ALERTS</span><h2>Cards after follows &amp; support</h2></div></div>
+<form id="fleet" class="mc-form" autocomplete="off">
+<label class="check"><input type="checkbox" name="welcome"> New follower: present their card after the Fleet build animation</label>
+<label class="check"><input type="checkbox" name="support"> Subs, resubs, gift subs and bits: show the support landing on the member's card</label>
+<label>Points for a follow<input name="follow" type="number" min="0" max="1000000"></label>
+<label>Points for a subscription<input name="sub" type="number" min="0" max="1000000"></label>
+<label>Points for a resub<input name="resub" type="number" min="0" max="1000000"></label>
+<label>Points per gift sub<input name="gift" type="number" min="0" max="1000000"></label>
+<label>Points per Bit (Kick / Super Chat unit)<input name="bits" type="number" min="0" max="1000000"></label>
+<button type="button" id="save-fleet">Save</button>
+</form>
+<p class="st-hint">Cards wait for the Fleet animation (and any alerts queued right behind it) to finish, then play on the same card source. Points here only drive the "+points" on the card: set them to what your Streamer.bot currency pays, or 0 to leave points out. Months, gifts and medals come from what the alert says.</p>
+</section>
+<section class="card mc-card">
 <div class="card-heading"><div><span class="eyebrow">NAVAL RANKS</span><h2>Ranks</h2></div></div>
 <p class="st-hint">The rank on each card, the points for each rank, promotions and the full fleet roster now have their own page.</p>
 <p class="st-hint"><a href="Voyager_Ranks.html">Open Ranks ↗</a></p>

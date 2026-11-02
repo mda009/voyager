@@ -118,3 +118,38 @@ test('Public crew rows carry the stream card front, built by the same code, with
   assert.equal(Object.keys(cards.state.members).length,0,'building the public front never adds card members');
   assert.equal(cards.memo,null);
 });
+
+test('Fleet alerts (2.20.23): a follower\'s card is presented after the Fleet animation; a resub lands on a member\'s card live',async()=>{
+  const {cards,medals,at}=await make();
+  medals.ingestExport({type:'voyager.medals.data',v:1,users:[{key:'twitch:1',name:'Nova',login:'nova',watchSeconds:312*3600,months:11,gifts:3,firstSeenAt:new Date(2025,2,14).getTime()}]});medals.primed=false;medals.evaluate();
+  const now=cards.now(),bot=now-1234; // Streamer.bot's clock runs behind the host's
+  const alert=(id,stage,start,extra={})=>({id,stage,status:'queued',startAt:bot+start,endAt:bot+start+16000,name:'Nova',platform:'twitch',userId:'1',login:'nova',amount:1,months:1,tier:'',test:false,...extra});
+  // A resub for Nova (12 months) and, queued 700 ms behind it, a follow from someone Voyager has never seen.
+  const state={enabled:true,queue:[alert('a',4,350,{months:12}),alert('b',1,350+16000+700,{name:'Rook',userId:'77',login:'rook'})]};
+  const made=cards.fromFleet(state,bot);
+  assert.equal(made.length,2);
+  const resub=made[0],follow=made[1];
+  assert.equal(resub.at,now+350+16000+700+16000+500,'both cards wait for the whole run of alerts to end');assert.equal(follow.at,resub.at);
+  assert.deepEqual(cards.overlay().items.map(x=>x.id),[],'nothing plays while the Fleet animation runs');
+  assert.equal(resub.live.kind,'resub');assert.equal(resub.live.text,'RESUBSCRIBED · 12 MONTHS');assert.equal(resub.live.points,5);assert.equal(resub.live.title,null);
+  assert.equal(resub.card.d.extras[2].value,'11 months');assert.equal(resub.live.after.d.extras[2].value,'12 months');
+  assert.deepEqual(resub.live.delta.slice(0,2).map(d=>[d.kind,d.label,d.from,d.to]),[['stat','VOYAGER POINTS','1,450','1,455'],['extra','SUBSCRIBED','11 months','12 months']]);
+  assert.match(resub.live.delta[2]?.label,/HONOUR/,'the upgraded medal adds honour too');assert.equal(resub.live.delta.length,3);
+  assert.equal(resub.live.medal?.id,'subs','12 months reaches Loyal Subscriber Silver');assert.equal(resub.live.medal.gradeName,'Silver');assert.equal(resub.live.medal.upgrade,true);
+  assert.ok(resub.live.after.d.equipped.some(b=>b.name==='Loyal Subscriber'&&b.sub==='Silver'));
+  assert.equal(follow.live.kind,'follow');assert.equal(follow.live.title.word,'WELCOME');assert.equal(follow.card.tier,'blue');assert.equal(follow.card.c.callsign,'NEW RECRUIT');
+  assert.equal(follow.card.d.stats[0].value,'0');assert.equal(follow.live.after.d.stats[0].value,'50','the follow reward lands on an empty card');
+  // The same broadcast again adds nothing; a new alert queued behind pushes both cards later.
+  assert.equal(cards.fromFleet(state,bot).length,0);
+  cards.fromFleet({...state,queue:[...state.queue,alert('c',3,350+2*16700,{amount:5})]},bot);
+  assert.equal(cards.state.queue.find(x=>x.id===resub.id).at,now+350+2*16700+16000+500,'rescheduled behind the gift alert');
+  at(60000);assert.deepEqual(cards.overlay().items.map(x=>x.live.kind),['resub','follow','gift'],'they play in order once the run has ended');
+  // Raids and alerts that ended long ago are ignored; switching the ceremonies off stops them.
+  assert.equal(cards.fromFleet({enabled:true,queue:[alert('d',6,0),alert('e',2,-120000)]},bot).length,0);
+  cards.configure({fleet:{support:false,points:{gift:0}}});assert.equal(cards.state.settings.fleet.points.gift,0);assert.equal(cards.state.settings.fleet.points.sub,250);
+  assert.equal(cards.fromFleet({enabled:true,queue:[alert('f',2,60000)]},bot).length,0);assert.equal(cards.fromFleet({enabled:true,queue:[alert('g',1,60000)]},bot).length,1);
+  assert.throws(()=>cards.configure({fleet:{points:{bits:-1}}}),/0 to 1,000,000/);
+  // Previews from the control page use sample data and never create members.
+  const p=cards.preview({fleet:'gift'});assert.equal(p.preview,true);assert.equal(p.live.text,'5 GIFT SUBS');assert.equal(p.live.points,0);assert.ok(!cards.state.members['twitch:preview']);
+  assert.ok(!cards.state.recent.some(r=>r.name==='NebulaKnight'));
+});

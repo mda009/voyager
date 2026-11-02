@@ -35,8 +35,8 @@ export function parseOtherChat(payload){
   return {platform,userId:id,login,name,text,messageId:d.messageId||m?.id||d.id||null,demo:false};
 }
 export class StreamerBot {
-  constructor({onOtherChat=()=>{},onChat=()=>{},onStatus=()=>{},onStreamOnline=()=>{},onBoss=()=>{},onMedals=()=>{},onCards=()=>{},WebSocketImpl=globalThis.WebSocket,retryMs=3000}={}){
-    this.onStreamOnline=onStreamOnline;this.onOtherChat=onOtherChat;this.otherChat={kick:0,youtube:0,subscribed:null};this.onBoss=onBoss;this.onMedals=onMedals;this.onCards=onCards;this.rewardResponses=new Map();
+  constructor({onOtherChat=()=>{},onChat=()=>{},onStatus=()=>{},onStreamOnline=()=>{},onBoss=()=>{},onMedals=()=>{},onCards=()=>{},onFleet=()=>{},WebSocketImpl=globalThis.WebSocket,retryMs=3000}={}){
+    this.onStreamOnline=onStreamOnline;this.onOtherChat=onOtherChat;this.otherChat={kick:0,youtube:0,subscribed:null};this.onBoss=onBoss;this.onMedals=onMedals;this.onCards=onCards;this.onFleet=onFleet;this.rewardResponses=new Map();
     this.pending=new Map();this.requestSequence=0;this.onChat=onChat;this.onStatus=onStatus;this.WebSocketImpl=WebSocketImpl;this.retryMs=retryMs;this.generation=0;this.socket=null;this.timer=null;this.handshake=null;this.wanted=false;this.seen=new Map();this.status={connected:false,message:'Streamer.bot disconnected'};
   }
   statusUpdate(connected,message){this.status={connected,message};this.onStatus(this.status);}
@@ -90,6 +90,8 @@ export class StreamerBot {
       // Voyager Medals (2.18): !medals and the medal data export from the "Voyager - Medals" action.
       // Membership cards (2.19): !voyager and tier-ups from the "Voyager - Membership Card" action.
       if(reply?.type==='voyager.card.event'&&reply.v===1){try{this.onCards(reply);}catch{}return;}
+      // Fleet alerts (2.20.23): the "Voyager - Fleet Alerts" queue, so cards can follow each Fleet animation.
+      if(reply?.type==='voyager.fleet.alerts.v1'&&reply.schema===1&&reply.state){try{this.onFleet(reply);}catch{}return;}
       if((reply?.type==='voyager.medals.event'||reply?.type==='voyager.medals.data')&&reply.v===1){try{this.onMedals(reply);}catch{}return;}
       const online=parseStreamOnline(data);if(online){this.onStreamOnline(online);return;}
       const other=parseOtherChat(data);

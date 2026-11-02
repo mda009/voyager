@@ -90,6 +90,19 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:transparent
 .ptitle .sub{font:700 34px/1.1 Rajdhani,sans-serif;letter-spacing:3px;color:#fff;text-shadow:0 2px 12px rgba(0,0,0,.8);opacity:0;animation:fadeUp .6s ease-out .9s both;text-align:center}
 .ptitle .sub b{color:#ffd36b}
 .ptitle.go{animation:titleOut .6s cubic-bezier(.6,0,.8,.4) forwards}
+/* 2.20.23: live updates after Fleet alerts. A data-link sweep crosses the card, changed tiles flash and count to their
+   new values, a tag floats off each one, and a medal the support just earned pops in. */
+.link{left:0;top:0;width:1920px;height:1080px;opacity:1;background:linear-gradient(100deg,transparent 30%,rgba(130,220,255,.0) 42%,rgba(160,230,255,.45) 50%,rgba(130,220,255,0) 58%,transparent 70%);mix-blend-mode:screen;animation:link 1.1s ease-in-out both;z-index:4}
+@keyframes link{0%{transform:translateX(-1400px)}100%{transform:translateX(1400px)}}
+.delta{animation:delta 1.6s ease-out both}
+@keyframes delta{0%{filter:brightness(1)}12%{filter:brightness(2.6) drop-shadow(0 0 16px rgba(160,230,255,.9))}100%{filter:brightness(1)}}
+.tag{font:700 26px/1 Rajdhani,sans-serif;letter-spacing:2px;color:#fff;text-shadow:0 0 18px var(--c,#9fd8ff),0 2px 10px rgba(0,0,0,.8);white-space:nowrap;transform:translate(-50%,-50%);animation:tagUp 2s ease-out both;z-index:6}
+@keyframes tagUp{0%{opacity:0;transform:translate(-50%,-30%) scale(.6)}18%{opacity:1;transform:translate(-50%,-70%) scale(1.15)}30%{transform:translate(-50%,-80%) scale(1)}100%{opacity:0;transform:translate(-50%,-190%) scale(1)}}
+[data-medal].newmedal{animation:newmedal 1.1s cubic-bezier(.2,1.5,.4,1) both}
+@keyframes newmedal{0%{opacity:0;transform:scale(.2) rotate(-60deg);filter:brightness(4)}50%{opacity:1;transform:scale(1.6) rotate(8deg);filter:brightness(2.5) drop-shadow(0 0 22px #ffd36b)}100%{opacity:1;transform:none;filter:none}}
+.points{left:0;width:1920px;top:120px;text-align:center;font:700 64px/1 Rajdhani,sans-serif;letter-spacing:6px;color:#fff;text-shadow:0 0 30px rgba(255,211,107,.9),0 3px 14px rgba(0,0,0,.8);animation:pointsIn 3.2s ease-out both;z-index:6}
+.points b{background:linear-gradient(180deg,#fffbe6,#ffe48a 30%,#f2b52e 50%,#7a4d00 56%,#ffcf4a 80%,#fff3b8);-webkit-background-clip:text;background-clip:text;color:transparent}
+@keyframes pointsIn{0%{opacity:0;transform:translateY(40px) scale(.7)}12%{opacity:1;transform:none}80%{opacity:1}100%{opacity:0;transform:translateY(-30px)}}
 @keyframes titleOut{to{opacity:0;transform:translateY(-260px) scale(.5);filter:blur(6px)}}
 @keyframes fadeUp{0%{opacity:0;transform:translateY(16px)}100%{opacity:1;transform:none}}
 .dim{left:0;top:0;width:1920px;height:1080px;background:radial-gradient(ellipse at 50% 50%,rgba(0,0,0,.15),rgba(0,0,0,.55) 75%);animation:dim 2.6s ease-in-out both;z-index:-1}
@@ -98,7 +111,7 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:transparent
 <body>
 <div id="stage"><canvas id="fxc" width="1920" height="1080"></canvas></div>
 <script type="module">
-import {TIERS,cardHTML} from './card-template.mjs?v=2.20.16';
+import {TIERS,cardHTML} from './card-template.mjs?v=2.20.23';
 const q=new URLSearchParams(location.search),stage=document.getElementById('stage');
 if(q.get('backdrop')==='0')stage.classList.add('nobackdrop');
 if(q.get('frame')==='full')stage.classList.add('full');
@@ -178,18 +191,61 @@ async function promote(el,card){
   sparks(p.x,p.y,'#ffd36b',70,13,3);embers(p.x,p.y,110);stage.classList.add('shake');setTimeout(()=>stage.classList.remove('shake'),520);
   if(name)scramble(name,newName);
   setTimeout(()=>confetti(['#ffd36b','#fff3c4','#f2b52e','#ffffff',ACCENT[card.tier][0]]),400);
-  const banner=root.querySelector('[data-banner]');if(banner){banner.classList.remove('hold');banner.classList.add('show');setTimeout(()=>{banner.style.transition='opacity .8s';banner.style.opacity='0';},4200);}
+  const banner=root.querySelector('[data-banner]');if(banner){banner.classList.remove('hold');banner.classList.add('show');setTimeout(()=>{banner.classList.remove('show');banner.style.transition='opacity .8s';banner.style.opacity='0';},4200);}
 }
-function titleCard(card){
+const esc=x=>String(x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
+function titleCard(card,t=null){
   const d=document.createElement('div');d.className='fx ptitle';d.style.opacity='1';
-  const word=[...'PROMOTED'].map((ch,i)=>'<span style="animation-delay:'+(.15+i*.07).toFixed(2)+'s">'+ch+'</span>').join('');
-  const esc=x=>String(x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
-  d.innerHTML='<div class="eb">★ VOYAGER FLEET ★</div><div class="word">'+word+'</div><div class="sub">'+esc(card.name)+' · '+esc(card.fromRankName)+' → <b>'+esc((card.k?.name)||'')+'</b></div>';
+  const word=[...(t?.word||'PROMOTED')].map((ch,i)=>'<span style="animation-delay:'+(.15+i*.07).toFixed(2)+'s">'+ch+'</span>').join('');
+  const sub=t?esc(t.sub):esc(card.name)+' · '+esc(card.fromRankName)+' → <b>'+esc((card.k?.name)||'')+'</b>';
+  d.innerHTML='<div class="eb">'+esc(t?.eyebrow||'★ VOYAGER FLEET ★')+'</div><div class="word">'+word+'</div><div class="sub">'+sub+'</div>';
   stage.append(d);fx(['dim']);
   setTimeout(()=>{sparks(960,520,'#ffd36b',90,15,2);fx(['flash']);},15*0+760);
   return d;
 }
 
+// Tween a tile's text from one value to another ("11 months" → "12 months", "—" → "50", "★ 46 · 6 medals" → "★ 48 · 6 medals").
+function tween(el,from,to,dur=1100){
+  const m=/^(\D*?)([\d,]+)(.*)$/.exec(to),f=/^(\D*?)([\d,]+)(.*)$/.exec(from);
+  if(!m){el.textContent=to;return;}
+  const a=f?Number(f[2].replace(/,/g,'')):0,b=Number(m[2].replace(/,/g,'')),t0=performance.now();
+  (function step(t){const k=Math.min(1,(t-t0)/dur),v=Math.round(a+(b-a)*(1-Math.pow(1-k,3)));el.textContent=m[1]+v.toLocaleString('en')+m[3];if(k<1)requestAnimationFrame(step);else el.textContent=to;})(t0);
+}
+function floatTag(x,y,text,color='#9fd8ff'){const d=document.createElement('div');d.className='fx tag';d.style.cssText='left:'+x+'px;top:'+y+'px;--c:'+color;d.textContent=text;stage.append(d);setTimeout(()=>d.remove(),2100);}
+function tagFor(d){const n=s=>{const m=/([\d,]+)/.exec(s||'');return m?Number(m[1].replace(/,/g,'')):0;};const diff=n(d.to)-n(d.from);
+  if(/POINTS/.test(d.label))return (diff>0?'+':'')+diff.toLocaleString('en')+' POINTS';
+  if(/SUBSCRIBED/.test(d.label))return diff===1?'+1 MONTH':'+'+diff+' MONTHS';
+  if(/HONOUR/.test(d.label))return '+'+diff+' HONOUR';
+  return diff>0?'+'+diff.toLocaleString('en'):d.to;}
+async function liveUpdate(el,card,L){
+  const root=el.firstElementChild,[accent,glow]=ACCENT[card.tier];
+  fx(['link']);await wait(450);
+  const banner=root.querySelector('[data-banner]');
+  if(banner){const set=(sel,text)=>{const n=banner.querySelector(sel);if(n)n.textContent=text;};
+    set('[data-banner-eyebrow]',L.eyebrow);set('[data-banner-text]',L.text);set('[data-banner-note]',L.note);
+    banner.style.display='flex';banner.classList.remove('hold');banner.classList.add('show');
+    const p=at(banner);sparks(p.x,p.y,accent,40,9);fx(['shock'],'left:'+p.x+'px;top:'+p.y+'px;--c:'+accent+';--g:'+glow);
+    // The banner sits over the stat tiles: let it be read, then clear it before the tiles change.
+    await wait(2300);banner.classList.remove('show');banner.style.transition='opacity .6s';banner.style.opacity='0';await wait(650);}
+  else await wait(700);
+  // Changed tiles, one after another: flash, count to the new value, float a tag.
+  const stats=root.querySelectorAll('[data-count]'),extras=root.querySelectorAll('[data-extra]');
+  for(const d of L.delta||[]){const node=(d.kind==='stat'?stats:extras)[d.i];if(!node)continue;
+    const tile=node.parentElement;tile.classList.remove('delta');void tile.offsetWidth;tile.classList.add('delta');
+    const p=at(node);sparks(p.x,p.y,accent,22,6);tween(node,d.from,d.to);floatTag(p.x,p.y-10,tagFor(d),accent);
+    await wait(520);}
+  if(L.points>0){const d=document.createElement('div');d.className='fx points';d.innerHTML='<b>+'+Number(L.points).toLocaleString('en')+'</b> VOYAGER POINTS';stage.append(d);setTimeout(()=>d.remove(),3300);}
+  // A medal earned or upgraded by this support: the row becomes the "after" row and the new tile slams in.
+  if(L.medal&&L.after){
+    const after=document.createElement('div');after.innerHTML=cardHTML({...TIERS[L.after.tier],...L.after.t},L.after.v,L.after.c,L.after.d,L.after.k||NO_RANK);
+    const row=root.querySelector('[data-medals]'),newRow=after.querySelector('[data-medals]'),count=root.querySelector('[data-medal-count]'),newCount=after.querySelector('[data-medal-count]');
+    if(row&&newRow){await wait(300);row.innerHTML=newRow.innerHTML;if(count&&newCount)count.textContent=newCount.textContent;
+      const tiles=[...row.querySelectorAll('[data-medal]')];let hit=null;
+      for(const t of tiles){if(!hit&&(t.getAttribute('title')||'').startsWith(L.medal.name+' ·'))hit=t;else t.classList.add('pop');}
+      if(hit){hit.classList.add('newmedal');await wait(380);const p=at(hit);fx(['flash']);fx(['shock'],'left:'+p.x+'px;top:'+p.y+'px;--c:#ffd36b;--g:rgba(255,190,60,.8)');sparks(p.x,p.y,'#ffd36b',60,12,2);embers(p.x,p.y,70);
+        floatTag(p.x,p.y-40,(L.medal.upgrade?'UPGRADED · ':'NEW MEDAL · ')+L.medal.gradeName.toUpperCase(),'#ffd36b');}}
+  }
+}
 async function play(item){
   const card=item.card,secs=Math.max(5,Math.min(60,item.seconds||12));
   if(card.fromTier){
@@ -203,8 +259,16 @@ async function play(item){
     const banner=now.querySelector('[data-banner]');
     await open(now,card.tier);
     confetti([ACCENT[card.tier][0],'#ffffff',ACCENT[card.tier][0],'#ffd36b']);
-    if(banner)setTimeout(()=>{banner.style.transition='opacity .8s';banner.style.opacity='0';},4500);
+    if(banner)setTimeout(()=>{banner.classList.remove('show');banner.style.transition='opacity .8s';banner.style.opacity='0';},4500);
     await wait(Math.max(secs,8)*1000);await close(now);return;
+  }
+  if(item.live){
+    const L=item.live;
+    if(L.title){const t=titleCard(card,L.title);await wait(2100);t.classList.add('go');setTimeout(()=>t.remove(),700);await wait(250);}
+    const el=slot(card);el.dataset.tier=card.tier;el.querySelector('[data-banner]')?.classList.add('hold');
+    await open(el,card.tier);await wait(1700);
+    await liveUpdate(el,card,L);
+    await wait(Math.max(4,secs-5)*1000);await close(el);return;
   }
   if(card.promotion){
     const t=titleCard(card);await wait(2300);t.classList.add('go');setTimeout(()=>t.remove(),700);await wait(250);

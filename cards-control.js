@@ -18,14 +18,17 @@ function buttons(){
   box.append(Object.assign(el('button','','Medal wall'),{type:'button',onclick:()=>preview({tier:'platinum',side:'badges'})}));
   box.append(Object.assign(el('button','','Tier-up: Silver → Gold'),{type:'button',onclick:()=>preview({tier:'gold',tierUp:true})}));
   box.append(Object.assign(el('button','','Promotion: Lt Cdr → Commander'),{type:'button',onclick:()=>preview({tier:'silver',promotion:true})}));
+  for(const [k,label] of [['follow','After a follow: new recruit'],['sub','After a sub'],['resub','After a resub'],['gift','After gift subs'],['bits','After bits']])box.append(Object.assign(el('button','',label),{type:'button',onclick:()=>preview({fleet:k})}));
 }
 async function preview(o){try{await api('/api/cards/preview',o);notice('Preview queued: it plays in OBS and in the live view.');}catch(e){notice(e.message,true);}}
 function render(){
   if(!view)return;const s=view.settings,f=$('settings').elements;
-  if(!editing){f.enabled.checked=s.enabled;f.chat.checked=s.chat;f.seconds.value=s.seconds;f.cooldown.value=s.cooldown;for(const k of ['silver','gold','platinum'])f[k].value=s.costs[k];}
+  if(!editing){f.enabled.checked=s.enabled;f.chat.checked=s.chat;f.seconds.value=s.seconds;f.cooldown.value=s.cooldown;for(const k of ['silver','gold','platinum'])f[k].value=s.costs[k];
+    const g=$('fleet').elements,fl=s.fleet||{};g.welcome.checked=fl.welcome!==false;g.support.checked=fl.support!==false;for(const k of ['follow','sub','resub','gift','bits'])g[k].value=fl.points?.[k]??0;}
   const ev=view.lastEvent,pill=$('state-pill');pill.dataset.state=ev?'ok':'wait';pill.textContent=ev?'Last card event '+ago(ev.at):'Waiting for !voyager';
   const R=$('recent');R.textContent='';
-  for(const r of view.recent.slice(0,12)){const li=el('li');li.append(el('span','mc-dot mc-'+r.tier),el('b','',r.name),el('span','',(r.promotion?'Promoted to '+r.promotion+' · ':r.tierUp?'Tier-up · ':'')+(r.side==='front'?'card':r.side)+' · '+r.platform),el('span','r',ago(r.at)));R.append(li);}
+  const FLEET={follow:'New follower',sub:'Sub',resub:'Resub',gift:'Gift subs',bits:'Bits'};
+  for(const r of view.recent.slice(0,12)){const li=el('li');li.append(el('span','mc-dot mc-'+r.tier),el('b','',r.name),el('span','',(r.fleet?'After Fleet · '+FLEET[r.fleet]+' · ':r.promotion?'Promoted to '+r.promotion+' · ':r.tierUp?'Tier-up · ':'')+(r.side==='front'?'card':r.side)+' · '+r.platform),el('span','r',r.at>Date.now()?'waits for the Fleet animation':ago(r.at)));R.append(li);}
   if(!view.recent.length)R.append(el('li','','No cards yet.'));
   const act=view.action?.state,chat=view.lastChatAt&&Date.now()-view.lastChatAt<15*60000;
   const checks=[[view.connected,view.connected?'Voyager is connected to Streamer.bot':'Voyager is not connected to Streamer.bot: connect it in Voyager Versus › Stream setup'],
@@ -40,7 +43,10 @@ function render(){
   const cl=$('checklist');cl.textContent='';for(const [ok,t] of checks)cl.append(el('li',ok===null?'info':ok?'ok':'',t));
 }
 async function load(){try{view=await api('/api/cards');render();}catch(e){notice(e.message,true);}}
-$('settings').addEventListener('focusin',()=>{editing=true;});
+$('settings').addEventListener('focusin',()=>{editing=true;});$('fleet').addEventListener('focusin',()=>{editing=true;});
+$('save-fleet').onclick=async()=>{try{const g=$('fleet').elements;
+  view={...view,...await api('/api/cards/settings',{fleet:{welcome:g.welcome.checked,support:g.support.checked,points:Object.fromEntries(['follow','sub','resub','gift','bits'].map(k=>[k,Number(g[k].value)]))}})};
+  editing=false;notice('Fleet card settings saved.');render();}catch(e){notice(e.message,true);}};
 $('save').onclick=async()=>{try{const f=$('settings').elements;
   view={...view,...await api('/api/cards/settings',{enabled:f.enabled.checked,chat:f.chat.checked,seconds:Number(f.seconds.value),cooldown:Number(f.cooldown.value),costs:{silver:Number(f.silver.value),gold:Number(f.gold.value),platinum:Number(f.platinum.value)}})};
   editing=false;notice('Card settings saved.');render();}catch(e){notice(e.message,true);}};
