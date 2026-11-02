@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.27 (2 November 2026)
+
+**Chat engagement uses the same round emblems.** The arrival, `!report`, squadron enlistment and Captain's Log cards on `engage.html` now carry the medal-style Voyager medallion (ticked rim, space disc, star) in the event's colours, the Bridge Quiz panel has one too, and each wing in the squadron panel gets a small one in its colour.
+
 ## 2.20.26 (2 November 2026)
 
 **Round medals, modelled on the Voyager roundel.** Every medal symbol is now a round medallion in the style of the Voyager emblem: a lettered metal rim in the grade's metal (bronze, silver, gold, legend), a dark space disc with a horizon glow, the four-point Voyager star at the top and the medal's own mark in the centre. The same mark is used everywhere a medal appears: the membership card's medal row and medal wall, the on-stream medal announcements (`medals.html`), the companion site (Medals tab, Hall of Honour, card back) and the member manual.

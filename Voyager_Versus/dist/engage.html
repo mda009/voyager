@@ -15,12 +15,20 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:transparent
 .toast.out{animation:tout .5s ease-in forwards}
 @keyframes tin{0%{opacity:0;transform:translateX(-80px);filter:brightness(2)}100%{opacity:1;transform:none;filter:none}}
 @keyframes tout{to{opacity:0;transform:translateX(-40px)}}
-.badge{flex:none;width:58px;height:58px;display:grid;place-items:center;clip-path:polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%)}
-.badge svg{width:28px;height:28px;fill:none;stroke:#fff;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+/* 2.20.27: the same round emblem as the medals (Voyager roundel: ticked rim, space disc, star), in the event's colours. */
+.badge{position:relative;flex:none;width:62px;height:62px;display:grid;place-items:center;border-radius:50%;background:repeating-conic-gradient(from 7.5deg,rgba(0,0,0,.28) 0 2.4deg,rgba(0,0,0,0) 2.4deg 15deg),var(--metal);box-shadow:inset 0 0 0 1px rgba(255,255,255,.35),inset 0 0 0 3.5px rgba(0,0,0,.35);filter:drop-shadow(0 3px 6px rgba(0,0,0,.55))}
+.badge .in{position:relative;width:50px;height:50px;display:grid;place-items:center;border-radius:50%;background:radial-gradient(ellipse at 50% 118%,rgba(90,160,255,.5),rgba(90,160,255,0) 52%),radial-gradient(circle at 50% 26%,rgba(255,255,255,.2),rgba(255,255,255,0) 62%),#0a0f19;box-shadow:inset 0 0 0 1.5px rgba(0,0,0,.7),inset 0 0 0 2.5px rgba(255,255,255,.28)}
+.badge svg.star{position:absolute;left:50%;top:9%;width:12px;height:12px;transform:translateX(-50%);fill:var(--ink);stroke:none;opacity:.9}
+.badge svg.mark{width:26px;height:26px;margin-top:5px;fill:none;stroke:var(--ink);stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+#quiz .badge{position:absolute;left:22px;top:50%;margin-top:-31px}
+.badge.sm{width:30px;height:30px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.35),inset 0 0 0 2px rgba(0,0,0,.35);filter:none}
+.badge.sm .in{width:24px;height:24px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.7),inset 0 0 0 1.5px rgba(255,255,255,.28)}
+.badge.sm svg.star{width:6px;height:6px}.badge.sm svg.mark{width:13px;height:13px;margin-top:3px}
+.sqn{display:flex;align-items:center;gap:9px}
 .eb{display:block;font:700 13px/1 Rajdhani,sans-serif;letter-spacing:4px;text-transform:uppercase}
 .big{display:block;font:700 30px/1.08 Rajdhani,sans-serif;letter-spacing:.5px;margin:5px 0 3px;color:#fff}
 .sub{display:block;font:600 14px/1.35 Inter,sans-serif;color:rgba(235,242,250,.8)}
-#quiz{position:absolute;left:50%;top:48px;width:900px;margin-left:-450px;padding:22px 30px 20px;display:none;text-align:center}
+#quiz{position:absolute;left:50%;top:48px;width:900px;margin-left:-450px;padding:22px 30px 20px 110px;display:none;text-align:center}
 #quiz.on{display:block;animation:tin .6s cubic-bezier(.2,1.2,.3,1) both}
 #quiz .q{font:700 36px/1.15 Rajdhani,sans-serif;color:#fff;margin:8px 0 12px}
 #quiz .bar{height:10px;border-radius:5px;background:#06111f;border:1px solid #1d3d5c;overflow:hidden}
@@ -42,24 +50,27 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:transparent
 (()=>{'use strict';
 const stage=document.getElementById('stage');function fit(){const s=Math.min(innerWidth/1920,innerHeight/1080);stage.style.transform='scale('+s+')';}addEventListener('resize',fit);fit();
 const el=(t,c,x)=>{const n=document.createElement(t);if(c)n.className=c;if(x!==undefined)n.textContent=String(x);return n;};
-const svgNS='http://www.w3.org/2000/svg';function icon(d){const s=document.createElementNS(svgNS,'svg');s.setAttribute('viewBox','0 0 24 24');s.setAttribute('aria-hidden','true');const p=document.createElementNS(svgNS,'path');p.setAttribute('d',d);s.append(p);return s;}
+const svgNS='http://www.w3.org/2000/svg';function icon(d,cls='mark'){const s=document.createElementNS(svgNS,'svg');s.setAttribute('viewBox','0 0 24 24');s.setAttribute('aria-hidden','true');s.setAttribute('class',cls);const p=document.createElementNS(svgNS,'path');p.setAttribute('d',d);s.append(p);return s;}
+const STAR='M12 1.5l1.6 6.9L20.5 10l-6.9 1.6L12 18.5l-1.6-6.9L3.5 10l6.9-1.6z';
+// Round emblem in the event's colours: light colour for the rim highlights and ink, dark colour for the rim body.
+function emblem(colors,d,small=false){const b=el('div','badge'+(small?' sm':''));b.style.setProperty('--metal','linear-gradient(180deg,#ffffff 0%,'+colors[0]+' 28%,'+colors[1]+' 54%,'+colors[0]+' 82%,#ffffff 100%)');b.style.setProperty('--ink',colors[0]);const i=el('div','in');i.append(icon(STAR,'star'),icon(d));b.append(i);return b;}
 const SQ={red:['#ff8a8a','#c0283c'],gold:['#ffe08a','#b8862b'],blue:['#97dfff','#1f5fd0']};
 const TIER={blue:['#3fb2ff','#0b4fd0','Blue Explorer'],silver:['#eef3f9','#55606d','Silver Sentinel'],gold:['#ffc53d','#7a4d00','Gold Commander'],platinum:['#c08bff','#3a1a8a','Platinum Vanguard']};
 const I={report:'M5 12l4 4L19 6',arrival:'M12 2l8 4.5v9L12 20l-8-4.5v-9z',enlist:'M3 8l4 4 5-7 5 7 4-4-2 11H5z',log:'M4 4h7a3 3 0 0 1 3 3v13a2 2 0 0 0-2-2H4z M20 4h-7a3 3 0 0 0-3 3v13a2 2 0 0 1 2-2h8z',quiz:'M9 9a3 3 0 1 1 4 2.8c-.8.4-1 1-1 2v.7 M12 18v.01'};
 function toastFor(t){
- const box=el('div','toast glass cut'),b=el('div','badge'),txt=el('div');let colors=['#3fb2ff','#0b4fd0'];
+ const box=el('div','toast glass cut'),txt=el('div');let colors=['#3fb2ff','#0b4fd0'];
  if(t.kind==='report'){colors=['#7ff0b5','#1d7a52'];txt.append(el('span','eb','Reporting for duty'),el('span','big',t.name),el('span','sub',(t.streak>1?t.streak+' streams in a row · ':'')+'crew member '+t.count+' this stream · type !report'));}
  else if(t.kind==='arrival'){const tc=TIER[t.tier]||TIER.blue;colors=[tc[0],tc[1]];txt.append(el('span','eb',t.promoted?'★ Promoted · now on the bridge':'Now on the bridge'),el('span','big',t.name),el('span','sub',tc[2]+(t.rankName?' · '+t.rankName:'')));}
  else if(t.kind==='enlist'){colors=SQ[t.sq]||colors;txt.append(el('span','eb','Squadron enlistment'),el('span','big',t.name+' joins '+t.sqName),el('span','sub','Type !squadron to pick yours'));}
  else if(t.kind==='log'){colors=['#ffd36b','#8a5a00'];txt.append(el('span','eb',"Captain's log · "+t.name),el('span','big','“'+t.text+'”'),el('span','sub','Add yours with !log'));}
  else return null;
- b.style.background='linear-gradient(180deg,'+colors[0]+','+colors[1]+')';b.append(icon(I[t.kind]||I.arrival));box.style.borderColor=colors[0]+'99';box.append(b,txt);return box;
+ box.style.borderColor=colors[0]+'99';box.append(emblem(colors,I[t.kind]||I.arrival),txt);return box;
 }
 const seen=new Set(),queue=[];let showing=0,first=true,opened=Date.now(),offset=0,quiz=null;
 function pump(){while(showing<3&&queue.length){const t=queue.shift(),n=toastFor(t);if(!n)continue;showing++;document.getElementById('toasts').append(n);setTimeout(()=>{n.classList.add('out');setTimeout(()=>{n.remove();showing--;pump();},500);},t.kind==='log'?7000:5500);}}
 function renderQuiz(){const box=document.getElementById('quiz');if(!quiz){box.className='glass cut';box.textContent='';return;}
  if(box.dataset.id!==quiz.id+(quiz.winner?'w':'')+(quiz.answer?'a':'')){box.dataset.id=quiz.id+(quiz.winner?'w':'')+(quiz.answer?'a':'');box.textContent='';
-  box.append(el('span','eb','Bridge Quiz · first correct answer in chat wins'),el('div','q',quiz.q));
+  box.append(emblem(['#9fe3ff','#1f5fd0'],I.quiz),el('span','eb','Bridge Quiz · first correct answer in chat wins'),el('div','q',quiz.q));
   if(quiz.winner)box.append(el('div','win',quiz.winner.name+' got it: '+quiz.answer+' · +'+quiz.reward+' points'));
   else if(quiz.answer)box.append(el('div','win','Time! The answer was '+quiz.answer));
   else{const bar=el('div','bar'),i=el('i');bar.append(i);const meta=el('div','meta');meta.append(el('span','','+'+quiz.reward+' VOYAGER POINTS'),el('span','left',''));box.append(bar,meta);}
@@ -69,7 +80,7 @@ function renderPanel(p){const box=document.getElementById('panel');if(!p){box.cl
  const k=JSON.stringify(p.standings);if(box.dataset.k===k)return;box.dataset.k=k;box.textContent='';box.append(el('h2','','SQUADRON WAR · THIS WEEK'));
  const max=Math.max(1,...p.standings.map(s=>s.score));
  p.standings.forEach((s,i)=>{const row=el('div','sq'),bar=el('div','bar'),fill=el('i');const c=SQ[s.id]||['#9fe3ff','#1f5fd0'];fill.style.background='linear-gradient(90deg,'+c[1]+','+c[0]+')';fill.style.width=(s.score/max*100).toFixed(1)+'%';bar.append(fill);
-  const name=el('b','',(i===0&&s.score>0?'★ ':'')+s.name);name.style.color=c[0];row.append(name,el('span','',s.score.toLocaleString('en')),bar,el('small','',s.crew+' crew'+(s.top[0]?' · top pilot '+s.top[0].name:'')+' · !squadron '+s.id));box.append(row);});
+  const name=el('b','',(i===0&&s.score>0?'★ ':'')+s.name);name.style.color=c[0];const nm=el('div','sqn');nm.append(emblem(c,I.enlist,true),name);row.append(nm,el('span','',s.score.toLocaleString('en')),bar,el('small','',s.crew+' crew'+(s.top[0]?' · top pilot '+s.top[0].name:'')+' · !squadron '+s.id));box.append(row);});
  box.className='glass cut on';}
 async function poll(){
  try{const r=await fetch('/api/engage/overlay',{cache:'no-store'}),d=await r.json();offset=d.serverAt-Date.now();
