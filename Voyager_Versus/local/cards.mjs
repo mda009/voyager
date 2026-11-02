@@ -378,7 +378,11 @@ export class Cards{
     const pilots=new Map((this.rankings()||[]).filter(p=>p&&p.login).map(p=>[String(p.login).toLowerCase(),p]));
     let standings=[];try{standings=this.community()?.standings(1000)||[];}catch{}
     const season=new Map(standings.map(r=>[r.key,r]));
-    return this.ranksView(limit).members.map(m=>{const v=viewers[m.key],c=v?.c||{},login=String(members[m.key]?.login||'').toLowerCase(),p=m.platform==='twitch'?pilots.get(login):null,sr=season.get(m.key);
+    // 2.20.34: the top `limit` by lifetime points, plus every Kick and YouTube member and every Silver+ member, so a
+    // viewer whose Kick or YouTube account has fewer points than their Twitch one still finds that card on the site.
+    const all=this.ranksView(Infinity).members,picked=all.slice(0,limit),seen=new Set(picked.map(m=>m.key));
+    for(const m of all.slice(limit))if(m.platform!=='twitch'||m.tier!=='blue'){picked.push(m);seen.add(m.key);}
+    return picked.map(m=>{const v=viewers[m.key],c=v?.c||{},login=String(members[m.key]?.login||'').toLowerCase(),p=m.platform==='twitch'?pilots.get(login):null,sr=season.get(m.key);
       return {name:m.name,platform:m.platform,tier:m.tier,rank:m.rank,place:m.place,lifetime:m.lifetime,
         medals:Object.entries(v?.m||{}).sort((a,b)=>b[1].g-a[1].g||b[1].at-a[1].at).map(([id,e])=>[id,e.g]),
         // 2.20.18: the back of the card (service record). Games, missions, season and wins only: never watch time, subs, gifts or Bits.

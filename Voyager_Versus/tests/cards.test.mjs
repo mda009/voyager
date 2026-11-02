@@ -169,3 +169,14 @@ test('Ruby VIP ribbon (2.20.28): members in the VIP group get the ribbon on ever
   assert.match(cardHTML({...TIERS[item.card.tier],...item.card.t},item.card.v,item.card.c,item.card.d,item.card.k),/EMERALD ELITE/);
   assert.equal(cards.preview({tier:'silver',emerald:true}).card.emerald,true);
 });
+
+test('Crew rows (2.20.34): Kick, YouTube and Silver+ members are included even below the lifetime cut-off',async()=>{
+  const {cards}=await make();const members=cards.community().state.members;
+  for(let i=0;i<30;i++)members['twitch:t'+i]={name:'T'+i,login:'t'+i,platform:'twitch',value:1000-i};
+  members['kick:9']={name:'KickLow',login:'kicklow',platform:'kick',value:5,balance:5};
+  members['youtube:9']={name:'TubeLow',login:'tubelow',platform:'youtube',value:3};
+  members['twitch:gold']={name:'GoldLow',login:'goldlow',platform:'twitch',value:2,tier:'gold'};
+  members['twitch:bluelow']={name:'BlueLow',login:'bluelow',platform:'twitch',value:1};
+  const rows=cards.crewRows(10),names=rows.map(r=>r.name);
+  assert.equal(rows.length,13);assert.ok(names.includes('KickLow')&&names.includes('TubeLow')&&names.includes('GoldLow'));assert.ok(!names.includes('BlueLow'),'low Blue Twitch members stay outside the cut-off');
+});

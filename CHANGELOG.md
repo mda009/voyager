@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.34 (2 November 2026)
+
+**Kick and YouTube cards on the website.** The site's card lookup (`crew.json`) carried only the top 2,000 members by lifetime points, so a viewer's Kick or YouTube account, which usually has far fewer points than their Twitch one, often fell below the cut-off and had no card to find. The file now always includes every Kick and YouTube member and every Silver, Gold or Platinum member in addition to the top 2,000. The on-stream `!voyager` card was never affected.
+
 ## 2.20.33 (2 November 2026)
 
 **Partner logo rotation (new OBS source).** `Voyager_Partner_Logos.html` shows the Voyager, MDA009, The Unprofessionals, Tobii, CG and Thrustmaster logos one at a time in the bottom-right corner: each fades and floats in, holds for 30 seconds with a soft light sweep, fades out, then 10 seconds of nothing before the next, looping. Transparent, needs no connection. Options on the address: `show`, `gap`, `pos` (br/bl/tr/tl/c), `size`, `logos` (choose and order), `dark=0` for the black Thrustmaster mark. Logos are in `partner-logos/` as trimmed transparent PNGs (the Thrustmaster wordmark had its white background removed and is supplied in white and black). Setup: Voyager guide › Partner logos.
