@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.37 (3 November 2026)
+
+**Upgrade alert sound.** When someone upgrades with `!upgrade` and the tier-up card plays on `card.html`, the supplied alert (`sounds/tierup.mp3`, 24 s) plays with it and the new card stays on screen until the sound has finished. On/off and volume in Membership cards (defaults on, 80); the control page's live view is muted so you only hear it once, with a "Play the alert sound here" button to check it. The sound comes out of the card.html browser source in OBS: tick "Control audio via OBS" on that source if you want it in your mixer.
+
 ## 2.20.36 (2 November 2026)
 
 **Gifted subs: 100 points each.** The card ceremony after a gift-sub Fleet alert now shows +100 points per gifted sub by default (Membership cards › After Fleet alerts; saved settings keep whatever you set), and the member manual's points table says 100 per gifted sub. The points themselves are paid by the Currency System in Streamer.bot: set its Gift Sub amount to 100 there.

@@ -255,12 +255,14 @@ async function play(item){
     await wait(600);burst(card.tier);old.remove();
     stage.classList.add('shake');setTimeout(()=>stage.classList.remove('shake'),520);
     sparks(960,540,ACCENT[card.tier][0],160,20,2);sparks(960,540,'#ffffff',60,14);
+    // 2.20.37: the upgrade alert sound; the card stays up until it has finished.
+    const played=playTierUp();
     const now=slot(card);now.dataset.tier=card.tier;now.classList.add('on');
     const banner=now.querySelector('[data-banner]');
     await open(now,card.tier);
     confetti([ACCENT[card.tier][0],'#ffffff',ACCENT[card.tier][0],'#ffd36b']);
     if(banner)setTimeout(()=>{banner.classList.remove('show');banner.style.transition='opacity .8s';banner.style.opacity='0';},4500);
-    await wait(Math.max(secs,8)*1000);await close(now);return;
+    await wait(Math.max(secs,8,played?TIERUP_HOLD:0)*1000);await close(now);return;
   }
   if(item.live){
     const L=item.live;
@@ -279,10 +281,14 @@ async function play(item){
   const el=slot(card);el.dataset.tier=card.tier;await open(el,card.tier);
   await wait(secs*1000);await close(el);
 }
+// Tier-up sound (2.20.37): sounds/tierup.mp3, on/off and volume from Membership cards settings; ?mute=1 silences this source.
+let sound={tierUp:true,volume:80};const TIERUP_HOLD=21;const muted=q.get('mute')==='1';
+const tierUpAudio=new Audio('sounds/tierup.mp3?v=2.20.37');tierUpAudio.preload='auto';
+function playTierUp(){if(muted||!sound?.tierUp||!(sound.volume>0))return false;try{tierUpAudio.currentTime=0;tierUpAudio.volume=Math.max(0,Math.min(1,sound.volume/100));const p=tierUpAudio.play();if(p?.catch)p.catch(()=>{});return true;}catch{return false;}}
 const seen=new Set(),queue=[];let busy=false,first=true;const opened=Date.now();
 async function run(){if(busy)return;busy=true;while(queue.length){try{await play(queue.shift());}catch(e){console.error(e);}}busy=false;}
 async function poll(){
-  try{const r=await fetch('/api/cards/overlay',{cache:'no-store'});const d=await r.json(),offset=d.serverAt-Date.now();
+  try{const r=await fetch('/api/cards/overlay',{cache:'no-store'});const d=await r.json(),offset=d.serverAt-Date.now();if(d.sound)sound=d.sound;
     for(const it of d.items||[]){if(seen.has(it.id))continue;seen.add(it.id);if(first&&it.at<opened+offset-5000)continue;queue.push(it);}
     first=false;run();
   }catch{}
