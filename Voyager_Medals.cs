@@ -21,7 +21,8 @@ public class CPHInline
         try
         {
             string say = Read("medalSay");
-            if (say.Length > 0) { Say(say.Length > 450 ? say.Substring(0, 450) : say); return true; }
+            // 2.20.25: medalSayPlatform = twitch | kick | youtube posts to that platform only (replies to one viewer's command).
+            if (say.Length > 0) { Say(say.Length > 450 ? say.Substring(0, 450) : say, Read("medalSayPlatform").Trim().ToLowerInvariant()); return true; }
             if (Read("medalExport") == "1") { Export(); return true; }
             if (Flag("isTest") || Flag("isFromSharedChatGuest")) return true;
             string command = Read("command").Trim().ToLowerInvariant();
@@ -156,10 +157,11 @@ public class CPHInline
         CPH.WebsocketBroadcastJson(payload.ToString(Formatting.None));
     }
 
-    private void Say(string message)
+    private void Say(string message, string only = "")
     {
         foreach (string platform in Platforms)
         {
+            if (only.Length > 0 && platform != only) continue;
             try
             {
                 if (platform == "twitch") CPH.SendMessage(message, true, true);

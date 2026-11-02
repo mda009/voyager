@@ -115,7 +115,7 @@ let engage=null;
 const boss=await new BossFight({dataDir,say:text=>{void bossSay(text);},onResult:r=>{medals.observeBoss(r);try{engage?.observeBoss(r);}catch{}}}).load();
 // 2.20.22 chat engagement: Comms Relay, !report, Bridge Quiz, Squadrons, arrival cards and the Captain's Log. Chat replies go out
 // through the Voyager - Medals action (it posts on Twitch, YouTube and Kick).
-engage=await new Engage({dataDir,say:text=>{void runAction('Voyager - Medals',{medalSay:String(text).slice(0,450)});},boss:()=>boss,cards:()=>cards,community:()=>community,pilots:()=>savedRankings||[]}).load();
+engage=await new Engage({dataDir,say:(text,platform='')=>{void runAction('Voyager - Medals',{medalSay:String(text).slice(0,450),medalSayPlatform:['twitch','kick','youtube'].includes(platform)?platform:''});},boss:()=>boss,cards:()=>cards,community:()=>community,pilots:()=>savedRankings||[]}).load();
 const bot=new StreamerBot({onOtherChat:chat=>{
   try{medals.chatSeen(chat);}catch{}
   try{engage.chat(chat);}catch{}

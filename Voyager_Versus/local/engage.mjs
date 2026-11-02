@@ -119,7 +119,7 @@ export class Engage{
     let m=this.state.muster.find(x=>x.stream===stream);if(!m){m={stream,crew:[]};this.state.muster.unshift(m);this.state.muster=this.state.muster.slice(0,30);}
     m.crew.push({key:who.key,name:who.name,platform:who.platform,streak:r.streak});
     if(s.reward>0)this.addReward('muster-'+stream,'Daily muster',s.reward,'Muster',who);
-    this.pendingReports.push({name:who.name,streak:r.streak});
+    this.pendingReports.push({name:who.name,streak:r.streak,platform:who.platform});
     this.toast('report',{name:who.name,platform:who.platform,streak:r.streak,count:m.crew.length});
     return {ok:true,streak:r.streak};
   }
@@ -155,13 +155,13 @@ export class Engage{
     const s=this.state.settings.squadrons,sq=this.state.squadrons;if(!s.enabled)return null;
     const want=norm(pick).replace(/ wing$/,''),names=s.names,id=SQUADRONS.find(k=>k===want||norm(names[k])===norm(pick)||norm(names[k]).split(' ')[0]===want);
     const m=sq.members[who.key];
-    if(!id){this.say('@'+who.name+' '+(m?'you fly with '+names[m.sq]+'. ':'')+'Enlist with !squadron '+SQUADRONS.join(' | ')+' ('+SQUADRONS.map(k=>names[k]).join(', ')+').');return {ok:false};}
-    if(m?.sq===id){this.say('@'+who.name+' you already fly with '+names[id]+'.');return {ok:false};}
-    if(m&&this.now()-m.joinedAt<30*DAY){this.say('@'+who.name+' you can change squadron once every 30 days (next on '+new Date(m.joinedAt+30*DAY).toLocaleDateString('en-AU',{day:'numeric',month:'short'})+').');return {ok:false};}
+    if(!id){this.say('@'+who.name+' '+(m?'you fly with '+names[m.sq]+'. ':'')+'Enlist with !squadron '+SQUADRONS.join(' | ')+' ('+SQUADRONS.map(k=>names[k]).join(', ')+').',who.platform);return {ok:false};}
+    if(m?.sq===id){this.say('@'+who.name+' you already fly with '+names[id]+'.',who.platform);return {ok:false};}
+    if(m&&this.now()-m.joinedAt<30*DAY){this.say('@'+who.name+' you can change squadron once every 30 days (next on '+new Date(m.joinedAt+30*DAY).toLocaleDateString('en-AU',{day:'numeric',month:'short'})+').',who.platform);return {ok:false};}
     sq.members[who.key]={sq:id,name:who.name,platform:who.platform,login:who.login,joinedAt:this.now()};
     // Contributions start from now: past chat, damage and wins this week stay with the old squadron (or nobody).
     delete sq.week.chat[who.key];delete sq.week.damage[who.key];delete sq.week.versus[who.key];
-    this.say('@'+who.name+' welcome to '+names[id]+'! Chat, missions, Dreadnought damage and Versus wins now score for your squadron.');
+    this.say('@'+who.name+' welcome to '+names[id]+'! Chat, missions, Dreadnought damage and Versus wins now score for your squadron.',who.platform);
     this.toast('enlist',{name:who.name,platform:who.platform,sq:id,sqName:names[id]});this.persist(true);return {ok:true,sq:id};
   }
   rollWeek(now){
@@ -202,7 +202,7 @@ export class Engage{
   // 6. Captain's Log
   logEntry(who,text,stream){
     const s=this.state.settings.log;if(!s.enabled)return null;
-    const t=clean(text,140);if(t.length<3){this.say('@'+who.name+' add your moment after !log, e.g. !log that torpedo was massive');return {ok:false};}
+    const t=clean(text,140);if(t.length<3){this.say('@'+who.name+' add your moment after !log, e.g. !log that torpedo was massive',who.platform);return {ok:false};}
     if(URL_RE.test(t))return {ok:false,link:true};
     const mine=this.state.log.filter(e=>e.stream===stream&&e.key===who.key);if(mine.length>=s.perStream)return {ok:false,limit:true};
     if(mine.some(e=>this.now()-e.at<60000))return {ok:false,cooldown:true};
@@ -223,8 +223,10 @@ export class Engage{
     const now=this.now(),s=this.state.settings;
     const a=this.state.quiz.active;if(a&&!a.winner&&now>a.endsAt&&!a.closed){a.closed=true;this.say('🧠 Time! Nobody got it. The answer was '+a.a[0]+'.');this.state.quiz.history=[{id:a.id,qid:a.qid,q:a.q,answer:a.a[0],winner:null,at:now},...this.state.quiz.history].slice(0,50);this.toast('quizend',{answer:a.a[0],q:a.q});this.persist(true);}
     if(s.quiz.enabled&&s.quiz.autoMinutes>0&&now-this.lastChatAt<10*60000&&now-(this.state.quiz.lastAutoAt||0)>=s.quiz.autoMinutes*60000&&(!a||a.winner||now>a.endsAt)){this.state.quiz.lastAutoAt=now;try{this.ask();}catch{}}
+    // The muster line goes to the platform the reports came from: Kick reports are announced on Kick only (2.20.25).
     if(this.pendingReports.length&&now-this.reportSaidAt>20000){const list=this.pendingReports.splice(0,25);this.reportSaidAt=now;const r=s.report.reward;
-      this.say('🫡 Reporting for duty: '+list.map(x=>x.name+(x.streak>1?' ('+x.streak+' in a row)':'')).join(', ')+(r?' · +'+r+' Voyager points each':'')+'. Type !report once a stream.');}
+      for(const platform of [...new Set(list.map(x=>x.platform))]){const mine=list.filter(x=>x.platform===platform);
+        this.say('🫡 Reporting for duty: '+mine.map(x=>x.name+(x.streak>1?' ('+x.streak+' in a row)':'')).join(', ')+(r?' · +'+r+' Voyager points each':'')+'. Type !report once a stream.',platform);}}
     if(this.dirty&&now-this.savedAt>=15000)this.persist(true);
   }
 

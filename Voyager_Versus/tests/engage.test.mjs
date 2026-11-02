@@ -8,9 +8,9 @@ import {BossFight} from '../local/boss.mjs';
 import {Community} from '../local/community.mjs';
 
 async function make(extra={}){
-  let now=new Date(2026,10,3,20,0,0).getTime();const said=[];const dir=await mkdtemp(join(tmpdir(),'voyager-engage-'));
+  let now=new Date(2026,10,3,20,0,0).getTime();const said=[];said.to=[];const dir=await mkdtemp(join(tmpdir(),'voyager-engage-'));
   const boss=await new BossFight({dataDir:dir,now:()=>now,random:()=>0.5}).load();
-  const e=await new Engage({dataDir:dir,now:()=>now,say:t=>said.push(t),boss:()=>boss,random:()=>0,...extra}).load();
+  const e=await new Engage({dataDir:dir,now:()=>now,say:(t,p='')=>{said.push(t);said.to.push(p);},boss:()=>boss,random:()=>0,...extra}).load();
   return {e,boss,said,at:ms=>{now+=ms;},now:()=>now};
 }
 const msg=(name,text,platform='twitch')=>({platform,userId:'id-'+name,login:name.toLowerCase(),name,text});
@@ -30,7 +30,8 @@ test('Comms Relay: plain chat during a fight fires a fleet barrage at the thresh
 test('!report: once a stream, grouped chat line, streaks across streams, and a points reward listed for payment',async()=>{
   const {e,said,at}=await make();
   assert.equal(e.chat(msg('Nova','!report')).ok,true);assert.equal(e.chat(msg('Nova','!report')).already,true);e.chat(msg('Rook','!report','kick'));
-  at(21000);e.tick();assert.match(said.at(-1),/Reporting for duty: Nova, Rook · \+2 Voyager points each/);
+  at(21000);e.tick();assert.match(said.at(-2),/Reporting for duty: Nova · \+2 Voyager points each/);assert.equal(said.to.at(-2),'twitch');
+  assert.match(said.at(-1),/Reporting for duty: Rook · \+2/);assert.equal(said.to.at(-1),'kick','Kick reports are announced on Kick only');
   at(5*3600000);assert.equal(e.chat(msg('Nova','!report')).streak,2,'next stream in a row');
   const batches=e.rewardBatches();assert.equal(batches.length,2);assert.equal(batches[1].pilots.length,2);assert.equal(batches[0].reward,2);
   assert.throws(()=>normalizeEngageSettings({report:{reward:3}}),/0 to 2/);assert.equal(normalizeEngageSettings({report:{reward:2}}).report.reward,2);
@@ -39,7 +40,7 @@ test('!report: once a stream, grouped chat line, streaks across streams, and a p
 test('Bridge Quiz: first correct answer wins, answers are forgiving, time runs out with no winner',async()=>{
   const {e,said,at}=await make();
   e.setBank([{q:'Which planet has the Great Red Spot?',a:['Jupiter']},{q:'Closest star?',a:'Proxima Centauri|Proxima'}]);
-  const q=e.ask(e.state.quiz.bank[0].id);assert.match(said.at(-1),/BRIDGE QUIZ: Which planet/);assert.throws(()=>e.ask(),/already running/);
+  const q=e.ask(e.state.quiz.bank[0].id);assert.match(said.at(-1),/BRIDGE QUIZ: Which planet/);assert.equal(said.to.at(-1),'','the quiz is for everyone: all platforms');assert.throws(()=>e.ask(),/already running/);
   e.chat(msg('Rook','saturn?'));assert.equal(e.state.quiz.active.winner,null);
   e.chat(msg('Nova','it is JUPITER!!'));assert.equal(e.state.quiz.active.winner.name,'Nova');e.chat(msg('Rook','jupiter'));assert.equal(e.state.quiz.active.winner.name,'Nova');
   assert.equal(e.rewardBatches()[0].pilots[0].name,'Nova');assert.equal(e.rewardBatches()[0].reward,25);
@@ -51,7 +52,7 @@ test('Squadrons: enlist, chat counts per stream up to the cap, missions, damage 
   const missions=[{key:'twitch:id-Nova'},{key:'twitch:id-Nova'}];let wins=3;
   const {e,said,at}=await make({community:()=>({completions:()=>missions,state:{members:{}}}),pilots:()=>[{login:'nova',wins}]});
   e.configure({squadrons:{chatCap:2}});
-  e.chat(msg('Nova','!squadron gold'));assert.match(said.at(-1),/welcome to Gold Wing/);e.chat(msg('Rook','!squadron red wing','kick'));
+  e.chat(msg('Nova','!squadron gold'));assert.match(said.at(-1),/welcome to Gold Wing/);assert.equal(said.to.at(-1),'twitch');e.chat(msg('Rook','!squadron red wing','kick'));assert.equal(said.to.at(-1),'kick','replies go to the viewer\'s platform');
   for(let i=0;i<5;i++)e.chat(msg('Nova','hi '+i));
   e.observePilots();wins=5;e.observePilots();
   e.observeBoss({pilots:[{key:'twitch:id-Nova',damage:300},{key:'kick:id-Rook',damage:45},{key:'twitch:id-Zed',damage:999}]});
