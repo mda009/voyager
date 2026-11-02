@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.38 (3 November 2026)
+
+**Giveaway trigger met: animation and sound.** When Silver, Gold or Platinum community points cross their threshold live, the goals strip (`Voyager_Bucket_Overlay.html`) comes on screen, that tier's tile flares with a shockwave and sparks, a GOAL MET · GIVEAWAY UNLOCKED · STELLAR SUNDAY stamp slams in, and the upgrade alert sound plays; the strip stays up until the sound ends. `?sound=0` silences it, `?volume=60` sets the level. Only a crossing seen live fires it. The design preview has a "Gold goal met" button.
+
 ## 2.20.37 (3 November 2026)
 
 **Upgrade alert sound.** When someone upgrades with `!upgrade` and the tier-up card plays on `card.html`, the supplied alert (`sounds/tierup.mp3`, 24 s) plays with it and the new card stays on screen until the sound has finished. On/off and volume in Membership cards (defaults on, 80); the control page's live view is muted so you only hear it once, with a "Play the alert sound here" button to check it. The sound comes out of the card.html browser source in OBS: tick "Control audio via OBS" on that source if you want it in your mixer.
