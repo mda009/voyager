@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.30 (2 November 2026)
+
+**Giveaway goals strip in the glass design.** `Voyager_Bucket_Overlay.html` (Silver, Gold and Platinum thresholds) loses its outer bordered box. The three goals are now separate glass tiles with cut corners, the same surface as the membership card, with metal percentages and bars in each tier's metal, the tier line along the top and a transparent strip around them. The heading row keeps the Voyager brand, your logos and the connection status without a frame. Same 3840 x 480 source, same data; refresh the browser source cache.
+
 ## 2.20.29 (2 November 2026)
 
 **Emerald Elite ribbon.** Members of your moderators' group in Streamer.bot get a green "★ EMERALD ELITE ★" ribbon on their membership card, on every side, on stream and on voyagercommand.com. Someone who is both VIP and Emerald gets one ribbon that runs red into green ("RUBY VIP · EMERALD"), so nothing covers the card title. **Needs the updated `Voyager_Points_Engine.cs`** in the Voyager - Points Ledger action (see the Points setup guide): the ledger now also reads the first group it finds named EMERALD GROUP, MODS GROUP, MOD GROUP, MODS, MODERATORS, MODERATOR GROUP or MODERATORS GROUP. Previews: Membership cards › Emerald Elite ribbon, VIP + Emerald.
