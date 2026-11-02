@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.31 (2 November 2026)
+
+**Goals strip on a timer.** The giveaway goals strip now appears every 5 minutes for 30 seconds: the heading fades in, the Silver, Gold and Platinum tiles fly in one after another, the bars fill from empty, and it folds away again. The first appearance waits for live figures. Add `?every=300&show=30` (seconds) to the Browser Source address to change the timing, or `?always=1` to keep it on screen as before. The design preview has a "Play the 30-second appearance" button.
+
 ## 2.20.30 (2 November 2026)
 
 **Giveaway goals strip in the glass design.** `Voyager_Bucket_Overlay.html` (Silver, Gold and Platinum thresholds) loses its outer bordered box. The three goals are now separate glass tiles with cut corners, the same surface as the membership card, with metal percentages and bars in each tier's metal, the tier line along the top and a transparent strip around them. The heading row keeps the Voyager brand, your logos and the connection status without a frame. Same 3840 x 480 source, same data; refresh the browser source cache.

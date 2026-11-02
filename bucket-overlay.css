@@ -43,3 +43,20 @@ body{pointer-events:none;font-family:Rajdhani,'Segoe UI',sans-serif;font-weight:
 .goal.unavailable .percentage{background:none;color:#9eaebd}.goal.unavailable .balance{color:#b0c2d1}
 .goal-strip[data-fresh=false] .goals{opacity:.72}
 @media(prefers-reduced-motion:reduce){.fill{transition:none}}
+
+/* goals-glass-2 (2.20.31): the strip appears on a cycle (default every 5 minutes for 30 seconds). Heading fades in,
+   the tiles fly in one after another, bars fill from empty, then everything folds away. ?always=1 keeps it on screen. */
+body.cycle .goal-strip{opacity:0;pointer-events:none}
+body.cycle .goal-strip.on{opacity:1}
+body.cycle .goal-strip.on .strip-heading{animation:headIn .6s ease-out both}
+body.cycle .goal-strip.on .goal{animation:tileIn .7s cubic-bezier(.2,1.2,.3,1) both}
+body.cycle .goal-strip.on .goal.gold{animation-delay:.14s}body.cycle .goal-strip.on .goal.platinum{animation-delay:.28s}
+body.cycle .goal-strip.on .fill{transition:transform 1.4s cubic-bezier(.22,1,.36,1) .55s}
+body.cycle .goal-strip.out .strip-heading{animation:headOut .45s ease-in both}
+body.cycle .goal-strip.out .goal{animation:tileOut .5s cubic-bezier(.6,0,.8,.4) both}
+body.cycle .goal-strip.out .goal.gold{animation-delay:.08s}body.cycle .goal-strip.out .goal.platinum{animation-delay:.16s}
+@keyframes headIn{0%{opacity:0;transform:translateY(calc(-10 * var(--u)))}100%{opacity:1;transform:none}}
+@keyframes headOut{0%{opacity:1}100%{opacity:0;transform:translateY(calc(-10 * var(--u)))}}
+@keyframes tileIn{0%{opacity:0;transform:translateY(calc(40 * var(--u))) scale(.92);filter:brightness(2.2)}60%{opacity:1;filter:brightness(1.3)}100%{opacity:1;transform:none;filter:none}}
+@keyframes tileOut{0%{opacity:1;transform:none}100%{opacity:0;transform:translateY(calc(30 * var(--u))) scale(.94);filter:brightness(2)}}
+@media(prefers-reduced-motion:reduce){body.cycle .goal-strip.on .goal,body.cycle .goal-strip.on .strip-heading,body.cycle .goal-strip.out .goal,body.cycle .goal-strip.out .strip-heading{animation:none}}
