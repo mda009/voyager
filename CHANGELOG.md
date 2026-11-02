@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.33 (2 November 2026)
+
+**Partner logo rotation (new OBS source).** `Voyager_Partner_Logos.html` shows the Voyager, MDA009, The Unprofessionals, Tobii, CG and Thrustmaster logos one at a time in the bottom-right corner: each fades and floats in, holds for 30 seconds with a soft light sweep, fades out, then 10 seconds of nothing before the next, looping. Transparent, needs no connection. Options on the address: `show`, `gap`, `pos` (br/bl/tr/tl/c), `size`, `logos` (choose and order), `dark=0` for the black Thrustmaster mark. Logos are in `partner-logos/` as trimmed transparent PNGs (the Thrustmaster wordmark had its white background removed and is supplied in white and black). Setup: Voyager guide › Partner logos.
+
 ## 2.20.32 (2 November 2026)
 
 **Fleet alerts visual 1.13: space lighting.** The follow, sub, gift, resub and bits sequences are now lit like orbital footage. The hull reflects a sun, a blue planet and stars instead of a studio room; one hard sun gives real shadow sides with blue planetshine underneath; the Polaris carries navigation lights (red port, green starboard, white strobe, tail and nose) once complete; the dock is toned to industrial grey with hazard amber on the clamps; and a soft starfield glow sits behind the ship while an alert plays, fading with it. Draw calls and triangles are unchanged and there is no post-processing, so performance is the same as 1.12. Refresh the `Voyager_Fleet_Overlay.html` source cache; add `?look=studio` to the source address to keep the old look. The release workflow now bundles the renderer from source.

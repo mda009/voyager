@@ -1,0 +1,24 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Voyager • Partner logo rotation setup</title>
+<style>:root{color-scheme:dark;font-family:"Segoe UI",Arial,sans-serif;background:#09111b;color:#dce7f3}*{box-sizing:border-box}body{margin:0;padding:36px 24px}main{max-width:980px;margin:auto}a{color:#b2cef5}h1{font-size:30px;margin:0 0 6px}h2{font-size:20px;margin:28px 0 8px;color:#e9f1fb}code{background:#122034;padding:2px 6px;border-radius:4px}table{border-collapse:collapse;width:100%;margin:10px 0}td,th{text-align:left;padding:7px 10px;border-bottom:1px solid #1e3049;vertical-align:top}.card{background:#0f1b2b;border:1px solid #1e3049;border-radius:10px;padding:16px 18px;margin:14px 0}.logos{display:flex;flex-wrap:wrap;gap:14px;align-items:center}.logos img{height:54px;background:#182a40;padding:8px;border-radius:8px}</style></head>
+<body><main>
+<p><a href="Voyager_Guide.html">← Voyager guide</a></p>
+<h1>Partner logo rotation</h1>
+<p>One transparent Browser Source that shows your partner and community logos one at a time: each logo fades and floats in, holds for <strong>30 seconds</strong> with a soft light sweep, fades out, then <strong>10 seconds</strong> of nothing before the next. It loops forever.</p>
+<div class="card"><h2 style="margin-top:0">Add it to OBS</h2>
+<ol><li>Add a <strong>Browser</strong> source to your scene. Tick <em>Local file</em> and choose <code>Voyager_Partner_Logos.html</code> from your Voyager folder (or use the address shown in Voyager Control if you serve the folder).</li>
+<li>Width <strong>1920</strong>, height <strong>1080</strong>. The logos sit in the bottom-right corner; the rest of the page is transparent.</li>
+<li>Leave the source visible. It needs no connection to Streamer.bot or Voyager; it just plays.</li></ol></div>
+<h2>Options (add to the end of the file address, after a <code>?</code>)</h2>
+<table><tr><th>Option</th><th>Meaning</th><th>Default</th></tr>
+<tr><td><code>show=30</code></td><td>Seconds each logo stays on screen</td><td>30</td></tr>
+<tr><td><code>gap=10</code></td><td>Seconds of nothing between logos</td><td>10</td></tr>
+<tr><td><code>pos=br</code></td><td>Corner: <code>br</code>, <code>bl</code>, <code>tr</code>, <code>tl</code> or <code>c</code> (centre)</td><td>br</td></tr>
+<tr><td><code>size=380</code></td><td>Width of the logo box in pixels (on a 1920 × 1080 scene)</td><td>380</td></tr>
+<tr><td><code>logos=voyager,mda009,…</code></td><td>Which logos and their order: <code>voyager</code>, <code>mda009</code>, <code>unprofessionals</code>, <code>tobii</code>, <code>cg</code>, <code>thrustmaster</code></td><td>all six</td></tr>
+<tr><td><code>dark=0</code></td><td>Use the black Thrustmaster wordmark (for light scenes) instead of the white one</td><td>white</td></tr></table>
+<p>Example: <code>Voyager_Partner_Logos.html?pos=tl&amp;size=300&amp;logos=tobii,cg,thrustmaster</code></p>
+<h2>The logos</h2>
+<p>They live in <code>partner-logos/</code> as transparent PNGs. To add or replace one, drop a transparent PNG there and add it to the list at the top of the page's script. Backgrounds were removed and each logo trimmed; the Thrustmaster wordmark was supplied on white and is included in white (for dark scenes) and black.</p>
+<div class="logos"><img src="partner-logos/voyager.png" alt="Voyager"><img src="partner-logos/mda009.png" alt="MDA009"><img src="partner-logos/unprofessionals.png" alt="The Unprofessionals"><img src="partner-logos/tobii.png" alt="Tobii"><img src="partner-logos/cg.png" alt="CG"><img src="partner-logos/thrustmaster.png" alt="Thrustmaster"></div>
+<p><a href="Voyager_Partner_Logos.html?show=6&amp;gap=2" target="_blank">Open a quick preview ↗</a> (6 seconds on, 2 off; the real source uses 30 and 10).</p>
+</main></body></html>

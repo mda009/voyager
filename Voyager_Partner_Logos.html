@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Voyager • Partner logos</title>
+<link rel="icon" href="brand-assets/voyager.png" type="image/png">
+<style>
+/* Partner logo rotation (2.20.33). One transparent OBS Browser Source. Each logo is on screen for 30 seconds with a
+   subtle float and light sweep, then fades out; 10 seconds of nothing; next logo. Loops forever.
+   Source address options: ?show=30&gap=10  ?pos=br|bl|tr|tl|c  ?size=380 (logo box width, px at 1920x1080)
+   ?logos=voyager,mda009,unprofessionals,tobii,cg,thrustmaster (order)  ?dark=0 (use the black Thrustmaster mark) */
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:transparent!important}
+#stage{position:absolute;left:0;top:0;width:1920px;height:1080px;transform-origin:0 0;pointer-events:none}
+#slot{position:absolute;width:380px;height:240px;display:flex;align-items:center;justify-content:center}
+#slot.br{right:60px;bottom:60px}#slot.bl{left:60px;bottom:60px}#slot.tr{right:60px;top:60px}#slot.tl{left:60px;top:60px}#slot.c{left:50%;top:50%;transform:translate(-50%,-50%)}
+.logo{position:absolute;max-width:100%;max-height:100%;object-fit:contain;opacity:0;filter:drop-shadow(0 10px 22px rgba(0,0,0,.55));will-change:transform,opacity}
+.logo.in{animation:logoIn 1.1s cubic-bezier(.2,1.1,.3,1) both,floaty 7s ease-in-out 1.1s infinite}
+.logo.out{animation:logoOut .9s cubic-bezier(.6,0,.8,.4) both}
+@keyframes logoIn{0%{opacity:0;transform:translateY(26px) scale(.86);filter:drop-shadow(0 10px 22px rgba(0,0,0,.55)) brightness(2.2) blur(6px)}60%{opacity:1;filter:drop-shadow(0 10px 22px rgba(0,0,0,.55)) brightness(1.25) blur(0)}100%{opacity:1;transform:none;filter:drop-shadow(0 10px 22px rgba(0,0,0,.55))}}
+@keyframes logoOut{0%{opacity:1;transform:none}100%{opacity:0;transform:translateY(-18px) scale(.92);filter:drop-shadow(0 10px 22px rgba(0,0,0,.55)) brightness(2) blur(5px)}}
+@keyframes floaty{0%,100%{transform:translateY(0) rotate(0)}30%{transform:translateY(-6px) rotate(-.5deg)}65%{transform:translateY(4px) rotate(.4deg)}}
+/* light sweep across the logo, masked to its pixels */
+.sweep{position:absolute;inset:0;opacity:0;pointer-events:none;background:linear-gradient(100deg,transparent 35%,rgba(255,255,255,.55) 50%,transparent 65%);mix-blend-mode:screen;-webkit-mask:var(--m) center/contain no-repeat;mask:var(--m) center/contain no-repeat}
+.sweep.go{animation:sweep 1.6s ease-in-out both}
+@keyframes sweep{0%{opacity:0;background-position:-120% 0}10%{opacity:1}90%{opacity:1}100%{opacity:0;background-position:220% 0}}
+.sweep{background-size:300% 100%}
+@media(prefers-reduced-motion:reduce){.logo.in{animation:logoIn 1.1s both}.sweep.go{animation:none}}
+</style></head>
+<body><div id="stage"><div id="slot" class="br"></div></div>
+<script>
+(()=>{'use strict';
+const q=new URLSearchParams(location.search),num=(k,d,min,max)=>{const n=Number(q.get(k));return q.has(k)&&Number.isFinite(n)?Math.max(min,Math.min(max,n)):d;};
+const SHOW=num('show',30,3,600)*1000,GAP=num('gap',10,0,600)*1000,SIZE=num('size',380,120,1400),dark=q.get('dark')!=='0';
+const ALL={voyager:{src:'partner-logos/voyager.png',h:1},mda009:{src:'partner-logos/mda009.png',h:.85},unprofessionals:{src:'partner-logos/unprofessionals.png',h:.9},
+ tobii:{src:'partner-logos/tobii.png',h:.75,w:1},cg:{src:'partner-logos/cg.png',h:.95},thrustmaster:{src:dark?'partner-logos/thrustmaster.png':'partner-logos/thrustmaster-black.png',h:.5,w:1}};
+const order=(q.get('logos')||'voyager,mda009,unprofessionals,tobii,cg,thrustmaster').split(',').map(s=>s.trim().toLowerCase()).filter(k=>ALL[k]);
+const stage=document.getElementById('stage'),slot=document.getElementById('slot');
+function fit(){const s=Math.min(innerWidth/1920,innerHeight/1080);stage.style.transform='scale('+s+')';}addEventListener('resize',fit);fit();
+slot.className=['br','bl','tr','tl','c'].includes(q.get('pos'))?q.get('pos'):'br';slot.style.width=SIZE+'px';slot.style.height=Math.round(SIZE*.63)+'px';
+for(const k of order){const i=new Image();i.src=ALL[k].src;} // warm the cache so the first fade-in is clean
+let i=0;
+function show(){
+ if(!order.length)return;const key=order[i%order.length];i++;const L=ALL[key];
+ const img=document.createElement('img');img.className='logo';img.src=L.src;img.alt=key;img.style.maxHeight=Math.round(L.h*100)+'%';img.style.width=L.w?'100%':'auto';
+ const sweep=document.createElement('div');sweep.className='sweep';sweep.style.setProperty('--m','url("'+L.src+'")');
+ slot.append(img,sweep);
+ const start=()=>{img.classList.add('in');const r=img.getBoundingClientRect(),s=slot.getBoundingClientRect(),k=1920/stage.getBoundingClientRect().width;
+  sweep.style.left=((r.left-s.left)*k)+'px';sweep.style.top=((r.top-s.top)*k)+'px';sweep.style.width=(r.width*k)+'px';sweep.style.height=(r.height*k)+'px';sweep.style.inset='auto';
+  setTimeout(()=>sweep.classList.add('go'),1400);setTimeout(()=>{sweep.classList.remove('go');void sweep.offsetWidth;sweep.classList.add('go');},Math.max(4000,SHOW-6000));
+  setTimeout(()=>{img.classList.remove('in');img.classList.add('out');sweep.remove();setTimeout(()=>{img.remove();setTimeout(show,Math.max(0,GAP-900));},900);},SHOW);};
+ if(img.complete)start();else{img.onload=start;img.onerror=()=>{img.remove();sweep.remove();setTimeout(show,500);};}
+}
+show();
+})();
+</script></body></html>
