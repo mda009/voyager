@@ -37,6 +37,7 @@ function render(){
   const r=view.relay,rp=$('relay-pill');rp.dataset.state=r.count||r.fired?'ok':'wait';rp.textContent=r.enabled?(r.count||r.fired?r.count+' / '+r.threshold+' · fired '+r.fired+'×':'No fight running'):'Off';
   // muster
   $('muster-pill').dataset.state=view.muster.count?'ok':'wait';$('muster-pill').textContent=view.muster.count+' this stream';
+  if(view.stream?.id)$('stream-since').textContent='This stream started '+ago(view.stream.id)+'.';
   const ml=$('muster');ml.textContent='';for(const c of view.muster.crew){const li=el('li');li.append(el('b','',c.name),el('span','',PLAT[c.platform]||''),el('span','r',c.streak>1?c.streak+' in a row':''));ml.append(li);}
   if(!view.muster.crew.length)ml.append(el('li','','Nobody has typed !report this stream yet.'));
   // quiz
@@ -61,6 +62,8 @@ function render(){
 async function mod(id,patch){try{view={...view,...await api('/api/engage/log',{id,...patch})};render();}catch(e){notice(e.message,true);}}
 async function load(){try{view=await api('/api/engage');render();}catch(e){notice(e.message,true);}}
 for(const f of ['relay-form','report-form','quiz-form','sq-form','arr-form','log-form'])$(f).addEventListener('input',()=>{editing=true;});
+$('new-stream').onclick=async()=>{if(!confirm('Reset the per-stream counters now? Everyone can !report again and squadron chat, arrivals and log allowances start over for this stream. Points are not touched.'))return;
+  try{view={...view,...await api('/api/engage/stream/new',{})};notice('New stream started: per-stream counters reset.');render();}catch(e){notice(e.message,true);}};
 $('save').onclick=async()=>{try{const sq=read('sq-form');
   view={...view,...await api('/api/engage/settings',{relay:read('relay-form'),report:read('report-form'),quiz:read('quiz-form'),arrivals:read('arr-form'),log:read('log-form'),
     squadrons:{enabled:sq.enabled,names:{red:sq.red,gold:sq.gold,blue:sq.blue},chat:sq.chat,chatCap:sq.chatCap,mission:sq.mission,damageDiv:sq.damageDiv,versusWin:sq.versusWin}})};

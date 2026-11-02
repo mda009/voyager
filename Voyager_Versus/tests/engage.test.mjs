@@ -95,3 +95,10 @@ test('!report: accounts are per platform, and a saved reward above the 2-point c
   assert.equal(e.chat(msg('Nova','!report','twitch')).ok,true);assert.equal(e.chat(msg('Nova','!report','kick')).ok,true);assert.equal(e.chat(msg('Nova','!report','twitch')).already,true);
   assert.deepEqual(e.rewardBatches()[0].pilots.map(p=>p.key),['twitch:id-Nova','kick:id-Nova']);assert.equal(e.rewardBatches()[0].reward,2);
 });
+
+test('Reset for a new stream (2.20.35): everyone can !report again; owed rewards stay',async()=>{
+  const {e}=await make();
+  assert.equal(e.chat(msg('Nova','!report')).ok,true);assert.equal(e.chat(msg('Nova','!report')).already,true);
+  const owed=e.rewardBatches().length;e.newStream();
+  assert.equal(e.chat(msg('Nova','!report')).ok,true,'reports again after the reset');assert.equal(e.rewardBatches().length,owed+1,'the earlier muster is still owed');
+});

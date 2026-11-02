@@ -288,6 +288,9 @@ const server=http.createServer(async(req,res)=>{
         if(url.pathname==='/api/engage/quiz/bank'){engage.setBank(input.bank);response(res,200,{ok:true,...engage.view()});return;}
         if(url.pathname==='/api/engage/log'){engage.moderateLog(String(input.id||''),input);response(res,200,{ok:true,...engage.view()});return;}
         if(url.pathname==='/api/engage/panel'){engage.showPanel(Number(input.seconds)||0);response(res,200,{ok:true,...engage.view()});return;}
+        // 2.20.35: start a new stream by hand. Everyone can !report again, squadron chat caps, arrival cards and
+        // Captain's Log allowances reset. Points already earned or owed are untouched.
+        if(url.pathname==='/api/engage/stream/new'){engage.newStream();response(res,200,{ok:true,...engage.view()});return;}
         response(res,404,{message:'Not found.'});
       }catch(e){response(res,400,{ok:false,message:e.message});}
       return;

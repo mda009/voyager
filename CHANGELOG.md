@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.35 (2 November 2026)
+
+**Reset for a new stream (Community › Chat engagement › Daily muster).** A button that resets the per-stream counters on the spot: everyone can `!report` again, squadron chat points start counting again for this stream, arrival cards can play again and Captain's Log allowances return. Points already earned or owed are not touched. The page also shows when the current stream started. Voyager still resets on its own when Twitch goes live or after 4 hours without chat.
+
 ## 2.20.34 (2 November 2026)
 
 **Kick and YouTube cards on the website.** The site's card lookup (`crew.json`) carried only the top 2,000 members by lifetime points, so a viewer's Kick or YouTube account, which usually has far fewer points than their Twitch one, often fell below the cut-off and had no card to find. The file now always includes every Kick and YouTube member and every Silver, Gold or Platinum member in addition to the top 2,000. The on-stream `!voyager` card was never affected.
