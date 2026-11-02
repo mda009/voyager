@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.32 (2 November 2026)
+
+**Fleet alerts visual 1.13: space lighting.** The follow, sub, gift, resub and bits sequences are now lit like orbital footage. The hull reflects a sun, a blue planet and stars instead of a studio room; one hard sun gives real shadow sides with blue planetshine underneath; the Polaris carries navigation lights (red port, green starboard, white strobe, tail and nose) once complete; the dock is toned to industrial grey with hazard amber on the clamps; and a soft starfield glow sits behind the ship while an alert plays, fading with it. Draw calls and triangles are unchanged and there is no post-processing, so performance is the same as 1.12. Refresh the `Voyager_Fleet_Overlay.html` source cache; add `?look=studio` to the source address to keep the old look. The release workflow now bundles the renderer from source.
+
 ## 2.20.31 (2 November 2026)
 
 **Goals strip on a timer.** The giveaway goals strip now appears every 5 minutes for 30 seconds: the heading fades in, the Silver, Gold and Platinum tiles fly in one after another, the bars fill from empty, and it folds away again. The first appearance waits for live figures. Add `?every=300&show=30` (seconds) to the Browser Source address to change the timing, or `?always=1` to keep it on screen as before. The design preview has a "Play the 30-second appearance" button.

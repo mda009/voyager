@@ -48,6 +48,10 @@ jobs:
       - name: Run all tests
         run: npm run test:ci
 
+      - name: Bundle the Fleet renderer (visual 1.13)
+        shell: bash
+        run: npx --yes esbuild@0.24.2 fleet-renderer.mjs --bundle --minify --format=iife --target=chrome110 --outfile=fleet-assets/fleet-renderer.js --log-level=warning
+
       - name: Build folder release zip
         run: npm run release
 

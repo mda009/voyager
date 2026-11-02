@@ -1,7 +1,7 @@
 /* Diagnostics are opt-in. The normal OBS source remains transparent at rest. */
 (()=>{'use strict';
  const q=new URLSearchParams(location.search),mode=q.get('preview')==='1'?'Local preview':q.get('demo')==='1'?'Local demo':'Live OBS';
- const state={build:'1.12',mode,connection:mode==='Live OBS'?'Starting':'Not used in preview',graphics:'Loading',enabled:null,queue:0,lastSync:null,lastAlert:'None',lumia:'Waiting for saved state',error:'',connectionError:''};
+ const state={build:'1.13',mode,connection:mode==='Live OBS'?'Starting':'Not used in preview',graphics:'Loading',enabled:null,queue:0,lastSync:null,lastAlert:'None',lumia:'Waiting for saved state',error:'',connectionError:''};
  let visible=q.get('diagnostics')==='1'||document.body.dataset.diagnostics==='true';
  const style=document.createElement('style');style.textContent='#fleet-diagnostics{position:fixed;z-index:99999;left:24px;top:24px;width:min(540px,calc(100vw - 48px));padding:20px 24px;background:#081522f2;border:1px solid #80c9ed;color:#e2f1fb;font:16px/1.5 "Segoe UI",sans-serif;white-space:pre-wrap;overflow-wrap:anywhere;box-shadow:0 12px 40px #0006}#fleet-diagnostics[hidden]{display:none!important}';document.head.append(style);
  const panel=document.createElement('aside');panel.id='fleet-diagnostics';document.body.append(panel);

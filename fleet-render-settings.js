@@ -3,4 +3,4 @@
 // ultra: fixed native source resolution, up to 3840x2160.
 // balanced: render up to 1920x1080. All modes retain the 4096x4096 material maps.
 // OBS Browser Source -> Use custom frame rate -> 60 must also be set in OBS.
-window.VOYAGER_FLEET_RENDER = { quality: "auto" };
+window.VOYAGER_FLEET_RENDER = { quality: "auto", look: "space" }; // look: "space" (sun, planetshine, running lights, space backdrop) or "studio"
