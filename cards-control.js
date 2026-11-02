@@ -18,6 +18,7 @@ function buttons(){
   box.append(Object.assign(el('button','','Medal wall'),{type:'button',onclick:()=>preview({tier:'platinum',side:'badges'})}));
   box.append(Object.assign(el('button','','Tier-up: Silver → Gold'),{type:'button',onclick:()=>preview({tier:'gold',tierUp:true})}));
   box.append(Object.assign(el('button','','Promotion: Lt Cdr → Commander'),{type:'button',onclick:()=>preview({tier:'silver',promotion:true})}));
+  box.append(Object.assign(el('button','','Ruby VIP ribbon'),{type:'button',onclick:()=>preview({tier:'gold',vip:true})}));
   for(const [k,label] of [['follow','After a follow: new recruit'],['sub','After a sub'],['resub','After a resub'],['gift','After gift subs'],['bits','After bits']])box.append(Object.assign(el('button','',label),{type:'button',onclick:()=>preview({fleet:k})}));
 }
 async function preview(o){try{await api('/api/cards/preview',o);notice('Preview queued: it plays in OBS and in the live view.');}catch(e){notice(e.message,true);}}

@@ -111,7 +111,7 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:transparent
 <body>
 <div id="stage"><canvas id="fxc" width="1920" height="1080"></canvas></div>
 <script type="module">
-import {TIERS,cardHTML} from './card-template.mjs?v=2.20.26';
+import {TIERS,cardHTML} from './card-template.mjs?v=2.20.28';
 const q=new URLSearchParams(location.search),stage=document.getElementById('stage');
 if(q.get('backdrop')==='0')stage.classList.add('nobackdrop');
 if(q.get('frame')==='full')stage.classList.add('full');

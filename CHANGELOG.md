@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.28 (2 November 2026)
+
+**Ruby VIP ribbon.** Members currently in your Streamer.bot VIP GROUP get a red "★ RUBY VIP ★" ribbon across the top-right corner of their membership card, on the front, the stats side and the medal wall, on stream and on voyagercommand.com. It follows the group: when VIP status is removed the ribbon goes. The VIP flag travels with the Points Ledger members the Public website page already sends to Voyager (keep that page open as before). Preview: Membership cards › Ruby VIP ribbon.
+
 ## 2.20.27 (2 November 2026)
 
 **Chat engagement uses the same round emblems.** The arrival, `!report`, squadron enlistment and Captain's Log cards on `engage.html` now carry the medal-style Voyager medallion (ticked rim, space disc, star) in the event's colours, the Bridge Quiz panel has one too, and each wing in the squadron panel gets a small one in its colour.

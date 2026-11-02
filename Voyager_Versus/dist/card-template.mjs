@@ -313,6 +313,13 @@ export function cardHTML(t,v,c,d,k={show:'none',roleShow:'inline'}){
         <span style="font: 700 14px/1 Rajdhani, sans-serif; letter-spacing: 4px; color: ${e(t.accent)}">— ${e(t.tier)} —</span>
       </div>
     </div>
+    <!-- 2.20.28: Ruby VIP ribbon over the top-right corner for members in the VIP group -->
+    <div style="position: absolute; inset: 0; clip-path: polygon(40px 0, 1160px 0, 1200px 40px, 1200px 680px, 1160px 720px, 40px 720px, 0 680px, 0 40px); pointer-events: none; display: ${e(v.vip||'none')}">
+    <div data-vip="1" style="position: absolute; left: 930px; top: 78px; width: 360px; height: 36px; display: flex; align-items: center; justify-content: center; gap: 10px; transform: rotate(45deg); transform-origin: 50% 50%; background: linear-gradient(180deg, #ff8d96 0%, #e0313f 42%, #a3141f 58%, #ff6b78 100%); box-shadow: 0 4px 14px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.45), inset 0 -1px 0 rgba(0,0,0,.35); z-index: 5">
+      <span style="position: absolute; left: 0; right: 0; top: 4px; height: 1px; background: rgba(255,255,255,.55)"></span><span style="position: absolute; left: 0; right: 0; bottom: 4px; height: 1px; background: rgba(255,255,255,.35)"></span>
+      <span style="font: 700 17px/1 Rajdhani, sans-serif; letter-spacing: 5px; color: #fff6f7; text-shadow: 0 1px 2px rgba(0,0,0,.6)">★ RUBY VIP ★</span>
+    </div>
+    </div>
   </div>
   <div data-banner="1" style="position: absolute; left: 0; top: 330px; width: 1360px; height: 170px; display: ${e(v.banner)}; flex-direction: column; align-items: center; justify-content: center; gap: 10px; background: linear-gradient(90deg, rgba(3,5,10,0), rgba(3,5,10,.9) 18%, rgba(3,5,10,.92) 82%, rgba(3,5,10,0))">
     <div style="position: absolute; left: 10%; right: 10%; top: 0; height: 2px; background: linear-gradient(90deg, transparent, ${e(t.accent)}, #ffffff, ${e(t.accent)}, transparent); box-shadow: 0 0 18px ${e(t.glow)}"></div>

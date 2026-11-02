@@ -153,3 +153,12 @@ test('Fleet alerts (2.20.23): a follower\'s card is presented after the Fleet an
   const p=cards.preview({fleet:'gift'});assert.equal(p.preview,true);assert.equal(p.live.text,'5 GIFT SUBS');assert.equal(p.live.points,0);assert.ok(!cards.state.members['twitch:preview']);
   assert.ok(!cards.state.recent.some(r=>r.name==='NebulaKnight'));
 });
+
+test('Ruby VIP ribbon (2.20.28): members in the VIP group get the ribbon on every side; previews can show it',async()=>{
+  const {cards,at}=await make();
+  let item=cards.receive(ev());assert.equal(item.card.vip,false);assert.equal(item.card.v.vip,'none');
+  cards.community().state.members['twitch:1'].vip=true;at(61000);
+  item=cards.receive(ev({input:'badges'}));assert.equal(item.card.vip,true);assert.equal(item.card.v.vip,'flex');
+  assert.match(cardHTML({...TIERS[item.card.tier],...item.card.t},item.card.v,item.card.c,item.card.d,item.card.k),/RUBY VIP/);
+  assert.equal(cards.preview({tier:'gold',vip:true}).card.vip,true);assert.equal(cards.preview({tier:'gold'}).card.vip,false);
+});
