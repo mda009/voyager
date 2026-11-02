@@ -6,7 +6,7 @@ export class Shipyard {
  constructor(scene,maps,glow){
  this.root=new T.Group();this.root.name='Orbital construction drydock';scene.add(this.root);this.arms=[];this.cranes=[];this.clamps=[];
  const mat=(color,rough=.65)=>new T.MeshPhysicalMaterial({color,map:maps.map,normalMap:maps.normalMap,normalScale:new T.Vector2(.23,.23),roughness:rough,metalness:.75,clearcoat:.12});
- const steel=mat(0x8d9ca9),dark=mat(0x24313e),blue=mat(0x304e65),yellow=mat(0xb89b53),glass=new T.MeshPhysicalMaterial({color:0x102e42,roughness:.15,metalness:.55}),lamp=new T.MeshBasicMaterial({color:0xd4edff,toneMapped:false}),warm=new T.MeshBasicMaterial({color:0xffc779,toneMapped:false});
+ const space=window.VoyagerFleetLook==='space',steel=mat(space?0x7b8997:0x8d9ca9,space?.55:.65),dark=mat(space?0x222a33:0x24313e),blue=mat(space?0x2c3f4e:0x304e65),yellow=mat(space?0xa8863e:0xb89b53,space?.5:.65),glass=new T.MeshPhysicalMaterial({color:0x102e42,roughness:.15,metalness:.55}),lamp=new T.MeshBasicMaterial({color:0xd4edff,toneMapped:false}),warm=new T.MeshBasicMaterial({color:0xffc779,toneMapped:false});
  const b=geometryBatch(this.root),box=(w,h,d,m,x,y,z)=>b.add(bevelBox(w,h,d),m,V(x,y,z));
  for(const s of [-1,1]){
   box(56,.8,3,dark,0,-7,s*13);box(55,.16,.25,steel,0,-6.4,s*12.2);box(55,.16,.25,steel,0,-6.4,s*13.8);
