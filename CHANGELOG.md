@@ -2,6 +2,12 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.48 (3 November 2026)
+
+**Seasons become Community goals, run by hand.** The Seasons page is now *Community › Community goals*. Nothing runs on its own any more: after this update every goal is switched off and no community goal is running (a season that was in progress is archived to the Hall of Fame if anyone had scored; reached goals stay payable). To run one, set the goals, give it a name and a **due date** (the form suggests *Christmas 2026 · 25 December*), and press **Start**. Standings and every goal count from that moment; it ends on its due date or when you press End, and the next one starts only when you start it.
+
+**Custom goals.** Up to eight goals, each with its own name, what it counts (subs and renewals, gifted subs, both, **Voyager points earned by the crew**, or **Voyager Versus wins**), platform, community target, **points reward for each helper**, an optional **minimum contribution** to count as a helper, an optional **own due date** (otherwise the community goal's), and a description shown on the OBS panel and the website. Reached goals are paid from Missions › Points owed as before; a goal not reached by its due date shows as missed. The OBS panel, membership cards, medal descriptions, the public website and the Missions page use the new wording; the Hall of Fame keeps every past season.
+
 ## 2.20.47 (3 November 2026)
 
 **Website: the real back of the card, with the stream streak.** On voyagercommand.com › My card, the Back is now the stream card's own Fleet Record side, drawn by the same template in the member's tier (Blue, Silver, Gold or Platinum, with the Ruby VIP / Emerald ribbons where they apply): Dreadnought, Voyager Versus, Missions & Seasons, and Crew & Community. Crew & Community now leads with **STREAM STREAK** — streams attended in a row on Twitch, with the best ever and total streams attended — on stream and on the site. A third side, **Medals**, shows the card's medal wall; what is still to earn is listed under it. Members who typed !voyager private keep the streak and months subscribed hidden; with the site's Activity switch off they show as Hidden. The card data in crew.json now carries the back (`back`) and the VIP / Emerald flags; the site falls back to a short record until the next publish.

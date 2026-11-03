@@ -3,55 +3,54 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Voyager • Seasons</title>
+<title>Voyager • Community goals</title>
 <link rel="icon" href="brand-assets/voyager.png">
 <link rel="stylesheet" href="stream-command.css">
 <link rel="stylesheet" href="voyager-brand.css">
 <link rel="stylesheet" href="settings.css?v=2.16">
-<link rel="stylesheet" href="community.css?v=2.16.1">
+<link rel="stylesheet" href="community.css?v=2.20.48">
 <link rel="stylesheet" href="voyager-glass.css?v=2.16">
 </head>
 <body class="voyager-console voyager-settings voyager-community">
 <div class="shell">
 <aside class="rail"><a class="brand" href="Voyager_Command_Center.html"><img class="logo-voyager" src="brand-assets/voyager.png" alt="Voyager membership program" width="68" height="68"><span>VOYAGER<small>MDA009 · MISSION CONTROL</small></span></a></aside>
 <main>
-<header class="top"><div><span class="eyebrow">COMMUNITY</span><h1 id="season-title">Season</h1></div><div class="toolbar"><span class="st-note" id="season-dates"></span></div></header>
+<header class="top"><div><span class="eyebrow">COMMUNITY GOALS</span><h1 id="season-title">Community goals</h1></div><div class="toolbar"><span class="st-pill" id="season-state" data-state="wait">Checking…</span><span class="st-note" id="season-dates"></span></div></header>
 <p class="st-notice" id="notice" hidden></p>
-<p class="st-notice" id="not-hosted" hidden>Open this page from the Voyager app (or START-VOYAGER-CONTROL.bat). Seasons are worked out by the Voyager host.</p>
+<p class="st-notice" id="not-hosted" hidden>Open this page from the Voyager app (or START-VOYAGER-CONTROL.bat). Community goals are worked out by the Voyager host.</p>
 <div class="cs-layout">
 <div class="cs-main">
-<section class="card cs-standings">
-<div class="card-heading"><div><span class="eyebrow">SEASON STANDINGS</span><h2>Season score</h2></div><span class="st-note" id="standings-note"></span></div>
-<div class="cm-table"><table><thead><tr><th>#</th><th>Viewer</th><th>Platform</th><th class="num">Points earned</th><th class="num" title="Subs, renewals and gifted subs this season">Subs &amp; gifts</th><th class="num">Score</th><th class="num">Versus wins</th></tr></thead><tbody id="standings"></tbody></table></div>
-<p class="st-hint">Score = points earned this season + the supporter bonus for every sub, renewal or gifted sub this season. Standings are separate from points balances: spending points never lowers them, and nobody loses saved points when a season ends.</p>
+<section class="card cs-progress">
+<div class="card-heading"><div><span class="eyebrow">RUN A COMMUNITY GOAL</span><h2 id="campaign-h">No community goal running</h2></div><span class="st-note" id="week-of"></span></div>
+<div class="cm-bar big"><i id="season-bar"></i></div>
+<form id="season-form" class="cs-form">
+<label>Name<input name="name" maxlength="40" placeholder="Christmas 2026"></label>
+<label>Due date<input name="endsAt" type="datetime-local"></label>
+<label>Supporter bonus (score per sub, renewal or gifted sub)<input name="supportBonus" type="number" min="0" max="100000"></label>
+<div class="st-actions"><button type="submit" class="primary" id="season-start">Start community goal</button><button type="button" id="season-save" hidden>Save changes</button><button type="button" id="end-season" hidden>End now…</button></div>
+</form>
+<p class="st-hint" id="campaign-hint">Nothing runs on its own. Set the goals below, give the community goal a name and a due date, then press <b>Start</b>. Standings and every goal count from that moment; it ends on its due date (or when you end it) and the top five go into the Hall of Fame. The next one starts only when you start it.</p>
 </section>
 <section class="card cs-goals" aria-labelledby="goals-h">
-<div class="card-heading"><div><span class="eyebrow">SUBSCRIBER GOALS</span><h2 id="goals-h">Season sub goals</h2></div><div class="st-actions"><button type="button" id="goal-add">+ Add goal</button><button type="button" class="primary" id="goals-save">Save goals</button></div></div>
-<p class="st-hint">Community targets for Twitch subs, YouTube memberships and Kick subs this season. When a goal is reached, everyone who helped earns its reward (pay it from Missions › Points owed).</p>
+<div class="card-heading"><div><span class="eyebrow">GOALS</span><h2 id="goals-h">Community goals</h2></div><div class="st-actions"><button type="button" id="goal-add">+ Add goal</button><button type="button" class="primary" id="goals-save">Save goals</button></div></div>
+<p class="st-hint">Each goal has its own target, points reward and (optionally) its own due date. When a goal is reached, everyone who helped (at least the minimum) earns its reward — pay it from Missions › Points owed. Goals can count subs and gifts, Voyager points earned by the crew, or Voyager Versus wins.</p>
 <div id="goals" class="cs-goal-list"></div>
-<label class="cs-bonus">Supporter bonus (season score per sub, renewal or gifted sub)<input id="support-bonus" type="number" min="0" max="100000"></label>
 <p class="st-hint" id="support-note"></p>
+</section>
+<section class="card cs-standings">
+<div class="card-heading"><div><span class="eyebrow">STANDINGS</span><h2>Community goal score</h2></div><span class="st-note" id="standings-note"></span></div>
+<div class="cm-table"><table><thead><tr><th>#</th><th>Viewer</th><th>Platform</th><th class="num">Points earned</th><th class="num" title="Subs, renewals and gifted subs during this community goal">Subs &amp; gifts</th><th class="num">Score</th><th class="num">Versus wins</th></tr></thead><tbody id="standings"></tbody></table></div>
+<p class="st-hint">Score = points earned during the community goal + the supporter bonus for every sub, renewal or gifted sub. Standings are separate from points balances: spending points never lowers them, and nobody loses saved points when a community goal ends.</p>
 </section>
 </div>
 <div class="cs-side">
-<section class="card cs-progress">
-<span class="eyebrow">SEASON PROGRESS</span>
-<div class="cs-week"><b id="week-num">Week 1</b><span id="week-of"></span></div>
-<div class="cm-bar big"><i id="season-bar"></i></div>
-<form id="season-form" class="cs-form">
-<label>Name<input name="name" maxlength="40"></label>
-<label>Length (weeks)<input name="weeks" type="number" min="1" max="52"></label>
-<div class="st-actions"><button type="submit">Save</button><button type="button" class="primary" id="end-season">End season now…</button></div>
-</form>
-<p class="st-hint">When a season ends (automatically on its end date, or now), its top five go into the Hall of Fame, it's shown on voyagercommand.com, and the next season starts from zero.</p>
-</section>
 <section class="card cs-panel" aria-labelledby="panel-h">
 <div class="card-heading"><div><span class="eyebrow">OBS PANEL</span><h2 id="panel-h">Show on stream</h2></div><span class="st-pill" id="panel-state" data-state="wait">Hidden</span></div>
 <form id="panel-form" class="cs-form cs-panel-form">
-<label class="wide">Show<select name="kind"><option value="season">Season standings</option><option value="goals">Season sub goals</option><option value="hall">Hall of Fame</option><option value="missions">This week's missions</option></select></label>
+<label class="wide">Show<select name="kind"><option value="season">Community goal standings</option><option value="goals">Community goals</option><option value="hall">Hall of Fame</option><option value="missions">This week's missions</option></select></label>
 <label>Rows<input name="limit" type="number" min="3" max="10"></label>
 <label>Show for (seconds, 0 = until hidden)<input name="duration" type="number" min="0" max="600"></label>
-<label class="wide">Title (optional)<input name="title" maxlength="80" placeholder="Uses the season name"></label>
+<label class="wide">Title (optional)<input name="title" maxlength="80" placeholder="Uses the community goal name"></label>
 <details class="wide"><summary>Position and look</summary><div class="cs-form">
 <label>From top (px)<input name="top" type="number" min="0" max="600"></label><label>From right (px)<input name="right" type="number" min="0" max="1440"></label>
 <label>Width (px)<input name="width" type="number" min="320" max="480"></label><label>Background (%)<input name="opacity" type="number" min="0" max="95"></label>
@@ -67,7 +66,7 @@
 </div>
 </main>
 </div>
-<script src="seasons.js?v=2.16"></script>
+<script src="seasons.js?v=2.20.48"></script>
 <script src="voyager-shell.js?v=2.20"></script>
 <script src="voyager-navigation.js"></script>
 </body>

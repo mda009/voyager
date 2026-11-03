@@ -1,9 +1,9 @@
-/* Voyager OBS Season & Missions panel (2.14; 2.15 adds season sub goals). Same look and placement as the OBS leaderboard panel.
-   Reads /api/community/overlay from the local Voyager host; shown and hidden from Voyager Control > Seasons. */
+/* Voyager OBS Community goals & Missions panel (2.14; 2.15 adds goals; 2.20.48 community goals you run yourself). Same look and placement as the OBS leaderboard panel.
+   Reads /api/community/overlay from the local Voyager host; shown and hidden from Voyager Control > Community goals. */
 (()=>{'use strict';
 const $=id=>document.getElementById(id),params=new URLSearchParams(location.search),preview=params.get('preview')==='1',compact=preview&&params.get('compact')==='1';
 const NAMES={twitch:'Twitch',youtube:'YouTube',kick:'Kick'};
-const TITLES={season:'Season standings',goals:'Season sub goals',hall:'Hall of Fame',missions:"This week's missions"};
+const TITLES={season:'Community goal standings',goals:'Community goals',hall:'Hall of Fame',missions:"This week's missions"};
 const icons={twitch:'<path fill="currentColor" d="M4 2h18v13l-6 6h-5l-3 3v-3H4V2zm2 2v13h5v3l3-3h4l2-2V4H6zm5 3h2v6h-2V7zm5 0h2v6h-2V7z"/>',youtube:'<path fill="currentColor" d="M22 7c-.3-1.4-1.2-2.3-2.6-2.5C17.5 4.2 14 4 12 4s-5.5.2-7.4.5C3.2 4.7 2.3 5.6 2 7c-.3 1.4-.5 3.4-.5 5s.2 3.6.5 5c.3 1.4 1.2 2.3 2.6 2.5 1.9.3 5.4.5 7.4.5s5.5-.2 7.4-.5c1.4-.2 2.3-1.1 2.6-2.5.3-1.4.5-3.4.5-5s-.2-3.6-.5-5z"/><path fill="#171f2b" d="m10 8 6 4-6 4z"/>',kick:'<path fill="currentColor" d="M3 2h6v7h3V5h3V2h6v7h-3v3h-3v3h3v3h3v4h-6v-4h-3v-3H9v7H3z"/>'};
 const ON={all:'',twitch:' on Twitch',youtube:' on YouTube',kick:' on Kick'};
 const MISSION={streamDays:n=>'Earn points on '+n+' stream day'+(n===1?'':'s'),earnPoints:n=>'Earn '+Number(n).toLocaleString()+' points',versusWins:n=>'Win '+n+' Versus battle'+(n===1?'':'s'),
@@ -45,15 +45,15 @@ function render(){
   rows=build(c);
   const stale=!preview&&(failed||Date.now()-readAt>30000);
   $('status').dataset.state=preview?'preview':stale?'stale':rows.length?'ok':'waiting';$('status-text').textContent=preview?'Preview':stale?'Last known':'Updated';panel.dataset.stale=String(stale);
-  $('panel-brand-title').textContent=c.kind==='missions'?'VOYAGER MISSIONS':c.kind==='goals'?'VOYAGER CREW GOALS':'VOYAGER SEASON';
-  $('title').textContent=c.title||(c.kind==='season'?data.season?.name||TITLES.season:c.kind==='goals'?(data.season?.name?data.season.name+' sub goals':TITLES.goals):TITLES[c.kind]);
+  $('panel-brand-title').textContent=c.kind==='missions'?'VOYAGER MISSIONS':c.kind==='goals'?'VOYAGER COMMUNITY GOALS':c.kind==='hall'?'VOYAGER HALL OF FAME':'VOYAGER COMMUNITY GOAL';
+  $('title').textContent=c.title||(c.kind==='season'?data.season?.name||TITLES.season:c.kind==='goals'?(data.season?.name?data.season.name+' goals':TITLES.goals):TITLES[c.kind]);
   const endsAt=c.kind==='missions'?data.weekEndsAt:data.season?.endsAt;
-  $('total').textContent=c.kind==='missions'?'New missions every Monday':c.kind==='hall'?'Past season champions':c.kind==='goals'?'Twitch · YouTube · Kick'+(endsAt?' · ends '+new Date(endsAt).toLocaleDateString(undefined,{day:'numeric',month:'short'}):''):'Top '+Math.min(c.limit,rows.length||c.limit)+(endsAt?' · ends '+new Date(endsAt).toLocaleDateString(undefined,{day:'numeric',month:'short'}):'');
+  $('total').textContent=c.kind==='missions'?'New missions every Monday':c.kind==='hall'?'Past community goal champions':c.kind==='goals'?(data.season?.active===false?'No community goal running':'Twitch · YouTube · Kick')+(endsAt?' · due '+new Date(endsAt).toLocaleDateString(undefined,{day:'numeric',month:'short'}):''):'Top '+Math.min(c.limit,rows.length||c.limit)+(endsAt?' · due '+new Date(endsAt).toLocaleDateString(undefined,{day:'numeric',month:'short'}):'');
   $('list-order').textContent=c.kind==='missions'?'REWARD':c.kind==='goals'?'PROGRESS':c.kind==='season'?'SCORE':'POINTS';
-  $('leader-basis').textContent=c.kind==='season'?'Points earned + supporter bonus':c.kind==='hall'?'Season champions':c.kind==='goals'?'Sub, renew or gift to help the crew':'Finish a mission, earn points';
+  $('leader-basis').textContent=c.kind==='season'?'Points earned + supporter bonus':c.kind==='hall'?'Community goal champions':c.kind==='goals'?'Help the crew reach each goal':'Finish a mission, earn points';
   $('leader-note').textContent=preview?'PREVIEW · NOT ON STREAM':stale?'LAST RECEIVED · RECONNECTING':c.kind==='season'?'SPENDING NEVER LOWERS YOUR STANDING':c.kind==='missions'?'PROGRESS IS TRACKED AUTOMATICALLY':c.kind==='goals'?'EVERYONE WHO HELPS EARNS THE REWARD':'THE VOYAGER HALL OF FAME';
-  $('empty-title').textContent=!data?'Waiting for Voyager':c.kind==='hall'?'No champions yet':c.kind==='missions'?'No missions this week':c.kind==='goals'?'No sub goals this season':'The season has just begun';
-  $('empty-note').textContent=c.kind==='hall'?'Champions appear when a season ends.':c.kind==='missions'?'Turn missions on in Voyager Control.':c.kind==='goals'?'Add goals in Voyager Control › Seasons.':'Earn points to get on the board.';
+  $('empty-title').textContent=!data?'Waiting for Voyager':c.kind==='hall'?'No champions yet':c.kind==='missions'?'No missions this week':c.kind==='goals'?'No community goals right now':data.season?.active===false?'No community goal running':'The community goal has just begun';
+  $('empty-note').textContent=c.kind==='hall'?'Champions appear when a community goal ends.':c.kind==='missions'?'Turn missions on in Voyager Control.':c.kind==='goals'?'Add goals in Voyager Control › Community goals.':data.season?.active===false?'Start one in Voyager Control › Community goals.':'Earn points to get on the board.';
   renderRows(c);fit();
 }
 async function poll(){

@@ -141,7 +141,8 @@ test('Season sub goals and subscriber missions publish totals and counts only, n
     season:{name:'Season 1',endsAt:NOW+86400000,supportBonus:100,standings:[{name:'Nova',platform:'twitch',points:900,support:3,wins:0,key:'twitch:SECRET_USER_ID_9911'}],
       goals:[{title:'Grow the Crew',metric:'support',platform:'all',target:50,total:12,reward:300,reached:false,helpers:4,helperList:[{key:'twitch:SECRET_USER_ID_9911',name:'secretlogin_77'}]}]},hall:[]};
   const feed=M.buildFeed({collected:collect(),settings:{},community,now:NOW}),text=JSON.stringify(feed);
-  assert.deepEqual(feed.season.goals,[{title:'Grow the Crew',metric:'support',platform:'all',target:50,total:12,reward:300,reached:false,helpers:4}]);
+  assert.deepEqual(feed.season.goals,[{title:'Grow the Crew',description:'',metric:'support',platform:'all',target:50,total:12,reward:300,reached:false,missed:false,dueAt:null,helpers:4}]);
+  assert.equal(feed.season.active,true,'an older host without the flag counts as running');
   assert.equal(feed.season.standings[0].support,3);assert.equal(feed.season.supportBonus,100);
   assert.deepEqual(feed.missions.list.map(m=>[m.type,m.platform]),[['subscribe','kick'],['earnPoints','all']]);
   for(const s of SECRET)assert.ok(!text.includes(s),'leaked '+s);

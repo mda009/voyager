@@ -44,15 +44,18 @@ test('Payouts are recorded once, and last week stays payable after the week roll
 
 test('Season standings count points earned since the season began; ending a season fills the Hall of Fame',async()=>{
   const {c,set,pilots}=await make(monday);
+  assert.equal(c.standings().length,0,'nothing is counted until a community goal is started');
   pilots([{login:'nova',name:'Nova',wins:10},{login:'rigel',name:'Rigel',wins:2}]);
+  c.startSeason({name:'Season 1',endsAt:monday+30*DAY});
   c.receive([{key:'twitch:1',name:'Nova',login:'nova',capturedIn:5000},{key:'youtube:9',name:'Lyra',points:100}]);
   set(monday+DAY);pilots([{login:'nova',name:'Nova',wins:11},{login:'rigel',name:'Rigel',wins:5}]);
   c.receive([{key:'twitch:1',name:'Nova',login:'nova',capturedIn:5300},{key:'youtube:9',name:'Lyra',points:900}]);
   const st=c.standings();assert.deepEqual(st.map(r=>[r.name,r.points]),[['Lyra',800],['Nova',300]]);
   assert.equal(st[1].wins,1);assert.deepEqual(c.topPilot(),{name:'Rigel',wins:3});
   const v=c.endSeason();
-  assert.equal(v.season.number,2);assert.equal(v.hall[0].champion.name,'Lyra');assert.equal(v.hall[0].topPilot.name,'Rigel');
-  assert.equal(c.standings().length,0,'the new season starts from zero');
+  assert.equal(v.season.active,false,'nothing starts by itself');assert.equal(v.hall[0].champion.name,'Lyra');assert.equal(v.hall[0].topPilot.name,'Rigel');
+  assert.equal(c.standings().length,0,'idle between community goals');assert.throws(()=>c.endSeason(),/No community goal/);
+  assert.equal(c.startSeason({name:'Season 2',endsAt:monday+60*DAY}).season.number,2);
   const pub=c.publicView();assert.equal(pub.hall[0].champion.points,800);assert.equal(JSON.stringify(pub).includes('twitch:1'),false,'no member keys in the public view');
 });
 
@@ -64,7 +67,7 @@ test('Mission settings are validated',()=>{
 });
 
 test('OBS panel: settings are validated, timed panels hide themselves, and the overlay has no member keys',async()=>{
-  const {c,set}=await make(monday);
+  const {c,set}=await make(monday);c.startSeason({name:'Season 1',endsAt:monday+30*DAY});
   c.receive([{key:'twitch:1',name:'Nova',login:'nova',capturedIn:10},{key:'twitch:2',name:'Orion',login:'orion',capturedIn:10}]);
   set(monday+60000);c.receive([{key:'twitch:1',name:'Nova',login:'nova',capturedIn:500},{key:'twitch:2',name:'Orion',login:'orion',capturedIn:20}]);
   assert.throws(()=>c.setPanel({config:{kind:'nope'}}),/Choose/);
@@ -110,7 +113,7 @@ test('Season sub goals pay everyone who helped once reached; the supporter bonus
   const {c,set}=await make(monday);
   c.receive([{key:'twitch:1',name:'Nova',login:'nova',capturedIn:0},{key:'kick:2',name:'Orion',capturedIn:0}]);
   c.receiveSupport([{key:'twitch:1',name:'Nova',months:3,monthsAt:monday-DAY},{key:'kick:2',name:'Orion',gifts:0,giftsAt:0,months:1,monthsAt:monday-DAY}]);
-  c.configureSeason({goals:[{id:'crew',title:'Grow the Crew',metric:'support',platform:'all',target:5,reward:300},{id:'kick',title:'Kick gifts',metric:'gifts',platform:'kick',target:10,reward:50}],supportBonus:100});
+  c.startSeason({name:'Christmas 2026',endsAt:monday+50*DAY,goals:[{id:'crew',title:'Grow the Crew',metric:'support',platform:'all',target:5,reward:300},{id:'kick',title:'Kick gifts',metric:'gifts',platform:'kick',target:10,reward:50}],supportBonus:100});
   set(monday+DAY);
   c.receive([{key:'twitch:1',name:'Nova',login:'nova',capturedIn:250},{key:'kick:2',name:'Orion',capturedIn:100}]);
   c.receiveSupport([{key:'twitch:1',name:'Nova',months:4,monthsAt:monday+DAY},{key:'kick:2',name:'Orion',months:1,gifts:4,giftsAt:monday+DAY}]);
@@ -122,8 +125,42 @@ test('Season sub goals pay everyone who helped once reached; the supporter bonus
   const pub=c.publicView();assert.equal(pub.season.goals[0].helpers,2);assert.equal(JSON.stringify(pub).includes('kick:2'),false);
   c.endSeason(monday+2*DAY);
   assert.equal(c.payables().filter(p=>p.scope==='season'&&p.status==='owed').length,2,'reached goals stay payable after the season ends');
-  assert.equal(c.view().goals[0].total,0,'the next season starts from zero');
+  assert.equal(c.view().goals[0].total,0,'idle: nothing counts until the next community goal starts');assert.equal(c.view().goals[0].status,'waiting');
   assert.throws(()=>normalizeGoals([{title:'X',metric:'likes',target:1,reward:1}]),/counts/);
+});
+
+test('2.20.48 community goals: started by hand, points and Versus goals, per-goal due dates and minimums, nothing automatic',async()=>{
+  const {c,set,pilots}=await make(monday);
+  assert.deepEqual(c.view().goals,[]);assert.equal(c.view().season.active,false);
+  assert.throws(()=>c.startSeason({name:'',endsAt:monday+DAY}),/name/);assert.throws(()=>c.startSeason({name:'X',endsAt:monday-DAY}),/future/);
+  const xmas=new Date(2026,11,25,23,59).getTime();
+  const v=c.startSeason({name:'Christmas 2026',endsAt:xmas,goals:[
+    {id:'crew',title:'Crew points',metric:'points',target:1000,reward:100,minimum:200,description:'Earn 1,000 points together'},
+    {id:'ace',title:'Versus wins',metric:'versus',target:3,reward:50,dueAt:monday+2*DAY},
+    {id:'gifts',title:'Gift drive',metric:'gifts',target:5,reward:75}]});
+  assert.equal(v.season.active,true);assert.equal(v.season.name,'Christmas 2026');assert.equal(v.season.endsAt,xmas);assert.throws(()=>c.startSeason({name:'Again',endsAt:xmas}),/still running/);
+  pilots([{login:'nova',name:'Nova',wins:10}]);c.notePilots();
+  c.receive([{key:'twitch:1',name:'Nova',login:'nova',capturedIn:0},{key:'youtube:9',name:'Lyra',points:0}]);
+  set(monday+DAY);pilots([{login:'nova',name:'Nova',wins:12}]);
+  c.receive([{key:'twitch:1',name:'Nova',login:'nova',capturedIn:900},{key:'youtube:9',name:'Lyra',points:150}]);
+  let g=Object.fromEntries(c.view().goals.map(x=>[x.id,x]));
+  assert.equal(g.crew.total,1050);assert.equal(g.crew.reached,true);assert.deepEqual(g.crew.helpers.map(h=>h.name),['Nova'],'Lyra is under the 200-point minimum');assert.equal(g.crew.contributors,2);
+  assert.equal(g.ace.total,2);assert.equal(g.ace.status,'open');assert.equal(g.ace.dueAt,monday+2*DAY);assert.equal(g.gifts.dueAt,xmas,'goals without their own date are due with the community goal');
+  assert.deepEqual(c.payables().filter(p=>p.scope==='season').map(p=>[p.key,p.reward,p.title]),[['twitch:1',100,'Community goal: Crew points']]);
+  set(monday+3*DAY);g=Object.fromEntries(c.view().goals.map(x=>[x.id,x]));assert.equal(g.ace.status,'missed');assert.equal(g.ace.missed,true);
+  c.roll(monday+3*DAY);assert.equal(c.view().season.active,true,'still running before the due date');
+  c.roll(xmas+1);assert.equal(c.view().season.active,false,'ends on its due date and does not restart');assert.equal(c.view().hall[0].name,'Christmas 2026');
+  assert.equal(c.view().goalLimit,8);assert.equal(normalizeGoals(Array.from({length:12},(_,i)=>({id:'g'+i,title:'G'+i,metric:'subs',target:1,reward:1}))).length,8);
+});
+
+test('2.20.48 migration: an older save gets its goals switched off and no running season',async()=>{
+  const {mkdtemp:mk}=await import('node:fs/promises');const {writeFile}=await import('node:fs/promises');
+  const dir=await mk(join(tmpdir(),'voyager-community-'));
+  await writeFile(join(dir,'community.json'),JSON.stringify({schema:1,missions:[],members:{},support:{},goals:[{id:'crew',title:'Grow the Crew',metric:'support',platform:'all',target:50,reward:250}],supportBonus:100,
+    week:{id:monday,baseline:{},days:{},versus:{},gifts:{},medal:{}},previous:null,payouts:{},season:{number:3,name:'Season 3',startedAt:monday-DAY,endsAt:monday+30*DAY,weeks:13,baseline:{},versus:{},support:{}},hall:[]}));
+  let now=monday;const c=await new Community({dataDir:dir,now:()=>now}).load();
+  assert.deepEqual(c.view().goals,[],'all goals off');assert.equal(c.view().season.active,false,'no season running');assert.equal(c.view().season.number,3);
+  assert.equal(c.startSeason({name:'Christmas 2026',endsAt:monday+40*DAY}).season.number,4);
 });
 
 test('2.16.1 lowers untouched 2.15 subscriber rewards once, and keeps rewards you changed',async()=>{

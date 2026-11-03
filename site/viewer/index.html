@@ -371,10 +371,10 @@ ol.logrows .quote{font-size:16px;color:var(--text)}
  </section>
 
  <section id="season" data-tab="boards" aria-labelledby="h-season" hidden>
-  <h2 id="h-season">Season</h2><p class="lede" id="season-lede"></p>
+  <h2 id="h-season">Community goal</h2><p class="lede" id="season-lede"></p>
   <div class="grid" id="sub-goal-list" hidden></div>
   <div class="two">
-   <div class="card"><span class="kind">Standings · season score</span><ol class="rows" id="season-list"></ol></div>
+   <div class="card"><span class="kind">Standings · community goal score</span><ol class="rows" id="season-list"></ol></div>
    <div class="card" id="hall-card"><span class="kind">Hall of Fame</span><ol class="rows hall" id="hall-list"></ol></div>
   </div>
  </section>
@@ -429,7 +429,7 @@ ol.logrows .quote{font-size:16px;color:var(--text)}
   <div class="card manual">
    <a href="manual.pdf" target="_blank" rel="noopener" class="cover"><img src="assets/manual-cover.jpg" width="360" height="466" alt="Cover of the Voyager member manual" loading="lazy"></a>
    <div><span class="kind">Official member manual &amp; FAQ · November 2026</span>
-    <p>Everything about Voyager in one place: the tiers, your membership card, naval ranks, all 29 medals, missions and seasons, the Dreadnought and Voyager Versus, chat engagement, giveaways and every chat command.</p>
+    <p>Everything about Voyager in one place: the tiers, your membership card, naval ranks, all 31 medals, missions and community goals, the Dreadnought and Voyager Versus, chat engagement, giveaways and every chat command.</p>
     <p class="small">25 pages · PDF · about 5 MB</p>
     <div class="links"><a class="watch" href="manual.pdf" target="_blank" rel="noopener">Read the manual</a><a href="manual.pdf" download="Voyager-Member-Manual.pdf">Download PDF</a></div>
    </div>
@@ -579,7 +579,7 @@ function renderProgram(){
 }
 function renderJump(){
  const nav=$('jump');nav.textContent='';
- for(const [id,label] of [['giveaways','Giveaways'],['goals','Goals'],['missions','Missions'],['season','Season'],['winners','Winners'],['leaderboards','Leaderboards'],['program','How it works']]){if($(id).hidden)continue;const a=el('a','',label);a.href='#'+id;nav.append(a);}
+ for(const [id,label] of [['giveaways','Giveaways'],['goals','Goals'],['missions','Missions'],['season','Community goal'],['winners','Winners'],['leaderboards','Leaderboards'],['program','How it works']]){if($(id).hidden)continue;const a=el('a','',label);a.href='#'+id;nav.append(a);}
 }
 // Fair-draw check: fetches the proof published beside the feed and re-runs the draw in this browser.
 async function openProof(id,title){
@@ -607,7 +607,7 @@ const MISSION_TEXT={streamDays:(n)=>'Earn points on '+n+' different stream day'+
  watchHours:(n,p)=>'Watch '+n+' hour'+(n===1?'':'s')+' live'+(ON[p]||'')+' this week',chatMessages:(n,p)=>'Send '+fmt(n)+' chat messages'+(ON[p]||'')+' this week',streamStreak:(n)=>'Be at '+n+' streams in a row',
  dreadFights:(n)=>'Join '+(n===1?'a Dreadnought fight':n+' Dreadnought fights')+' this week (!join)',dreadVictory:(n)=>'Be in the fleet for '+(n===1?'a Dreadnought victory':n+' Dreadnought victories')+' this week',
  dreadDamage:(n)=>'Deal '+fmt(n)+' damage to the Dreadnought this week',dreadMvp:(n)=>'Finish '+(n===1?'a Dreadnought fight':n+' fights')+' as MVP this week',torpedo:(n)=>'Fire '+(n===1?'a torpedo':n+' torpedoes')+' (gift a sub during a Dreadnought fight)'};
-const GOAL_TEXT={support:'subs, renewals and gifted subs',subs:'subs and renewals',gifts:'gifted subs'};
+const GOAL_TEXT={support:'subs, renewals and gifted subs',subs:'subs and renewals',gifts:'gifted subs',points:'Voyager points earned by the crew',versus:'Voyager Versus wins'};
 function renderMissions(){
  const m=feed.missions,box=$('mission-list');box.textContent='';$('missions').hidden=!m||!m.list?.length;if(!m)return;
  $('missions-lede').textContent='Finish a mission to earn Voyager points. New missions every Monday'+(m.endsAt?' · this week ends '+new Date(m.endsAt).toLocaleDateString(undefined,{weekday:'long'}):'')+'.';
@@ -616,14 +616,14 @@ function renderMissions(){
 }
 function renderSeason(){
  const s=feed.season;$('season').hidden=!s;if(!s)return;
- $('h-season').textContent=s.name;$('season-lede').textContent=s.endsAt?'Ends '+new Date(s.endsAt).toLocaleDateString(undefined,{day:'numeric',month:'long'})+'. Earn points'+(s.supportBonus?', or sub, renew and gift subs (+'+fmt(s.supportBonus)+' each),':'')+' to climb the standings; the champion joins the Hall of Fame.':'';
+ const running=s.active!==false&&!!s.name;$('h-season').textContent=running?s.name:'Community goal';$('season-lede').textContent=running?(s.endsAt?'Due '+new Date(s.endsAt).toLocaleDateString(undefined,{day:'numeric',month:'long',year:'numeric'})+'. ':'')+'Earn points'+(s.supportBonus?', or sub, renew and gift subs (+'+fmt(s.supportBonus)+' each),':'')+' to climb the standings; the champion joins the Hall of Fame.':'No community goal is running right now. The next one is announced on stream.';
  const gl=$('sub-goal-list');gl.textContent='';gl.hidden=!(s.goals||[]).length;
- for(const g of s.goals||[]){const c=el('article','card mission sub');const top=el('div','gw-top');top.append(el('span','kind','Community sub goal'+(ON[g.platform]||'')),el('span','reward','+'+fmt(g.reward)+' pts each'));
+ for(const g of s.goals||[]){const c=el('article','card mission sub');const top=el('div','gw-top');top.append(el('span','kind','Community goal'+(ON[g.platform]||'')),el('span','reward','+'+fmt(g.reward)+' pts each'));
   const bar=el('div','goal-bar');const fill=el('i');fill.style.width=Math.min(100,g.total/g.target*100).toFixed(1)+'%';bar.append(fill);
-  c.append(top,el('h3','',g.title),el('p','who',fmt(g.total)+' of '+fmt(g.target)+' '+GOAL_TEXT[g.metric]+' this season'),bar,el('p','done',g.reached?'Reached! Everyone who helped earns the reward.':g.helpers?fmt(g.helpers)+(g.helpers===1?' supporter has':' supporters have')+' helped so far':'Be the first to help'));gl.append(c);}
+  c.append(top,el('h3','',g.title));if(g.description)c.append(el('p','lede small',g.description));c.append(el('p','who',fmt(g.total)+' of '+fmt(g.target)+' '+(GOAL_TEXT[g.metric]||'')+(g.dueAt?' · due '+new Date(g.dueAt).toLocaleDateString(undefined,{day:'numeric',month:'short'}):'')),bar,el('p','done',g.reached?'Reached! Everyone who helped earns the reward.':g.missed?'Not reached by the due date.':g.helpers?fmt(g.helpers)+(g.helpers===1?' member has':' members have')+' helped so far':'Be the first to help'));gl.append(c);}
  const list=$('season-list');list.textContent='';
  for(const r of s.standings||[]){const li=el('li');const n=platformTag(r.platform);n.append(el('span','',r.name));li.append(el('span','rank',r.rank),n,el('span','val',fmt(r.points)+(r.support?' · '+r.support+' ♥':'')+(r.wins?' · '+r.wins+' W':'')));list.append(li);}
- if(!(s.standings||[]).length)list.append(el('li','empty','The season has just begun. Be the first on the board!'));
+ if(!(s.standings||[]).length)list.append(el('li','empty',running?'The community goal has just begun. Be the first on the board!':'Standings appear when a community goal is running.'));
  const hall=$('hall-list');hall.textContent='';$('hall-card').hidden=!(s.hall||[]).length;
  for(const h of s.hall||[]){const li=el('li');const info=el('div');info.append(el('b','',h.champion?h.champion.name:'—'),el('div','when',h.name+(h.champion?' champion · '+fmt(h.champion.points)+' pts':'')+(h.topPilot?' · top pilot '+h.topPilot.name:'')));li.append(el('span','rank','★'),info);hall.append(li);}
 }

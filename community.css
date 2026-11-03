@@ -73,7 +73,9 @@
 .cs-goal-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;margin:12px 0}
 .cs-goal{display:flex;flex-direction:column;gap:10px;padding:14px;border:1px solid rgba(151,223,255,.14);background:rgba(8,15,24,.35)}
 .cs-goal-head{display:flex;gap:10px;align-items:center}.cs-goal-head .cm-title{flex:1}
-.cs-goal-fields label:first-child{grid-column:auto}.cs-goal-fields label:nth-child(4){grid-column:auto}
+.cs-goal-fields{grid-template-columns:1fr 1fr}.cs-goal-fields label:first-child{grid-column:auto}.cs-goal-fields label:nth-child(4){grid-column:auto}
+/* 2.20.48: wider goal cards; the description and due date take a full row */
+.cs-goal-list{grid-template-columns:repeat(auto-fill,minmax(420px,1fr))}.cs-goal-fields label:nth-child(6),.cs-goal-fields label:nth-child(7){grid-column:1/-1}.cs-goal-fields label:nth-child(6) input{width:100%}
 .cs-goal-num{font:700 18px var(--brand-display);color:#97dfff}
 .cs-bonus{display:flex;flex-direction:column;gap:5px;font-size:12px;color:#9ab0c5;max-width:360px}
 .cs-bonus input{height:38px;padding:0 10px;border:1px solid rgba(151,223,255,.18);background:rgba(8,15,24,.55);color:#e6eef7;font:14px 'Segoe UI',sans-serif}

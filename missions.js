@@ -123,9 +123,9 @@ async function applyAlign(gift,sub,auto){
   const cap=v=>Math.min(view?.rewardMax||50,v);// missions are capped at 50 points (2.20.21); season goals keep the full payout
   const next=missions.map(m=>m.type==='subscribe'?{...m,reward:cap(S)}:m.type==='giftSubs'?{...m,reward:cap(G)}:m.type==='loyalSub'?{...m,reward:cap(Math.round(S/2))}:m);
   view=await api('/api/community/missions',{missions:next});missions=view.missions.map(({id,title,type,target,reward,platform,enabled})=>({id,title,type,target,reward,platform,enabled}));
-  const goals=(view.goals||[]).map(({id,title,metric,platform,target})=>({id,title,metric,platform,target,reward:metric==='subs'?S:G}));
-  view=await api('/api/community/season',{goals,supportBonus:G});
-  $('align-note').textContent=(auto?'Matched automatically: ':'Saved: ')+'Crew Supporter '+cap(S)+', Fleet Gifter '+cap(G)+', Veteran Crew '+cap(Math.round(S/2))+' (missions max '+(view?.rewardMax||50)+'), season goals '+G+' per helper, supporter bonus '+G+'.';
+  // 2.20.48: community goals keep the rewards you set on the Community goals page; only the supporter bonus follows.
+  view=await api('/api/community/season',{supportBonus:G});
+  $('align-note').textContent=(auto?'Matched automatically: ':'Saved: ')+'Crew Supporter '+cap(S)+', Fleet Gifter '+cap(G)+', Veteran Crew '+cap(Math.round(S/2))+' (missions max '+(view?.rewardMax||50)+'), supporter bonus '+G+'.';
   render();
 }
 $('align-apply').onclick=async()=>{try{await applyAlign(parseInt($('align-gift').value,10),parseInt($('align-sub').value,10),false);notice('Subscriber rewards now match your Currency System.');}catch(e){notice(e.message,true);}};

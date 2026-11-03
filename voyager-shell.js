@@ -29,7 +29,7 @@ const PAGES=[
  {file:'Voyager_Ranks.html',label:'Ranks',ico:'⚓',group:'Community',live:true,keys:'ranks naval navy officer rank promotion admiral captain commander lieutenant midshipman lifetime points roster',help:'MEMBERSHIP_CARD_SETUP.html'},
  {file:'Voyager_Engage.html',label:'Chat engagement',ico:'✺',group:'Community',live:true,keys:'chat engagement report muster quiz trivia squadron squadrons team relay comms arrival log captain recap',help:'Voyager_Guide.html'},
  {file:'Voyager_Medals.html',label:'Medals',ico:'⬢',group:'Community',live:true,keys:'medals badges honour hall of honour loyalty watch time subs gifts achievements',help:'MEDALS_SETUP.html'},
- {file:'Voyager_Seasons.html',label:'Seasons',ico:'⟳',group:'Community',live:true,keys:'season seasons standings hall of fame champion',help:'Voyager_Guide.html'},
+ {file:'Voyager_Seasons.html',label:'Community goals',ico:'⟳',group:'Community',live:true,keys:'community goals goal season seasons campaign christmas standings hall of fame champion due date',help:'Voyager_Guide.html'},
  {file:'Voyager_Public_Site.html',label:'Public website',ico:'◎',group:'Community',keys:'public website site viewers voyagercommand fourthwall',live:true,help:'Voyager_Guide.html'},
  {file:'Voyager_Security.html',label:'Security',ico:'⛨',group:'Community',keys:'security reports signals accounts',help:'SECURITY_SETUP.html'},
  {file:'Voyager_Command_Center.html',page:'reporting',label:'Reporting',ico:'▥',group:'Community',keys:'reporting reports twitch statistics analytics',help:'TWITCH_ANALYTICS_SETUP.html'},

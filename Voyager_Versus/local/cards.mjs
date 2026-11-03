@@ -227,7 +227,7 @@ export class Cards{
     const wins=num(pilot?.wins),losses=num(pilot?.losses),draws=num(pilot?.draws),battles=wins+losses+draws,vs=sample?{best:7}:medals?.state?.versus?.[who.login];
     // Season
     let standings=this.memo?.standings||[];if(!this.memo?.standings){try{standings=community?.standings(1000)||[];}catch{}if(this.memo)this.memo.standings=standings;}
-    const season=sample?{rank:2,score:18940}:standings.find(r=>r.key===who.key),seasonName=community?.state?.season?.name||'Season';
+    const season=sample?{rank:2,score:18940}:standings.find(r=>r.key===who.key),seasonActive=sample||community?.state?.season?.active===true,seasonName=(seasonActive&&community?.state?.season?.name)||(sample?'Season':'Community goal');
     // Medals
     const earned=Object.entries(v?.m||{}).map(([id,e])=>({id,g:e.g,at:e.at,m:medalById(id)})).filter(x=>x.m);
     const order=(a,b)=>b.g-a.g||(b.m.cat==='honour')-(a.m.cat==='honour')||b.at-a.at;
@@ -253,7 +253,7 @@ export class Cards{
       {label:'TIME WATCHED',value:hidden?'Private':fmt(watchH)+' h',sub:c.streak?fmt(c.streak)+'-stream streak · best '+fmt(c.bestStreak):fmt(c.days||0)+' streams attended'},
       {label:'VOYAGER VERSUS',value:battles?fmt(wins)+'–'+fmt(losses):'—',sub:battles?Math.round(wins/battles*100)+'% win rate'+(vRank?' · #'+vRank:''):'Type !versus to battle'}];
     const extras=[
-      {label:seasonName.toUpperCase(),value:season?'#'+season.rank+' · '+fmt(season.score):'Unranked'},
+      {label:seasonName.toUpperCase(),value:season?'#'+season.rank+' · '+fmt(season.score):seasonActive?'Unranked':'None running'},
       {label:'DREADNOUGHT',value:c.topgun?'MVP ×'+c.topgun:c.slayer?fmt(c.slayer)+' victories':c.fights?fmt(c.fights)+' fights':'—'},
       {label:'SUBSCRIBED',value:hidden?'Private':c.months?fmt(c.months)+' months':'—'},
       {label:'HONOUR',value:'★ '+fmt(honour)+(earned.length?' · '+earned.length+' medals':'')}];
@@ -274,7 +274,7 @@ export class Cards{
       community:[
         // 2.20.47: the stream streak, as asked for on the public card back: streams attended in a row on Twitch.
         {label:'STREAM STREAK',value:hidden?'Private':fmt(c.streak||0)+' in a row',sub:hidden?'':'Best ever '+fmt(c.bestStreak||0)+' · '+fmt(c.days||0)+' streams attended'},
-        {label:'SEASON GOALS HELPED',value:fmt(c.goals||0),sub:'Gifts toward sub goals'},
+        {label:'COMMUNITY GOALS HELPED',value:fmt(c.goals||0),sub:'Goals reached with your help'},
         {label:'GIVEAWAYS WON',value:fmt(c.lucky||0),sub:'Wins only, never tickets'},
         {label:'SUBSCRIBED',value:hidden?'Private':fmt(c.months||0)+' months',sub:PLATFORM[who.platform]},
         {label:'HONOUR',value:'★ '+fmt(honour),sub:earned.length+' of '+total+' medals'}]};
