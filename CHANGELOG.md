@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.47 (3 November 2026)
+
+**Website: the real back of the card, with the stream streak.** On voyagercommand.com › My card, the Back is now the stream card's own Fleet Record side, drawn by the same template in the member's tier (Blue, Silver, Gold or Platinum, with the Ruby VIP / Emerald ribbons where they apply): Dreadnought, Voyager Versus, Missions & Seasons, and Crew & Community. Crew & Community now leads with **STREAM STREAK** — streams attended in a row on Twitch, with the best ever and total streams attended — on stream and on the site. A third side, **Medals**, shows the card's medal wall; what is still to earn is listed under it. Members who typed !voyager private keep the streak and months subscribed hidden; with the site's Activity switch off they show as Hidden. The card data in crew.json now carries the back (`back`) and the VIP / Emerald flags; the site falls back to a short record until the next publish.
+
 ## 2.20.46 (3 November 2026)
 
 **Fleet alerts: original hero ship replaces the last third-party model.** The Fleet alerts overlay's hero is now the **Voyager Sovereign-class carrier**, an original design built from primitives when the overlay loads (`fleet-hero.mjs`): a chamfered main hull, wide hangar sponsons with lit flight decks, raised engine nacelles, a bridge tower, four stern engines and a dorsal battery deck. The RSI Polaris data (`fleet-assets/polaris-data.js`, 11.6 MB) is removed, so the install is smaller and the overlay loads faster. Hull fittings, breach sites and navigation lights now find the hull by surface probe instead of baked coordinates, and the Build, Launch, Fleet, Battle and Repair sequences, dock, cameras and weapons are unchanged. Together with 2.20.45, no Star Citizen / CIG geometry remains anywhere in Voyager. Visual build 1.14; setup page and credits updated.

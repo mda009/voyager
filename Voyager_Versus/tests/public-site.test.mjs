@@ -165,7 +165,14 @@ test('Stream companion: live status, Dreadnought, ranks and medals are allow-lis
   const off=M.buildFeed({collected:{},settings:{sections:{ranks:false,medals:false,dreadnought:false,live:false,crew:false}},companion,crewCount:3});
   for(const k of ['ranks','medals','dreadnought','live','crew'])assert.equal(off[k],undefined,k);
   const crew=M.buildCrew([{name:'Nova',platform:'twitch',tier:'gold',rank:3,place:1,lifetime:52000,medals:[['watch',1],['bad id!',2]],key:'twitch:1'}],{});
-  assert.deepEqual(crew.members,[['Nova','twitch','gold',3,1,52000,[['watch',1]],null,null]]);
+  assert.deepEqual(crew.members,[['Nova','twitch','gold',3,1,52000,[['watch',1]],null,null,null]]);
+  // 2.20.47: the back of the card and the medal wall travel with the row; Activity off hides the stream streak and months.
+  const backRow={statsEyebrow:'!voyager stats · NOVA · VX-1',dread:[['Damage dealt','3,000'],['x','y','extra']],versus:[],missions:[['Missions completed','9']],community:[['STREAM STREAK','41 in a row','Best ever 58 · 96 streams attended'],['SUBSCRIBED','14 months','Twitch'],['HONOUR','★ 22','5 of 31 medals']],badgesEyebrow:'!voyager badges · NOVA',badges:[['Time Watched','Silver',1],['Fleet Gifter','3 / 5 gifted subs',0]],alsoEarned:'Also earned: Regular Pilot'};
+  const withBack=M.buildCrew([{name:'Nova',back:backRow}],{}).members[0][9];
+  assert.equal(withBack.community[0][1],'41 in a row');assert.deepEqual(withBack.badges,[['Time Watched','Silver',1],['Fleet Gifter','3 / 5 gifted subs',0]]);assert.deepEqual(withBack.dread[1],['x','y']);
+  const backOff=M.buildCrew([{name:'Nova',back:backRow}],{sections:{activity:false}}).members[0][9];
+  assert.deepEqual(backOff.community.map(x=>x[1]),['Hidden','Hidden','★ 22']);assert.equal(backOff.community[0][2],'');
+  assert.equal(M.buildCrew([{name:'Nova',back:'nope'}],{}).members[0][9],null);
   const rec=M.buildCrew([{name:'Nova',record:{honour:22,fights:4,victories:2,mvp:1,damage:3000,wins:5,losses:2,missions:9,giveaways:1,podiums:0,seasonPlace:3,seasonPoints:1800,since:'2025-03',watchSeconds:99,months:14}}],{sections:{activity:false}}).members[0][7];
   assert.deepEqual(rec,[22,4,2,1,3000,5,2,9,1,0,3,1800,'2025-03'],'with Activity off: no watch time or months');
   assert.equal(M.buildCrew([{name:'Nova'}],{showNames:false}),null);

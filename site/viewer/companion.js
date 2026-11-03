@@ -181,7 +181,7 @@ async function loadCrew(force=false){
  if(crewLoading)return crewLoading;
  $('crew-note').textContent='Loading the crew list…';
  crewLoading=(async()=>{try{const r=await fetch(crewUrl()+'?t='+Math.floor(Date.now()/300000),{cache:'no-store'});if(!r.ok)throw new Error();const d=await r.json();if(d?.schema!==1||!Array.isArray(d.members))throw new Error();
-  crew=d.members.map(m=>({name:String(m[0]),platform:m[1],tier:m[2],rank:m[3]|0,place:m[4]|0,lifetime:Number(m[5])||0,medals:Array.isArray(m[6])?m[6]:[],record:Array.isArray(m[7])?m[7]:null,front:m[8]&&typeof m[8]==='object'?m[8]:null,key:String(m[0]).toLowerCase()}));crewAt=Date.now();
+  crew=d.members.map(m=>({name:String(m[0]),platform:m[1],tier:m[2],rank:m[3]|0,place:m[4]|0,lifetime:Number(m[5])||0,medals:Array.isArray(m[6])?m[6]:[],record:Array.isArray(m[7])?m[7]:null,front:m[8]&&typeof m[8]==='object'?m[8]:null,back:m[9]&&typeof m[9]==='object'?m[9]:null,key:String(m[0]).toLowerCase()}));crewAt=Date.now();
   $('crew-note').textContent=fmt(crew.length)+' crew members · updated '+ago(d.generatedAt)+'. Not listed? Earn some Voyager points on stream and check back.';
   search();
   try{const saved=localStorage.getItem('voyager-me');if(saved&&!selected){const me=crew.find(m=>m.key===saved);if(me)show(me,false);}}catch{}
@@ -208,16 +208,23 @@ const CARD_LOOK=[{metal:'linear-gradient(180deg,#ffe6cc 0%,#f0a868 30%,#a5582a 5
  {metal:'linear-gradient(135deg,#8ff6ff 0%,#9fb4ff 30%,#c58bff 52%,#ff8fe0 74%,#ffe28a 100%)',ink:'#ffffff',tag:'#d6a8ff'}];
 const RANK_IDS=['mid','aslt','slt','lt','lcdr','cdr','capt','cdre','radm','vadm','adml','af'];
 let template=null;
-function loadTemplate(){return template||(template=import('./card-template.js?v=2.20.29').catch(()=>null));}
-async function drawFront(host,f){
- const T=await loadTemplate();if(!T||!f){host.append(el('p','lede small','The full card appears after the next update from the stream.'));return false;}
+function loadTemplate(){return template||(template=import('./card-template.js?v=2.20.47').catch(()=>null));}
+// Draws one side of the stream card with the overlay's own template: 'front', 'stats' (the back) or 'badges' (medal wall).
+async function drawSide(host,f,side='front',b=null){
+ const T=await loadTemplate();if(!T||!f||(side!=='front'&&!b)){host.append(el('p','lede small',side==='front'?'The full card appears after the next update from the stream.':'The back of the card appears after the next update from the stream.'));return false;}
  const byName=new Map([...catalogue.values()].map(md=>[md.name,md]));
  const t={...T.TIERS[f.tier]||T.TIERS.blue,next:f.next,pct:f.pct,need:f.need};
- const v={front:'block',stats:'none',badges:'none',banner:'none',bannerEyebrow:'',bannerText:''};
- const c={callsign:f.callsign,badgeCount:f.badgeCount,statsEyebrow:'',badgesEyebrow:'',alsoEarned:'',promoted:''};
+ const ribbons=f.vip||f.emerald;
+ const v={front:side==='front'?'block':'none',stats:side==='stats'?'block':'none',badges:side==='badges'?'block':'none',banner:'none',bannerEyebrow:'',bannerText:'',
+  vip:f.vip?'flex':'none',emerald:f.emerald&&!f.vip?'flex':'none',ribbonPad:ribbons?'160px':'0',
+  vipText:f.vip&&f.emerald?'★ RUBY VIP · EMERALD ★':'★ RUBY VIP ★',vipFont:f.vip&&f.emerald?'15px':'17px',vipSpacing:f.vip&&f.emerald?'3px':'5px',
+  vipBg:f.vip&&f.emerald?'linear-gradient(90deg, #e0313f 0%, #e0313f 44%, #22b04c 56%, #22b04c 100%)':'linear-gradient(90deg, #e0313f, #e0313f)'};
+ const c={callsign:f.callsign,badgeCount:f.badgeCount,statsEyebrow:b?.statsEyebrow||'',badgesEyebrow:b?.badgesEyebrow||'',alsoEarned:b?.alsoEarned||'',promoted:''};
+ const badge=([name,sub,earned])=>{const md=byName.get(name),g=GRADES.indexOf(sub),look=earned&&g>=0?CARD_LOOK[g]:null;return {icon:md?.icon||'',name,sub,op:earned?'1':'.34',filter:earned?'none':'grayscale(1)',metal:look?.metal||'',ink:look?.ink||'',tag:look?.tag||''};};
+ const rows=list=>(list||[]).map(([label,value])=>({label,value}));
  const d={fields:f.fields.map((value,i)=>({label:FIELD_LABELS[i],value,icon:FIELD_ICONS[i]})),stats:f.stats.map(([label,value,sub])=>({label,value,sub})),extras:f.extras.map(([label,value])=>({label,value})),
-  equipped:f.equipped.map(([name,sub])=>{const md=byName.get(name),g=GRADES.indexOf(sub),look=g>=0?CARD_LOOK[g]:null;return {icon:md?.icon||'',name,sub,op:'1',filter:'none',metal:look?.metal||'',ink:look?.ink||'',tag:look?.tag||''};}),
-  badges:[],dread:[],versus:[],missions:[],community:[]};
+  equipped:f.equipped.map(([name,sub])=>badge([name,sub,1])),
+  badges:(b?.badges||[]).map(badge),dread:rows(b?.dread),versus:rows(b?.versus),missions:rows(b?.missions),community:(b?.community||[]).map(([label,value,sub])=>({label,value,sub}))};
  const k=f.rank?{show:'flex',roleShow:'none',name:f.rank.name,place:f.rank.place}:{show:'none',roleShow:'inline',name:'',place:''};
  for(const id of RANK_IDS)k['s_'+id]=f.rank&&f.rank.id===id?'inline-flex':'none';
  // The template escapes every value itself (it is what the stream overlay uses).
@@ -227,9 +234,10 @@ async function drawFront(host,f){
   const w=host.clientWidth||600;scale.style.transform='scale('+(w/1200)+')';host.style.height=(720*w/1200)+'px';};
  fit();new ResizeObserver(fit).observe(host);addEventListener('resize',fit);document.addEventListener('fullscreenchange',()=>{fit();if(!document.fullscreenElement)try{screen.orientation?.unlock?.();}catch{}});
  // Small screens: show the card full screen (sideways on phones) so every detail is readable.
- if(host.requestFullscreen){const b=el('button','fs-btn','⤢ Full screen');b.type='button';b.onclick=async e=>{e.stopPropagation();try{await host.requestFullscreen();await screen.orientation?.lock?.('landscape');}catch{}};host.append(b);}
+ if(host.requestFullscreen){const btn=el('button','fs-btn','⤢ Full screen');btn.type='button';btn.onclick=async e=>{e.stopPropagation();try{await host.requestFullscreen();await screen.orientation?.lock?.('landscape');}catch{}};host.append(btn);}
  return true;
 }
+const drawFront=(host,f)=>drawSide(host,f,'front');
 function show(m,remember=true,side='front'){
  selected=m;$('crew-results').textContent='';$('crew-search').value='';
  if(remember)try{localStorage.setItem('voyager-me',m.key);}catch{}
@@ -239,43 +247,30 @@ function show(m,remember=true,side='front'){
  const rec=m.record?{honour:r[0],fights:r[1],victories:r[2],mvp:r[3],damage:r[4],wins:r[5],losses:r[6],missions:r[7],giveaways:r[8],podiums:r[9],seasonPlace:r[10],seasonPoints:r[11],since:r[12],
   activity:r.length>=25?{hours:r[13],months:r[14],subBest:r[15],gifts:r[16],streams:r[17],streak:r[18],bestStreak:r[19],messages:r[20],followDays:r[21],versusBest:r[22],points:r[23],private:r[24]===1}:null}:null;
  const ctl=el('div','sides');ctl.setAttribute('role','tablist');ctl.setAttribute('aria-label','Card side');
- const fb=el('button','','Front'),bb=el('button','','Back');for(const b of [fb,bb]){b.type='button';b.setAttribute('role','tab');ctl.append(b);}
- const flipper=el('div','card3d'),front=el('div','face front cardface'),back=el('div','member face back');
- let current=side,busy=false;
- const paint=s=>{front.hidden=s!=='front';back.hidden=s!=='back';fb.setAttribute('aria-selected',String(s==='front'));bb.setAttribute('aria-selected',String(s==='back'));};
+ // 2.20.47: Front, Back and Medals are the stream card's own three sides, drawn by the same template in the member's tier.
+ const SIDES=[['front','Front'],['back','Back'],['medals','Medals']],tabs={};
+ for(const [id,label] of SIDES){const b=el('button','',label);b.type='button';b.setAttribute('role','tab');b.onclick=()=>setSide(id);ctl.append(b);tabs[id]=b;}
+ const flipper=el('div','card3d'),faces={front:el('div','face front cardface'),back:el('div','face back cardface'),medals:el('div','face medals cardface')};
+ let current=SIDES.some(x=>x[0]===side)?side:'front',busy=false;
+ const paint=s=>{for(const [id,face] of Object.entries(faces)){face.hidden=id!==s;tabs[id].setAttribute('aria-selected',String(id===s));}};
  const setSide=async s=>{if(s===current||busy)return;busy=true;flipper.classList.add('turn');await new Promise(r=>setTimeout(r,230));current=s;paint(s);flipper.classList.remove('turn');flipper.classList.add('turned');requestAnimationFrame(()=>requestAnimationFrame(()=>flipper.classList.remove('turned')));setTimeout(()=>busy=false,260);};
- fb.onclick=()=>setSide('front');bb.onclick=()=>setSide('back');
- flipper.onclick=e=>{if(e.target.closest('button,summary,details'))return;setSide(current==='front'?'back':'front');};
- flipper.tabIndex=0;flipper.setAttribute('aria-label','Membership card. Press Enter to flip.');flipper.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();flipper.click();}};
- // FRONT: the stream card.
- drawFront(front,m.front);
- // BACK: everything the front doesn't show.
- back.append(el('div','tiername',title+' · service record'),el('div','who small-who',m.name));
- if(rec){
-  const battles=rec.wins+rec.losses,a=rec.activity,g=el('div','rgrid');
-  g.append(tile('Dreadnought',plural(rec.victories,'victory','victories'),plural(rec.fights,'fight','fights')+' · MVP ×'+fmt(rec.mvp)+' · '+fmt(rec.damage)+' damage'),
-   tile('Voyager Versus',plural(battles,'battle','battles'),battles?fmt(rec.wins)+' won · '+Math.round(rec.wins/battles*100)+'%'+(a?' · best streak '+fmt(a.versusBest):''):'Type !versus to battle'),
-   tile('Missions',fmt(rec.missions),'weekly missions completed'),
-   tile('Season',fmt(rec.seasonPoints)+' pts',rec.podiums?plural(rec.podiums,'podium finish','podium finishes'):'season score'),
-   tile('Giveaways won',fmt(rec.giveaways),'confirmed wins'));
-  if(a){g.append(tile('Streams attended',fmt(a.streams),'best watch streak '+plural(a.bestStreak,'stream','streams')),
-   tile('Chat messages',fmt(a.messages),'counted since November 2026'),
-   tile('Gifted subs',fmt(a.gifts),'gifted to the crew'),
-   tile('Sub streak',a.private?'Private':plural(a.subBest,'month','months'),a.private?'Hidden by !voyager private':'best run in a row'),
-   tile('With the crew',plural(a.followDays,'day','days'),rec.since?(()=>{const [y,mo]=rec.since.split('-').map(Number);return 'since '+new Date(y,mo-1,1).toLocaleDateString(undefined,{month:'long',year:'numeric'});})():'since first seen'));}
-  back.append(g);
- }else back.append(el('p','lede small','The full service record appears after the next update from the stream.'));
- back.append(el('h4','','Medal wall · '+m.medals.length+' of '+(total||'–')+' unlocked'));
- const wall=el('div','medal-grid');m.medals.forEach(([id,g],i)=>wall.append(medalTile(catalogue.get(id),g,i)));
+ flipper.onclick=e=>{if(e.target.closest('button,summary,details'))return;setSide(current==='front'?'back':current==='back'?'medals':'front');};
+ flipper.tabIndex=0;flipper.setAttribute('aria-label','Membership card. Press Enter to turn it over.');flipper.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();flipper.click();}};
+ drawSide(faces.front,m.front,'front');
+ // BACK: the fleet record (Dreadnought, Versus, missions, crew & community with the stream streak), as on stream.
+ drawSide(faces.back,m.front,'stats',m.back);
+ // MEDALS: the medal wall side, then anything still to earn.
+ drawSide(faces.medals,m.front,'badges',m.back);
+ flipper.append(faces.front,faces.back,faces.medals);paint(current);
  const earned=new Set(m.medals.map(x=>x[0])),locked=[...catalogue.values()].filter(md=>!earned.has(md.id)&&md.kind!=='secret');
- if(!m.medals.length)wall.append(el('p','lede small','No medals yet.'));
- back.append(wall);
- if(locked.length){const det=el('details','locked-list');det.append(el('summary','','Still to earn · '+locked.length));const lg=el('div','medal-grid');for(const md of locked)lg.append(medalTile(md,0,0,true));det.append(lg);back.append(det);}
- back.append(el('p','hint','Tap the card to see the front ↻'));
- flipper.append(front,back);paint(current);
+ const under=el('div','under-card');
+ if(rec&&!m.back){const a=rec.activity,g=el('div','rgrid');g.append(tile('Dreadnought',plural(rec.victories,'victory','victories'),plural(rec.fights,'fight','fights')+' · MVP ×'+fmt(rec.mvp)),tile('Missions',fmt(rec.missions),'weekly missions completed'),tile('Giveaways won',fmt(rec.giveaways),'confirmed wins'));if(a)g.append(tile('Stream streak',a.private?'Private':plural(a.streak,'stream','streams')+' in a row','best ever '+fmt(a.bestStreak)));under.append(g);}
+ under.append(el('h4','','Medals · '+m.medals.length+' of '+(total||'–')+' unlocked'));
+ if(locked.length){const det=el('details','locked-list');det.append(el('summary','','Still to earn · '+locked.length));const lg=el('div','medal-grid');for(const md of locked)lg.append(medalTile(md,0,0,true));det.append(lg);under.append(det);}
+ under.append(el('p','hint','Tap the card to turn it over ↻'));
  const again=el('button','chip','Not you? Search again');again.type='button';again.onclick=()=>{try{localStorage.removeItem('voyager-me');}catch{}selected=null;box.hidden=true;$('crew-search').focus();};
- const foot=el('div','card-foot');foot.append(again,el('span','lede small','Tap the card to flip it · type !voyager in chat to show it on stream.'));
- box.append(ctl,flipper,foot);
+ const foot=el('div','card-foot');foot.append(again,el('span','lede small','Tap the card to turn it over · type !voyager in chat to show it on stream.'));
+ box.append(ctl,flipper,under,foot);
 }
 $('crew-search').addEventListener('input',()=>{if(!crew)loadCrew();search();});
 $('crew-search').addEventListener('focus',()=>loadCrew());

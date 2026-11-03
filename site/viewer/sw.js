@@ -1,6 +1,6 @@
 /* Voyager stream companion service worker: the page works offline and opens instantly.
    The page and its files are cached; the live feed always comes from the network first (the last copy is used offline). */
-const CACHE='voyager-companion-v10';
+const CACHE='voyager-companion-v11';
 const SHELL=['./','index.html','companion.js','card-template.js','brand/voyager.png','fair-draw.js','manifest.webmanifest','assets/voyager.png','assets/icon.png','assets/Rajdhani-600.ttf','assets/Rajdhani-700.ttf'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL)).then(()=>self.skipWaiting()));});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));});

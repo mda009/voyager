@@ -272,7 +272,8 @@ export class Cards{
       versus:[{label:'Record',value:battles?fmt(wins)+'–'+fmt(losses)+(draws?'–'+fmt(draws):''):'—'},{label:'Win rate',value:battles?Math.round(wins/battles*100)+'%':'—'},{label:'Battles',value:fmt(battles)},{label:'Best win streak',value:fmt(vs?.best||0)},{label:'Versus rank',value:vRank?'#'+vRank:'—'}],
       missions:[{label:'Missions completed',value:fmt(c.missions||0)},{label:'Mission types',value:fmt(mtypes)},{label:seasonName+' rank',value:season?'#'+season.rank:'—'},{label:'Season points',value:season?fmt(season.score):'—'},{label:'Season podiums',value:fmt(c.podium||0)}],
       community:[
-        {label:'WATCH STREAK',value:hidden?'Private':fmt(c.streak||0)+' streams',sub:hidden?'':'Best ever '+fmt(c.bestStreak||0)},
+        // 2.20.47: the stream streak, as asked for on the public card back: streams attended in a row on Twitch.
+        {label:'STREAM STREAK',value:hidden?'Private':fmt(c.streak||0)+' in a row',sub:hidden?'':'Best ever '+fmt(c.bestStreak||0)+' · '+fmt(c.days||0)+' streams attended'},
         {label:'SEASON GOALS HELPED',value:fmt(c.goals||0),sub:'Gifts toward sub goals'},
         {label:'GIVEAWAYS WON',value:fmt(c.lucky||0),sub:'Wins only, never tickets'},
         {label:'SUBSCRIBED',value:hidden?'Private':fmt(c.months||0)+' months',sub:PLATFORM[who.platform]},
@@ -394,13 +395,20 @@ export class Cards{
             return {private:priv,hours:priv?0:Math.floor(x.watch||0),months:priv?0:c.months||0,subBest:priv?0:c.subBest||0,gifts:c.gifts||0,streams:c.days||0,streak:c.streak||0,bestStreak:c.bestStreak||0,
               messages:c.msgs||0,followDays:x.follow||0,versusBest:num(this.medals?.state?.versus?.[login]?.best),points:num(members[m.key]?.balance)};})()},
         // 2.20.20: the front exactly as the !voyager card shows it on stream (same builder), for the public site.
-        front:(()=>{try{const cm=members[m.key]||{};return this.publicFront(this.build({key:m.key,platform:m.platform,login,name:m.name,tier:m.tier,points:num(cm.balance),hasPoints:Number.isFinite(cm.balance),rank:0,members:0},'front',null));}catch{return null;}})()};});
+        // 2.20.47: the back (fleet record) and the medal wall too, so the site shows the very same card sides as the stream.
+        ...(()=>{try{const cm=members[m.key]||{},built=this.build({key:m.key,platform:m.platform,login,name:m.name,tier:m.tier,points:num(cm.balance),hasPoints:Number.isFinite(cm.balance),rank:0,members:0},'front',null);return {front:this.publicFront(built),back:this.publicBack(built)};}catch{return {front:null,back:null};}})()};});
   }
   // The front of a built card, trimmed to what the template draws (no medal icons or tier styling: the site has those).
   publicFront(card){
     return {tier:card.tier,next:card.t.next,pct:card.t.pct,need:card.t.need,callsign:card.c.callsign,badgeCount:card.c.badgeCount,
       fields:card.d.fields.map(f=>f.value),stats:card.d.stats.map(x=>[x.label,x.value,x.sub]),extras:card.d.extras.map(x=>[x.label,x.value]),equipped:card.d.equipped.map(b=>[b.name,b.sub]),
-      rank:card.k.show==='none'?null:{id:card.rank,name:card.k.name,place:card.k.place}};
+      rank:card.k.show==='none'?null:{id:card.rank,name:card.k.name,place:card.k.place},vip:!!card.vip,emerald:!!card.emerald};
+  }
+  // 2.20.47: the back of the card (fleet record) and the medal wall exactly as the stream card draws them, as text only.
+  publicBack(card){
+    const rows=list=>(list||[]).map(x=>[x.label,x.value]);
+    return {statsEyebrow:card.c.statsEyebrow,dread:rows(card.d.dread),versus:rows(card.d.versus),missions:rows(card.d.missions),community:(card.d.community||[]).map(x=>[x.label,x.value,x.sub||'']),
+      badgesEyebrow:card.c.badgesEyebrow,badges:(card.d.badges||[]).map(b=>[b.name,b.sub,b.op==='1'?1:0]),alsoEarned:card.c.alsoEarned};
   }
   // 2.20.13: the Ranks page in Voyager Control. Everyone with lifetime points, their rank, all-time place and progress.
   ranksView(limit=1000){

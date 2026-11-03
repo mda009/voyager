@@ -325,12 +325,19 @@ function front(f,activity){if(!f||typeof f!=='object')return null;const t=(v,max
   if(!activity){for(const x of stats)if(x[0]==='TIME WATCHED'){x[1]='Hidden';x[2]='';}for(const x of extras)if(x[0]==='SUBSCRIBED')x[1]='Hidden';}
   return {tier:oneOf(f.tier,TIER_KEYS,'blue'),next:t(f.next,40),pct:/^\d{1,3}%$/.test(f.pct)?f.pct:'0%',need:t(f.need,120),callsign:t(f.callsign,40),badgeCount:t(f.badgeCount,40),
     fields:list(f.fields).slice(0,3).map(x=>t(x,60)),stats,extras,equipped:list(f.equipped).slice(0,6).map(x=>[t(x?.[0],40),t(x?.[1],20)]),
-    rank:f.rank&&typeof f.rank==='object'?{id:typeof f.rank.id==='string'&&/^[a-z]{2,5}$/.test(f.rank.id)?f.rank.id:'mid',name:t(f.rank.name,30),place:t(f.rank.place,80)}:null};}
+    rank:f.rank&&typeof f.rank==='object'?{id:typeof f.rank.id==='string'&&/^[a-z]{2,5}$/.test(f.rank.id)?f.rank.id:'mid',name:t(f.rank.name,30),place:t(f.rank.place,80)}:null,vip:f.vip===true,emerald:f.emerald===true};}
+// 2.20.47: the back of the card (fleet record) and the medal wall, as the stream card draws them. With Activity off,
+// the stream streak and months subscribed are replaced by "Hidden" (as the front does for time watched).
+function back(b,activity){if(!b||typeof b!=='object')return null;const t=(v,max=60)=>clean(v,max),pairs=v=>list(v).slice(0,6).map(x=>[t(x?.[0],40),t(x?.[1],40)]);
+  const community=list(b.community).slice(0,6).map(x=>[t(x?.[0],30),t(x?.[1],40),t(x?.[2],90)]);
+  if(!activity)for(const x of community)if(x[0]==='STREAM STREAK'||x[0]==='SUBSCRIBED'){x[1]='Hidden';x[2]='';}
+  return {statsEyebrow:t(b.statsEyebrow,120),dread:pairs(b.dread),versus:pairs(b.versus),missions:pairs(b.missions),community,
+    badgesEyebrow:t(b.badgesEyebrow,120),badges:list(b.badges).slice(0,24).map(x=>[t(x?.[0],40),t(x?.[1],40),x?.[2]===1?1:0]),alsoEarned:t(b.alsoEarned,160)};}
 // crew.json: one compact row per member for "find your card". Names only with "Show viewer names" on.
 export function buildCrew(rows,settings=DEFAULT_SETTINGS,now=Date.now(),limit=2000){
   const s=normalizeSettings(settings);if(!s.sections.crew||!s.showNames)return null;
   const members=list(rows).slice(0,limit).map(r=>{const n=clean(r?.name,LIMITS.name);if(!n)return null;
     return [n,oneOf(r.platform,Object.keys(PLATFORMS),''),oneOf(r.tier,TIERS_ALL,'blue'),int(r.rank,0,RANK_COUNT-1)??0,int(r.place,0,1e6)??0,int(r.lifetime,0,1e12)??0,
-      list(r.medals).filter(m=>medalId(m?.[0])).slice(0,40).map(m=>[m[0],int(m[1],0,3)??0]),record(r.record,s.sections.activity),front(r.front,s.sections.activity)];}).filter(Boolean);
+      list(r.medals).filter(m=>medalId(m?.[0])).slice(0,40).map(m=>[m[0],int(m[1],0,3)??0]),record(r.record,s.sections.activity),front(r.front,s.sections.activity),back(r.back,s.sections.activity)];}).filter(Boolean);
   return {schema:1,generatedAt:now,members};
 }
