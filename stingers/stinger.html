@@ -45,7 +45,8 @@ const clamp=v=>Math.max(0,Math.min(1,v)),easeOut=x=>1-Math.pow(1-clamp(x),3),eas
 let seed=11;const rnd=()=>{seed=(seed*16807)%2147483647;return seed/2147483647;};const sparks=Array.from({length:40},()=>({a:rnd()*6.283,r:120+rnd()*520,s:.7+rnd()*.9,d:rnd()*.3}));
 for(const s of sparks){const e=document.createElement('i');e.className='spark';$('sparks').append(e);s.el=e;}
 // Timeline (seconds): 0–.40 panels in · .40–1.10 covered (switch scenes at .70) · 1.10–1.50 panels out. Total 1.5 s.
-window.render=function(t){
+const DUR=Number(q.get('dur'))||1.5; // total seconds; the timeline below is written for 1.5 s and stretched to fit
+window.render=function(real){const t=real*1.5/DUR;
  const inP=easeOut(t/.40),outP=easeIn((t-1.10)/.40);
  const l=document.querySelector('.panel.l'),r=document.querySelector('.panel.r');
  const off=(1-inP)*1040+outP*1040;l.style.transform='translateX('+(-off)+'px)';r.style.transform='translateX('+off+'px)';

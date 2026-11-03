@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.58 (3 November 2026)
+
+**All-three stinger slowed to 2 seconds.** `stingers/Voyager_Stinger_all.webm` now runs 2 s (transition point 950 ms); the other three stay at 1.5 s. The render script takes a length in seconds and stretches the animation to fit.
+
 ## 2.20.57 (3 November 2026)
 
 **Scene transitions: Voyager stingers.** Four OBS stinger transitions in the glass design, in the new `stingers/` folder: `Voyager_Stinger_voyager.webm`, `Voyager_Stinger_mda009.webm`, `Voyager_Stinger_unprofessionals.webm` and `Voyager_Stinger_all.webm` (all three logos). Two cut-corner glass panels slide in and meet on a blue seam, a light sweeps across, the logo rises with its ring, sparks and title, then the panels slide out: 1.5 s, 1920 × 1080, 60 fps, VP9 WebM with real transparency, no audio. Transition point 700 ms. Setup, per-scene overrides and the render page (`stingers/stinger.html` + `render-stingers.cjs`) are in `STINGERS_SETUP.html`, linked from the guide and the Help list.
