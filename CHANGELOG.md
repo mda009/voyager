@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.53 (3 November 2026)
+
+**Camera frame fixes.** The frame overlay now renders in OBS's own browser (it used a colour function OBS's Chromium does not have, so the running light and corner marks were missing), and it also follows **Show now / Hide now** on Support alerts › Camera spotlight, not only live alerts. Reminder: the frame is invisible until an alert plays or the camera is shown; add `?preview=1` to the source address while lining it up.
+
 ## 2.20.52 (3 November 2026)
 
 **Camera spotlight with support alerts.** A second camera (for example the OBS source *Brio cam*) can now show itself for the length of every follow, sub, gift, resub, bits or raid alert and hide again afterwards (plus a hold you set), with OBS fading it in and out. Settings are on Support alerts › **Camera spotlight** (source, scene, hold, Show now / Hide now). The Fleet overlay cues the **Voyager - Fleet Alerts** Streamer.bot action (now v1.7 — paste the updated `Voyager_Fleet_Alerts.cs`) at the start and end of each alert, and the action shows or hides the source through Streamer.bot's OBS connection; overlapping alerts keep the camera up until the last one ends.

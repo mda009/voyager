@@ -12,21 +12,21 @@
 *{box-sizing:border-box}
 html,body{margin:0;width:100%;height:100%;overflow:hidden;background:transparent!important}
 #frame{position:absolute;inset:0;border-radius:var(--r,48px);opacity:0;transition:opacity .45s ease;pointer-events:none;
-  --accent:#ffd36a;--accent2:#fff3b8}
-#frame.blue{--accent:#97dfff;--accent2:#e6f7ff}#frame.white{--accent:#ffffff;--accent2:#dbe9f5}
+  --accent:#ffd36a;--accent2:#fff3b8;--accent-soft:rgba(255,211,106,.35);--accent-mark:rgba(255,211,106,.7)}
+#frame.blue{--accent:#97dfff;--accent2:#e6f7ff;--accent-soft:rgba(151,223,255,.35);--accent-mark:rgba(151,223,255,.7)}#frame.white{--accent:#ffffff;--accent2:#dbe9f5;--accent-soft:rgba(255,255,255,.35);--accent-mark:rgba(255,255,255,.7)}
 #frame.on{opacity:1}
 /* glass stroke: a translucent light edge with a soft outer shadow, like the card and goal tiles */
 #frame .glass{position:absolute;inset:0;border-radius:inherit;box-shadow:inset 0 0 0 var(--b,4px) rgba(255,255,255,.22),inset 0 1px 0 rgba(255,255,255,.35),0 18px 40px rgba(0,0,0,.45)}
 #frame.noglow .glass{box-shadow:inset 0 0 0 var(--b,4px) rgba(255,255,255,.22),inset 0 1px 0 rgba(255,255,255,.35)}
 /* running light: a conic gradient ring, cut to the border width with a mask */
 #frame .light{position:absolute;inset:0;border-radius:inherit;padding:var(--b,4px);
-  background:conic-gradient(from var(--a),transparent 0deg,transparent 250deg,color-mix(in srgb,var(--accent) 35%,transparent) 300deg,var(--accent) 335deg,var(--accent2) 352deg,transparent 360deg);
+  background:conic-gradient(from var(--a),transparent 0deg,transparent 250deg,var(--accent-soft) 300deg,var(--accent) 335deg,var(--accent2) 352deg,transparent 360deg);
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);mask-composite:exclude;
   animation:lap var(--speed,6s) linear infinite;filter:drop-shadow(0 0 6px var(--accent))}
-#frame.static .light{animation:none;background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 45%,transparent),transparent 60%)}
+#frame.static .light{animation:none;background:linear-gradient(135deg,var(--accent-soft),transparent 60%)}
 @keyframes lap{to{--a:360deg}}
 /* faint corner marks in the brand's cut-corner language */
-#frame .mark{position:absolute;width:26px;height:26px;border:2px solid color-mix(in srgb,var(--accent) 70%,transparent);opacity:.9}
+#frame .mark{position:absolute;width:26px;height:26px;border:2px solid var(--accent-mark);opacity:.9}
 #frame .tl{left:14px;top:14px;border-right:0;border-bottom:0;border-top-left-radius:6px}#frame .tr{right:14px;top:14px;border-left:0;border-bottom:0;border-top-right-radius:6px}
 #frame .bl{left:14px;bottom:14px;border-right:0;border-top:0;border-bottom-left-radius:6px}#frame .br{right:14px;bottom:14px;border-left:0;border-top:0;border-bottom-right-radius:6px}
 @media(prefers-reduced-motion:reduce){#frame .light{animation:none}}
@@ -43,12 +43,14 @@ const num=(k,d,min,max)=>{const n=Number(q.get(k));return q.has(k)&&Number.isFin
 frame.style.setProperty('--r',num('radius',48,0,400)+'px');frame.style.setProperty('--b',num('border',4,1,24)+'px');frame.style.setProperty('--speed',num('speed',6,1,60)+'s');
 if(['blue','white'].includes(q.get('accent')))frame.classList.add(q.get('accent'));if(q.get('glow')==='0')frame.classList.add('noglow');if(q.get('static')==='1')frame.classList.add('static');
 const preview=q.get('preview')==='1';if(preview){frame.classList.add('on');return;}
+if(!window.VoyagerFleetConnection){console.warn('Camera frame: open this page from the Voyager host (http://127.0.0.1:8740/control/...) so its scripts load.');}
 let state=null,offset=0;
 function tick(){
  const now=Date.now()+offset,c=state?.camera;if(!state||!state.enabled||!c?.enabled){frame.classList.remove('on');return;}
  const hold=Math.max(0,Math.min(30,Number(c.hold)||0))*1000;
- const on=(state.queue||[]).some(e=>e.startAt<=now&&now<e.endAt+hold);
- frame.classList.toggle('on',on);
+ const alert=(state.queue||[]).some(e=>e.startAt<=now&&now<e.endAt+hold),last=state.cameraLast;
+ const manual=!!last&&last.visible===true&&!last.error; // Show now on the Support alerts page
+ frame.classList.toggle('on',alert||manual);
 }
 setInterval(tick,250);
 try{
