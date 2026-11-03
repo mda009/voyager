@@ -1,0 +1,30 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Voyager • Scene transitions (stingers)</title>
+<style>:root{color-scheme:dark;font-family:"Segoe UI",Arial,sans-serif;background:#09111b;color:#dce7f3}*{box-sizing:border-box}body{margin:0;padding:36px 24px}main{max-width:980px;margin:auto}a{color:#b2cef5}h1{font-size:30px;margin:0 0 6px}h2{font-size:20px;margin:28px 0 8px;color:#e9f1fb}code{background:#122034;padding:2px 6px;border-radius:4px}ol li,ul li{margin:6px 0}.card{background:#0f1b2b;border:1px solid #1e3049;border-radius:10px;padding:16px 18px;margin:14px 0}table{border-collapse:collapse;width:100%}td,th{text-align:left;padding:7px 10px;border-bottom:1px solid #1e3049;vertical-align:top}
+.vids{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.vids figure{margin:0}.vids video{width:100%;aspect-ratio:16/9;border-radius:10px;border:1px solid #1e3049;background:radial-gradient(circle at 50% 40%,#1d2d44,#0b1320 70%)}.vids figcaption{font-size:13px;color:#9ab0c5;margin-top:6px}.vids figcaption b{color:#e9f1fb;display:block}@media(max-width:700px){.vids{grid-template-columns:1fr}}</style></head>
+<body><main>
+<p><a href="Voyager_Guide.html">← Voyager guide</a></p>
+<h1>Scene transitions: Voyager stingers</h1>
+<p>Four stinger transitions in the glass design (2.20.57). Two cut-corner glass panels slide in from the sides and meet on a blue seam, a light sweeps across, the logo rises with its ring, sparks and title, then the panels slide back out. 1.5 seconds, 1920 × 1080, 60 fps, transparent background (VP9 WebM with alpha), no audio. The scene switch happens behind the panels, so you only ever see the glass, never a hard cut.</p>
+<div class="vids">
+<figure><video src="stingers/Voyager_Stinger_voyager.webm" muted loop autoplay playsinline></video><figcaption><b>Voyager</b>Voyager_Stinger_voyager.webm · the membership program emblem, for stream scenes.</figcaption></figure>
+<figure><video src="stingers/Voyager_Stinger_mda009.webm" muted loop autoplay playsinline></video><figcaption><b>MDA009</b>Voyager_Stinger_mda009.webm · the MDA wings, for your personal scenes (starting, BRB, ending).</figcaption></figure>
+<figure><video src="stingers/Voyager_Stinger_unprofessionals.webm" muted loop autoplay playsinline></video><figcaption><b>The Unprofessionals</b>Voyager_Stinger_unprofessionals.webm · for community and org scenes.</figcaption></figure>
+<figure><video src="stingers/Voyager_Stinger_all.webm" muted loop autoplay playsinline></video><figcaption><b>All three</b>Voyager_Stinger_all.webm · Unprofessionals, Voyager and MDA009 together, for the main gameplay switch.</figcaption></figure>
+</div>
+<div class="card"><h2 style="margin-top:0">Adding a stinger in OBS</h2>
+<ol><li>In OBS, in the <strong>Scene Transitions</strong> dock, press <strong>+</strong> › <strong>Stinger</strong> and name it, for example <code>Voyager</code>.</li>
+<li><strong>Video File:</strong> browse to your Voyager folder › <code>stingers</code> and pick the file. From the installed app that is <code>C:\Program Files\Voyager\resources\voyager\stingers\Voyager_Stinger_voyager.webm</code> (or the mda009, unprofessionals or all file).</li>
+<li><strong>Transition Point Type:</strong> Time (milliseconds). <strong>Transition Point:</strong> <code>700</code>. The panels fully cover the screen from about 350 ms to 1100 ms, so anything in that range is safe; 700 is the middle.</li>
+<li><strong>Audio Monitoring:</strong> leave on Monitor Off (the files have no sound). <strong>Audio Fade Style:</strong> Fade out to transition point, then fade in.</li>
+<li>Leave <strong>Track Matte</strong> off: these files carry real transparency.</li>
+<li>Press <strong>OK</strong>, then choose that stinger as the current transition in the dock. Duration is taken from the file (1500 ms).</li></ol></div>
+<h2>Different stingers for different scenes</h2>
+<p>You can use more than one. Right-click a scene › <strong>Transition Override</strong> and pick a stinger: that one plays whenever you switch <em>to</em> that scene. A good pattern is the MDA009 stinger for Starting soon, BRB and Ending, the Voyager stinger for the stream scenes (gameplay, Dreadnought, Versus), the Unprofessionals stinger for org nights, and the All three stinger for the first switch into gameplay.</p>
+<h2>Timing with Voyager overlays</h2>
+<table><tr><th>Overlay</th><th>Notes</th></tr>
+<tr><td>Goal FX, membership cards, support alerts</td><td>Keep playing underneath the stinger; nothing is interrupted. The Goal FX source only needs to be in the scene you are switching to.</td></tr>
+<tr><td>Camera spotlight frame</td><td>Unaffected: it reads the alert queue from Voyager, not from the scene change.</td></tr>
+<tr><td>Studio Mode</td><td>Works as usual; the stinger plays on Transition.</td></tr></table>
+<h2>Making your own version</h2>
+<p>The stingers are rendered from <code>stingers/stinger.html</code> (one page, drawn frame by frame with <code>?logo=voyager&amp;t=seconds</code>) by <code>stingers/render-stingers.cjs</code> and encoded with ffmpeg; the commands are at the top of that script. Change the colours, timing or text in the page and re-render to keep the same look across every file.</p>
+</main></body></html>

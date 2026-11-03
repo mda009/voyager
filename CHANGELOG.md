@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.57 (3 November 2026)
+
+**Scene transitions: Voyager stingers.** Four OBS stinger transitions in the glass design, in the new `stingers/` folder: `Voyager_Stinger_voyager.webm`, `Voyager_Stinger_mda009.webm`, `Voyager_Stinger_unprofessionals.webm` and `Voyager_Stinger_all.webm` (all three logos). Two cut-corner glass panels slide in and meet on a blue seam, a light sweeps across, the logo rises with its ring, sparks and title, then the panels slide out: 1.5 s, 1920 × 1080, 60 fps, VP9 WebM with real transparency, no audio. Transition point 700 ms. Setup, per-scene overrides and the render page (`stingers/stinger.html` + `render-stingers.cjs`) are in `STINGERS_SETUP.html`, linked from the guide and the Help list.
+
 ## 2.20.56 (3 November 2026)
 
 **Camera frame: `?debug=1`.** Add it to the frame's source address and a small readout in the corner says exactly why the frame is on or off: whether Voyager answered, whether Voyager is connected to Streamer.bot, whether a fleet alert state has arrived (the Fleet Alerts C# must be v1.7), whether fleet alerts and the camera spotlight are enabled, what is in the queue and the camera's last state.

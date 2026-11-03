@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Voyager stinger</title>
+<style>
+@font-face{font-family:Rajdhani;src:url('../brand-assets/Rajdhani-700.ttf') format('truetype');font-weight:700}
+@font-face{font-family:Rajdhani;src:url('../brand-assets/Rajdhani-600.ttf') format('truetype');font-weight:600}
+*{box-sizing:border-box}html,body{margin:0;width:1920px;height:1080px;overflow:hidden;background:transparent}
+#stage{position:absolute;inset:0;font-family:Rajdhani,sans-serif;color:#f0f7ff}
+.panel{position:absolute;top:0;width:1000px;height:1080px;background:linear-gradient(160deg,rgba(255,255,255,.10),rgba(255,255,255,0) 40%),linear-gradient(0deg,rgba(0,0,0,.25),rgba(0,0,0,0) 30%),rgba(10,16,28,.94);
+  box-shadow:inset 0 0 0 2px rgba(151,223,255,.35),inset 0 2px 0 rgba(255,255,255,.18)}
+.panel.l{left:0;clip-path:polygon(0 0,100% 0,calc(100% - 70px) 100%,0 100%)}
+.panel.r{right:0;clip-path:polygon(70px 0,100% 0,100% 100%,0 100%)}
+.panel .grid{position:absolute;inset:0;background-image:linear-gradient(rgba(151,223,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(151,223,255,.05) 1px,transparent 1px);background-size:120px 120px}
+.panel .edge{position:absolute;top:0;bottom:0;width:6px;background:linear-gradient(180deg,transparent,#97dfff 30%,#ffffff 50%,#97dfff 70%,transparent)}
+.panel.l .edge{right:28px;transform:skewX(-3.7deg)}.panel.r .edge{left:28px;transform:skewX(-3.7deg)}
+.seam{position:absolute;left:960px;top:0;width:4px;height:1080px;margin-left:-2px;background:linear-gradient(180deg,transparent,#5fb0ff 25%,#fff 50%,#5fb0ff 75%,transparent);box-shadow:0 0 40px #5fb0ff,0 0 120px rgba(95,176,255,.6)}
+.sweep{position:absolute;top:0;width:360px;height:1080px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.22),transparent);transform:skewX(-14deg)}
+.logo{position:absolute;left:960px;top:500px;transform:translate(-50%,-50%);width:360px;height:360px;object-fit:contain;filter:drop-shadow(0 0 28px rgba(151,223,255,.7)) drop-shadow(0 12px 30px rgba(0,0,0,.6))}
+.ring{position:absolute;left:960px;top:500px;width:480px;height:480px;margin:-240px 0 0 -240px;border-radius:50%;border:2px solid rgba(151,223,255,.55);box-shadow:0 0 30px rgba(151,223,255,.35),inset 0 0 30px rgba(151,223,255,.15)}
+.ring.b{width:560px;height:560px;margin:-280px 0 0 -280px;border-width:1px;opacity:.6}
+.title{position:absolute;left:0;right:0;top:760px;text-align:center;font:700 44px/1 Rajdhani,sans-serif;letter-spacing:10px;color:#fff;text-shadow:0 0 24px rgba(151,223,255,.8),0 2px 4px #000}
+.title small{display:block;margin-top:12px;font:600 18px/1 Rajdhani,sans-serif;letter-spacing:6px;color:#c0d5e4}
+.bar{position:absolute;left:760px;right:760px;top:730px;height:3px;background:linear-gradient(90deg,transparent,#97dfff,#fff,#97dfff,transparent)}
+.spark{position:absolute;width:6px;height:6px;border-radius:50%;background:#fff;box-shadow:0 0 12px #97dfff}
+.wide .logo{width:640px;height:340px}.wide .ring{width:760px;height:460px;margin:-230px 0 0 -380px}.wide .ring.b{width:860px;height:540px;margin:-270px 0 0 -430px}
+.all .ring{display:none}.all #logo{position:absolute;left:960px;top:500px;transform:translate(-50%,-50%);display:flex;align-items:center;gap:70px;filter:drop-shadow(0 0 28px rgba(151,223,255,.7)) drop-shadow(0 12px 30px rgba(0,0,0,.6))}.all #logo img{height:250px;width:auto}.all #logo img:nth-child(2){height:330px}
+</style></head>
+<body><div id="stage">
+<div class="panel l"><div class="grid"></div><div class="edge"></div></div>
+<div class="panel r"><div class="grid"></div><div class="edge"></div></div>
+<div class="seam" id="seam"></div><div class="sweep" id="sweep"></div>
+<div class="ring b" id="ringb"></div><div class="ring" id="ring"></div>
+<img class="logo" id="logo" src="" alt="">
+<div class="bar" id="bar"></div>
+<div class="title" id="title"></div>
+<div id="sparks"></div>
+</div>
+<script>
+const q=new URLSearchParams(location.search),$=id=>document.getElementById(id);
+const LOGOS={voyager:['../brand-assets/voyager.png','VOYAGER','MEMBERSHIP PROGRAM · MDA009'],mda009:['../brand-assets/mda009.png','MDA009','EXPLORE · EARN · EXCEL',1],unprofessionals:['../brand-assets/unprofessionals.png','THE UNPROFESSIONALS','STAR CITIZEN COMMUNITY',1]};
+LOGOS.all=['','VOYAGER · MDA009 · THE UNPROFESSIONALS','STAR CITIZEN COMMUNITY',1];
+const which=LOGOS[q.get('logo')]||LOGOS.voyager;if(q.get('logo')==='all'){document.body.classList.add('all');const row=document.createElement('div');row.className='row';for(const k of ['unprofessionals','voyager','mda009']){const i=new Image();i.src=LOGOS[k][0];row.append(i);}$('logo').replaceWith(row);row.id='logo';}$('logo').src=which[0];const wide=!!which[3];if(wide)document.body.classList.add('wide');$('title').innerHTML=which[1]+'<small>'+which[2]+'</small>';
+const clamp=v=>Math.max(0,Math.min(1,v)),easeOut=x=>1-Math.pow(1-clamp(x),3),easeIn=x=>Math.pow(clamp(x),3),easeOutBack=x=>{x=clamp(x);const c=1.7;return 1+(c+1)*Math.pow(x-1,3)+c*Math.pow(x-1,2);};
+// deterministic sparks
+let seed=11;const rnd=()=>{seed=(seed*16807)%2147483647;return seed/2147483647;};const sparks=Array.from({length:40},()=>({a:rnd()*6.283,r:120+rnd()*520,s:.7+rnd()*.9,d:rnd()*.3}));
+for(const s of sparks){const e=document.createElement('i');e.className='spark';$('sparks').append(e);s.el=e;}
+// Timeline (seconds): 0–.40 panels in · .40–1.10 covered (switch scenes at .70) · 1.10–1.50 panels out. Total 1.5 s.
+window.render=function(t){
+ const inP=easeOut(t/.40),outP=easeIn((t-1.10)/.40);
+ const l=document.querySelector('.panel.l'),r=document.querySelector('.panel.r');
+ const off=(1-inP)*1040+outP*1040;l.style.transform='translateX('+(-off)+'px)';r.style.transform='translateX('+off+'px)';
+ const cover=clamp((t-.40)/.04)*clamp((1.10-t)/.04); // centre content only while the panels meet
+ $('seam').style.opacity=String(cover*clamp((t-.40)/.1)*clamp((1.10-t)/.1));
+ const sw=-400+easeOut((t-.42)/.5)*2400;$('sweep').style.left=sw+'px';$('sweep').style.opacity=String(cover*(t<.95?1:0));
+ const lg=easeOutBack((t-.42)/.3);const logoIn=clamp((t-.42)/.22),logoOut=1-easeIn((t-.92)/.16);
+ $('logo').style.transform='translate(-50%,-50%) scale('+(0.55+0.45*Math.max(0,lg))+')';$('logo').style.opacity=String(cover*logoIn*logoOut);$('logo').style.filter='drop-shadow(0 0 '+(28+22*Math.sin(t*9))+'px rgba(151,223,255,.75)) drop-shadow(0 12px 30px rgba(0,0,0,.6)) blur('+((1-logoIn)*8)+'px)';
+ const ringS=.6+easeOut((t-.42)/.5)*.5;for(const id of ['ring','ringb']){const e=$(id);e.style.transform='scale('+ringS*(id==='ringb'?1.08:1)+') rotate('+(wide?0:t*(id==='ringb'?-40:60))+'deg)';e.style.opacity=String(cover*clamp((t-.44)/.15)*logoOut*(id==='ringb'?.6:1));}
+ const tt=clamp((t-.52)/.2);$('title').style.opacity=String(cover*tt*logoOut);$('title').style.transform='translateY('+((1-tt)*18)+'px)';$('bar').style.opacity=String(cover*tt*logoOut);$('bar').style.transform='scaleX('+tt+')';
+ for(const s of sparks){const p=clamp((t-.46-s.d)/.5);const e=s.el;const rad=s.r*(.3+p*s.s);e.style.left=(960+Math.cos(s.a)*rad)+'px';e.style.top=(500+Math.sin(s.a)*rad*.7)+'px';e.style.opacity=String(cover*(p>0&&p<1?Math.sin(p*Math.PI)*.9:0));e.style.transform='scale('+(.5+p)+')';}
+};
+render(Number(q.get('t'))||0);
+</script></body></html>
