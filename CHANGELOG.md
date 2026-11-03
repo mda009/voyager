@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.55 (3 November 2026)
+
+**Camera frame now follows the camera from any browser source.** The frame overlay no longer opens its own Streamer.bot connection (which needed the helper scripts beside it and silently showed nothing when they were missing). It now reads the alert queue and camera state from the Voyager host (`GET /api/fleet/overlay`, which the host fills from the Fleet Alerts broadcasts) and works whether the source address is the host page or a local copy of `Voyager_Camera_Frame.html` (`?voyager=port` if Voyager is not on 8740).
+
 ## 2.20.54 (3 November 2026)
 
 **Camera frame: blue · silver · white, thicker.** The running light is now blue into silver into white by default (gold stays available with `?accent=gold`, plain white with `?accent=white`), the border is 6 px (was 4; `?border=` still adjusts it) and the corner marks are larger.

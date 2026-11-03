@@ -117,6 +117,8 @@ const boss=await new BossFight({dataDir,say:text=>{void bossSay(text);},onResult
 // 2.20.22 chat engagement: Comms Relay, !report, Bridge Quiz, Squadrons, arrival cards and the Captain's Log. Chat replies go out
 // through the Voyager - Medals action (it posts on Twitch, YouTube and Kick).
 engage=await new Engage({dataDir,say:(text,platform='')=>{void runAction('Voyager - Medals',{medalSay:String(text).slice(0,450),medalSayPlatform:['twitch','kick','youtube'].includes(platform)?platform:''});},boss:()=>boss,cards:()=>cards,community:()=>community,pilots:()=>savedRankings||[]}).load();
+// Fleet alert state as last broadcast by the Streamer.bot action (2.20.55): the camera frame overlay reads it from here.
+let fleetState=null;
 const bot=new StreamerBot({onOtherChat:chat=>{
   try{medals.chatSeen(chat);}catch{}
   try{engage.chat(chat);}catch{}
@@ -125,7 +127,7 @@ const bot=new StreamerBot({onOtherChat:chat=>{
   if(word==='!voyager'){voyagerCommand(chat);return;}
   if(word==='!medals'){try{medals.command({kind:'medals',platform:chat.platform,userId:chat.userId,login:chat.login,name:chat.name});}catch{}return;}
   if(boss.active()&&(word==='!join'||word==='!fire')){try{boss.receive({kind:word.slice(1),platform:chat.platform,userId:chat.userId,login:chat.login,name:chat.name,direct:true});}catch{}}
-},onCards:ev=>{cards.receive(ev);},onFleet:ev=>{cards.fromFleet(ev.state,ev.serverAt);},onMedals:ev=>{if(ev.type==='voyager.medals.data')medals.ingestExport(ev);else medals.command(ev);},onBoss:ev=>{
+},onCards:ev=>{cards.receive(ev);},onFleet:ev=>{fleetState={at:Date.now(),serverAt:Number(ev.serverAt)||Date.now(),state:ev.state};cards.fromFleet(ev.state,ev.serverAt);},onMedals:ev=>{if(ev.type==='voyager.medals.data')medals.ingestExport(ev);else medals.command(ev);},onBoss:ev=>{
   if(ev.kind==='call'&&!['lobby','result'].includes(game.phase)){game.note('Finish the Versus battle before calling the Dreadnought.','system');return;}
   boss.receive(ev);
 },onChat:chat=>{
@@ -189,7 +191,7 @@ const mime={'.wav':'audio/wav','.mp3':'audio/mpeg','.html':'text/html; charset=u
 const actions=new Actions({bot,medalsSince:()=>medals.exportSince(),version:VERSION});
 const server=http.createServer(async(req,res)=>{
   if(!allowedHosts.has(req.headers.host)){response(res,403,{message:'Invalid host.'});return;}
-  const origin=req.headers.origin,goalPoll=req.method==='GET'&&req.url.startsWith('/api/goalfx/overlay');if(origin&&!goalPoll&&!['http://127.0.0.1:'+port,'http://localhost:'+port].includes(origin)){response(res,403,{message:'Cross-origin requests are not allowed.'});return;}
+  const origin=req.headers.origin,goalPoll=req.method==='GET'&&(req.url.startsWith('/api/goalfx/overlay')||req.url.startsWith('/api/fleet/overlay'));if(origin&&!goalPoll&&!['http://127.0.0.1:'+port,'http://localhost:'+port].includes(origin)){response(res,403,{message:'Cross-origin requests are not allowed.'});return;}
   if(req.headers['sec-fetch-site']==='cross-site'&&!goalPoll){response(res,403,{message:'Cross-site requests are not allowed.'});return;}
   res.setHeader('X-Content-Type-Options','nosniff');res.setHeader('Referrer-Policy','no-referrer');
   const url=new URL(req.url,'http://127.0.0.1:'+port);
@@ -278,6 +280,10 @@ const server=http.createServer(async(req,res)=>{
       return;
     }
     // Goal FX overlay poll (no token: it only carries queued test plays) and the Streamer.bot actions page.
+    // Camera frame overlay (2.20.55): the fleet alert queue and camera state, so the frame can follow the camera from any browser source.
+    if(url.pathname==='/api/fleet/overlay'&&req.method==='GET'){res.setHeader('Access-Control-Allow-Origin','*');const st=fleetState?.state;
+      response(res,200,{serverAt:Date.now(),fleetAt:fleetState?.at||0,connected:bot.status.connected,
+        state:st?{enabled:st.enabled!==false,queue:(st.queue||[]).filter(e=>e&&e.status==='queued').map(e=>({id:e.id,stage:e.stage,startAt:Number(e.startAt),endAt:Number(e.endAt)})),camera:st.camera||null,cameraLast:st.cameraLast||null}:null});return;}
     if(url.pathname==='/api/goalfx/overlay'&&req.method==='GET'){res.setHeader('Access-Control-Allow-Origin','*');response(res,200,actions.goalOverlay(url.searchParams.get('since')));return;}
     if(url.pathname.startsWith('/api/streamerbot')||url.pathname==='/api/goalfx/control'){
       if(!validToken(req)){response(res,403,{message:'Open Voyager Control › Streamer.bot actions.'});return;}

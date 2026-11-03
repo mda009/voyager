@@ -7,7 +7,7 @@
    and size). It draws the glass border with a light running around it and fades in and out with the camera for the length
    of each support alert (Voyager - Fleet Alerts queue, plus the hold set on Support alerts › Camera spotlight).
    Source address options: ?radius=48 (corner radius, px)  ?border=6 (px)  ?accent=blue (default: blue · silver · white) | gold | white  ?speed=6 (seconds per lap)
-   ?preview=1 (always shown)  ?glow=0 (no outer glow)  ?static=1 (no running light) */
+   ?preview=1 (always shown)  ?glow=0 (no outer glow)  ?static=1 (no running light)  ?voyager=port (only when not opened from the Voyager host) */
 @property --a{syntax:'<angle>';inherits:false;initial-value:0deg}
 *{box-sizing:border-box}
 html,body{margin:0;width:100%;height:100%;overflow:hidden;background:transparent!important}
@@ -33,10 +33,6 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:transparent
 @media(prefers-reduced-motion:reduce){#frame .light{animation:none}}
 </style></head>
 <body><div id="frame"><div class="glass"></div><div class="light"></div><i class="mark tl"></i><i class="mark tr"></i><i class="mark bl"></i><i class="mark br"></i></div>
-<script src="config.js"></script>
-<script src="giveaway-connection.js"></script>
-<script src="fleet-compat.js?v=1.14"></script>
-<script src="fleet-connection.js?v=1.14"></script>
 <script>
 (()=>{'use strict';
 const q=new URLSearchParams(location.search),frame=document.getElementById('frame');
@@ -44,20 +40,20 @@ const num=(k,d,min,max)=>{const n=Number(q.get(k));return q.has(k)&&Number.isFin
 frame.style.setProperty('--r',num('radius',48,0,400)+'px');frame.style.setProperty('--b',num('border',6,1,24)+'px');frame.style.setProperty('--speed',num('speed',6,1,60)+'s');
 if(['gold','white'].includes(q.get('accent')))frame.classList.add(q.get('accent'));if(q.get('glow')==='0')frame.classList.add('noglow');if(q.get('static')==='1')frame.classList.add('static');
 const preview=q.get('preview')==='1';if(preview){frame.classList.add('on');return;}
-if(!window.VoyagerFleetConnection){console.warn('Camera frame: open this page from the Voyager host (http://127.0.0.1:8740/control/...) so its scripts load.');}
-let state=null,offset=0;
+// 2.20.55: no Streamer.bot connection needed. The frame reads the alert queue and camera state from the Voyager host
+// (same-origin when opened from the host, otherwise http://127.0.0.1:8740 or ?voyager=port), so it works from any browser source.
+const hosted=location.protocol==='http:'&&/^(127\.0\.0\.1|localhost)$/.test(location.hostname),base=hosted?'':'http://127.0.0.1:'+(Number(q.get('voyager'))||8740);
+let state=null,offset=0,lastOk=0;
 function tick(){
- const now=Date.now()+offset,c=state?.camera;if(!state||!state.enabled||!c?.enabled){frame.classList.remove('on');return;}
+ const now=Date.now()+offset,c=state?.camera;
+ if(!state||!state.enabled||!c?.enabled||Date.now()-lastOk>20000){frame.classList.remove('on');return;}
  const hold=Math.max(0,Math.min(30,Number(c.hold)||0))*1000;
  const alert=(state.queue||[]).some(e=>e.startAt<=now&&now<e.endAt+hold),last=state.cameraLast;
- const manual=!!last&&last.visible===true&&!last.error; // Show now on the Support alerts page
+ const manual=!!last&&last.visible===true&&!last.error; // Show now on the Support alerts page, or the camera still up
  frame.classList.toggle('on',alert||manual);
 }
-setInterval(tick,250);
-try{
- const client=new VoyagerFleetConnection({...window.VOYAGER_CONFIG,readOnly:true});
- client.addEventListener('fleet',e=>{state=e.detail.state;offset=e.detail.offset;tick();});
- client.connect();
-}catch(e){console.warn('Camera frame: '+e.message);}
+async function poll(){try{const r=await fetch(base+'/api/fleet/overlay',{cache:'no-store'});if(!r.ok)throw new Error();const d=await r.json();lastOk=Date.now();offset=(Number(d.serverAt)||Date.now())-Date.now();state=d.state;}catch{}tick();}
+poll();setInterval(poll,1000);setInterval(tick,250);
 })();
-</script></body></html>
+</script>
+</body></html>

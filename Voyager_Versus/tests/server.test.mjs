@@ -60,6 +60,7 @@ test('Local host serves assets, rejects unauthorized controls and shares authori
     const poll=await fetch(base+'/api/goalfx/overlay?since=0',{headers:{Origin:'null'}});assert.equal(poll.status,200);assert.equal(poll.headers.get('access-control-allow-origin'),'*');
     const polled=await poll.json();assert.equal(polled.commands.length,1);assert.equal(polled.commands[0].tier,'platinum');assert.equal((await(await fetch(base+'/api/goalfx/overlay?since=1')).json()).commands.length,0);
     assert.equal((await fetch(base+'/api/streamerbot',{headers:{'X-Voyager-Token':token,Origin:'null'}})).status,403);
+    const fleet=await fetch(base+'/api/fleet/overlay',{headers:{Origin:'null'}});assert.equal(fleet.status,200);assert.equal(fleet.headers.get('access-control-allow-origin'),'*');assert.equal((await fleet.json()).state,null,'no fleet state until Streamer.bot broadcasts one');
     await post({type:'pause'});const before=(await(await fetch(base+'/api/state')).json()).game.time;
     await new Promise(r=>setTimeout(r,250));assert.equal((await(await fetch(base+'/api/state')).json()).game.time,before);
   }finally{if(child.exitCode===null){child.kill('SIGTERM');await new Promise(r=>child.once('exit',r));}await rm(dir,{recursive:true,force:true});}
