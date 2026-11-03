@@ -11,12 +11,15 @@ const FILE='dreadnought.json';
 // every 3 s (was 4), four minutes on the clock (was three), and the Dreadnought's return fire knocks pilots out for 6 s
 // (was 10) every 20 s (was 15). Cheers and gifted subs are unchanged.
 export const BOSS_DEFAULTS={name:'The Dreadnought',lobbySeconds:60,battleSeconds:240,baseHp:1000,hpPerPilot:150,lateJoinHp:75,
-  fireMin:15,fireMax:30,fireCooldown:3,bitDamage:2.5,giftDamage:600,victoryPoints:100,chatCall:true,announce:true};
+  fireMin:15,fireMax:30,fireCooldown:3,bitDamage:2.5,giftDamage:600,victoryPoints:100,chatCall:true,announce:true,
+  // 2.20.44 speed goals: destroyed within legendarySeconds of the battle starting → Legendary medal; within heroSeconds → Hero medal.
+  // Either one adds speedBonusPct % to every fighting pilot's victory points.
+  legendarySeconds:60,heroSeconds:120,speedBonusPct:10};
 // Saved settings still on the old 2.20 balance move to the new one; anything you changed yourself is kept.
 const OLD_BALANCE={battleSeconds:180,baseHp:4000,hpPerPilot:350,lateJoinHp:150,fireMin:12,fireMax:22,fireCooldown:4};
 const BALANCE=2,STUN_MS=6000,ATTACK_MS=20000,ENRAGED_ATTACK_MS=10000;
 const LIMITS={lobbySeconds:[10,300],battleSeconds:[60,900],baseHp:[500,1e6],hpPerPilot:[0,1e5],lateJoinHp:[0,1e5],fireMin:[1,1000],fireMax:[1,2000],
-  fireCooldown:[1,60],bitDamage:[0,100],giftDamage:[0,1e5],victoryPoints:[0,1e6]};
+  fireCooldown:[1,60],bitDamage:[0,100],giftDamage:[0,1e5],victoryPoints:[0,1e6],legendarySeconds:[0,900],heroSeconds:[0,900],speedBonusPct:[0,500]};
 const RESULT_MS=25000,FEED=12,EFFECTS=40;
 const clean=(v,max)=>String(v??'').replace(/[\u0000-\u001f\u007f]/g,' ').trim().slice(0,max);
 const PLATFORMS=['twitch','youtube','kick'];
@@ -25,11 +28,15 @@ export function normalizeBossSettings(raw={}){
   const r=raw&&typeof raw==='object'?raw:{},s={...BOSS_DEFAULTS};
   for(const [k,[min,max]] of Object.entries(LIMITS)){if(r[k]===undefined)continue;const n=Number(r[k]);if(!Number.isFinite(n)||n<min||n>max)throw new Error(k+' must be between '+min+' and '+max+'.');s[k]=k==='bitDamage'?Math.round(n*100)/100:Math.round(n);}
   if(s.fireMax<s.fireMin)throw new Error('The most !fire damage must be at least the least damage.');
+  if(s.heroSeconds<s.legendarySeconds)throw new Error('The Hero time must be at least the Legendary time.');
   if(r.name!==undefined){const n=clean(r.name,40);if(!n)throw new Error('Give the boss a name.');s.name=n;}
   for(const k of ['chatCall','announce'])if(r[k]!==undefined)s[k]=r[k]===true;
   return s;
 }
 
+// Speed goal for a victory: 'legendary', 'hero' or '' (0 seconds turns a goal off). mm:ss for chat and the overlay.
+export function speedGoal(s,elapsedMs){if(s.legendarySeconds>0&&elapsedMs<=s.legendarySeconds*1000)return 'legendary';if(s.heroSeconds>0&&elapsedMs<=s.heroSeconds*1000)return 'hero';return '';}
+export const clock=ms=>{const t=Math.max(0,Math.round(ms/1000));return Math.floor(t/60)+':'+String(t%60).padStart(2,'0');};
 export class BossFight{
   constructor({dataDir,now=Date.now,random=Math.random,say=()=>{},onResult=()=>{}}={}){
     this.onResult=onResult;this.dataDir=dataDir;this.now=now;this.random=random;this.say=say;this.settings={...BOSS_DEFAULTS};this.history=[];this.battle=null;
@@ -148,19 +155,23 @@ export class BossFight{
     const b=this.battle,now=this.now(),s=this.settings;if(!b||b.phase!=='battle')return;
     b.phase='result';b.outcome=outcome;b.endedAt=now;
     const pilots=[...b.pilots.values()].sort((a,c)=>c.damage-a.damage||a.joinedAt-c.joinedAt),mvp=pilots[0]&&pilots[0].damage>0?pilots[0]:null;
-    const total=b.maxHp-b.hp;
-    this.note(outcome==='victory'?s.name+' destroyed! Victory, pilots!':s.name+' escaped with '+Math.ceil(b.hp/b.maxHp*100)+'% hull left. No points awarded.','alert');
+    const total=b.maxHp-b.hp,elapsed=now-b.startedAt;
+    // 2.20.44 speed goals: a fast kill earns the Legendary or Hero medal and a bonus on the victory points.
+    const speed=outcome==='victory'?speedGoal(s,elapsed):'',bonus=speed?Math.round(s.victoryPoints*s.speedBonusPct/100):0,reward=s.victoryPoints+bonus;
+    b.speed=speed;b.bonus=bonus;b.reward=reward;b.elapsed=elapsed;
+    this.note(outcome==='victory'?(speed==='legendary'?'LEGENDARY! ':speed==='hero'?'HEROIC! ':'')+s.name+' destroyed in '+clock(elapsed)+'! Victory, pilots!':s.name+' escaped with '+Math.ceil(b.hp/b.maxHp*100)+'% hull left. No points awarded.','alert');
     if(!b.demo){
-      const rewarded=outcome==='victory'&&s.victoryPoints>0?pilots.filter(p=>p.fires>0||p.bits>0||p.gifts>0):[];
+      const rewarded=outcome==='victory'&&reward>0?pilots.filter(p=>p.fires>0||p.bits>0||p.gifts>0):[];
       this.history.unshift({id:b.id,name:s.name,outcome,startedAt:b.startedAt,endedAt:now,maxHp:b.maxHp,damage:total,pilots:pilots.length,
         mvp:mvp?{name:mvp.name,platform:mvp.platform,damage:mvp.damage}:null,top:pilots.slice(0,5).map(p=>({name:p.name,platform:p.platform,damage:p.damage})),
-        reward:s.victoryPoints,rewarded:rewarded.map(p=>({key:p.key,name:p.name,platform:p.platform}))});
+        reward,base:s.victoryPoints,bonus,speed,elapsed,rewarded:rewarded.map(p=>({key:p.key,name:p.name,platform:p.platform}))});
       this.history=this.history.slice(0,30);this.persist();
-      // Voyager Medals (2.18): who fought, torpedoes fired, the MVP and the killing blow.
-      try{this.onResult({id:b.id,outcome,endsAt:b.endsAt,endedAt:now,mvpKey:mvp?.key||'',lastHit:b.lastHit||null,
+      // Voyager Medals (2.18): who fought, torpedoes fired, the MVP, the killing blow and (2.20.44) the speed goal.
+      try{this.onResult({id:b.id,outcome,endsAt:b.endsAt,endedAt:now,mvpKey:mvp?.key||'',lastHit:b.lastHit||null,speed,elapsed,
         pilots:pilots.map(p=>({key:p.key,name:p.name,platform:p.platform,damage:p.damage,fires:p.fires,bits:p.bits,gifts:p.gifts}))});}catch{}
+      const medal=speed==='legendary'?' LEGENDARY: destroyed in '+clock(elapsed)+' — every pilot who fought earns the Legendary Strike medal':speed==='hero'?' HEROIC: destroyed in '+clock(elapsed)+' — every pilot who fought earns the Hero of the Fleet medal':'';
       this.announce(outcome==='victory'
-        ?'💥 '+s.name+' is destroyed! '+pilots.length+' pilots dealt '+total.toLocaleString('en')+' damage.'+(mvp?' MVP: '+mvp.name+' ('+mvp.damage.toLocaleString('en')+').':'')+(rewarded.length?' Every pilot who fought earns '+s.victoryPoints+' Voyager points.':'')
+        ?'💥 '+s.name+' is destroyed! '+pilots.length+' pilots dealt '+total.toLocaleString('en')+' damage.'+(mvp?' MVP: '+mvp.name+' ('+mvp.damage.toLocaleString('en')+').':'')+(medal?medal+(rewarded.length?' and '+reward+' Voyager points (+'+s.speedBonusPct+'% speed bonus).':'.'):rewarded.length?' Every pilot who fought earns '+reward+' Voyager points.':'')
         :'☠ '+s.name+' escaped with '+Math.ceil(b.hp/b.maxHp*100)+'% hull left. No points this time. Regroup, pilots: it will be back.');
     }
   }
@@ -187,13 +198,14 @@ export class BossFight{
     if(b.phase==='battle'){const r=this.random();if(r<.03)this.support('gift',key,names[i],'',platform,1+Math.floor(this.random()*3));else if(r<.08)this.support('bits',key,names[i],'',platform,100*(1+Math.floor(this.random()*5)));else{const p=b.pilots.get(key);if(p)p.lastFire=0;this.fire(key);}}
   }
   // Victory rewards for Missions › Points owed (same points for every pilot who fought).
-  rewardBatches(){return this.history.filter(h=>h.outcome==='victory'&&h.reward>0&&h.rewarded?.length).slice(0,10).map(h=>({id:h.id,title:h.name+' defeated',reward:h.reward,pilots:h.rewarded}));}
+  rewardBatches(){return this.history.filter(h=>h.outcome==='victory'&&h.reward>0&&h.rewarded?.length).slice(0,10).map(h=>({id:h.id,title:h.name+' defeated'+(h.speed==='legendary'?' · Legendary kill in '+clock(h.elapsed)+' (+'+h.bonus+' bonus)':h.speed==='hero'?' · Heroic kill in '+clock(h.elapsed)+' (+'+h.bonus+' bonus)':''),reward:h.reward,pilots:h.rewarded}));}
   overlay(){
     const b=this.battle,now=this.now(),s=this.settings;
     if(!b||b.phase==='done')return {serverAt:now,phase:'idle',name:s.name};
     const pilots=[...b.pilots.values()];
     return {serverAt:now,phase:b.phase,id:b.id,demo:b.demo,name:s.name,hp:b.hp,maxHp:b.maxHp,lobbyEndsAt:b.lobbyEndsAt,endsAt:b.endsAt,startedAt:b.startedAt,endedAt:b.endedAt,
-      outcome:b.outcome,shield:b.shieldUntil>now,shieldUntil:b.shieldUntil,enraged:b.enraged,victoryPoints:s.victoryPoints,
+      outcome:b.outcome,shield:b.shieldUntil>now,shieldUntil:b.shieldUntil,enraged:b.enraged,victoryPoints:b.phase==='result'&&b.reward!==undefined?b.reward:s.victoryPoints,
+      speed:b.speed||'',bonus:b.bonus||0,elapsed:b.phase==='result'?b.elapsed||0:0,goals:{legendary:s.legendarySeconds,hero:s.heroSeconds,bonusPct:s.speedBonusPct},
       pilots:pilots.length,fleet:pilots.slice(0,12).map(p=>({slot:p.slot,name:p.name,platform:p.platform,stunned:p.stunnedUntil>now})),
       leaders:pilots.filter(p=>p.damage>0).sort((a,c)=>c.damage-a.damage).slice(0,5).map(p=>({name:p.name,platform:p.platform,damage:p.damage})),
       feed:b.feed.slice(0,6),effects:b.effects.filter(e=>now-e.at<6000),

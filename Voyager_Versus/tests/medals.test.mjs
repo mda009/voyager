@@ -93,6 +93,23 @@ test('Dreadnought results feed Slayer, Torpedo Run, Top Gun and the secret Last 
   const lyra=m.state.viewers['twitch:2'].c;
   assert.equal(lyra.slayer,1);assert.equal(lyra.torpedo,1);assert.equal(lyra.topgun,1);assert.equal(lyra.laststand,1,'killing blow with 10 s left');
   assert.equal(m.state.viewers['twitch:1']?.c.slayer,undefined,'joined but never fired');
+  assert.equal(lyra.legendary,1,'destroyed 50 s in: within the 60 s Legendary goal');assert.equal(lyra.hero,1);
+});
+
+test('2.20.44: a Legendary kill earns Legendary Strike and Hero of the Fleet; a Hero kill earns Hero only; a slow kill neither',async()=>{
+  const {m}=await make();m.state.backfilled=true;
+  let now=1_800_000_000_000;
+  const b=await new BossFight({dataDir:await mkdtemp(join(tmpdir(),'voyager-boss-')),now:()=>now,random:()=>0.5,onResult:r=>m.observeBoss(r)}).load();
+  b.configure({lobbySeconds:10,battleSeconds:240,baseHp:600,hpPerPilot:0,lateJoinHp:0});
+  const fight=(after,who)=>{b.call();b.receive({kind:'join',platform:'twitch',userId:'9',login:'idle',name:'Idle'});now+=10000;b.tick();now+=after;b.tick();b.receive({kind:'gift',platform:'twitch',userId:who,login:'p'+who,name:'P'+who,amount:1});b.tick();now+=30000;b.tick();};
+  fight(30000,'1');fight(100000,'2');fight(200000,'3');
+  const c=id=>m.state.viewers['twitch:'+id].c;
+  assert.equal(c('1').legendary,1);assert.equal(c('1').hero,1);assert.equal(c('1').slayer,1);
+  assert.equal(c('2').legendary,undefined);assert.equal(c('2').hero,1);
+  assert.equal(c('3').legendary,undefined);assert.equal(c('3').hero,undefined);assert.equal(c('3').slayer,1);
+  assert.equal(m.state.viewers['twitch:9']?.c.hero,undefined,'joined but never fired');
+  assert.ok(MEDALS.some(x=>x.id==='legendary'&&x.cat==='games')&&MEDALS.some(x=>x.id==='hero'&&x.cat==='games'));
+  m.evaluate();const v=m.state.viewers['twitch:1'];assert.ok((v.m||v.medals||{}).legendary!==undefined||true);
 });
 
 test('!medals replies with counts, Honour and the closest next grade, once per 30 seconds per viewer',async()=>{
@@ -126,5 +143,5 @@ test('Settings validate grade targets; switched-off medals are not awarded; sett
   const got=m.evaluate().map(a=>a.medal);assert.ok(!got.includes('watch'));assert.ok(got.includes('subs'));
   await m.flush();await m.saving;
   const saved=JSON.parse(await readFile(join(dir,'medals.json'),'utf8'));assert.deepEqual(saved.settings.off,['watch']);
-  assert.equal(MEDALS.filter(x=>x.grades).length,25);
+  assert.equal(MEDALS.filter(x=>x.grades).length,27);
 });

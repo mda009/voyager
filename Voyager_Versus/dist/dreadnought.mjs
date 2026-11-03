@@ -254,6 +254,11 @@ function hud(now){
   const tags=[];if(d.shield&&d.phase==='battle')tags.push('<span class="tag shield">◈ SHIELDS UP · !FIRE HALVED</span>');if(d.enraged&&d.phase==='battle')tags.push('<span class="tag rage">▲ ENRAGED</span>');const tg=tags.join('');if($('tags').dataset.k!==tg){$('tags').dataset.k=tg;$('tags').innerHTML=tg;}
   {const r=d.relay,show=!!r&&r.enabled&&d.phase==='battle';$('relay').hidden=!show;if(show){const f=`scaleX(${Math.min(1,r.count/r.threshold).toFixed(3)})`,ri=$('relay').querySelector('i');if(ri.style.transform!==f)ri.style.transform=f;setText('relaynum',r.count+' / '+r.threshold);}}
   const left=d.endsAt-t;setText('clocktime',fmtTime(left));$('clock').classList.toggle('low',left<30000);
+  // 2.20.44 speed goals: time left to a Legendary (then Hero) kill and its points bonus.
+  {const g=d.goals||{},run=t-(d.startedAt||t),lg=(g.legendary||0)*1000-run,hr=(g.hero||0)*1000-run,goal=$('goal');
+   const show=d.phase==='battle'&&((g.legendary||0)>0||(g.hero||0)>0);goal.hidden=!show;
+   if(show){const which=g.legendary>0&&lg>0?['LEGENDARY KILL',lg,'']:g.hero>0&&hr>0?['HERO KILL',hr,'hero']:null;
+    goal.className=(which?which[2]:'missed')+(d.demo?' demo':'');setText('goaltext',which?which[0]+' '+fmtTime(which[1])+(g.bonusPct?' · +'+g.bonusPct+'% PTS':''):'SPEED GOALS MISSED');}}
   setText('pilotcount',d.pilots+' pilot'+(d.pilots===1?'':'s'));
   const ol=$('leaders'),lk=JSON.stringify((d.leaders.length?d.leaders:d.fleet.slice(0,5)).map(p=>[p.name,p.platform,p.damage??null]));
   if(ol.dataset.k!==lk){ol.dataset.k=lk;ol.replaceChildren();
@@ -266,8 +271,9 @@ function hud(now){
   if(d.phase==='result'&&outcomeShown!==d.id+d.outcome){
     outcomeShown=d.id+d.outcome;const win=d.outcome==='victory',r=$('result');r.classList.toggle('win',win);
     $('resulteyebrow').textContent=win?'★ VICTORY':d.outcome==='empty'?'NO PILOTS':'☠ BATTLE LOST';
+    const sp=$('resultspeed');sp.hidden=!(win&&d.speed);if(win&&d.speed){sp.className='speed'+(d.speed==='hero'?' hero':'');sp.textContent=(d.speed==='legendary'?'⚡ LEGENDARY STRIKE':'★ HERO OF THE FLEET')+' · DESTROYED IN '+fmtTime(d.elapsed||0)+(d.bonus&&!d.demo?' · +'+(d.goals?.bonusPct||0)+'% POINTS':'');}
     $('resulttitle').textContent=win?d.name+' destroyed':d.outcome==='empty'?d.name+' moved on':d.name+' escaped';
-    const mvp=d.leaders[0];$('resultline').textContent=win?(mvp?'MVP '+mvp.name+' · ':'')+(d.victoryPoints&&!d.demo?'Every pilot who fought earns '+d.victoryPoints+' Voyager points':'Great work, pilots'):d.outcome==='empty'?'Nobody boarded the fleet this time.':'It escaped with '+Math.ceil(d.hp/d.maxHp*100)+'% hull left. No points are awarded. It will be back.';
+    const mvp=d.leaders[0];$('resultline').textContent=win?(mvp?'MVP '+mvp.name+' · ':'')+(d.victoryPoints&&!d.demo?'Every pilot who fought earns '+d.victoryPoints+' Voyager points'+(d.speed?' and the '+(d.speed==='legendary'?'Legendary Strike':'Hero of the Fleet')+' medal':''):'Great work, pilots'):d.outcome==='empty'?'Nobody boarded the fleet this time.':'It escaped with '+Math.ceil(d.hp/d.maxHp*100)+'% hull left. No points are awarded. It will be back.';
     const st=$('resultstats');st.replaceChildren();for(const [label,value] of [['PILOTS',d.pilots],['DAMAGE',(d.maxHp-d.hp).toLocaleString('en')],['!FIRE SHOTS',d.damage.fire.toLocaleString('en')],['GIFTED SUBS',d.damage.gifts]]){const x=document.createElement('div');const b=document.createElement('b');b.textContent=value;x.append(b,label);st.append(x);}
     if(win)victory();else if(d.outcome==='escaped')escape();
   }

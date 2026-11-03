@@ -82,6 +82,10 @@
 <label>Damage per bit<input name="bitDamage" type="number" min="0" max="100" step="0.1"></label>
 <label>Damage per gifted sub<input name="giftDamage" type="number" min="0" max="100000"></label>
 <label>Victory points (each pilot)<input name="victoryPoints" type="number" min="0" max="1000000"></label>
+<label>Legendary kill: destroyed within (seconds)<input name="legendarySeconds" type="number" min="0" max="900"></label>
+<label>Hero kill: destroyed within (seconds)<input name="heroSeconds" type="number" min="0" max="900"></label>
+<label>Speed bonus on victory points (%)<input name="speedBonusPct" type="number" min="0" max="500"></label>
+<p class="st-hint wide" style="grid-column:1/-1">Speed goals (2.20.44): a kill within the Legendary time earns every pilot who fought the <b>Legendary Strike</b> medal; within the Hero time, <b>Hero of the Fleet</b> (a Legendary kill counts for both). Either adds the bonus to each pilot's victory points (100 + 10% = 110). The overlay shows the time left to each goal during the fight. Set a time to 0 to turn that goal off.</p>
 <label class="check"><input type="checkbox" name="chatCall"> Moderators and you can call it from chat with <b>!dreadnought</b></label>
 <label class="check"><input type="checkbox" name="announce"> Post fight updates in chat</label>
 <div class="st-actions wide"><button type="submit" class="primary">Save settings</button></div>
@@ -113,7 +117,7 @@
 <script src="giveaway-connection.js"></script>
 <script src="points-model.js?v=4.4"></script>
 <script src="points-connection.js?v=4.4"></script>
-<script src="dreadnought.js?v=2.20.8"></script>
+<script src="dreadnought.js?v=2.20.44"></script>
 <script src="voyager-shell.js?v=2.20"></script>
 <script src="voyager-navigation.js"></script>
 </body>

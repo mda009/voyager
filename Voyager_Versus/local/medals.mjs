@@ -36,6 +36,8 @@ export const MEDALS=[
   {id:'slayer',name:'Dreadnought Slayer',cat:'games',kind:'count',unit:'victories',grades:[1,10,25,50],desc:'Dreadnought victories fought in'},
   {id:'torpedo',name:'Torpedo Run',cat:'games',kind:'count',unit:'torpedoes',grades:[1,10,50,100],desc:'Gifted subs fired as torpedoes in a fight'},
   {id:'topgun',name:'Top Gun',cat:'games',kind:'count',unit:'MVPs',grades:[1,3,10,25],desc:'Fights finished as top damage'},
+  {id:'legendary',name:'Legendary Strike',cat:'games',kind:'count',unit:'legendary kills',grades:[1,5,15,40],desc:'Dreadnought destroyed within the Legendary time (1 minute) while you fought'},
+  {id:'hero',name:'Hero of the Fleet',cat:'games',kind:'count',unit:'heroic kills',grades:[1,5,15,40],desc:'Dreadnought destroyed within the Hero time (2 minutes) while you fought'},
   {id:'points',name:'Point Collector',cat:'community',kind:'count',unit:'points',grades:[1000,10000,50000,250000],desc:'Voyager points earned, all time'},
   {id:'missions',name:'Mission Runner',cat:'community',kind:'count',unit:'missions',grades:[5,25,100,250],desc:'Weekly missions completed'},
   {id:'spectrum',name:'Full Spectrum',cat:'community',kind:'count',unit:'mission types',grades:[2,3,4,6],desc:'Different mission types completed'},
@@ -57,7 +59,7 @@ export const MEDAL_ICONS={watch:'M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0-18 0 M12 7
   patron:'M3 8l4 4 5-7 5 7 4-4-2 11H5z',elder:'M12 3l8 3v6c0 5-4 8-8 9-4-1-8-4-8-9V6z',seasonpatron:'M7 4h10v5a5 5 0 0 1-10 0z M7 6H4a3 3 0 0 0 3 4 M17 6h3a3 3 0 0 1-3 4 M12 14v4 M8 21h8',
   versus:'M4 4l9 9 M4 4h4 M4 4v4 M20 4l-9 9 M20 4h-4 M20 4v4 M7 17l-3 3 M17 17l3 3 M9 15l-2 2 M15 15l2 2',hotstreak:'M13 2L4 14h7l-1 8 9-12h-7z',
   slayer:'M12 12m-8 0a8 8 0 1 0 16 0a8 8 0 1 0-16 0 M12 12m-4 0a4 4 0 1 0 8 0a4 4 0 1 0-8 0 M12 2v4 M12 18v4 M2 12h4 M18 12h4',
-  torpedo:'M12 2c3 3 4 7 4 11l-4 4-4-4c0-4 1-8 4-11z M8 13l-3 3v3l3-2 M16 13l3 3v3l-3-2 M12 9v.01',topgun:'M3 8l4 4 5-7 5 7 4-4-2 11H5z',
+  torpedo:'M12 2c3 3 4 7 4 11l-4 4-4-4c0-4 1-8 4-11z M8 13l-3 3v3l3-2 M16 13l3 3v3l-3-2 M12 9v.01',topgun:'M3 8l4 4 5-7 5 7 4-4-2 11H5z',legendary:'M13 2L4 14h7l-1 8 9-12h-7z',hero:'M12 3l2.6 5.4 6 .8-4.3 4.2 1 5.9-5.3-2.8-5.3 2.8 1-5.9L3.4 9.2l6-.8z M12 3v18',
   points:'M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0-18 0 M12 7v10',missions:'M4 6h16v14H4z M8 12l3 3 5-6',spectrum:'M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.6 6.6 19.5l1.2-6L3.3 9.3l6.1-.7z',
   podium:'M7 4h10v5a5 5 0 0 1-10 0z M7 6H4a3 3 0 0 0 3 4 M17 6h3a3 3 0 0 1-3 4 M12 14v4 M8 21h8 M10 18h4',champion:'M3 8l4 4 5-7 5 7 4-4-2 11H5z',
   comms:'M4 5h16v11H9l-5 4z M8 9h8 M8 12h5',lucky:'M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.6 6.6 19.5l1.2-6L3.3 9.3l6.1-.7z',founding:'M12 3l8 3v6c0 5-4 8-8 9-4-1-8-4-8-9V6z',
@@ -236,6 +238,9 @@ export class Medals{
       const fought=p.fires>0||p.bits>0||p.gifts>0;
       if(fought){this.inc(v,'fights');this.inc(v,'damage',Math.floor(num(p.damage)));}
       if(result.outcome==='victory'&&fought)this.inc(v,'slayer');
+      // 2.20.44 speed goals: a Legendary kill also counts as a Heroic one.
+      if(result.outcome==='victory'&&fought&&result.speed==='legendary')this.inc(v,'legendary');
+      if(result.outcome==='victory'&&fought&&(result.speed==='legendary'||result.speed==='hero'))this.inc(v,'hero');
       if(p.gifts>0)this.inc(v,'torpedo',Math.floor(p.gifts));
       if(result.mvpKey&&result.mvpKey===p.key)this.inc(v,'topgun');
       if(result.outcome==='victory'&&result.lastHit?.key===p.key&&result.endsAt-result.lastHit.at<=15000)v.c.laststand=1;
@@ -248,7 +253,7 @@ export class Medals{
     const c=v.c,versus=v.platform==='twitch'&&v.login?this.state.versus[v.login]:null;
     return {watch:(c.watch||0)/3600,follow:Math.floor((now-v.first)/DAY),streak:c.bestStreak||0,regular:c.days||0,subs:c.months||0,substreak:c.subBest||0,
       gifter:c.gifts||0,giftbomb:c.giftMax||0,power:(c.bits||0)+(c.kicks||0)+(c.sc||0),goals:c.goals||0,seasonpatron:c.seasonPatron||0,
-      versus:versus?.wins||0,hotstreak:versus?.best||0,slayer:c.slayer||0,torpedo:c.torpedo||0,topgun:c.topgun||0,points:c.points||0,
+      versus:versus?.wins||0,hotstreak:versus?.best||0,slayer:c.slayer||0,torpedo:c.torpedo||0,topgun:c.topgun||0,legendary:c.legendary||0,hero:c.hero||0,points:c.points||0,
       comms:c.msgs||0,missions:c.missions||0,spectrum:(c.mtypes||[]).length,podium:c.podium||0,champion:c.champion||0,lucky:c.lucky||0};
   }
   scores(v,x){return {patron:(v.c.months||0)+(v.c.gifts||0)+Math.floor(x.power/500),elder:x.watch>=10?x.watch+x.follow/7:0};}

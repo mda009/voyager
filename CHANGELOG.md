@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.44 (3 November 2026)
+
+**Dreadnought speed goals: Legendary and Hero kills with a points bonus.** Destroy the Dreadnought within **1 minute** of the battle starting and every pilot who fought earns the new **Legendary Strike** medal; within **2 minutes**, **Hero of the Fleet** (a Legendary kill counts for both). Either adds a **10% bonus** to each fighting pilot's victory points (100 → 110), shown in Missions › Points owed with the kill time. The overlay counts down the time left to the next goal under the clock during the fight and stamps the result card ("⚡ LEGENDARY STRIKE · DESTROYED IN 0:48"); chat gets the same announcement. Both medals have four grades (1 / 5 / 15 / 40 kills) and appear on the Medals overlay, membership cards and !medals. Times and bonus are in Voyager Dreadnought › Settings (0 turns a goal off).
+
 ## 2.20.43 (3 November 2026)
 
 **Connect chat from the home page.** The "Connect chat" button from Voyager Versus › Stream setup now also sits at the top of Home, next to Open Voyager Versus, with a live status dot. One click connects Voyager's host to Streamer.bot using the address and password saved in Settings (`config.js`), read on the host, so there is nothing to type and the password never reaches the page; Disconnect appears while connected. Host control `type: "connect_saved"`.

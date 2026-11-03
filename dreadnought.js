@@ -1,5 +1,6 @@
 /* Voyager Control > Voyager Dreadnought (2.17). Calls the chat boss fight, edits its settings and shows the live overlay. */
 (()=>{'use strict';
+const clock=ms=>{const t=Math.max(0,Math.round((ms||0)/1000));return Math.floor(t/60)+':'+String(t%60).padStart(2,'0');};
 const $=id=>document.getElementById(id),hosted=location.protocol==='http:'&&/^(127\.0\.0\.1|localhost)$/.test(location.hostname);
 const el=(t,c,x)=>{const n=document.createElement(t);if(c)n.className=c;if(x!==undefined)n.textContent=x;return n;};
 let token='',view=null,editing=false;
@@ -9,7 +10,7 @@ async function api(path,body){
   const r=await fetch(path,{method:body?'POST':'GET',headers:{'X-Voyager-Token':token,...(body?{'Content-Type':'application/json'}:{})},body:body?JSON.stringify(body):undefined});
   const d=await r.json().catch(()=>({}));if(!r.ok||d.ok===false)throw new Error(d.message||'Voyager answered '+r.status);return d;
 }
-const FIELDS=['name','lobbySeconds','battleSeconds','baseHp','hpPerPilot','fireMin','fireMax','fireCooldown','bitDamage','giftDamage','victoryPoints'];
+const FIELDS=['name','lobbySeconds','battleSeconds','baseHp','hpPerPilot','fireMin','fireMax','fireCooldown','bitDamage','giftDamage','victoryPoints','legendarySeconds','heroSeconds','speedBonusPct'];
 const time=ms=>{const s=Math.max(0,Math.ceil(ms/1000));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');};
 function render(){
   if(!view)return;const s=view.settings,l=view.live,f=$('settings').elements,phase=l.phase;
@@ -24,7 +25,7 @@ function render(){
   $('s-pilots').textContent=l.pilots??0;$('s-hull').textContent=l.maxHp?Math.ceil(l.hp/l.maxHp*100)+'%':'—';$('s-time').textContent=phase==='battle'?time(l.endsAt-l.serverAt):phase==='lobby'?time(l.lobbyEndsAt-l.serverAt):'—';$('s-gifts').textContent=l.damage?.gifts??0;
   const h=$('history');h.textContent='';
   for(const x of view.history){const li=el('li',x.outcome==='victory'?'win':'');li.append(el('b','',(x.outcome==='victory'?'★ Destroyed':x.outcome==='empty'?'Nobody boarded':'☠ Escaped')+' · '+x.name),
-    el('span','',new Date(x.endedAt).toLocaleString([], {weekday:'short',day:'numeric',month:'short',hour:'numeric',minute:'2-digit'})+' · '+x.pilots+' pilots · '+x.damage.toLocaleString()+' damage'+(x.mvp?' · MVP '+x.mvp.name:'')+(x.rewardedCount?' · '+x.rewardedCount+' × '+x.reward+' pts owed':'')));h.append(li);}
+    el('span','',new Date(x.endedAt).toLocaleString([], {weekday:'short',day:'numeric',month:'short',hour:'numeric',minute:'2-digit'})+' · '+x.pilots+' pilots · '+x.damage.toLocaleString()+' damage'+(x.mvp?' · MVP '+x.mvp.name:'')+(x.speed==='legendary'?' · ⚡ Legendary kill in '+clock(x.elapsed):x.speed==='hero'?' · ★ Heroic kill in '+clock(x.elapsed):'')+(x.rewardedCount?' · '+x.rewardedCount+' × '+x.reward+' pts owed'+(x.bonus?' (incl. +'+x.bonus+' speed bonus)':''):'')));h.append(li);}
   if(!view.history.length)h.append(el('li','',"No fights yet. Call the Dreadnought when you're live."));
   const ev=view.lastEvent,act=view.action?.state,chat=view.lastChatAt&&Date.now()-view.lastChatAt<15*60000;
   const checks=[

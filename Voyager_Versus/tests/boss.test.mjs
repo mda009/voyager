@@ -37,7 +37,7 @@ test('Cheers hit harder than !fire and gifted subs hardest; paid support boards 
 });
 
 test('Victory pays every pilot who fought the same points; the boss escapes when time runs out',async()=>{
-  const {b,said,at}=await make({lobbySeconds:10,battleSeconds:60,baseHp:500,hpPerPilot:0,lateJoinHp:0,victoryPoints:100});
+  const {b,said,at}=await make({lobbySeconds:10,battleSeconds:60,baseHp:500,hpPerPilot:0,lateJoinHp:0,victoryPoints:100,legendarySeconds:0,heroSeconds:0});
   b.call();b.receive(ev('join','nova'));b.receive(ev('join','idle'));at(10000);
   b.receive(ev('fire','nova'));b.receive(ev('gift','orion',{amount:1}));
   assert.equal(b.overlay().phase,'result');assert.equal(b.overlay().outcome,'victory');
@@ -46,6 +46,31 @@ test('Victory pays every pilot who fought the same points; the boss escapes when
   b.tick();at(30000);assert.equal(b.overlay().phase,'idle');
   b.call();b.receive(ev('join','nova'));at(10000);at(61000);
   assert.equal(b.history[0].outcome,'escaped');assert.equal(b.rewardBatches().length,1,'no reward for an escape');
+});
+
+test('2.20.44 speed goals: a kill within the Legendary or Hero time adds a bonus to the victory points and is announced',async()=>{
+  const {b,said,at}=await make({lobbySeconds:10,battleSeconds:240,baseHp:500,hpPerPilot:0,lateJoinHp:0,victoryPoints:100});
+  assert.equal(b.settings.legendarySeconds,60);assert.equal(b.settings.heroSeconds,120);assert.equal(b.settings.speedBonusPct,10);
+  // Legendary: destroyed 45 s into the battle.
+  b.call();b.receive(ev('join','nova'));at(10000);at(45000);b.receive(ev('gift','nova',{amount:1}));
+  let h=b.history[0];assert.equal(h.outcome,'victory');assert.equal(h.speed,'legendary');assert.equal(h.elapsed,45000);assert.equal(h.base,100);assert.equal(h.bonus,10);assert.equal(h.reward,110);
+  let [batch]=b.rewardBatches();assert.equal(batch.reward,110);assert.match(batch.title,/Legendary kill in 0:45 \(\+10 bonus\)/);
+  assert.match(said.at(-1),/LEGENDARY: destroyed in 0:45/);assert.match(said.at(-1),/Legendary Strike medal and 110 Voyager points \(\+10% speed bonus\)/);
+  const o=b.overlay();assert.equal(o.speed,'legendary');assert.equal(o.bonus,10);assert.equal(o.victoryPoints,110);assert.deepEqual(o.goals,{legendary:60,hero:120,bonusPct:10});
+  b.tick();at(30000);
+  // Hero: destroyed 90 s in.
+  b.call();b.receive(ev('join','nova'));at(10000);at(90000);b.receive(ev('gift','nova',{amount:1}));
+  h=b.history[0];assert.equal(h.speed,'hero');assert.equal(h.reward,110);assert.match(said.at(-1),/HEROIC: destroyed in 1:30/);assert.match(said.at(-1),/Hero of the Fleet medal/);
+  b.tick();at(30000);
+  // Too slow: 150 s in, plain victory points, no bonus.
+  b.call();b.receive(ev('join','nova'));at(10000);at(150000);b.receive(ev('gift','nova',{amount:1}));
+  h=b.history[0];assert.equal(h.speed,'');assert.equal(h.bonus,0);assert.equal(h.reward,100);assert.match(said.at(-1),/earns 100 Voyager points\./);assert.doesNotMatch(said.at(-1),/medal/);
+  assert.equal(b.rewardBatches().length,3);
+  // Goals off and limits.
+  b.tick();at(30000);b.configure({legendarySeconds:0,heroSeconds:0});
+  b.call();b.receive(ev('join','nova'));at(10000);at(5000);b.receive(ev('gift','nova',{amount:1}));assert.equal(b.history[0].speed,'');assert.equal(b.history[0].reward,100);
+  b.tick();at(30000);assert.throws(()=>b.configure({legendarySeconds:120,heroSeconds:60}),/Hero time/);
+  assert.throws(()=>normalizeBossSettings({speedBonusPct:600}),/between/);
 });
 
 test('Shields halve !fire at 50% hull, the boss knocks pilots out, and only moderators can call it from chat',async()=>{
