@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.56 (3 November 2026)
+
+**Camera frame: `?debug=1`.** Add it to the frame's source address and a small readout in the corner says exactly why the frame is on or off: whether Voyager answered, whether Voyager is connected to Streamer.bot, whether a fleet alert state has arrived (the Fleet Alerts C# must be v1.7), whether fleet alerts and the camera spotlight are enabled, what is in the queue and the camera's last state.
+
 ## 2.20.55 (3 November 2026)
 
 **Camera frame now follows the camera from any browser source.** The frame overlay no longer opens its own Streamer.bot connection (which needed the helper scripts beside it and silently showed nothing when they were missing). It now reads the alert queue and camera state from the Voyager host (`GET /api/fleet/overlay`, which the host fills from the Fleet Alerts broadcasts) and works whether the source address is the host page or a local copy of `Voyager_Camera_Frame.html` (`?voyager=port` if Voyager is not on 8740).
