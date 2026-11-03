@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.54 (3 November 2026)
+
+**Camera frame: blue · silver · white, thicker.** The running light is now blue into silver into white by default (gold stays available with `?accent=gold`, plain white with `?accent=white`), the border is 6 px (was 4; `?border=` still adjusts it) and the corner marks are larger.
+
 ## 2.20.53 (3 November 2026)
 
 **Camera frame fixes.** The frame overlay now renders in OBS's own browser (it used a colour function OBS's Chromium does not have, so the running light and corner marks were missing), and it also follows **Show now / Hide now** on Support alerts › Camera spotlight, not only live alerts. Reminder: the frame is invisible until an alert plays or the camera is shown; add `?preview=1` to the source address while lining it up.
