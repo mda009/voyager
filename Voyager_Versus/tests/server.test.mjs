@@ -49,6 +49,17 @@ test('Local host serves assets, rejects unauthorized controls and shares authori
     assert.equal((await fetch(base+'/versuscall.html')).status,200);
     const audio=await fetch(base+'/Versus_AreYouReady.wav',{headers:{Range:'bytes=0-43'}});
     assert.equal(audio.status,206);assert.equal((await audio.arrayBuffer()).byteLength,44);
+    // Streamer.bot actions page (2.20.41): token-guarded; the Goal FX overlay poll is open to OBS pages (even file:// ones).
+    assert.equal((await fetch(base+'/api/streamerbot')).status,403);
+    assert.equal((await fetch(base+'/api/goalfx/control',{method:'POST',headers:{'Content-Type':'application/json'},body:'{"kind":"rearm"}'})).status,403);
+    const sb=await(await fetch(base+'/api/streamerbot',{headers:{'X-Voyager-Token':token}})).json();
+    assert.equal(sb.connected,false);assert.deepEqual(sb.actions,[]);assert.ok(sb.presets.length>5);assert.ok(sb.presets.every(p=>p.state==='offline'));
+    const sbPost=async(path,data)=>(await fetch(base+path,{method:'POST',headers:{'Content-Type':'application/json','X-Voyager-Token':token},body:JSON.stringify(data)})).json();
+    const offline=await sbPost('/api/streamerbot/run',{key:'goals.read'});assert.equal(offline.ok,false);assert.match(offline.message,/not connected/);
+    const play=await sbPost('/api/goalfx/control',{kind:'play',tier:'platinum'});assert.equal(play.ok,true);assert.equal(play.command.id,1);
+    const poll=await fetch(base+'/api/goalfx/overlay?since=0',{headers:{Origin:'null'}});assert.equal(poll.status,200);assert.equal(poll.headers.get('access-control-allow-origin'),'*');
+    const polled=await poll.json();assert.equal(polled.commands.length,1);assert.equal(polled.commands[0].tier,'platinum');assert.equal((await(await fetch(base+'/api/goalfx/overlay?since=1')).json()).commands.length,0);
+    assert.equal((await fetch(base+'/api/streamerbot',{headers:{'X-Voyager-Token':token,Origin:'null'}})).status,403);
     await post({type:'pause'});const before=(await(await fetch(base+'/api/state')).json()).game.time;
     await new Promise(r=>setTimeout(r,250));assert.equal((await(await fetch(base+'/api/state')).json()).game.time,before);
   }finally{if(child.exitCode===null){child.kill('SIGTERM');await new Promise(r=>child.once('exit',r));}await rm(dir,{recursive:true,force:true});}
@@ -57,7 +68,7 @@ test('Local host serves assets, rejects unauthorized controls and shares authori
 test('Bundled Voyager Control and the game share one host without exposing game runtime files',async()=>{
   const dir=await mkdtemp(join(tmpdir(),'voyager-control-test-')),bundle=join(dir,'Voyager_Versus'),port=18744,base=`http://127.0.0.1:${port}`;
   await mkdir(join(bundle,'local'),{recursive:true});await mkdir(join(bundle,'dist'),{recursive:true});
-  for(const file of ['server.mjs','rewards.mjs','availability.mjs','streamerbot.mjs','stream-entries.mjs','live-overlay.mjs','match-chat.mjs','pilot-leaderboard.mjs','public-site.mjs','connection-config.mjs','community.mjs','boss.mjs','medals.mjs','cards.mjs','engage.mjs'])await copyFile(fileURLToPath(new URL('../local/'+file,import.meta.url)),join(bundle,'local',file));
+  for(const file of ['server.mjs','rewards.mjs','availability.mjs','streamerbot.mjs','stream-entries.mjs','live-overlay.mjs','match-chat.mjs','pilot-leaderboard.mjs','public-site.mjs','connection-config.mjs','community.mjs','boss.mjs','medals.mjs','cards.mjs','engage.mjs','actions.mjs'])await copyFile(fileURLToPath(new URL('../local/'+file,import.meta.url)),join(bundle,'local',file));
   await copyFile(fileURLToPath(new URL('../dist/engine.mjs',import.meta.url)),join(bundle,'dist/engine.mjs'));
   await writeFile(join(bundle,'dist/index.html'),'<h1>Game</h1>');
   await writeFile(join(dir,'Voyager_Command_Center.html'),'<a href="Voyager_Versus.html">Voyager Versus</a>');

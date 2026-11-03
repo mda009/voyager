@@ -151,7 +151,17 @@ function connect(){
 }
 connect();
 // ---------- setup panel and tests ----------
-for(const b of document.querySelectorAll('[data-test]'))b.onclick=()=>{queue.push(b.dataset.test);const g=gateBusy,p=inProgram,a=awaitFresh;gateBusy=false;inProgram=true;awaitFresh=false;next();gateBusy=g;inProgram=p;awaitFresh=a;};
+function forcePlay(key){if(!TIERS[key])return;queue.push(key);const g=gateBusy,p=inProgram,a=awaitFresh;gateBusy=false;inProgram=true;awaitFresh=false;next();gateBusy=g;inProgram=p;awaitFresh=a;}
+for(const b of document.querySelectorAll('[data-test]'))b.onclick=()=>forcePlay(b.dataset.test);
+// ---------- Voyager Control (2.20.41): plays and re-arms queued from the "Streamer.bot actions" page ----------
+// Same-origin when OBS opens this page from the Voyager host; otherwise the host's default address (?voyager=port to change it).
+const hosted=location.protocol==='http:'&&/^(127\.0\.0\.1|localhost)$/.test(location.hostname),voyagerBase=hosted?'':'http://127.0.0.1:'+(Number(q.get('voyager'))||8740);
+let cmdSince=0,cmdEpoch=0,cmdPrimed=false;
+async function pollVoyager(){try{const r=await fetch(voyagerBase+'/api/goalfx/overlay?since='+cmdSince,{cache:'no-store'});if(!r.ok)return;const d=await r.json();
+ if(d.epoch!==cmdEpoch){cmdEpoch=d.epoch;cmdSince=0;} // the host restarted: its command numbers start again
+ for(const c of d.commands||[]){cmdSince=Math.max(cmdSince,c.id);if(!cmdPrimed)continue;if(c.kind==='play')forcePlay(c.tier);else if(c.kind==='rearm'){done={};save('voyager.goalfx.done',done);renderPanel();}}
+ cmdPrimed=true;}catch{}}
+setInterval(pollVoyager,2000);pollVoyager();
 $('rearm').onclick=()=>{done={};save('voyager.goalfx.done',done);renderPanel();};$('hide').onclick=()=>$('panel').classList.remove('on');
 addEventListener('keydown',e=>{if(e.key==='d'||e.key==='D')$('panel').classList.toggle('on');if(e.key==='Escape')$('panel').classList.remove('on');});
 if(TIERS[q.get('test')])setTimeout(()=>{queue.push(q.get('test'));const g=gateBusy;gateBusy=false;inProgram=true;next();gateBusy=g;},800);

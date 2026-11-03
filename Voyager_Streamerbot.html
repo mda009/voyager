@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Voyager • Streamer.bot actions</title>
+<link rel="icon" href="brand-assets/voyager.png">
+<link rel="stylesheet" href="stream-command.css">
+<link rel="stylesheet" href="voyager-brand.css">
+<link rel="stylesheet" href="settings.css?v=2.18">
+<link rel="stylesheet" href="community.css?v=2.18">
+<link rel="stylesheet" href="voyager-glass.css?v=2.18">
+<style>
+.sb-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:start}
+.sb-card{padding:18px 22px;display:flex;flex-direction:column;gap:12px}
+.sb-wide{grid-column:1/-1}
+.sb-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.sb-list li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 14px;align-items:center;padding:10px 12px;border:1px solid rgba(151,223,255,.12);background:rgba(8,15,24,.35)}
+.sb-list li b{display:block;color:#e6eef7;font-size:14px}
+.sb-list li small{display:block;color:#8ea6bd;font-size:12px;line-height:1.4;margin-top:2px}
+.sb-list li .act{display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+.sb-list li .in{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px}
+.sb-list li .in input,.sb-list li .in select,.sb-filter input{height:32px;padding:0 9px;border:1px solid rgba(151,223,255,.18);background:rgba(8,15,24,.55);color:#e6eef7;font:13px 'Segoe UI',sans-serif;min-width:0}
+.sb-list li .in input[type=text]{flex:1 1 220px}.sb-list li .in input[type=number]{width:84px}
+.sb-list li[data-state=missing],.sb-list li[data-state=disabled],.sb-list li[data-state=duplicate]{border-color:rgba(255,210,122,.35)}
+.sb-list li[data-state=offline]{opacity:.65}
+.sb-tiers{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.sb-tier{padding:14px;border:1px solid rgba(151,223,255,.18);background:rgba(8,15,24,.5);display:flex;flex-direction:column;gap:8px;align-items:flex-start}
+.sb-tier b{font:700 18px/1.1 Rajdhani,'Segoe UI',sans-serif;letter-spacing:.06em}
+.sb-tier.silver b{color:#eef3f9}.sb-tier.gold b{color:#ffd56a}.sb-tier.platinum b{color:#bfe9ff}
+.sb-all{max-height:460px;overflow:auto}
+.sb-all li{grid-template-columns:minmax(0,1fr) auto}
+.sb-filter{display:flex;gap:8px;align-items:center}.sb-filter input{flex:1}
+.sb-hist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px;max-height:300px;overflow:auto;font-size:13px}
+.sb-hist li{display:flex;gap:10px;align-items:baseline;padding:6px 10px;border:1px solid rgba(151,223,255,.08);background:rgba(8,15,24,.3);color:#c9d7e4}
+.sb-hist li time{color:#8ea6bd;font-size:12px;white-space:nowrap}.sb-hist li i{font-style:normal;color:#8ea6bd}
+.sb-hist li.bad{border-color:rgba(255,154,166,.35)}.sb-hist li.bad i{color:#ff9aa6}
+.sb-check{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;font-size:13px;color:#c9d7e4}
+.sb-check li::before{content:'○ ';color:#8ea6bd}.sb-check li.ok::before{content:'✓ ';color:#7ce1cb}.sb-check li.info::before{content:'• ';color:#8ea6bd}
+.sb-group{margin:8px 0 2px;font:700 12px/1 Rajdhani,'Segoe UI',sans-serif;letter-spacing:.14em;color:#97dfff;text-transform:uppercase}
+@media(max-width:1100px){.sb-grid{grid-template-columns:1fr}.sb-tiers{grid-template-columns:1fr}}
+</style>
+</head>
+<body class="voyager-console voyager-settings voyager-community">
+<div class="shell">
+<aside class="rail"><a class="brand" href="Voyager_Command_Center.html"><img class="logo-voyager" src="brand-assets/voyager.png" alt="Voyager membership program" width="68" height="68"><span>VOYAGER<small>MDA009 · MISSION CONTROL</small></span></a></aside>
+<main>
+<header class="top"><div><span class="eyebrow">SETUP</span><h1>Streamer.bot actions</h1></div><div class="toolbar"><span class="st-pill" id="conn-pill" data-state="wait">Checking…</span><button type="button" id="refresh">Refresh list</button></div></header>
+<p class="st-notice" id="notice" hidden></p>
+<p class="st-notice" id="not-hosted" hidden>Open this page from the Voyager app (or START-VOYAGER-CONTROL.bat).</p>
+<div class="sb-grid">
+
+<section class="card sb-card">
+<span class="eyebrow">STATUS</span>
+<ul class="sb-check" id="checklist"></ul>
+<p class="st-hint">Runs go through Voyager's own connection to Streamer.bot, the same way chat replies do. A run here is the same as pressing <b>Run</b> on the action in Streamer.bot (no test flag), so chat messages, OBS media and ledger changes are real.</p>
+</section>
+
+<section class="card sb-card">
+<div class="card-heading"><div><span class="eyebrow">GOAL FX</span><h2>Giveaway goal celebrations</h2></div><span class="st-pill" id="goal-pill" data-state="wait">Overlay</span></div>
+<div class="sb-tiers">
+<div class="sb-tier silver"><b>SILVER</b><button type="button" class="primary" data-goal="silver">Play celebration</button></div>
+<div class="sb-tier gold"><b>GOLD</b><button type="button" class="primary" data-goal="gold">Play celebration</button></div>
+<div class="sb-tier platinum"><b>PLATINUM</b><button type="button" class="primary" data-goal="platinum">Play celebration</button></div>
+</div>
+<div class="eg-row" style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" id="goal-rearm">Re-arm celebrations</button><a class="link" href="GOAL_FX_SETUP.html" target="_blank" rel="noopener">Goal FX setup ↗</a></div>
+<p class="st-hint">Plays the <b>Voyager Goal FX</b> overlay in OBS (lift-off from the goals strip, emblem, confetti) without changing any points. Re-arm clears the overlay's memory of goals already celebrated this cycle so the next real crossing plays again. The overlay picks these up within 2 seconds while it is open in OBS.</p>
+</section>
+
+<section class="card sb-card sb-wide">
+<div class="card-heading"><div><span class="eyebrow">VOYAGER ACTIONS</span><h2>Run a Voyager action</h2></div></div>
+<ul class="sb-list" id="presets"></ul>
+</section>
+
+<section class="card sb-card">
+<div class="card-heading"><div><span class="eyebrow">EVERYTHING IN STREAMER.BOT</span><h2>All actions</h2></div><span class="st-pill" id="all-pill" data-state="wait">0</span></div>
+<div class="sb-filter"><input type="search" id="filter" placeholder="Filter by name or group…" aria-label="Filter actions"></div>
+<ul class="sb-list sb-all" id="all"></ul>
+<p class="st-hint">Every enabled action Streamer.bot reports, grouped as in Streamer.bot. Run starts it with no arguments.</p>
+</section>
+
+<section class="card sb-card">
+<div class="card-heading"><div><span class="eyebrow">LOG</span><h2>Recent runs</h2></div></div>
+<ul class="sb-hist" id="history"></ul>
+</section>
+
+</div>
+</main>
+</div>
+<script src="streamerbot-control.js?v=2.20.41"></script>
+<script src="voyager-shell.js?v=2.20.41"></script>
+<script src="voyager-navigation.js"></script>
+</body>
+</html>

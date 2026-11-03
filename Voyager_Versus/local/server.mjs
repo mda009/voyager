@@ -18,6 +18,7 @@ import {readConnection,updateConnection} from './connection-config.mjs';
 import {Community} from './community.mjs';
 import {BossFight} from './boss.mjs';
 import {Medals,MEDAL_ICONS} from './medals.mjs';
+import {Actions} from './actions.mjs';
 import {Cards} from './cards.mjs';
 import {Engage} from './engage.mjs';
 let VERSION='unknown';try{VERSION=JSON.parse(await readFile(new URL('../package.json',import.meta.url),'utf8')).version;}catch{}
@@ -184,10 +185,12 @@ function response(res,status,data){res.writeHead(status,{'Content-Type':'applica
 function validToken(req){const token=req.headers['x-voyager-token'];return typeof token==='string'&&token.length===adminToken.length&&timingSafeEqual(Buffer.from(token),Buffer.from(adminToken));}
 async function body(req,limit=8192){let size=0,parts=[];for await(const chunk of req){size+=chunk.length;if(size>limit)throw new Error('Request too large.');parts.push(chunk);}return JSON.parse(Buffer.concat(parts).toString());}
 const mime={'.wav':'audio/wav','.mp3':'audio/mpeg','.html':'text/html; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.js':'text/javascript; charset=utf-8','.sb':'application/octet-stream','.csv':'text/csv; charset=utf-8','.css':'text/css; charset=utf-8','.svg':'image/svg+xml','.png':'image/png','.webp':'image/webp','.ctm':'application/octet-stream','.woff2':'font/woff2','.ttf':'font/ttf','.txt':'text/plain; charset=utf-8','.md':'text/plain; charset=utf-8','.zip':'application/zip','.cs':'text/plain; charset=utf-8','.json':'application/json; charset=utf-8'};
+// Streamer.bot actions page (2.20.41): run any action, the Voyager presets and Goal FX plays from Voyager Control.
+const actions=new Actions({bot,medalsSince:()=>medals.exportSince()});
 const server=http.createServer(async(req,res)=>{
   if(!allowedHosts.has(req.headers.host)){response(res,403,{message:'Invalid host.'});return;}
-  const origin=req.headers.origin;if(origin&&!['http://127.0.0.1:'+port,'http://localhost:'+port].includes(origin)){response(res,403,{message:'Cross-origin requests are not allowed.'});return;}
-  if(req.headers['sec-fetch-site']==='cross-site'){response(res,403,{message:'Cross-site requests are not allowed.'});return;}
+  const origin=req.headers.origin,goalPoll=req.method==='GET'&&req.url.startsWith('/api/goalfx/overlay');if(origin&&!goalPoll&&!['http://127.0.0.1:'+port,'http://localhost:'+port].includes(origin)){response(res,403,{message:'Cross-origin requests are not allowed.'});return;}
+  if(req.headers['sec-fetch-site']==='cross-site'&&!goalPoll){response(res,403,{message:'Cross-site requests are not allowed.'});return;}
   res.setHeader('X-Content-Type-Options','nosniff');res.setHeader('Referrer-Policy','no-referrer');
   const url=new URL(req.url,'http://127.0.0.1:'+port);
   try{
@@ -273,6 +276,17 @@ const server=http.createServer(async(req,res)=>{
         response(res,404,{message:'Not found.'});
       }catch(e){response(res,400,{ok:false,message:e.message});}
       return;
+    }
+    // Goal FX overlay poll (no token: it only carries queued test plays) and the Streamer.bot actions page.
+    if(url.pathname==='/api/goalfx/overlay'&&req.method==='GET'){res.setHeader('Access-Control-Allow-Origin','*');response(res,200,actions.goalOverlay(url.searchParams.get('since')));return;}
+    if(url.pathname.startsWith('/api/streamerbot')||url.pathname==='/api/goalfx/control'){
+      if(!validToken(req)){response(res,403,{message:'Open Voyager Control › Streamer.bot actions.'});return;}
+      if(url.pathname==='/api/streamerbot'&&req.method==='GET'){const list=await actions.actions(url.searchParams.has('refresh'));response(res,200,{...list,...actions.view()});return;}
+      if(req.method!=='POST'||!req.headers['content-type']?.startsWith('application/json')){response(res,405,{message:'Method not allowed.'});return;}
+      const input=await body(req,16384);
+      if(url.pathname==='/api/streamerbot/run'){const r=await actions.run(input||{});response(res,200,{...r,...actions.view()});return;}
+      if(url.pathname==='/api/goalfx/control'){const r=actions.goalFx(input||{});response(res,r.ok?200:400,{...r,...actions.view()});return;}
+      response(res,404,{message:'Unknown Streamer.bot request.'});return;
     }
     if(url.pathname==='/api/boss/overlay'&&req.method==='GET'){res.setHeader('Cache-Control','no-store');response(res,200,{...boss.overlay(),relay:engage.relayView()});return;}
     if(url.pathname==='/api/engage/overlay'&&req.method==='GET'){res.setHeader('Cache-Control','no-store');response(res,200,engage.overlay());return;}

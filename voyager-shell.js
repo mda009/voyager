@@ -34,6 +34,7 @@ const PAGES=[
  {file:'Voyager_Security.html',label:'Security',ico:'⛨',group:'Community',keys:'security reports signals accounts',help:'SECURITY_SETUP.html'},
  {file:'Voyager_Command_Center.html',page:'reporting',label:'Reporting',ico:'▥',group:'Community',keys:'reporting reports twitch statistics analytics',help:'TWITCH_ANALYTICS_SETUP.html'},
  {file:'Voyager_Commands.html',label:'Chat commands',ico:'⌘',group:'Setup',keys:'chat commands command ticket enter versus duplicates cooldown',help:'Voyager_Guide.html'},
+ {file:'Voyager_Streamerbot.html',label:'Streamer.bot actions',ico:'▶',group:'Setup',live:true,keys:'streamer.bot streamerbot actions run trigger test goal fx celebration upgrade animation ledger scan medals export fleet alert',help:'Voyager_Guide.html'},
  {file:'Voyager_System_Check.html',label:'System check',ico:'✓',group:'Setup',keys:'system check health streamer.bot connection data folder',live:true,help:'Voyager_Guide.html'},
  {file:'Voyager_Guide.html',label:'Help',ico:'?',group:'Setup',keys:'help guide setup instructions updates'},
  {file:'Voyager_Settings.html',label:'Settings',ico:'⚙',group:'Setup',side:false,live:true,keys:'settings connection streamer.bot password address port logos branding',help:'Voyager_Guide.html'}

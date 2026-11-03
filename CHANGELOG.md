@@ -2,6 +2,12 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.41 (3 November 2026)
+
+**Run your Streamer.bot actions from Voyager.** New page *Setup › Streamer.bot actions* (`Voyager_Streamerbot.html`). It lists every enabled action Streamer.bot reports, grouped as in Streamer.bot, each with a Run button, and a set of Voyager presets with the right arguments filled in: read the goal percentages from OBS, run the giveaway threshold check, play the Silver or Gold upgrade animation, scan the tier groups or broadcast a ledger snapshot (`Voyager - Points Ledger`), export medal data now, post a check message to chat through the Medals, Membership Card or Dreadnought action (all platforms or one), and send a test support alert to OBS (stage, name, amount, months, platform). Runs go through Voyager's own Streamer.bot connection and are the same as pressing Run in Streamer.bot (no test flag). A log shows the last 40 runs with the outcome. Host routes: `GET /api/streamerbot`, `POST /api/streamerbot/run` (local token).
+
+**Goal FX celebrations from Voyager.** The same page plays the Silver, Gold or Platinum celebration on the `Voyager Goal FX` overlay and can re-arm it, without touching any points. The overlay now also polls Voyager (`/api/goalfx/overlay`, every 2 s, same-origin when opened from the Voyager host, otherwise `http://127.0.0.1:8740`, `?voyager=port` to change) and the page shows whether the overlay is open in OBS.
+
 ## 2.20.40 (3 November 2026)
 
 **Goal FX 2.0 in the glass design, lifting off the goals strip.** The giveaway-goal celebration now ships with Voyager as `Voyager_Goal_FX.html` (point your existing "Voyager Goal FX" browser source at it): the tier's glass tile lifts off the goals strip (`?from=x,y,spread` says where the strip sits), flies to the centre and opens into the tier emblem, GOAL REACHED in the tier metal, rings, sparks and confetti, then folds back. Same Streamer.bot reader and upgrade hold as Goal FX v1.3. `goal-fx/Voyager_OBS_Bridge.cs` is the reader with the Platinum target corrected to 200,000 (was 220,000): paste it into Voyager - Read OBS Percentages. Setup: Voyager guide › Goal FX.
