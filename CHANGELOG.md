@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.51 (3 November 2026)
+
+**voyagercommand.com regrouped the same way.** Five tabs by what the viewer is doing: **Live** (what is on right now, watch links, commands, the Dreadnought, giveaways, Versus, missions), **My card**, **Goals** (the running community goal first, then the giveaway goals), **Community** (squadron war, leaderboards, winners, every medal) and **Guide**. Live opens with a **Right now** strip — the community goal with days to go and the next target's progress, an open giveaway, a Dreadnought fight in progress, this week's missions — each one tap away. Old links (#medals, #winners, #boards) still land in the right place. The tier-giveaway buckets are now headed "Giveaway goals" so they are not confused with community goals. The member manual's website page is updated to match.
+
 ## 2.20.50 (3 November 2026)
 
 **Stream deck and a simpler sidebar.** New page *Stream › Stream deck* (`Voyager_Stream_Deck.html`): everything you press during a stream on one page, with big buttons and live status that refreshes every 5 seconds — Streamer.bot connect/disconnect; start-of-stream resets (per-stream counters, read goals from OBS, scan tier groups, publish the website); the Dreadnought (call, start now, cancel, with pilots and time left); the Versus arena (open/close entries, pause, clear the call, test the ready alert); on-stream panels (community panel kinds, squadron war panel, live stats strip); celebrations and tests (Goal FX plays and re-arm, a membership-card preview, a test support alert); links to every other page; and a log of what you pressed. The status strip shows Streamer.bot, the Dreadnought, Versus, the running community goal, the Goal FX overlay and website publishing at a glance.

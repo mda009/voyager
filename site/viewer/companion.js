@@ -13,14 +13,17 @@ const crewUrl=()=>new URL('crew.json',new URL(FEED,location.href)).href;
 let feed=null,crew=null,crewAt=0,crewLoading=null,selected=null;
 
 // ---------- tabs ----------
+// 2.20.51: five tabs by what you are doing. Live (while watching), My card (you), Goals (the community goal and giveaway goals),
+// Community (squadrons, leaderboards, winners, medals) and Guide. Old links (#medals, #winners, #boards) still land in the right place.
 const TABS=[
  ['live','Live','M5 12a7 7 0 0 1 14 0 M2 12a10 10 0 0 1 20 0 M12 12m-2 0a2 2 0 1 0 4 0a2 2 0 1 0-4 0 M12 14v7'],
  ['crew','My card','M3 5h18v14H3z M7 10a2 2 0 1 0 4 0a2 2 0 0 0-4 0 M6 16c.6-1.6 1.8-2.4 3-2.4s2.4.8 3 2.4 M14 9h4 M14 13h4'],
- ['medals','Medals','M12 2l8 4.5v9L12 20l-8-4.5v-9z M12 7l1.5 3 3.3.4-2.4 2.3.6 3.3-3-1.6-3 1.6.6-3.3-2.4-2.3 3.3-.4z'],
- ['boards','Boards','M4 20V10 M10 20V4 M16 20v-7 M22 20H2'],
- ['winners','Winners','M7 4h10v5a5 5 0 0 1-10 0z M7 6H4a3 3 0 0 0 3 4 M17 6h3a3 3 0 0 1-3 4 M12 14v4 M8 21h8'],
+ ['goal','Goals','M12 3l2.6 5.4 6 .8-4.3 4.2 1 5.9-5.3-2.8-5.3 2.8 1-5.9L3.4 9.2l6-.8z'],
+ ['community','Community','M16 11a4 4 0 1 0-8 0 4 4 0 0 0 8 0z M4 21c0-3.3 3.6-6 8-6s8 2.7 8 6 M19 8a3 3 0 1 0 0-6 M5 8a3 3 0 1 1 0-6'],
  ['guide','Guide','M4 4h7a3 3 0 0 1 3 3v13a2 2 0 0 0-2-2H4z M20 4h-7a3 3 0 0 0-3 3v13a2 2 0 0 1 2-2h8z']];
-let tab=(location.hash.slice(1)||'live'),wanted=tab; // a link to #crew waits for the feed before it can open that tab
+const TAB_ALIAS={medals:'community',winners:'community',boards:'community',leaderboards:'community',squad:'community',season:'goal',goals:'goal',dread:'live',giveaways:'live',missions:'live',arena:'live',ranks:'crew',find:'crew',program:'guide',manual:'guide'};
+const resolveTab=h=>TABS.some(([t])=>t===h)?h:TAB_ALIAS[h]||null;
+let tab=(resolveTab(location.hash.slice(1))||'live'),wanted=tab; // a link to #crew waits for the feed before it can open that tab
 function sectionsOf(t){return [...document.querySelectorAll('section[data-tab="'+t+'"]')];}
 function available(t){return sectionsOf(t).some(s=>!s.hidden);}
 function renderTabs(){
@@ -36,7 +39,18 @@ function renderTabs(){
  for(const s of document.querySelectorAll('section[data-tab]'))s.classList.toggle('off',s.dataset.tab!==tab);
 }
 function go(t,push=true){tab=t;wanted=null;if(push)history.replaceState(null,'','#'+t);renderTabs();if(t==='crew')loadCrew();window.scrollTo({top:0,behavior:'smooth'});}
-addEventListener('hashchange',()=>{const t=location.hash.slice(1);if(TABS.some(([x])=>x===t))go(t,false);});
+addEventListener('hashchange',()=>{const h=location.hash.slice(1),t=resolveTab(h);if(!t)return;go(t,false);if(h!==t){const sec=document.getElementById(h);if(sec)setTimeout(()=>sec.scrollIntoView({behavior:'smooth',block:'start'}),60);}});
+// Right now: what is on, one tap away (the community goal, an open giveaway, the Dreadnought, missions).
+window.renderRightNow=function(){
+ const box=document.getElementById('rightnow');if(!box||!feed)return;box.textContent='';
+ const tile=(cls,title,sub,target,section)=>{const b=el('button',cls);b.type='button';const t=el('b');t.append(el('i'),document.createTextNode(title));b.append(t,el('small','',sub));b.onclick=()=>{go(target);if(section){const sec=document.getElementById(section);if(sec)setTimeout(()=>sec.scrollIntoView({behavior:'smooth',block:'start'}),80);}};box.append(b);};
+ const s=feed.season;if(s&&s.active!==false&&s.name){const days=s.endsAt?Math.max(0,Math.ceil((s.endsAt-Date.now())/864e5)):0,next=(s.goals||[]).find(g=>!g.reached&&!g.missed),done=(s.goals||[]).filter(g=>g.reached).length;
+  tile('gold',s.name,(s.endsAt?days+' days to go · ':'')+(next?next.title+' '+Math.min(100,Math.floor(next.total/next.target*100))+'%':done+' of '+(s.goals||[]).length+' goals reached'),'goal','season');}
+ const open=(feed.giveaways||[]).filter(g=>g.status==='open');if(open.length&&fresh())tile('',open.length===1?'Giveaway open':open.length+' giveaways open',open[0].title+(open[0].eligibility?' · '+open[0].eligibility:''),'live','giveaways');
+ const d=feed.dreadnought;if(d&&['lobby','battle'].includes(d.phase))tile('red',d.phase==='lobby'?'Dreadnought boarding':'Dreadnought fight',d.phase==='lobby'?'Type !join now':'Type !fire to attack','live','dread');
+ const m=feed.missions;if(m&&(m.list||[]).length&&box.children.length<3)tile('',(m.list||[]).length+' missions this week','Finish one to earn Voyager points','live','missions');
+ if(!box.children.length&&feed.sections?.crew!==false)tile('','Find your card','Your tier, rank, medals and stream streak','crew','find');
+};
 const st=document.createElement('style');st.textContent='section.off{display:none!important}'+(EMBED?' nav.tabbar{position:static!important;padding:0!important;background:none!important;border:0!important;margin-top:10px!important}.embed .wrap{padding-bottom:24px!important}':'');document.head.append(st);
 
 // ---------- now / on air ----------

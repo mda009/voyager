@@ -188,6 +188,15 @@ nav.tabbar button:focus-visible{outline:2px solid var(--cyan);outline-offset:2px
 .now-card{position:relative;overflow:hidden;background:radial-gradient(ellipse 80% 120% at 100% 0,#1c3e6e88,transparent 60%),linear-gradient(170deg,var(--panel-2),var(--panel) 60%)}
 .now-card h1{font:700 clamp(30px,6vw,46px)/1.02 var(--display);margin:10px 0 8px}
 .now-card p{color:var(--muted);margin:0 0 14px;max-width:640px}
+/* Right now (2.20.51): what is on, one tap away */
+.rightnow{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px;margin:0 0 14px}
+.rightnow:empty{display:none}
+.rightnow button{text-align:left;display:flex;flex-direction:column;gap:3px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:#0b1626;color:var(--text);cursor:pointer;font:600 14px/1.2 var(--display)}
+.rightnow button small{font:500 12px/1.3 var(--sans,system-ui);color:var(--muted)}
+.rightnow button b{display:flex;align-items:center;gap:6px;font:700 16px/1.1 var(--display);letter-spacing:.5px}
+.rightnow button b i{width:8px;height:8px;border-radius:50%;background:#7ff0b5;flex:none}
+.rightnow button.gold b i{background:#ffd56a}.rightnow button.red b i{background:#ff7c93}
+.rightnow button:hover{border-color:var(--line-strong)}
 .now-top{display:flex;justify-content:space-between;align-items:center;gap:10px}
 .onair{display:inline-flex;align-items:center;gap:9px;font:700 14px/1 var(--display);letter-spacing:2px;text-transform:uppercase;padding:8px 14px;border-radius:999px;background:#1a2433;color:var(--muted)}
 .onair i{width:10px;height:10px;border-radius:50%;background:var(--faint)}
@@ -322,6 +331,7 @@ ol.logrows .quote{font-size:16px;color:var(--text)}
    <div class="now-top"><span class="onair" id="onair" data-on="false"><i></i><b id="onair-text">Off air</b></span><span class="when" id="updated-short"></span></div>
    <h1 id="h-now">Your Voyager companion</h1>
    <p id="tagline">Keep this open while you watch: giveaways, the Dreadnought, your card, ranks and medals, live from the stream.</p>
+   <div class="rightnow" id="rightnow" aria-label="Right now"></div>
    <div class="links" id="links"></div>
    <div class="chips" id="chips" aria-label="Chat commands to copy"></div>
    <div class="install" id="install" hidden><span>Add Voyager to your home screen for one-tap access.</span><button type="button" id="install-btn">Install</button></div>
@@ -355,22 +365,12 @@ ol.logrows .quote{font-size:16px;color:var(--text)}
    </div>
  </section>
 
- <section id="squad" data-tab="boards" aria-labelledby="h-squad" hidden>
+ <section id="squad" data-tab="community" aria-labelledby="h-squad" hidden>
   <h2 id="h-squad">Squadron war</h2><p class="lede" id="squad-lede">Pick a side with !squadron red, gold or blue. Chat, missions, Dreadnought damage and Versus wins score for your squadron each week.</p>
   <div class="grid" id="squad-list"></div>
  </section>
 
- <section id="goals" data-tab="boards" aria-labelledby="h-goals" hidden>
-  <h2 id="h-goals">Community goals</h2><p class="lede">Voyager points pooled by the community toward the next giveaways.</p>
-  <div class="card" id="goal-list"></div>
- </section>
-
- <section id="missions" data-tab="live" aria-labelledby="h-missions" hidden>
-  <h2 id="h-missions">This week's missions</h2><p class="lede" id="missions-lede">Finish a mission to earn Voyager points.</p>
-  <div class="grid" id="mission-list"></div>
- </section>
-
- <section id="season" data-tab="boards" aria-labelledby="h-season" hidden>
+ <section id="season" data-tab="goal" aria-labelledby="h-season" hidden>
   <h2 id="h-season">Community goal</h2><p class="lede" id="season-lede"></p>
   <div class="grid" id="sub-goal-list" hidden></div>
   <div class="two">
@@ -379,12 +379,22 @@ ol.logrows .quote{font-size:16px;color:var(--text)}
   </div>
  </section>
 
- <section id="winners" data-tab="winners" aria-labelledby="h-winners" hidden>
+ <section id="goals" data-tab="goal" aria-labelledby="h-goals" hidden>
+  <h2 id="h-goals">Giveaway goals</h2><p class="lede">Voyager points pooled by the community toward the next tier giveaways.</p>
+  <div class="card" id="goal-list"></div>
+ </section>
+
+ <section id="missions" data-tab="live" aria-labelledby="h-missions" hidden>
+  <h2 id="h-missions">This week's missions</h2><p class="lede" id="missions-lede">Finish a mission to earn Voyager points.</p>
+  <div class="grid" id="mission-list"></div>
+ </section>
+
+ <section id="winners" data-tab="community" aria-labelledby="h-winners" hidden>
   <h2 id="h-winners">Recent winners</h2><p class="lede">Congratulations to everyone who won.</p>
   <div class="card"><ol class="rows" id="winner-list"></ol></div>
  </section>
 
- <section id="leaderboards" data-tab="boards" aria-labelledby="h-leaders" hidden>
+ <section id="leaderboards" data-tab="community" aria-labelledby="h-leaders" hidden>
   <h2 id="h-leaders">Leaderboards</h2><p class="lede" id="leader-lede">Top of the Voyager community.</p>
   <div class="one">
    <div class="card">
@@ -415,7 +425,7 @@ ol.logrows .quote{font-size:16px;color:var(--text)}
   </div>
  </section>
 
- <section id="medal-sec" data-tab="medals" aria-labelledby="h-medals" hidden>
+ <section id="medal-sec" data-tab="community" aria-labelledby="h-medals" hidden>
   <h2 id="h-medals">Medals</h2><p class="lede">Earned by watching, supporting, playing and showing up. Most have four grades: Bronze, Silver, Gold and Legend.</p>
   <div class="two">
    <div class="card"><span class="kind">Hall of Honour</span><ol class="rows" id="honour"></ol></div>
@@ -449,7 +459,7 @@ ol.logrows .quote{font-size:16px;color:var(--text)}
  <footer><p id="updated">Updates every few minutes while the stream tools are running.</p><p><a href="manual.pdf" target="_blank" rel="noopener">Voyager member manual (PDF)</a></p><p>Voyager community site. Giveaway entry happens in stream chat only; this site never asks for passwords or payment.</p></footer>
 </div>
 <script src="fair-draw.js"></script>
-<script src="companion.js?v=2.20.47" defer></script>
+<script src="companion.js?v=2.20.51" defer></script>
 <script>
 (()=>{'use strict';
 // ?embed=1: shown inside another site. Report our height so the host page can size its frame.
@@ -627,7 +637,7 @@ function renderSeason(){
  const hall=$('hall-list');hall.textContent='';$('hall-card').hidden=!(s.hall||[]).length;
  for(const h of s.hall||[]){const li=el('li');const info=el('div');info.append(el('b','',h.champion?h.champion.name:'—'),el('div','when',h.name+(h.champion?' champion · '+fmt(h.champion.points)+' pts':'')+(h.topPilot?' · top pilot '+h.topPilot.name:'')));li.append(el('span','rank','★'),info);hall.append(li);}
 }
-function render(){if(!feed)return;renderHeader();renderGiveaways();renderGoals();renderMissions();renderSeason();renderWinners();renderLeaders();renderProgram();window.dispatchEvent(new CustomEvent('voyager:feed',{detail:feed}));$('updated').textContent='Updated '+ago(feed.generatedAt)+'. This page refreshes itself every minute.';}
+function render(){if(!feed)return;renderHeader();renderGiveaways();renderGoals();renderMissions();renderSeason();renderWinners();renderLeaders();renderProgram();window.dispatchEvent(new CustomEvent('voyager:feed',{detail:feed}));$('updated').textContent='Updated '+ago(feed.generatedAt)+'. This page refreshes itself every minute.';if(window.renderRightNow)window.renderRightNow();}
 
 async function load(){
  try{
