@@ -19,6 +19,13 @@ export function readConnection(text){
   return {host:typeof host==='string'?host:'127.0.0.1',port:Number.isInteger(port)?port:8080,hasPassword:typeof password==='string'&&password.length>0,requireAuthentication:auth===true};
 }
 
+// The host's own use (2.20.43): the saved address and password for the home page's Connect chat button.
+// The password stays on the host; the page only ever sees whether one is set.
+export function savedConnection(text){
+  const c=readConnection(text),password=value(text,'password');
+  return {url:'ws://'+(c.host.includes(':')&&!c.host.startsWith('[')?'['+c.host+']':c.host)+':'+c.port+'/',password:typeof password==='string'?password:''};
+}
+
 export function validateConnection(input){
   const out={};
   if(input.host!==undefined){const host=String(input.host).trim();if(!/^[A-Za-z0-9.-]{1,253}$|^\[?[0-9A-Fa-f:]{2,39}\]?$/.test(host))throw new Error('Enter a computer name or IP address, such as 127.0.0.1.');out.host=host;}

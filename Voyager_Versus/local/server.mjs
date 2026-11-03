@@ -14,7 +14,7 @@ import {StreamEntries} from './stream-entries.mjs';
 import {PilotLeaderboard} from './pilot-leaderboard.mjs';
 import {LiveOverlay} from './live-overlay.mjs';
 import {PublicSite} from './public-site.mjs';
-import {readConnection,updateConnection} from './connection-config.mjs';
+import {readConnection,updateConnection,savedConnection} from './connection-config.mjs';
 import {Community} from './community.mjs';
 import {BossFight} from './boss.mjs';
 import {Medals,MEDAL_ICONS} from './medals.mjs';
@@ -343,6 +343,13 @@ const server=http.createServer(async(req,res)=>{
       if(!validToken(req)||!req.headers['content-type']?.startsWith('application/json')){response(res,403,{message:'Open the local control panel to send commands.'});return;}
       const {type,value}=await body(req);let result;
       if(type==='connect'){bot.connect(value||{});result={ok:true,message:'Connecting to Streamer.bot…'};}
+      // Home page "Connect chat" (2.20.43): the address and password saved in Settings (config.js), read on the host.
+      else if(type==='connect_saved'){
+        if(!hasControl)result={ok:false,message:'Connecting with saved settings needs the full Voyager Control package.'};
+        else{try{const target=userFilesDir?join(userFilesDir,'config.js'):resolve(controlRoot,'config.js');let text;try{text=await readFile(target,'utf8');}catch(e){if(e.code!=='ENOENT')throw e;text=await readFile(resolve(controlRoot,'config.js'),'utf8');}
+          const saved=savedConnection(text);bot.connect(saved);result={ok:true,message:'Connecting to Streamer.bot at '+saved.url+(saved.password?'':' (no password saved)')+'…'};}
+          catch(e){result={ok:false,message:e.message};}}
+      }
       else if(type==='disconnect'){bot.disconnect();result={ok:true};}
       else if(type==='new_stream'){
         if(value?.confirm!==true)result={ok:false,message:'Confirm that you are starting a new stream.'};

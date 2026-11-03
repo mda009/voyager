@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.43 (3 November 2026)
+
+**Connect chat from the home page.** The "Connect chat" button from Voyager Versus › Stream setup now also sits at the top of Home, next to Open Voyager Versus, with a live status dot. One click connects Voyager's host to Streamer.bot using the address and password saved in Settings (`config.js`), read on the host, so there is nothing to type and the password never reaches the page; Disconnect appears while connected. Host control `type: "connect_saved"`.
+
 ## 2.20.42 (3 November 2026)
 
 **Streamer.bot actions page fixes.** The "Play the Silver/Gold upgrade animation" presets are gone: in your Streamer.bot those are sub-action groups inside `THRESHOLD POINT CHECK` and the purchase actions, not actions of their own, so they could never run; "Run the giveaway threshold check" is the way to play them. When Voyager hasn't heard from the Goal FX overlay, the page now says what to do (OBS keeps the overlay page it loaded before an update: right-click the source › Refresh cache of current page). The Goal FX overlay reloads itself when it sees a new Voyager version, so that step isn't needed after this one.

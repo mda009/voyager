@@ -5,7 +5,7 @@ import {mkdtemp,mkdir,writeFile,readFile,copyFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {readConnection,updateConnection} from '../local/connection-config.mjs';
+import {savedConnection,readConnection,updateConnection} from '../local/connection-config.mjs';
 
 const sample=`// Edit in Notepad, save, then refresh the OBS browser source.
 window.VOYAGER_CONFIG = {
@@ -22,6 +22,10 @@ test('Reads the connection without revealing the password',()=>{
   assert.deepEqual(readConnection(sample),{host:'127.0.0.1',port:8080,hasPassword:false,requireAuthentication:false});
   assert.equal(readConnection(sample.replace('password: ""','password: "s3cret"')).hasPassword,true);
   assert.throws(()=>readConnection('var x = 1;'),/VOYAGER_CONFIG/);
+  // Home page Connect chat (2.20.43): the host reads the saved address and password itself.
+  assert.deepEqual(savedConnection(sample),{url:'ws://127.0.0.1:8080/',password:''});
+  assert.deepEqual(savedConnection(sample.replace('password: ""','password: "s3cret"').replace('port: 8080','port: 9090')),{url:'ws://127.0.0.1:9090/',password:'s3cret'});
+  assert.equal(savedConnection(sample.replace('"127.0.0.1"','"::1"')).url,'ws://[::1]:8080/');
 });
 
 test('Updates only the connection lines and keeps comments and other settings',()=>{
@@ -63,5 +67,10 @@ test('Settings API edits the config.js in the user folder and needs the local to
     assert.equal(await readFile(join(dir,'config.js'),'utf8'),sample);
     const bad=await fetch(url+'/api/settings/connection',{method:'POST',headers:h,body:JSON.stringify({port:'x'})});assert.equal(bad.status,400);
     const served=await(await fetch(url+'/control/config.js')).text();assert.match(served,/10\.0\.0\.5/);
+    // Connect chat from the home page uses the saved settings on the host; the password never reaches the page.
+    const connect=await(await fetch(url+'/api/control',{method:'POST',headers:h,body:JSON.stringify({type:'connect_saved'})})).json();
+    assert.equal(connect.ok,true);assert.match(connect.message,/ws:\/\/10\.0\.0\.5:8085\//);assert.doesNotMatch(connect.message,/abc/);
+    const state=await(await fetch(url+'/api/state')).json();assert.equal(state.connection.connected,false);assert.match(state.connection.message,/Connecting|Cannot reach|retrying|disconnected/);
+    await fetch(url+'/api/control',{method:'POST',headers:h,body:JSON.stringify({type:'disconnect'})});
   }finally{child.kill('SIGTERM');await new Promise(r=>child.once('exit',r));}
 });
