@@ -24,7 +24,7 @@ test('Presets run the right action with the right arguments and report missing, 
   const list=await a.actions();assert.equal(list.connected,true);assert.equal(list.actions.length,7);
   const states=Object.fromEntries(a.presets().map(p=>[p.key,p.state]));
   assert.equal(states['points.scan'],'found');assert.equal(states['goals.read'],'found');
-  assert.equal(states['upgrade.silver'],'disabled');assert.equal(states['upgrade.gold'],'missing');assert.equal(states['fleet.test'],'duplicate');
+  assert.equal(states['goals.check'],'missing');assert.equal(states['fleet.test'],'duplicate');
   const r=await a.run({key:'points.scan'});assert.equal(r.ok,true);
   const sent=bot.calls.filter(c=>c.request==='DoAction').pop();assert.equal(sent.action.id,'a1');assert.equal(sent.args.pointsOperation,'scan');assert.match(sent.args.requestId,/^[0-9a-f-]{36}$/);
   const say=await a.run({key:'medals.say',text:'  hello   chat ',platform:'KICK'});assert.equal(say.ok,true);
@@ -33,10 +33,9 @@ test('Presets run the right action with the right arguments and report missing, 
   assert.match(bot.calls.filter(c=>c.request==='DoAction').pop().args.medalSay,/Voyager check/);assert.equal(bot.calls.filter(c=>c.request==='DoAction').pop().args.medalSayPlatform,'');
   const exp=await a.run({key:'medals.export'});assert.equal(exp.ok,true);assert.equal(bot.calls.filter(c=>c.request==='DoAction').pop().args.since,'42');
   const fleet=await a.run({key:'fleet.test',stage:'9',name:'',amount:'-3',months:'',platform:''});assert.equal(fleet.ok,false);assert.match(fleet.message,/2 enabled actions/);
-  const off=await a.run({key:'upgrade.silver'});assert.equal(off.ok,false);assert.match(off.message,/disabled/);
-  const missing=await a.run({key:'upgrade.gold'});assert.equal(missing.ok,false);assert.match(missing.message,/not in Streamer.bot/);
+  const missing=await a.run({key:'goals.check'});assert.equal(missing.ok,false);assert.match(missing.message,/not in Streamer.bot/);
   const unknown=await a.run({key:'nope'});assert.equal(unknown.ok,false);
-  assert.equal(a.view().history[0].message,'Unknown preset.');assert.equal(a.view().history.length,8);
+  assert.equal(a.view().history[0].message,'Unknown preset.');assert.equal(a.view().history.length,7);
 });
 
 test('Fleet test arguments are clamped and defaulted',async()=>{
@@ -65,11 +64,11 @@ test('Offline: nothing is sent and the page is told why',async()=>{
 });
 
 test('Goal FX commands queue for the overlay, expire after 60 s and restart numbering per host epoch',()=>{
-  let t=5000;const a=new Actions({bot:fakeBot([]),now:()=>t});
+  let t=5000;const a=new Actions({bot:fakeBot([]),now:()=>t,version:'2.20.42'});
   assert.equal(a.goalFx({kind:'play',tier:'bronze'}).ok,false);assert.equal(a.goalFx({kind:'dance'}).ok,false);
   const p=a.goalFx({kind:'play',tier:'Gold'});assert.equal(p.ok,true);assert.equal(p.command.tier,'gold');assert.equal(p.command.id,1);
   const r=a.goalFx({kind:'rearm'});assert.equal(r.command.kind,'rearm');assert.equal(r.command.tier,'');
-  let o=a.goalOverlay(0);assert.equal(o.epoch,5000);assert.deepEqual(o.commands.map(c=>c.id),[1,2]);
+  let o=a.goalOverlay(0);assert.equal(o.epoch,5000);assert.equal(o.version,'2.20.42');assert.deepEqual(o.commands.map(c=>c.id),[1,2]);
   o=a.goalOverlay(1);assert.deepEqual(o.commands.map(c=>c.id),[2]);
   assert.equal(a.view().goalFx.polling,true);t=12000;assert.equal(a.view().goalFx.polling,false);
   t=70000;assert.deepEqual(a.goalOverlay(0).commands,[]);

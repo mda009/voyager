@@ -62,6 +62,7 @@ function render(){
     [view.connected?found===total:null,view.connected?found+' of '+total+' Voyager actions found'+(missing.length?' · check: '+[...new Set(missing)].join(', '):''):'Voyager actions are checked once connected']])cl.append(el('li',ok===null?'info':ok?'ok':'',t));
   if(view.error)cl.append(el('li','',view.error));
   const g=$('goal-pill'),gf=view.goalFx||{};g.dataset.state=gf.polling?'ok':'wait';g.textContent=gf.polling?'Overlay open in OBS':gf.pollAt?'Overlay last seen '+when(gf.pollAt):'Overlay not open';
+  $('goal-help').hidden=!!gf.polling;
   renderPresets();renderAll();
   const h=$('history');h.textContent='';
   for(const e of view.history||[]){const li=el('li',e.ok?'':'bad');li.append(el('time','',when(e.at)),el('b','',e.label),el('i','',e.action+' · '+e.message));h.append(li);}

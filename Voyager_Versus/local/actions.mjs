@@ -12,9 +12,7 @@ const platform=v=>PLATFORMS.includes(String(v||'').toLowerCase())?String(v).toLo
 // page input; `ctx` gives the host's own state (medal export cursor). Names must match the actions exactly.
 export const PRESETS={
   'goals.read':{action:'Voyager - Read OBS Percentages',group:'Giveaway goals',label:'Read the goal percentages now',note:'Reads the Silver, Gold and Platinum text sources from OBS and sends a fresh reading to the goals strip and Goal FX.'},
-  'goals.check':{action:'THRESHOLD POINT CHECK',group:'Giveaway goals',label:'Run the giveaway threshold check',note:'Your existing threshold action: giveaway chat announcements and the upgrade media groups when a goal is met.'},
-  'upgrade.silver':{action:'Upgrade Animation Silver',group:'Giveaway goals',label:'Play the Silver upgrade animation',note:'Plays the Silver media group in OBS with the upgrade hold, exactly as a real upgrade does.'},
-  'upgrade.gold':{action:'Upgrade Animation Gold',group:'Giveaway goals',label:'Play the Gold upgrade animation',note:'Plays the Gold media group in OBS with the upgrade hold.'},
+  'goals.check':{action:'THRESHOLD POINT CHECK',group:'Giveaway goals',label:'Run the giveaway threshold check',note:'Your existing threshold action: giveaway chat announcements and the Silver/Gold upgrade media groups when a goal is met (those groups live inside this action, so this is how to play them).'},
   'points.scan':{action:'Voyager - Points Ledger',group:'Points',label:'Scan the tier groups now',note:'Re-reads the Silver, Gold, Platinum, VIP and mods groups and broadcasts a fresh ledger snapshot.',args:()=>({pointsOperation:'scan',requestId:randomUUID()})},
   'points.snapshot':{action:'Voyager - Points Ledger',group:'Points',label:'Broadcast a ledger snapshot',note:'Sends the current ledger without re-scanning (a scan still happens if the last one is older than 2 minutes).',args:()=>({pointsOperation:'snapshot',requestId:randomUUID()})},
   'medals.export':{action:'Voyager - Medals',group:'Chat',label:'Export medal data to Voyager now',note:'The same export Voyager asks for every few minutes: watch time, subs and gifts for the Medals page.',args:(i,ctx)=>({medalExport:'1',since:String(ctx.medalsSince?.()??0),requestId:'medals-'+Date.now()})},
@@ -27,7 +25,7 @@ export const PRESETS={
 export const GOAL_TIERS=['silver','gold','platinum'];
 
 export class Actions{
-  constructor({bot,medalsSince=()=>0,now=()=>Date.now()}={}){
+  constructor({bot,medalsSince=()=>0,now=()=>Date.now(),version=''}={}){this.version=String(version);
     this.bot=bot;this.ctx={medalsSince};this.now=now;this.history=[];this.list=[];this.listAt=0;this.goalCommands=[];this.goalSeq=0;this.epoch=now();
   }
   // Every action in Streamer.bot (cached 20 s): the page lists them all with a Run button.
@@ -78,6 +76,6 @@ export class Actions{
     this.record({ok:true,key:'goalfx.'+kind,label:kind==='play'?`Play the ${tier[0].toUpperCase()+tier.slice(1)} goal celebration`:'Re-arm the goal celebrations',action:'Voyager Goal FX overlay',message:'Queued for the Goal FX overlay (it picks it up within 2 seconds while open in OBS).'});
     return {ok:true,message:'Queued for the Goal FX overlay.',command:cmd};
   }
-  goalOverlay(since=0){const s=Number(since)||0;this.goalPollAt=this.now();return {serverAt:this.now(),epoch:this.epoch,commands:this.goalCommands.filter(c=>c.id>s&&this.now()-c.at<60000)};}
+  goalOverlay(since=0){const s=Number(since)||0;this.goalPollAt=this.now();return {serverAt:this.now(),epoch:this.epoch,version:this.version,commands:this.goalCommands.filter(c=>c.id>s&&this.now()-c.at<60000)};}
   view(){return {history:this.history.slice(0,40),presets:this.presets(),goalFx:{pollAt:this.goalPollAt||0,polling:!!this.goalPollAt&&this.now()-this.goalPollAt<6000}};}
 }

@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.42 (3 November 2026)
+
+**Streamer.bot actions page fixes.** The "Play the Silver/Gold upgrade animation" presets are gone: in your Streamer.bot those are sub-action groups inside `THRESHOLD POINT CHECK` and the purchase actions, not actions of their own, so they could never run; "Run the giveaway threshold check" is the way to play them. When Voyager hasn't heard from the Goal FX overlay, the page now says what to do (OBS keeps the overlay page it loaded before an update: right-click the source › Refresh cache of current page). The Goal FX overlay reloads itself when it sees a new Voyager version, so that step isn't needed after this one.
+
 ## 2.20.41 (3 November 2026)
 
 **Run your Streamer.bot actions from Voyager.** New page *Setup › Streamer.bot actions* (`Voyager_Streamerbot.html`). It lists every enabled action Streamer.bot reports, grouped as in Streamer.bot, each with a Run button, and a set of Voyager presets with the right arguments filled in: read the goal percentages from OBS, run the giveaway threshold check, play the Silver or Gold upgrade animation, scan the tier groups or broadcast a ledger snapshot (`Voyager - Points Ledger`), export medal data now, post a check message to chat through the Medals, Membership Card or Dreadnought action (all platforms or one), and send a test support alert to OBS (stage, name, amount, months, platform). Runs go through Voyager's own Streamer.bot connection and are the same as pressing Run in Streamer.bot (no test flag). A log shows the last 40 runs with the outcome. Host routes: `GET /api/streamerbot`, `POST /api/streamerbot/run` (local token).
