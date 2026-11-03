@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.49 (3 November 2026)
+
+**Christmas goal panel for OBS.** New overlay `Voyager_Christmas_Goal.html` (address and preview on Community › Community goals): the running community goal in the glass card design with a festive finish — garland, star, gentle snow — a countdown to the due date, and every goal with its progress bar, reward per helper, description and how many members have helped (✓ Reached / Missed when settled). It appears by itself when a community goal is running and hides when none is; the festive finish switches on when the name says Christmas (or `?theme=christmas`), otherwise it uses the plain glass look. Options: `?pos=left`, `?top=110`, `?width=440`, `?snow=0`, `?theme=glass`.
+
 ## 2.20.48 (3 November 2026)
 
 **Seasons become Community goals, run by hand.** The Seasons page is now *Community › Community goals*. Nothing runs on its own any more: after this update every goal is switched off and no community goal is running (a season that was in progress is archived to the Hall of Fame if anyone had scored; reached goals stay payable). To run one, set the goals, give it a name and a **due date** (the form suggests *Christmas 2026 · 25 December*), and press **Start**. Standings and every goal count from that moment; it ends on its due date or when you press End, and the next one starts only when you start it.

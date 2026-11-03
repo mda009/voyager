@@ -84,6 +84,8 @@ $('end-season').onclick=async()=>{if(!view||!confirm('End '+view.season.name+' n
 const pf=$('panel-form'),FIELDS=['kind','limit','duration','title','top','right','width','opacity','speed'];let panelEditing=false,previewReady=false;
 pf.addEventListener('focusin',()=>{panelEditing=true;});pf.addEventListener('input',()=>sendPreview());
 $('panel-url').textContent=location.origin+location.pathname.replace(/[^/]*$/,'')+'Voyager_Community_Panel.html';
+$('xmas-url').textContent=location.origin+location.pathname.replace(/[^/]*$/,'')+'Voyager_Christmas_Goal.html';
+$('xmas-copy').onclick=async()=>{try{await navigator.clipboard.writeText($('xmas-url').textContent);$('xmas-copy').textContent='Copied';setTimeout(()=>$('xmas-copy').textContent='Copy',1500);}catch{}};
 $('panel-copy').onclick=async()=>{try{await navigator.clipboard.writeText($('panel-url').textContent);$('panel-copy').textContent='Copied';setTimeout(()=>$('panel-copy').textContent='Copy',1500);}catch{}};
 function formConfig(){const c={};for(const k of FIELDS){const v=pf.elements[k].value;c[k]=k==='kind'||k==='title'?v:Number(v);}return c;}
 function renderPanel(){

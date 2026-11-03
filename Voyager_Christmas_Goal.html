@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Voyager • Christmas goal panel</title>
+<link rel="icon" href="brand-assets/voyager.png" type="image/png">
+<link rel="stylesheet" href="voyager-brand.css">
+<style>
+/* Christmas community goal panel (2.20.49). One transparent OBS Browser Source, 1920 x 1080. Shows the running community
+   goal (Community › Community goals) in the glass card design with a festive finish: countdown to the due date, every goal
+   with its progress, reward and helpers, and gentle snow. Hidden automatically while no community goal is running.
+   Source address options: ?pos=right|left  ?top=110 (px at 1080)  ?width=440  ?snow=0  ?theme=christmas|glass (auto by name)
+   ?preview=1 sample data  ?voyager=port (default 8740, only when not opened from the Voyager host) */
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:transparent!important}
+body{font-family:Rajdhani,'Segoe UI',sans-serif;font-variant-numeric:tabular-nums;color:#f0f7ff;pointer-events:none}
+#stage{position:absolute;left:0;top:0;width:1920px;height:1080px;transform-origin:0 0}
+#snow{position:absolute;inset:0;width:1920px;height:1080px}
+#panel{position:absolute;top:110px;right:40px;width:440px;opacity:0;transform:translateY(14px);transition:opacity .6s ease,transform .6s ease;
+  --accent:#ffd36a;--accent2:#ff5a5f;--green:#3ec47c;--edge:rgba(255,211,106,.45)}
+#panel.left{right:auto;left:40px}#panel.on{opacity:1;transform:none}
+#panel.glass{--accent:#97dfff;--accent2:#5fb0ff;--green:#9de3bd;--edge:rgba(151,223,255,.4)}
+.card{position:relative;padding:18px 22px 16px;color:#f0f7ff;text-shadow:0 1px 2px #0008;
+  clip-path:polygon(16px 0,100% 0,100% calc(100% - 16px),calc(100% - 16px) 100%,0 100%,0 16px);
+  background:linear-gradient(160deg,rgba(255,255,255,.12),rgba(255,255,255,0) 40%),linear-gradient(0deg,rgba(0,0,0,.28),rgba(0,0,0,0) 30%),rgba(10,16,28,.76);
+  box-shadow:inset 0 0 0 1px var(--edge),inset 0 1px 0 rgba(255,255,255,.18)}
+.card+.card{margin-top:12px}
+.garland{height:6px;margin:-18px -22px 14px;background:repeating-linear-gradient(90deg,var(--accent2) 0 26px,var(--green) 26px 52px,var(--accent) 52px 78px);opacity:.85}
+#panel.glass .garland{background:linear-gradient(90deg,var(--accent),transparent)}
+.brand{display:flex;align-items:center;gap:10px;font:700 13px/1 Rajdhani,sans-serif;letter-spacing:2.4px;color:#f0f7ff}
+.brand img{width:26px;height:26px;object-fit:contain}.brand span{color:#c0d5e4;font-weight:600;letter-spacing:1.6px}
+.title{margin:10px 0 2px;font:700 34px/1 Rajdhani,sans-serif;letter-spacing:1.5px;color:#fff}
+.title b{color:var(--accent)}
+.sub{display:flex;align-items:baseline;gap:10px;font:600 15px/1.2 Rajdhani,sans-serif;letter-spacing:1.2px;color:#d9e6f0}
+.sub .count{font-size:22px;font-weight:700;color:var(--accent)}
+.goal{margin-top:12px;padding:12px 14px 12px;border-left:4px solid var(--accent);background:rgba(255,255,255,.05);clip-path:polygon(0 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%)}
+.goal.reached{border-left-color:var(--green)}.goal.missed{border-left-color:#8a98a8;opacity:.75}
+.g-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.g-title{font:700 20px/1.1 Rajdhani,sans-serif;letter-spacing:.6px;color:#fff}
+.g-reward{font:700 15px/1 Rajdhani,sans-serif;letter-spacing:1px;color:var(--accent);white-space:nowrap}
+.g-desc{margin:3px 0 0;font:500 13px/1.25 Rajdhani,sans-serif;color:#c0d5e4}
+.g-num{display:flex;justify-content:space-between;align-items:baseline;margin:8px 0 5px;font:700 16px/1 Rajdhani,sans-serif;letter-spacing:.8px}
+.g-num small{font-size:12px;font-weight:600;letter-spacing:1.2px;color:#b9cfe0}
+.g-num .pct{color:var(--accent)}.goal.reached .pct{color:var(--green)}
+.bar{height:9px;background:rgba(255,255,255,.12);overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#b8862b,var(--accent) 70%,#fff3b8);transition:width 1.2s cubic-bezier(.2,.9,.3,1)}
+.goal.reached .bar i{background:linear-gradient(90deg,#1d7a48,var(--green) 70%,#c7ffd9)}
+.g-help{margin:6px 0 0;font:600 12px/1.2 Rajdhani,sans-serif;letter-spacing:1px;color:#b9cfe0}
+.goal.reached .g-help{color:var(--green)}
+.foot{margin-top:12px;display:flex;justify-content:space-between;align-items:center;font:600 12px/1 Rajdhani,sans-serif;letter-spacing:1.4px;color:#c0d5e4}
+.foot b{color:var(--accent)}
+.status{display:flex;align-items:center;gap:6px}.status i{width:6px;height:6px;border-radius:50%;background:#9de3bd}
+.status[data-state=stale] i{background:#e8c783}.status[data-state=preview] i{background:#92c9f0}
+.star{position:absolute;right:22px;top:14px;font-size:30px;color:var(--accent);text-shadow:0 0 16px var(--accent)}
+@media(prefers-reduced-motion:reduce){#snow{display:none}}
+</style></head>
+<body><div id="stage"><canvas id="snow" width="1920" height="1080"></canvas>
+<div id="panel"><div class="card"><div class="garland"></div><div class="star">✦</div>
+<div class="brand"><img src="brand-assets/voyager.png" alt="">VOYAGER <span>· COMMUNITY GOAL</span></div>
+<div class="title" id="title">CHRISTMAS <b>2026</b></div>
+<div class="sub"><span class="count" id="days">—</span><span id="due">to go</span></div>
+<div id="goals"></div>
+<div class="foot"><span id="hint">Help the crew: <b>sub · gift · earn points</b></span><span class="status" id="status" data-state="live"><i></i><span id="status-text">LIVE</span></span></div>
+</div></div></div>
+<script>
+(()=>{'use strict';
+const q=new URLSearchParams(location.search),$=id=>document.getElementById(id),stage=$('stage'),panel=$('panel');
+const num=(k,d,min,max)=>{const n=Number(q.get(k));return q.has(k)&&Number.isFinite(n)?Math.max(min,Math.min(max,n)):d;};
+const preview=q.get('preview')==='1',hosted=location.protocol==='http:'&&/^(127\.0\.0\.1|localhost)$/.test(location.hostname),base=hosted?'':'http://127.0.0.1:'+(Number(q.get('voyager'))||8740);
+function fit(){const s=Math.min(innerWidth/1920,innerHeight/1080);stage.style.transform='scale('+s+')';}addEventListener('resize',fit);fit();
+panel.style.top=num('top',110,0,1000)+'px';panel.style.width=num('width',440,320,720)+'px';if(q.get('pos')==='left')panel.classList.add('left');
+const fmt=n=>Math.round(n).toLocaleString('en');
+const METRIC={support:'subs, renewals & gifts',subs:'subs & renewals',gifts:'gifted subs',points:'Voyager points',versus:'Versus wins'};
+const SAMPLE={season:{name:'Christmas 2026',active:true,startedAt:Date.now()-5*864e5,endsAt:new Date(2026,11,25,23,59).getTime(),goals:[
+ {title:'Christmas gift drive',description:'Gift subs and memberships to the crew',metric:'gifts',platform:'all',target:25,total:9,reward:200,reached:false,missed:false,helpers:4},
+ {title:'Crew points',description:'Earn 50,000 Voyager points together',metric:'points',platform:'all',target:50000,total:18640,reward:100,reached:false,missed:false,helpers:31},
+ {title:'Squadron sorties',description:'Win Voyager Versus battles',metric:'versus',platform:'twitch',target:20,total:20,reward:50,reached:true,missed:false,helpers:12}]}};
+let lastOk=0,shownKey='';
+function theme(name){const t=q.get('theme');if(t==='glass')return 'glass';if(t==='christmas')return 'christmas';return /christmas|xmas|festive|holiday/i.test(name||'')?'christmas':'glass';}
+function render(data){
+ const s=data?.season;const active=!!s&&s.active!==false&&!!s.name;
+ panel.classList.toggle('on',active||preview);if(!active&&!preview)return;
+ const name=s?.name||'Community goal',th=theme(name);panel.classList.toggle('glass',th==='glass');
+ const m=name.match(/^(.*?)(\s+\d{4})?$/);$('title').innerHTML=m&&m[2]?esc(m[1].toUpperCase())+' <b>'+esc(m[2].trim())+'</b>':esc(name.toUpperCase());
+ const left=s.endsAt?s.endsAt-Date.now():0,days=Math.max(0,Math.ceil(left/864e5));
+ $('days').textContent=left>0?(days>1?days+' days':Math.max(1,Math.ceil(left/36e5))+' hours'):'Due';
+ $('due').textContent=s.endsAt?(left>0?'to go · due '+new Date(s.endsAt).toLocaleDateString('en-AU',{day:'numeric',month:'short'}):'today'):'';
+ const goals=(s.goals||[]).slice(0,6),key=JSON.stringify(goals.map(g=>[g.title,g.total,g.reached]));
+ const box=$('goals');
+ if(key!==shownKey){shownKey=key;box.textContent='';
+  for(const g of goals){const d=document.createElement('div');d.className='goal'+(g.reached?' reached':g.missed?' missed':'');
+   const pct=Math.min(100,g.target?g.total/g.target*100:0);
+   d.innerHTML=`<div class="g-top"><span class="g-title">${esc(g.title)}</span><span class="g-reward">+${fmt(g.reward)} PTS EACH</span></div>`+
+    (g.description?`<p class="g-desc">${esc(g.description)}</p>`:'')+
+    `<div class="g-num"><span>${fmt(g.total)} <small>/ ${fmt(g.target)} ${esc((METRIC[g.metric]||'').toUpperCase())}</small></span><span class="pct">${g.reached?'✓ REACHED':g.missed?'MISSED':Math.floor(pct)+'%'}</span></div>`+
+    `<div class="bar"><i></i></div><p class="g-help">${g.reached?'EVERYONE WHO HELPED EARNS THE REWARD':g.helpers?fmt(g.helpers)+(g.helpers===1?' MEMBER HAS':' MEMBERS HAVE')+' HELPED SO FAR':'BE THE FIRST TO HELP'}</p>`;
+   box.append(d);requestAnimationFrame(()=>requestAnimationFrame(()=>{d.querySelector('.bar i').style.width=pct.toFixed(1)+'%';}));}
+  if(!goals.length){const p=document.createElement('p');p.className='g-help';p.textContent='GOALS ARE ANNOUNCED ON STREAM';box.append(p);}
+ }
+}
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+async function poll(){
+ if(preview){render(SAMPLE);$('status').dataset.state='preview';$('status-text').textContent='PREVIEW';return;}
+ try{const r=await fetch(base+'/api/community/overlay',{cache:'no-store'});if(!r.ok)throw new Error();const d=await r.json();lastOk=Date.now();render(d);$('status').dataset.state='live';$('status-text').textContent='LIVE';}
+ catch{const stale=Date.now()-lastOk>45000;$('status').dataset.state=stale?'stale':'live';$('status-text').textContent=stale?'RECONNECTING':'LIVE';}
+}
+poll();setInterval(poll,10000);
+// ---------- snow ----------
+if(q.get('snow')!=='0'){const c=$('snow'),x=c.getContext('2d');const flakes=Array.from({length:140},()=>({x:Math.random()*1920,y:Math.random()*1080,r:1+Math.random()*2.6,s:.35+Math.random()*.9,w:Math.random()*6.28}));
+ let last=performance.now();(function tick(now){const dt=Math.min(.05,(now-last)/1000);last=now;x.clearRect(0,0,1920,1080);
+  const festive=!panel.classList.contains('glass')&&panel.classList.contains('on');
+  if(festive){x.fillStyle='rgba(255,255,255,.85)';for(const f of flakes){f.y+=f.s*60*dt;f.w+=dt*.8;f.x+=Math.sin(f.w)*12*dt;if(f.y>1090){f.y=-10;f.x=Math.random()*1920;}x.globalAlpha=.35+f.r/4;x.beginPath();x.arc(f.x,f.y,f.r,0,6.283);x.fill();}x.globalAlpha=1;}
+  requestAnimationFrame(tick);})(last);}
+})();
+</script></body></html>
