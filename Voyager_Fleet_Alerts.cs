@@ -7,7 +7,7 @@ public class CPHInline {
  {"YouTubeNewSubscriber",1},{"YouTubeNewSponsor",2},{"YouTubeMembershipGift",3},{"YouTubeGiftMembershipReceived",2},{"YouTubeMemberMileStone",4},{"YouTubeSuperChat",5},{"YouTubeSuperSticker",5},{"YouTubeJewelsGifted",5},
  {"KickFollow",1},{"KickSubscription",2},{"KickGiftSubscription",3},{"KickMassGiftSubscription",3},{"KickResubscription",4},{"KickKicksGifted",5}};
  static readonly int[] Durations={0,16,16,18,20,14,28};
- public bool Execute(){string kind=CPH.GetEventType().ToString(),op=Read("fleetOperation"),requestId=Read("requestId");bool native=Stages.ContainsKey(kind);if(kind=="CommandTriggered"||Flag("isTest")||Flag("isInternal")||Flag("isFromSharedChatGuest"))return true;if(!native&&!new[]{"sync","settings","test","skip","clear","replay","lumiaSettings","lumiaTest","playback"}.Contains(op))return true;Guid rid;if(!native&&!Guid.TryParse(requestId,out rid))return false;
+ public bool Execute(){string kind=CPH.GetEventType().ToString(),op=Read("fleetOperation"),requestId=Read("requestId");bool native=Stages.ContainsKey(kind);if(kind=="CommandTriggered"||Flag("isTest")||Flag("isInternal")||Flag("isFromSharedChatGuest"))return true;if(!native&&!new[]{"sync","settings","test","skip","clear","replay","lumiaSettings","lumiaTest","playback","cameraSettings","cameraTest"}.Contains(op))return true;Guid rid;if(!native&&!Guid.TryParse(requestId,out rid))return false;
  lock(Gate){JObject s=null;try{long now=Now();s=Load();bool trimmed=Prune(s,now);if(native){if(kind=="TwitchGiftSub"&&(Flag("fromGiftBomb")||ArgOr("subBombCount",0)>0))return true;
  JObject e=NativeEvent(kind,now);string id=(string)e["userId"],login=(string)e["login"],sourceId=(string)e["sourceId"];
  string identity=sourceId.Length>0?kind+":"+sourceId:"";
@@ -28,6 +28,15 @@ public class CPHInline {
  if(enabled&&!commands.Properties().Any(x=>((string)x.Value).Length>0))throw new Exception("Enter at least one Lumia command.");
  s["lumia"]=new JObject{["enabled"]=enabled,["commands"]=commands};
  }
+ // Camera spotlight (2.20.52): a second camera source shows for the length of each alert, then hides (OBS fades it with its show/hide transition).
+ if(op=="cameraSettings"){
+ bool cEnabled;if(!Boolean.TryParse(Read("fleetCameraEnabled"),out cEnabled))throw new Exception("Choose whether the camera spotlight is enabled.");
+ string cScene=Read("fleetCameraScene").Trim(),cSource=Read("fleetCameraSource").Trim();if(cScene.Length>100||cSource.Length>100||cScene.Any(Char.IsControl)||cSource.Any(Char.IsControl))throw new Exception("Scene and source names must be at most 100 characters.");
+ if(cEnabled&&cSource.Length==0)throw new Exception("Enter the OBS source name of the camera (for example Brio cam).");
+ double hold;if(!Double.TryParse(Read("fleetCameraHold"),NumberStyles.Float,CultureInfo.InvariantCulture,out hold)||Double.IsNaN(hold)||hold<0||hold>30)throw new Exception("Hold must be 0 to 30 seconds.");
+ s["camera"]=new JObject{["enabled"]=cEnabled,["scene"]=cScene,["source"]=cSource,["hold"]=hold};
+ }
+ if(op=="cameraTest"){bool show;if(!Boolean.TryParse(Read("fleetCameraShow"),out show))throw new Exception("Choose show or hide.");if(String.IsNullOrWhiteSpace((string)s["camera"]["source"]))throw new Exception("Save the camera source name first.");CameraSet(s,show,now);Remember(s,requestId);s["controlRevision"]=N(s["controlRevision"])+1;Broadcast(s,requestId,"");return true;}
  if(op=="lumiaTest"){
  int stage=(int)Arg("fleetStage",1,6);if(!(bool)s["lumia"]["enabled"])throw new Exception("Enable and save Lumia cues first.");if(String.IsNullOrWhiteSpace((string)s["lumia"]["commands"][stage.ToString()]))throw new Exception("This stage has no saved Lumia command.");
  Remember(s,requestId);s["controlRevision"]=N(s["controlRevision"])+1;SendLumia(s,stage,null,requestId,now);Broadcast(s,requestId,"");return true;
@@ -40,7 +49,7 @@ public class CPHInline {
  var requests=(JArray)s["requests"];requests.Add(requestId);while(requests.Count>500)requests.RemoveAt(0);s["controlRevision"]=N(s["controlRevision"])+1;Save(s);Broadcast(s,requestId,"");return true;
  }catch(Exception ex){CPH.LogWarn("[Voyager Fleet] "+ex.Message);if(!native){try{s=Load();}catch{s=null;}Broadcast(s,requestId,ex.Message);}return false;}}}
  JObject Load(){string raw=CPH.GetGlobalVar<string>(Store,true);var s=String.IsNullOrWhiteSpace(raw)?new JObject{["schema"]=1,["revision"]=0,["controlRevision"]=0,["enabled"]=true,["volume"]=.32,["queue"]=new JArray(),["history"]=new JArray(),["crew"]=new JObject(),["totals"]=new JObject{["follow"]=0,["sub"]=0,["gift"]=0,["resub"]=0,["bits"]=0},["seen"]=new JArray(),["requests"]=new JArray(),["warning"]=""}:JObject.Parse(raw);
- if((int?)s["schema"]!=1||!(s["queue"] is JArray)||!(s["history"] is JArray)||!(s["crew"] is JObject)||!(s["totals"] is JObject)||!(s["seen"] is JArray)||!(s["requests"] is JArray)||s["enabled"]?.Type!=JTokenType.Boolean)throw new Exception("Invalid saved fleet alert state. Data was preserved.");foreach(JObject e in (JArray)s["queue"])if((int?)e["stage"]<1||(int?)e["stage"]>6||N(e["endAt"])<=N(e["startAt"]))throw new Exception("Invalid saved alert timing. Data was preserved.");if(s["lumia"]==null)s["lumia"]=new JObject{["enabled"]=false,["commands"]=new JObject{["1"]="VoyagerFollow",["2"]="VoyagerSubscription",["3"]="VoyagerGift",["4"]="VoyagerResub",["5"]="VoyagerBits"}};
+ if((int?)s["schema"]!=1||!(s["queue"] is JArray)||!(s["history"] is JArray)||!(s["crew"] is JObject)||!(s["totals"] is JObject)||!(s["seen"] is JArray)||!(s["requests"] is JArray)||s["enabled"]?.Type!=JTokenType.Boolean)throw new Exception("Invalid saved fleet alert state. Data was preserved.");foreach(JObject e in (JArray)s["queue"])if((int?)e["stage"]<1||(int?)e["stage"]>6||N(e["endAt"])<=N(e["startAt"]))throw new Exception("Invalid saved alert timing. Data was preserved.");if(s["lumia"]==null)s["lumia"]=new JObject{["enabled"]=false,["commands"]=new JObject{["1"]="VoyagerFollow",["2"]="VoyagerSubscription",["3"]="VoyagerGift",["4"]="VoyagerResub",["5"]="VoyagerBits"}};if(!(s["camera"] is JObject))s["camera"]=new JObject{["enabled"]=false,["scene"]="",["source"]="Brio cam",["hold"]=1.5};
  if(s["lumia"]["enabled"]?.Type!=JTokenType.Boolean||!(s["lumia"]["commands"] is JObject))throw new Exception("Invalid Lumia settings. Data was preserved.");
  if(s["lumia"]["commands"]["6"]==null)s["lumia"]["commands"]["6"]="";
  return s;}
@@ -49,12 +58,18 @@ public class CPHInline {
  void Playback(JObject s,string requestId,long now){
  long expires=Arg("fleetExpiresAt",1,9007199254740991L);if(expires<now||expires>now+90000)throw new Exception("Playback cue expired.");
  var e=((JArray)s["queue"]).OfType<JObject>().FirstOrDefault(x=>(string)x["id"]==Read("fleetEventId"));
+ string phase=Read("fleetPhase");
+ if(phase=="end"){CameraRelease(s,now,e);Broadcast(s,requestId,"");return;}
  if(e==null)throw new Exception("This alert is no longer queued.");
+ if(e["cameraCue"]==null&&(bool)s["enabled"]&&(bool)s["camera"]["enabled"]&&now<N(e["endAt"])){e["cameraCue"]=now;try{CameraSet(s,true,now);}catch(Exception cx){s["cameraLast"]=new JObject{["visible"]=false,["at"]=now,["error"]=cx.Message};}}
  if(e["lumiaCue"]!=null){Broadcast(s,requestId,"");return;}
- if(!(bool)s["enabled"]||!(bool)s["lumia"]["enabled"]){Broadcast(s,requestId,"");return;}
+ if(!(bool)s["enabled"]||!(bool)s["lumia"]["enabled"]||String.IsNullOrWhiteSpace((string)s["lumia"]["commands"][((int)e["stage"]).ToString()])){Broadcast(s,requestId,"");return;}
  if(now<N(e["startAt"])||now>N(e["startAt"])+5000||now>=N(e["endAt"]))throw new Exception("Lumia cue skipped: the alert is outside its start window.");
  SendLumia(s,(int)e["stage"],e,requestId,now);Broadcast(s,requestId,"");
  }
+ // Hide the camera once the ending alert (and any other that is still playing) is over.
+ void CameraRelease(JObject s,long now,JObject ending){if(!(bool)s["camera"]["enabled"])return;string endingId=ending==null?"":(string)ending["id"];bool other=((JArray)s["queue"]).OfType<JObject>().Any(x=>(string)x["id"]!=endingId&&N(x["startAt"])<=now&&N(x["endAt"])>now);if(other)return;try{CameraSet(s,false,now);}catch(Exception cx){s["cameraLast"]=new JObject{["visible"]=true,["at"]=now,["error"]=cx.Message};}}
+ void CameraSet(JObject s,bool visible,long now){string source=(string)s["camera"]["source"];if(String.IsNullOrWhiteSpace(source))throw new Exception("Set the camera source name first.");string scene=(string)s["camera"]["scene"];if(String.IsNullOrWhiteSpace(scene))scene=CPH.ObsGetCurrentScene();if(String.IsNullOrWhiteSpace(scene))throw new Exception("OBS is not connected in Streamer.bot.");CPH.ObsSetSourceVisibility(scene,source,visible);s["cameraLast"]=new JObject{["visible"]=visible,["at"]=now,["scene"]=scene,["source"]=source};}
  void SendLumia(JObject s,int stage,JObject e,string requestId,long now){
  string command=(string)s["lumia"]["commands"][stage.ToString()]??"";if(command.Length==0)return;
  if(command.Length>100||command.Any(Char.IsControl))throw new Exception("Invalid saved Lumia command.");
@@ -112,7 +127,7 @@ public class CPHInline {
  }
 
  void Save(JObject s){s["revision"]=N(s["revision"])+1;s["updatedAt"]=Now();CPH.SetGlobalVar(Store,s.ToString(Formatting.None),true);}
- void Broadcast(JObject s,string id,string error){try{JObject state=s==null?null:(JObject)s.DeepClone();if(state!=null){state["backendVersion"]="1.6";state.Remove("requests");state.Remove("seen");}CPH.WebsocketBroadcastJson(new JObject{["type"]="voyager.fleet.alerts.v1",["schema"]=1,["ok"]=error.Length==0,["error"]=error,["requestId"]=id,["serverAt"]=Now(),["state"]=state}.ToString(Formatting.None));}catch(Exception e){CPH.LogWarn("[Voyager Fleet] State saved; broadcast unavailable: "+e.Message);}}
+ void Broadcast(JObject s,string id,string error){try{JObject state=s==null?null:(JObject)s.DeepClone();if(state!=null){state["backendVersion"]="1.7";state.Remove("requests");state.Remove("seen");}CPH.WebsocketBroadcastJson(new JObject{["type"]="voyager.fleet.alerts.v1",["schema"]=1,["ok"]=error.Length==0,["error"]=error,["requestId"]=id,["serverAt"]=Now(),["state"]=state}.ToString(Formatting.None));}catch(Exception e){CPH.LogWarn("[Voyager Fleet] State saved; broadcast unavailable: "+e.Message);}}
  static string Clean(string s,int max){s=new String((s??"").Where(c=>!Char.IsControl(c)).ToArray()).Trim();return s.Length>max?s.Substring(0,max):s;}
  static long N(JToken t){long n;if(t==null)return 0;if(!Int64.TryParse(t.ToString(),out n)||n<0||n>9007199254740991L)throw new Exception("Invalid fleet number.");return n;}
  long Arg(string k,long min,long max){long n;if(!Int64.TryParse(Read(k),NumberStyles.Integer,CultureInfo.InvariantCulture,out n)||n<min||n>max)throw new Exception("Invalid "+k+".");return n;}

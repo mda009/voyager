@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Voyager • Camera frame</title>
+<link rel="icon" href="brand-assets/voyager.png" type="image/png">
+<style>
+/* Camera spotlight frame (2.20.52). A transparent OBS Browser Source placed exactly over the second camera (same position
+   and size). It draws the glass border with a light running around it and fades in and out with the camera for the length
+   of each support alert (Voyager - Fleet Alerts queue, plus the hold set on Support alerts › Camera spotlight).
+   Source address options: ?radius=48 (corner radius, px)  ?border=4 (px)  ?accent=gold|blue|white  ?speed=6 (seconds per lap)
+   ?preview=1 (always shown)  ?glow=0 (no outer glow)  ?static=1 (no running light) */
+@property --a{syntax:'<angle>';inherits:false;initial-value:0deg}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:transparent!important}
+#frame{position:absolute;inset:0;border-radius:var(--r,48px);opacity:0;transition:opacity .45s ease;pointer-events:none;
+  --accent:#ffd36a;--accent2:#fff3b8}
+#frame.blue{--accent:#97dfff;--accent2:#e6f7ff}#frame.white{--accent:#ffffff;--accent2:#dbe9f5}
+#frame.on{opacity:1}
+/* glass stroke: a translucent light edge with a soft outer shadow, like the card and goal tiles */
+#frame .glass{position:absolute;inset:0;border-radius:inherit;box-shadow:inset 0 0 0 var(--b,4px) rgba(255,255,255,.22),inset 0 1px 0 rgba(255,255,255,.35),0 18px 40px rgba(0,0,0,.45)}
+#frame.noglow .glass{box-shadow:inset 0 0 0 var(--b,4px) rgba(255,255,255,.22),inset 0 1px 0 rgba(255,255,255,.35)}
+/* running light: a conic gradient ring, cut to the border width with a mask */
+#frame .light{position:absolute;inset:0;border-radius:inherit;padding:var(--b,4px);
+  background:conic-gradient(from var(--a),transparent 0deg,transparent 250deg,color-mix(in srgb,var(--accent) 35%,transparent) 300deg,var(--accent) 335deg,var(--accent2) 352deg,transparent 360deg);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);mask-composite:exclude;
+  animation:lap var(--speed,6s) linear infinite;filter:drop-shadow(0 0 6px var(--accent))}
+#frame.static .light{animation:none;background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 45%,transparent),transparent 60%)}
+@keyframes lap{to{--a:360deg}}
+/* faint corner marks in the brand's cut-corner language */
+#frame .mark{position:absolute;width:26px;height:26px;border:2px solid color-mix(in srgb,var(--accent) 70%,transparent);opacity:.9}
+#frame .tl{left:14px;top:14px;border-right:0;border-bottom:0;border-top-left-radius:6px}#frame .tr{right:14px;top:14px;border-left:0;border-bottom:0;border-top-right-radius:6px}
+#frame .bl{left:14px;bottom:14px;border-right:0;border-top:0;border-bottom-left-radius:6px}#frame .br{right:14px;bottom:14px;border-left:0;border-top:0;border-bottom-right-radius:6px}
+@media(prefers-reduced-motion:reduce){#frame .light{animation:none}}
+</style></head>
+<body><div id="frame"><div class="glass"></div><div class="light"></div><i class="mark tl"></i><i class="mark tr"></i><i class="mark bl"></i><i class="mark br"></i></div>
+<script src="config.js"></script>
+<script src="giveaway-connection.js"></script>
+<script src="fleet-compat.js?v=1.14"></script>
+<script src="fleet-connection.js?v=1.14"></script>
+<script>
+(()=>{'use strict';
+const q=new URLSearchParams(location.search),frame=document.getElementById('frame');
+const num=(k,d,min,max)=>{const n=Number(q.get(k));return q.has(k)&&Number.isFinite(n)?Math.max(min,Math.min(max,n)):d;};
+frame.style.setProperty('--r',num('radius',48,0,400)+'px');frame.style.setProperty('--b',num('border',4,1,24)+'px');frame.style.setProperty('--speed',num('speed',6,1,60)+'s');
+if(['blue','white'].includes(q.get('accent')))frame.classList.add(q.get('accent'));if(q.get('glow')==='0')frame.classList.add('noglow');if(q.get('static')==='1')frame.classList.add('static');
+const preview=q.get('preview')==='1';if(preview){frame.classList.add('on');return;}
+let state=null,offset=0;
+function tick(){
+ const now=Date.now()+offset,c=state?.camera;if(!state||!state.enabled||!c?.enabled){frame.classList.remove('on');return;}
+ const hold=Math.max(0,Math.min(30,Number(c.hold)||0))*1000;
+ const on=(state.queue||[]).some(e=>e.startAt<=now&&now<e.endAt+hold);
+ frame.classList.toggle('on',on);
+}
+setInterval(tick,250);
+try{
+ const client=new VoyagerFleetConnection({...window.VOYAGER_CONFIG,readOnly:true});
+ client.addEventListener('fleet',e=>{state=e.detail.state;offset=e.detail.offset;tick();});
+ client.connect();
+}catch(e){console.warn('Camera frame: '+e.message);}
+})();
+</script></body></html>

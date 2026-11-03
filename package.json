@@ -1,6 +1,6 @@
 {
   "name": "voyager",
-  "version": "2.20.51",
+  "version": "2.20.52",
   "private": true,
   "description": "Voyager Control, Voyager Versus and Streamer.bot actions for the MDA009 Voyager program",
   "scripts": {

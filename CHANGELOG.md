@@ -2,6 +2,12 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.52 (3 November 2026)
+
+**Camera spotlight with support alerts.** A second camera (for example the OBS source *Brio cam*) can now show itself for the length of every follow, sub, gift, resub, bits or raid alert and hide again afterwards (plus a hold you set), with OBS fading it in and out. Settings are on Support alerts › **Camera spotlight** (source, scene, hold, Show now / Hide now). The Fleet overlay cues the **Voyager - Fleet Alerts** Streamer.bot action (now v1.7 — paste the updated `Voyager_Fleet_Alerts.cs`) at the start and end of each alert, and the action shows or hides the source through Streamer.bot's OBS connection; overlapping alerts keep the camera up until the last one ends.
+
+**The glass look for the camera.** `camera-mask.png` (rounded corners, radius 48) for an OBS Image Mask/Blend filter on the camera, and a new frame overlay `Voyager_Camera_Frame.html` placed over the camera: translucent light border, cut-corner marks and a soft light running around the edge, fading in and out in time with the camera (`?radius`, `?border`, `?accent=gold|blue|white`, `?speed`, `?static=1`, `?preview=1`). Setup steps are in the Support alerts guide (Camera spotlight).
+
 ## 2.20.51 (3 November 2026)
 
 **voyagercommand.com regrouped the same way.** Five tabs by what the viewer is doing: **Live** (what is on right now, watch links, commands, the Dreadnought, giveaways, Versus, missions), **My card**, **Goals** (the running community goal first, then the giveaway goals), **Community** (squadron war, leaderboards, winners, every medal) and **Guide**. Live opens with a **Right now** strip — the community goal with days to go and the next target's progress, an open giveaway, a Dreadnought fight in progress, this week's missions — each one tap away. Old links (#medals, #winners, #boards) still land in the right place. The tier-giveaway buckets are now headed "Giveaway goals" so they are not confused with community goals. The member manual's website page is updated to match.
