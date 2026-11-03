@@ -31,7 +31,7 @@ export class PulseBattery {
 }
 
 export class HeroWeapons {
- constructor(hero,maps){this.root=new T.Group();this.root.name='Polaris articulated dorsal batteries';hero.add(this.root);this.mounts=[V(-7,2.8,-1.4),V(-4,2.53,1.4)];this.heads=[];this.barrels=[];
+ constructor(hero,maps){this.root=new T.Group();this.root.name='Hero articulated dorsal batteries';hero.add(this.root);this.mounts=[V(-7,2.8,-1.4),V(-4,2.53,1.4)];this.heads=[];this.barrels=[];
  const steel=new T.MeshPhysicalMaterial({color:0x85939f,metalness:.87,roughness:.35,normalMap:maps.normalMap,normalScale:new T.Vector2(.3,.3)}),dark=new T.MeshStandardMaterial({color:0x23323f,metalness:.7,roughness:.55});
  for(const p of this.mounts){const base=new T.Mesh(new T.CylinderGeometry(.6,.75,.3,24),steel);base.position.copy(p);this.root.add(base);const head=new T.Group();head.position.copy(p).add(V(0,.34,0));this.root.add(head);const housing=new T.Mesh(new T.BoxGeometry(1,.55,1.05),dark);head.add(housing);const pair=[];for(const z of [-.23,.23]){const g=new T.Group();g.position.z=z;head.add(g);const barrel=new T.Mesh(new T.CylinderGeometry(.08,.13,1.65,16),steel);barrel.rotation.z=-Math.PI/2;barrel.position.x=.95;g.add(barrel);for(const x of [.4,1.66]){const collar=new T.Mesh(new T.TorusGeometry(.12,.035,8,16),dark);collar.rotation.y=Math.PI/2;collar.position.x=x;g.add(collar);}const opening=new T.Mesh(new T.CircleGeometry(.08,12),dark);opening.rotation.y=Math.PI/2;opening.position.x=1.79;g.add(opening);pair.push(g);}this.heads.push(head);this.barrels.push(pair);}
  }

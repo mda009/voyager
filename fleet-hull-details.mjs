@@ -1,11 +1,13 @@
 import * as T from './Voyager_Versus/dist/vendor/three.module.min.js';
 import {mergeGeometries} from './Voyager_Versus/dist/vendor/BufferGeometryUtils.mjs';
-import anchors from './fleet-assets/hull-anchors.mjs';
+import grid from './fleet-assets/hull-anchors.mjs';
+import {surfacePoints} from './fleet-hero.mjs';
 const UP=new T.Vector3(0,1,0);
 function armourPlate(w,h,d){const a=w/2,b=d/2,c=.08,shape=new T.Shape();shape.moveTo(-a+c,-b);shape.lineTo(a-c,-b);shape.lineTo(a,-b+c);shape.lineTo(a,b-c);shape.lineTo(a-c,b);shape.lineTo(-a+c,b);shape.lineTo(-a,b-c);shape.lineTo(-a,-b+c);shape.closePath();const g=new T.ExtrudeGeometry(shape,{depth:h,bevelEnabled:true,bevelThickness:.013,bevelSize:.014,bevelSegments:2,steps:1});g.rotateX(-Math.PI/2);g.translate(0,-h/2,0);return g;}
 
 function bucket(p){return Math.min(7,Math.max(0,Math.floor((p.x+20)/5)))+8*(p.z<-1.8?0:p.z>1.8?2:1)+24*(p.y>.8?1:0);}
-export function buildHullDetails(hero,parts,maps){
+export function buildHullDetails(hero,parts,maps,surface){
+ const anchors=surfacePoints(surface,grid.map(a=>({x:a.p[0],z:a.p[2],kind:a.kind,fallbackY:a.p[1]}))).filter(a=>a.hit); // fittings only where the hull actually is
  const materials=[new T.MeshPhysicalMaterial({color:0x8996a2,metalness:.88,roughness:.31,normalMap:maps.normalMap,normalScale:new T.Vector2(.25,.25),envMapIntensity:.9}),new T.MeshStandardMaterial({color:0x263340,metalness:.65,roughness:.57}),new T.MeshPhysicalMaterial({color:0xa8b8c5,metalness:.12,roughness:.42,clearcoat:.3,normalMap:maps.normalMap,normalScale:new T.Vector2(.35,.35)}),new T.MeshStandardMaterial({color:0x86c9e5,emissive:0x4886b3,emissiveIntensity:1.3,roughness:.25,metalness:.25})];
  const full=new Map(),pieces=new Map();let triangles=0;
  function add(g,mat,pos,rotation,anchor){
