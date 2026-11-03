@@ -14,10 +14,10 @@ test('Local host serves assets, rejects unauthorized controls and shares authori
     const material=await fetch(base+'/materials/hull-basecolor-4096.webp');
     assert.equal(material.status,200);assert.equal(material.headers.get('content-type'),'image/webp');
     assert.ok((await material.arrayBuffer()).byteLength>100000);
-    const ship=await fetch(base+'/ships/paladin.ctm');
-    assert.equal(ship.status,200);assert.equal(ship.headers.get('content-type'),'application/octet-stream');
-    const mesh=new Uint8Array(await ship.arrayBuffer());assert.equal(new TextDecoder().decode(mesh.slice(0,4)),'OCTM');
-    assert.ok(new DataView(mesh.buffer).getUint32(12,true)>50000);
+    const ships=await fetch(base+'/voyager-ships.mjs');
+    assert.equal(ships.status,200);assert.match(ships.headers.get('content-type'),/javascript/);
+    const source=await ships.text();assert.match(source,/export function rawShip/);assert.doesNotMatch(source,/ctm/i);
+    assert.equal((await fetch(base+'/ships/paladin.ctm')).status,404,'third-party meshes are gone');
     assert.equal((await fetch(base+'/local/data/rankings.json')).status,404);
     assert.equal((await fetch(base+'/api/admin',{headers:{Origin:'https://evil.example'}})).status,403);
     assert.equal((await fetch(base+'/api/control',{method:'POST',headers:{'Content-Type':'application/json'},body:'{"type":"demo"}'})).status,403);

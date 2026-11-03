@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.45 (3 November 2026)
+
+**Original Voyager fighters replace the third-party ship meshes.** Voyager Versus now flies three ships of Voyager's own design, built from primitives when the arena loads (`voyager-ships.mjs`): **VX-01 Dart** (light interceptor: slim hull, swept delta wings, wingtip guns, twin engines, V-tail), **VX-02 Bulwark** (heavy gunship: broad armoured hull, straight wings, four engines, chin cannons, dorsal turret) and **VX-03 Wraith** (stealth strike fighter: faceted wedge, blended wings, canted fins, slot exhaust). The Star Citizen holoviewer meshes, the CTM decoder and the old ship icons are removed; the hangar portraits, hangar copy, fleet preview page and credits are updated. Loadouts, weapons, effects and chat commands are unchanged (`!ship interceptor|sentinel|phantom`).
+
 ## 2.20.44 (3 November 2026)
 
 **Dreadnought speed goals: Legendary and Hero kills with a points bonus.** Destroy the Dreadnought within **1 minute** of the battle starting and every pilot who fought earns the new **Legendary Strike** medal; within **2 minutes**, **Hero of the Fleet** (a Legendary kill counts for both). Either adds a **10% bonus** to each fighting pilot's victory points (100 → 110), shown in Missions › Points owed with the kill time. The overlay counts down the time left to the next goal under the clock during the fight and stamps the result card ("⚡ LEGENDARY STRIKE · DESTROYED IN 0:48"); chat gets the same announcement. Both medals have four grades (1 / 5 / 15 / 40 kills) and appear on the Medals overlay, membership cards and !medals. Times and bonus are in Voyager Dreadnought › Settings (0 turns a goal off).

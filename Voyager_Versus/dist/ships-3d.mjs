@@ -1,6 +1,6 @@
 import * as T from './vendor/three.module.min.js';
 import {RoomEnvironment} from './vendor/RoomEnvironment.mjs';
-import {createShip,animateShip,quality,textureResolution,materialsReady,shipMeshesReady} from './ship-models.mjs?v=2.3.0';
+import {createShip,animateShip,quality,textureResolution,materialsReady,shipMeshesReady} from './ship-models.mjs?v=2.20.45';
 import {spaceEnvironment,SSAO} from './space-lighting.mjs?v=2.20.3';
 
 // One WebGL context is shared by the arena, challenger splash and hangar.
@@ -27,9 +27,9 @@ export class ShipRenderer {
     this.flashLights=[0,1].map(()=>{const light=new T.PointLight(0xffba76,0,650,2);this.scene.add(light);return light;});
     this.ready=false;this.assetsLoaded=false;this.contextLost=false;
     canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();this.contextLost=true;this.ready=false;this.status('3D graphics interrupted · compatibility ships active');});
-    canvas.addEventListener('webglcontextrestored',()=>{this.contextLost=false;this.ready=this.assetsLoaded;this.status(this.ready?'RSI fleet restored':'Loading RSI fleet…');});
-    this.status('Loading RSI ship meshes and '+(textureResolution/1024)+'K materials…');
-    this.loaded=Promise.all([materialsReady(),shipMeshesReady()]).then(()=>{this.assetsLoaded=true;this.ready=!this.contextLost;this.status((textureResolution/1024)+'K materials · RSI fleet: Gladius / Paladin / Sabre');return this.ready;}).catch(error=>{this.fail(error);return false;});
+    canvas.addEventListener('webglcontextrestored',()=>{this.contextLost=false;this.ready=this.assetsLoaded;this.status(this.ready?'Voyager fleet restored':'Loading Voyager fleet…');});
+    this.status('Building Voyager fighters and loading '+(textureResolution/1024)+'K materials…');
+    this.loaded=Promise.all([materialsReady(),shipMeshesReady()]).then(()=>{this.assetsLoaded=true;this.ready=!this.contextLost;this.status((textureResolution/1024)+'K materials · Voyager fleet: Dart / Bulwark / Wraith');return this.ready;}).catch(error=>{this.fail(error);return false;});
   }
   status(message){document.body.classList.toggle('ships-3d-ready',this.ready);const el=document.getElementById('graphics-status');if(el)el.textContent=message;}
   fail(error){this.ready=false;this.status('Compatibility ships · 3D rendering unavailable');console.warn('3D rendering stopped; compatibility artwork is active.',error);}

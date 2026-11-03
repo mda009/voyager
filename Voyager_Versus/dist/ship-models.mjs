@@ -1,5 +1,5 @@
 import * as T from './vendor/three.module.min.js';
-import {rawShip,shipMeshesReady} from './sc-models.mjs?v=2.3.0';
+import {rawShip,shipMeshesReady} from './voyager-ships.mjs?v=2.20.45';
 export {shipMeshesReady};
 export const quality=new URLSearchParams(globalThis.location?.search||'').get('quality')||'ultra';
 export const textureResolution=quality==='low'?1024:quality==='balanced'?2048:4096;
@@ -14,45 +14,35 @@ export function surfaceMaps(){
 }
 export function materialsReady(){surfaceMaps();return ready;}
 
+// 2.20.45: Voyager's own fighters (voyager-ships.mjs). Positions are in the model frame: nose +X, wings ±Z, +Y up.
 export const fleet={
- interceptor:{name:'AEGIS GLADIUS',short:'Gladius',source:'RSI Gladius holoviewer',accent:0x75d9ff,
-  nozzles:[[-148,-3,-24,5],[-148,-3,24,5]],guns:[[-16,3,-126],[-16,3,126],[149,-21,0]],missiles:[[-22,-4,-57],[-22,-4,57]],rcs:[[90,-3,-32],[90,-3,32]]},
- sentinel:{name:'ANVIL PALADIN',short:'Paladin',source:'RSI Paladin holoviewer',accent:0xffc083,
-  nozzles:[[-148,-5,-40,7],[-148,-5,40,7],[-57,-10,-8,4],[-57,-10,8,4]],guns:[[23,30,-8],[23,30,8],[21,34,-4],[21,34,4],[10,9,-100],[10,9,100]],missiles:[[-48,8,-69],[-48,8,69]],rcs:[[115,-9,-23],[115,-9,23]]},
- phantom:{name:'AEGIS SABRE',short:'Sabre',source:'RSI Sabre holoviewer',accent:0x9fc9ff,
-  nozzles:[[-119,-3,-32,7],[-119,-3,32,7]],guns:[[149,-2,-20],[149,-2,20],[40,-5,-64],[40,-5,64]],missiles:[[4,-12,-44],[4,-12,44]],rcs:[[89,-4,-26],[89,-4,26]]}
+ interceptor:{name:'VX-01 DART',short:'Dart',source:'Voyager original design',accent:0x75d9ff,
+  nozzles:[[-158,-2,-27,7],[-158,-2,27,7]],guns:[[174,-2,0],[-7,-2,-127],[-7,-2,127]],missiles:[[-43,-9,-60],[-43,-9,60]],rcs:[[88,-3,-20],[88,-3,20]]},
+ sentinel:{name:'VX-02 BULWARK',short:'Bulwark',source:'Voyager original design',accent:0xffc083,
+  nozzles:[[-168,-2,-40,9],[-168,-2,40,9],[-140,0,-103,6],[-140,0,103,6]],guns:[[100,-10,-19],[100,-10,19],[14,25,-5],[14,25,5]],missiles:[[-33,-13,-76],[-33,-13,76]],rcs:[[112,-6,-28],[112,-6,28]]},
+ phantom:{name:'VX-03 WRAITH',short:'Wraith',source:'Voyager original design',accent:0x9fc9ff,
+  nozzles:[[-162,-1,-14,6],[-162,-1,14,6]],guns:[[165,-5,0],[109,-4,-20],[109,-4,20]],missiles:[[0,-10,-50],[0,-10,50]],rcs:[[94,-2,-22],[94,-2,22]]}
 };
 const geometryCache=new Map();
-function materialIndex(key,x,y,z){
- const az=Math.abs(z);
- if(key==='interceptor'){
-  if(x>71&&x<136&&y>2&&((x-103)/34)**2+(z/12)**2<1)return 3;
-  if(az>123||x<-135&&az>15&&az<32)return 2;
- }else if(key==='sentinel'){
-  if(x>135&&y>-5&&az<14||x>121&&x<137&&y>3&&y<9&&az<9)return 3;
-  if(y>24&&x>-16&&x<36||az>99||x<-143)return 2;
- }else{
-  if(x>90&&x<141&&y>7&&((x-112)/28)**2+(z/10)**2<1)return 3;
-  if(x>133&&az>16||x>30&&x<46&&az>59&&az<69)return 2;
- }
- return 0;
-}
+// Material slot per part comes with the geometry (voyager-ships.mjs): 0 hull, 1 accent paint, 2 dark metal, 3 canopy, 4 trim.
+function materialIndex(slot){return Math.max(0,Math.min(4,Math.round(slot)));}
 const smooth=(a,b,v)=>{const u=Math.max(0,Math.min(1,(v-a)/(b-a)));return u*u*(3-2*u);};
+// Vertex paint on the hull material: a darker band across the wings and a nose stripe, per ship.
 function paintWeight(key,x,y,z){
  const az=Math.abs(z);
- if(key==='interceptor')return Math.max(smooth(27,47,az)*(1-smooth(35,70,x)),(1-smooth(8,20,az))*(1-smooth(42,71,x)))*.75;
- if(key==='sentinel')return smooth(22,44,az)*(1-smooth(65,108,x))*.72;
- return smooth(40,85,az)*.5+(1-smooth(10,23,az))*(1-smooth(60,90,x))*.35;
+ if(key==='interceptor')return Math.max(smooth(55,70,az)*(1-smooth(92,104,az))*.85,smooth(96,112,x)*.55);
+ if(key==='sentinel')return Math.max(smooth(48,60,az)*(1-smooth(84,96,az))*.8,(1-smooth(-70,-40,x))*smooth(12,30,az)*.4);
+ return smooth(44,56,az)*(1-smooth(88,100,az))*.55+smooth(100,130,x)*.5;
 }
 function hullGeometry(key){
  if(geometryCache.has(key))return geometryCache.get(key);
  const source=rawShip(key);if(!source)throw new Error('Ship meshes are still loading.');
- const geo=source.toNonIndexed(),p=geo.attributes.position,n=geo.attributes.normal,index=Uint32Array.from({length:p.count},(_,i)=>i),buckets=Array.from({length:5},()=>[]);
+ const geo=source.index?source.toNonIndexed():source.clone(),p=geo.attributes.position,slots=geo.attributes.slot,index=Uint32Array.from({length:p.count},(_,i)=>i),buckets=Array.from({length:5},()=>[]);
  const colors=new Float32Array(p.count*3),base=new T.Color(key==='interceptor'?0x89978a:key==='sentinel'?0x8c9893:0x3c4c57),paint=new T.Color(key==='interceptor'?0x364b36:key==='sentinel'?0x35443b:0x18252e),color=new T.Color();
  for(let i=0;i<p.count;i++){color.copy(base).lerp(paint,paintWeight(key,p.getX(i),p.getY(i),p.getZ(i)));colors[i*3]=color.r;colors[i*3+1]=color.g;colors[i*3+2]=color.b;}geo.setAttribute('color',new T.BufferAttribute(colors,3));
  const uv=new Float32Array(p.count*2),v1=new T.Vector3(),v2=new T.Vector3(),a0=new T.Vector3(),b0=new T.Vector3(),c0=new T.Vector3();
  for(let i=0;i<index.length;i+=3){const a=index[i],b=index[i+1],c=index[i+2];const x=(p.getX(a)+p.getX(b)+p.getX(c))/3,y=(p.getY(a)+p.getY(b)+p.getY(c))/3,z=(p.getZ(a)+p.getZ(b)+p.getZ(c))/3;
-  const slot=materialIndex(key,x,y,z,{y:(n.getY(a)+n.getY(b)+n.getY(c))/3});buckets[slot].push(a,b,c);
+  const slot=materialIndex(slots?slots.getX(a):0);buckets[slot].push(a,b,c);
   a0.fromBufferAttribute(p,a);b0.fromBufferAttribute(p,b);c0.fromBufferAttribute(p,c);v1.subVectors(b0,a0);v2.subVectors(c0,a0);v1.cross(v2).normalize();
   const axis=Math.abs(v1.y)>=Math.max(Math.abs(v1.x),Math.abs(v1.z))?'y':Math.abs(v1.x)>Math.abs(v1.z)?'x':'z';
   for(const j of [a,b,c]){uv[j*2]=(axis==='x'?p.getZ(j):p.getX(j))/170+.5;uv[j*2+1]=(axis==='y'?p.getZ(j):p.getY(j))/170+.5;}
