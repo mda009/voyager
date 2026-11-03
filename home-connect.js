@@ -4,9 +4,9 @@
 const hosted=location.protocol==='http:'&&/^(127\.0\.0\.1|localhost)$/.test(location.hostname),actions=document.querySelector('.home-actions');
 if(!actions||new URLSearchParams(location.search).get('demo')==='1')return;
 const el=(t,c,x)=>{const n=document.createElement(t);if(c)n.className=c;if(x!==undefined)n.textContent=x;return n;};
-const wrap=el('div','home-connect'),dot=el('span','hc-dot'),text=el('span','hc-text','Checking Streamer.bot…'),connect=el('button','primary','Connect chat'),disconnect=el('button','','Disconnect'),settings=el('a','','Settings ↗');
+const wrap=el('div','home-connect'),dot=el('span','hc-dot'),text=el('span','hc-text','Checking Streamer.bot…'),connect=el('button','primary','Connect chat'),disconnect=el('button','','Disconnect'),settings=el('a','','Settings ↗'),deck=el('a','','Stream deck ↗');deck.href='Voyager_Stream_Deck.html';
 connect.type='button';disconnect.type='button';settings.href='Voyager_Settings.html';disconnect.hidden=true;
-wrap.append(dot,text,connect,disconnect,settings);actions.prepend(wrap);
+wrap.append(dot,text,connect,disconnect,deck,settings);actions.prepend(wrap);
 let token='';
 async function api(path,body){
   if(!token)token=(await(await fetch('/api/admin',{cache:'no-store'})).json()).token;

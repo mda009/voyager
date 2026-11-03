@@ -2,6 +2,12 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.50 (3 November 2026)
+
+**Stream deck and a simpler sidebar.** New page *Stream › Stream deck* (`Voyager_Stream_Deck.html`): everything you press during a stream on one page, with big buttons and live status that refreshes every 5 seconds — Streamer.bot connect/disconnect; start-of-stream resets (per-stream counters, read goals from OBS, scan tier groups, publish the website); the Dreadnought (call, start now, cancel, with pilots and time left); the Versus arena (open/close entries, pause, clear the call, test the ready alert); on-stream panels (community panel kinds, squadron war panel, live stats strip); celebrations and tests (Goal FX plays and re-arm, a membership-card preview, a test support alert); links to every other page; and a log of what you pressed. The status strip shows Streamer.bot, the Dreadnought, Versus, the running community goal, the Goal FX overlay and website publishing at a glance.
+
+The sidebar is regrouped by what you are doing: **Stream** (Stream deck, Live dashboard, Giveaways, Dreadnought, Versus, Support alerts, Chat engagement, Stream banner, Streamer.bot actions), **Community** (the programme: points, cards, ranks, medals, missions, community goals, website, security, reporting) and **Setup**. Home links straight to the Stream deck next to Connect chat.
+
 ## 2.20.49 (3 November 2026)
 
 **Christmas goal panel for OBS.** New overlay `Voyager_Christmas_Goal.html` (address and preview on Community › Community goals): the running community goal in the glass card design with a festive finish — garland, star, gentle snow — a countdown to the due date, and every goal with its progress bar, reward per helper, description and how many members have helped (✓ Reached / Missed when settled). It appears by itself when a community goal is running and hides when none is; the festive finish switches on when the name says Christmas (or `?theme=christmas`), otherwise it uses the plain glass look. Options: `?pos=left`, `?top=110`, `?width=440`, `?snow=0`, `?theme=glass`.

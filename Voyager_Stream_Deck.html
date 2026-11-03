@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Voyager • Stream deck</title>
+<link rel="icon" href="brand-assets/voyager.png">
+<link rel="stylesheet" href="stream-command.css">
+<link rel="stylesheet" href="voyager-brand.css">
+<link rel="stylesheet" href="settings.css?v=2.18">
+<link rel="stylesheet" href="community.css?v=2.20.48">
+<link rel="stylesheet" href="voyager-glass.css?v=2.18">
+<style>
+/* Stream deck (2.20.50): everything you press during a stream on one page, big buttons, live status. */
+.sd-status{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-bottom:16px}
+.sd-st{display:flex;flex-direction:column;gap:4px;padding:12px 14px;border:1px solid rgba(151,223,255,.14);background:rgba(8,15,24,.45);border-radius:12px}
+.sd-st small{font:700 11px/1 Rajdhani,'Segoe UI',sans-serif;letter-spacing:1.6px;color:#8ea6bd;text-transform:uppercase}
+.sd-st b{font:700 18px/1.15 Rajdhani,'Segoe UI',sans-serif;color:#e6eef7;display:flex;align-items:center;gap:8px}
+.sd-st b i{width:9px;height:9px;border-radius:50%;background:#6b7d90;flex:none}
+.sd-st[data-state=ok] b i{background:#7ff0b5;box-shadow:0 0 0 3px rgba(127,240,181,.18)}.sd-st[data-state=warn] b i{background:#ffd27a;box-shadow:0 0 0 3px rgba(255,210,122,.18)}.sd-st[data-state=off] b i{background:#ff9aa6}
+.sd-st span{font-size:12px;color:#9ab0c5}
+.sd-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:start}
+.sd-card{padding:18px 22px;display:flex;flex-direction:column;gap:12px}
+.sd-wide{grid-column:1/-1}
+.sd-btns{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.sd-btns button{min-height:54px;padding:8px 12px;font:700 14px/1.15 Rajdhani,'Segoe UI',sans-serif;letter-spacing:.6px;text-align:left;display:flex;flex-direction:column;justify-content:center;gap:3px}
+.sd-btns button small{font:600 11px/1.2 'Segoe UI',sans-serif;letter-spacing:0;color:#9ab0c5;text-transform:none}
+.sd-btns button.primary small{color:#d9e9ff}
+.sd-btns button.danger{border-color:rgba(255,154,166,.5)}
+.sd-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.sd-row select,.sd-row input{height:36px;padding:0 10px;border:1px solid rgba(151,223,255,.18);background:rgba(8,15,24,.55);color:#e6eef7;font:14px 'Segoe UI',sans-serif;min-width:0}
+.sd-links{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px}
+.sd-links a{display:flex;flex-direction:column;gap:2px;padding:10px 12px;border:1px solid rgba(151,223,255,.12);background:rgba(8,15,24,.35);border-radius:10px;color:#e6eef7;text-decoration:none;font:700 14px/1.2 Rajdhani,'Segoe UI',sans-serif}
+.sd-links a small{font:500 11px/1.3 'Segoe UI',sans-serif;color:#8ea6bd}
+.sd-links a:hover{border-color:rgba(151,223,255,.4)}
+.sd-log{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px;max-height:220px;overflow:auto;font-size:13px}
+.sd-log li{display:flex;gap:10px;padding:5px 10px;border:1px solid rgba(151,223,255,.08);background:rgba(8,15,24,.3);color:#c9d7e4}
+.sd-log li time{color:#8ea6bd;font-size:12px;white-space:nowrap}.sd-log li.bad{border-color:rgba(255,154,166,.35)}
+@media(max-width:1100px){.sd-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body class="voyager-console voyager-settings voyager-community">
+<div class="shell">
+<aside class="rail"><a class="brand" href="Voyager_Command_Center.html"><img class="logo-voyager" src="brand-assets/voyager.png" alt="Voyager membership program" width="68" height="68"><span>VOYAGER<small>MDA009 · MISSION CONTROL</small></span></a></aside>
+<main>
+<header class="top"><div><span class="eyebrow">STREAM</span><h1>Stream deck</h1></div><div class="toolbar"><span class="st-note">Everything you press during a stream · refreshes every 5 s</span><button type="button" id="refresh">Refresh</button></div></header>
+<p class="st-notice" id="notice" hidden></p>
+<p class="st-notice" id="not-hosted" hidden>Open this page from the Voyager app (or START-VOYAGER-CONTROL.bat).</p>
+
+<div class="sd-status" id="status"></div>
+
+<div class="sd-grid">
+<section class="card sd-card">
+<div class="card-heading"><div><span class="eyebrow">1 · CHAT</span><h2>Streamer.bot</h2></div><span class="st-pill" id="sb-pill" data-state="wait">Checking…</span></div>
+<div class="sd-btns"><button type="button" class="primary" id="connect">Connect chat<small>Uses the address and password saved in Settings</small></button><button type="button" id="disconnect">Disconnect<small>Stops reading chat</small></button></div>
+<p class="st-hint" id="sb-text"></p>
+</section>
+
+<section class="card sd-card">
+<div class="card-heading"><div><span class="eyebrow">2 · NEW STREAM</span><h2>Start of stream</h2></div></div>
+<div class="sd-btns">
+<button type="button" id="new-stream">Reset per-stream counters<small>!report muster, squadrons, arrivals and Versus entries</small></button>
+<button type="button" id="goals-read">Read goals from OBS<small>Fresh Silver / Gold / Platinum reading</small></button>
+<button type="button" id="points-scan">Scan tier groups<small>Re-read Silver, Gold, Platinum, VIP, mods</small></button>
+<button type="button" id="publish">Publish website now<small>Push the latest feed to voyagercommand.com</small></button>
+</div>
+</section>
+
+<section class="card sd-card">
+<div class="card-heading"><div><span class="eyebrow">3 · DREADNOUGHT</span><h2>Boss fight</h2></div><span class="st-pill" id="boss-pill" data-state="wait">Idle</span></div>
+<div class="sd-btns">
+<button type="button" class="primary" id="boss-call">Call the Dreadnought<small>60-second boarding, then the fight</small></button>
+<button type="button" id="boss-start">Start the fight now<small>Skip the rest of the countdown</small></button>
+<button type="button" class="danger" id="boss-cancel">Cancel<small>Stop the fight, no points</small></button>
+</div>
+<p class="st-hint" id="boss-text"></p>
+</section>
+
+<section class="card sd-card">
+<div class="card-heading"><div><span class="eyebrow">4 · VOYAGER VERSUS</span><h2>Arena</h2></div><span class="st-pill" id="vs-pill" data-state="wait">Lobby</span></div>
+<div class="sd-btns">
+<button type="button" id="vs-open">Open / close entries<small>Whether !versus calls are accepted</small></button>
+<button type="button" id="vs-pause">Pause / resume<small>Freeze the arena</small></button>
+<button type="button" class="danger" id="vs-clear">Clear the call<small>Drop the waiting challenger call</small></button>
+<button type="button" id="vs-ready">Test the ready alert<small>Plays the Versus ready alert in OBS</small></button>
+</div>
+<p class="st-hint" id="vs-text"></p>
+</section>
+
+<section class="card sd-card">
+<div class="card-heading"><div><span class="eyebrow">5 · ON-STREAM PANELS</span><h2>Show and hide</h2></div></div>
+<div class="sd-row"><label>Community panel <select id="panel-kind"><option value="goals">Community goals</option><option value="season">Community goal standings</option><option value="missions">This week's missions</option><option value="hall">Hall of Fame</option></select></label>
+<button type="button" class="primary" id="panel-show">Show</button><button type="button" id="panel-hide">Hide</button><span class="st-pill" id="panel-pill" data-state="wait">Hidden</span></div>
+<div class="sd-row"><span>Squadron war panel</span><button type="button" id="sq-show">Show 60 s</button><button type="button" id="sq-stay">Show until hidden</button><button type="button" id="sq-hide">Hide</button></div>
+<div class="sd-row"><span>Live stats strip</span><button type="button" id="lo-show">Show</button><button type="button" id="lo-hide">Hide</button><span class="st-pill" id="lo-pill" data-state="wait">—</span></div>
+<p class="st-hint">The Christmas goal panel and the goals strip show by themselves; the membership cards and support alerts play on their own as things happen.</p>
+</section>
+
+<section class="card sd-card">
+<div class="card-heading"><div><span class="eyebrow">6 · CELEBRATIONS & TESTS</span><h2>Make something happen</h2></div><span class="st-pill" id="fx-pill" data-state="wait">Goal FX</span></div>
+<div class="sd-btns">
+<button type="button" id="fx-silver">Play Silver celebration<small>Goal FX overlay</small></button>
+<button type="button" id="fx-gold">Play Gold celebration<small>Goal FX overlay</small></button>
+<button type="button" id="fx-platinum">Play Platinum celebration<small>Goal FX overlay</small></button>
+<button type="button" id="fx-rearm">Re-arm Goal FX<small>Let the next real crossing play again</small></button>
+<button type="button" id="card-preview">Preview a membership card<small>Gold tier-up card on the card overlay</small></button>
+<button type="button" id="fleet-test">Test support alert<small>Follow alert to the Fleet overlay</small></button>
+</div>
+</section>
+
+<section class="card sd-card sd-wide">
+<div class="card-heading"><div><span class="eyebrow">GO TO</span><h2>Everything else</h2></div></div>
+<div class="sd-links" id="links"></div>
+</section>
+
+<section class="card sd-card sd-wide">
+<div class="card-heading"><div><span class="eyebrow">LOG</span><h2>What you pressed</h2></div></div>
+<ul class="sd-log" id="log"></ul>
+</section>
+</div>
+</main>
+</div>
+<script src="stream-deck.js?v=2.20.50"></script>
+<script src="voyager-shell.js?v=2.20.50"></script>
+<script src="voyager-navigation.js"></script>
+</body>
+</html>

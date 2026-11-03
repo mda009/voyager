@@ -11,33 +11,34 @@ const hosted=location.protocol==='http:'&&/^(127\.0\.0\.1|localhost)$/.test(loca
 const console_=document.body.classList.contains('voyager-console');
 const BRAND_KEY='VoyagerBrandingV1';
 
-// Canonical page list. group: null = top, then Live, Community, Setup. side:false = Ctrl K only.
+// Canonical page list (2.20.50 regroup). group: null = top, then Stream (what you use while live), Community (the programme), Setup. side:false = Ctrl K only.
 const GIVEAWAY_FILES=['Giveaway_Control.html','Voyager_Ticket_Giveaway.html','Voyager_Entrant_Board.html'];
 const PAGES=[
  {file:'Voyager_Command_Center.html',label:'Home',ico:'◈',group:null,keys:'home mission control dashboard command center',help:'COMMAND_CENTER_SETUP.html'},
- {file:'Giveaway_Control.html',label:'Giveaways',ico:'✦',group:'Live',keys:'giveaway draw winner pool chat members',help:'START_HERE.html',also:GIVEAWAY_FILES},
- {file:'Voyager_Ticket_Giveaway.html',label:'Ticketed giveaway',ico:'◇',group:'Live',side:false,keys:'ticket tickets watchtime weighted giveaway',help:'TICKET_GIVEAWAY_SETUP.html'},
- {file:'Voyager_Entrant_Board.html',label:'Entrant board',ico:'☷',group:'Live',side:false,keys:'entrants board list giveaway'},
- {file:'Voyager_Versus.html',label:'Voyager Versus',ico:'⚔',group:'Live',keys:'versus battle pilots fleet game',help:'VERSUS_SETUP.html'},
- {file:'Voyager_Dreadnought.html',label:'Voyager Dreadnought',ico:'☄',group:'Live',live:true,keys:'dreadnought boss fight raid co-op chat game fire join',help:'DREADNOUGHT_SETUP.html'},
- {file:'Voyager_Fleet_Control.html',label:'Support alerts',ico:'✧',group:'Live',keys:'support alerts fleet follow subscription raid bits',help:'FLEET_ALERTS_SETUP.html'},
- {file:'Voyager_Banner_Control.html',label:'Stream banner',ico:'▰',group:'Live',keys:'banner message ticker',help:'BANNER_SETUP.html'},
- {file:'Voyager_Command_Center.html',page:'live',label:'Live dashboard',ico:'◉',group:'Live',keys:'live dashboard audiences viewers obs strip',help:'DASHBOARD_PAGES_SETUP.html'},
+ {file:'Voyager_Stream_Deck.html',label:'Stream deck',ico:'▶',group:'Stream',live:true,keys:'stream deck live operate connect chat dreadnought versus panels goal fx tests new stream publish',help:'Voyager_Guide.html'},
+ {file:'Voyager_Command_Center.html',page:'live',label:'Live dashboard',ico:'◉',group:'Stream',keys:'live dashboard audiences viewers obs strip',help:'DASHBOARD_PAGES_SETUP.html'},
+ {file:'Giveaway_Control.html',label:'Giveaways',ico:'✦',group:'Stream',keys:'giveaway draw winner pool chat members',help:'START_HERE.html',also:GIVEAWAY_FILES},
+ {file:'Voyager_Ticket_Giveaway.html',label:'Ticketed giveaway',ico:'◇',group:'Stream',side:false,keys:'ticket tickets watchtime weighted giveaway',help:'TICKET_GIVEAWAY_SETUP.html'},
+ {file:'Voyager_Entrant_Board.html',label:'Entrant board',ico:'☷',group:'Stream',side:false,keys:'entrants board list giveaway'},
+ {file:'Voyager_Dreadnought.html',label:'Voyager Dreadnought',ico:'☄',group:'Stream',live:true,keys:'dreadnought boss fight raid co-op chat game fire join',help:'DREADNOUGHT_SETUP.html'},
+ {file:'Voyager_Versus.html',label:'Voyager Versus',ico:'⚔',group:'Stream',keys:'versus battle pilots fleet game',help:'VERSUS_SETUP.html'},
+ {file:'Voyager_Fleet_Control.html',label:'Support alerts',ico:'✧',group:'Stream',keys:'support alerts fleet follow subscription raid bits',help:'FLEET_ALERTS_SETUP.html'},
+ {file:'Voyager_Engage.html',label:'Chat engagement',ico:'✺',group:'Stream',live:true,keys:'chat engagement report muster quiz trivia squadron squadrons team relay comms arrival log captain recap',help:'Voyager_Guide.html'},
+ {file:'Voyager_Banner_Control.html',label:'Stream banner',ico:'▰',group:'Stream',keys:'banner message ticker',help:'BANNER_SETUP.html'},
+ {file:'Voyager_Streamerbot.html',label:'Streamer.bot actions',ico:'⚡',group:'Stream',live:true,keys:'streamer.bot streamerbot actions run trigger test goal fx celebration upgrade animation ledger scan medals export fleet alert',help:'Voyager_Guide.html'},
  {file:'Voyager_Points.html',label:'Points & members',ico:'★',group:'Community',keys:'points members membership tiers silver gold platinum ledger',help:'POINTS_SETUP.html'},
- {file:'Voyager_Missions.html',label:'Missions',ico:'◆',group:'Community',live:true,keys:'missions weekly rewards badges streak',help:'Voyager_Guide.html'},
  {file:'Voyager_Membership_Cards.html',label:'Membership cards',ico:'▣',group:'Community',live:true,keys:'membership card voyager tier blue silver gold platinum upgrade badges',help:'MEMBERSHIP_CARD_SETUP.html'},
  {file:'Voyager_Ranks.html',label:'Ranks',ico:'⚓',group:'Community',live:true,keys:'ranks naval navy officer rank promotion admiral captain commander lieutenant midshipman lifetime points roster',help:'MEMBERSHIP_CARD_SETUP.html'},
- {file:'Voyager_Engage.html',label:'Chat engagement',ico:'✺',group:'Community',live:true,keys:'chat engagement report muster quiz trivia squadron squadrons team relay comms arrival log captain recap',help:'Voyager_Guide.html'},
  {file:'Voyager_Medals.html',label:'Medals',ico:'⬢',group:'Community',live:true,keys:'medals badges honour hall of honour loyalty watch time subs gifts achievements',help:'MEDALS_SETUP.html'},
+ {file:'Voyager_Missions.html',label:'Missions',ico:'◆',group:'Community',live:true,keys:'missions weekly rewards badges streak',help:'Voyager_Guide.html'},
  {file:'Voyager_Seasons.html',label:'Community goals',ico:'⟳',group:'Community',live:true,keys:'community goals goal season seasons campaign christmas standings hall of fame champion due date',help:'Voyager_Guide.html'},
  {file:'Voyager_Public_Site.html',label:'Public website',ico:'◎',group:'Community',keys:'public website site viewers voyagercommand fourthwall',live:true,help:'Voyager_Guide.html'},
  {file:'Voyager_Security.html',label:'Security',ico:'⛨',group:'Community',keys:'security reports signals accounts',help:'SECURITY_SETUP.html'},
  {file:'Voyager_Command_Center.html',page:'reporting',label:'Reporting',ico:'▥',group:'Community',keys:'reporting reports twitch statistics analytics',help:'TWITCH_ANALYTICS_SETUP.html'},
  {file:'Voyager_Commands.html',label:'Chat commands',ico:'⌘',group:'Setup',keys:'chat commands command ticket enter versus duplicates cooldown',help:'Voyager_Guide.html'},
- {file:'Voyager_Streamerbot.html',label:'Streamer.bot actions',ico:'▶',group:'Setup',live:true,keys:'streamer.bot streamerbot actions run trigger test goal fx celebration upgrade animation ledger scan medals export fleet alert',help:'Voyager_Guide.html'},
  {file:'Voyager_System_Check.html',label:'System check',ico:'✓',group:'Setup',keys:'system check health streamer.bot connection data folder',live:true,help:'Voyager_Guide.html'},
- {file:'Voyager_Guide.html',label:'Help',ico:'?',group:'Setup',keys:'help guide setup instructions updates'},
- {file:'Voyager_Settings.html',label:'Settings',ico:'⚙',group:'Setup',side:false,live:true,keys:'settings connection streamer.bot password address port logos branding',help:'Voyager_Guide.html'}
+ {file:'Voyager_Settings.html',label:'Settings',ico:'⚙',group:'Setup',side:false,live:true,keys:'settings connection streamer.bot password address port logos branding',help:'Voyager_Guide.html'},
+ {file:'Voyager_Guide.html',label:'Help',ico:'?',group:'Setup',keys:'help guide setup instructions updates'}
 ].filter(p=>!(demo&&p.live));
 const GUIDES=[
  ['START_HERE.html','Getting started'],['TICKET_GIVEAWAY_SETUP.html','Ticket giveaway setup'],['POINTS_SETUP.html','Points setup & history'],
