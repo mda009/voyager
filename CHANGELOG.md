@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.59 (3 November 2026)
+
+**All-three stinger now 3 seconds.** `stingers/Voyager_Stinger_all.webm` runs 3 s; transition point 1400 ms.
+
 ## 2.20.58 (3 November 2026)
 
 **All-three stinger slowed to 2 seconds.** `stingers/Voyager_Stinger_all.webm` now runs 2 s (transition point 950 ms); the other three stay at 1.5 s. The render script takes a length in seconds and stretches the animation to fit.
