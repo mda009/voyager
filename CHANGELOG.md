@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.61 (5 November 2026)
+
+**Camera spotlight cues now come from Voyager itself.** Until now only the Fleet overlay browser source in OBS told Streamer.bot when an alert started and ended, so an old copy of the overlay in OBS (cached, or loaded as a local file from an old folder; its diagnostics say a build below 1.13) showed the frame but never the camera. The Voyager host hears the same alert queue from the Fleet Alerts broadcasts and now sends the start cue when an alert begins and the end cue after the alert plus the hold (`local/fleet-camera.mjs`, every 0.5 s while connected to Streamer.bot). The action ignores a repeated start or hide, so the overlay's own cues still work alongside. Support alerts › Camera spotlight shows the host's last cue; the frame's `?debug=1` readout too. Tip: point OBS browser sources at the Voyager host (`http://127.0.0.1:8740/control/Voyager_Fleet_Overlay.html`) instead of a local file, so they are always the current version.
+
 ## 2.20.60 (5 November 2026)
 
 **Camera spotlight: finds the camera inside groups and nested scenes, and says what happened.** `Voyager_Fleet_Alerts.cs` v1.8 looks the camera source up through obs-websocket (the scene, its groups, then nested scenes) and enables that exact scene item, instead of the simple visibility call that silently does nothing when the source sits in a group or another scene. The result is recorded with where the source was found (`cameraLast.where`) or a clear error (`'Brio cam' is not in the scene 'BRB'…`), saved with the alert, logged in Streamer.bot, and shown on Support alerts › Camera spotlight, in the frame's `?debug=1` readout and on a new **Camera** line in the Fleet overlay diagnostics (Interact › D), which also reports each start/end cue the overlay sends. Setup page has a troubleshooting paragraph.

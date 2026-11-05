@@ -20,6 +20,7 @@ import {BossFight} from './boss.mjs';
 import {Medals,MEDAL_ICONS} from './medals.mjs';
 import {Actions} from './actions.mjs';
 import {Cards} from './cards.mjs';
+import {FleetCamera} from './fleet-camera.mjs';
 import {Engage} from './engage.mjs';
 let VERSION='unknown';try{VERSION=JSON.parse(await readFile(new URL('../package.json',import.meta.url),'utf8')).version;}catch{}
 const major=Number(process.versions.node.split('.')[0]);
@@ -119,6 +120,8 @@ const boss=await new BossFight({dataDir,say:text=>{void bossSay(text);},onResult
 engage=await new Engage({dataDir,say:(text,platform='')=>{void runAction('Voyager - Medals',{medalSay:String(text).slice(0,450),medalSayPlatform:['twitch','kick','youtube'].includes(platform)?platform:''});},boss:()=>boss,cards:()=>cards,community:()=>community,pilots:()=>savedRankings||[]}).load();
 // Fleet alert state as last broadcast by the Streamer.bot action (2.20.55): the camera frame overlay reads it from here.
 let fleetState=null;
+// Camera spotlight cues from the host (2.20.61), so the camera follows alerts even when the OBS overlay copy is old.
+const fleetCamera=new FleetCamera({run:args=>actions.doAction('Voyager - Fleet Alerts',args),log:m=>console.log('[fleet] '+m)});
 const bot=new StreamerBot({onOtherChat:chat=>{
   try{medals.chatSeen(chat);}catch{}
   try{engage.chat(chat);}catch{}
@@ -127,7 +130,7 @@ const bot=new StreamerBot({onOtherChat:chat=>{
   if(word==='!voyager'){voyagerCommand(chat);return;}
   if(word==='!medals'){try{medals.command({kind:'medals',platform:chat.platform,userId:chat.userId,login:chat.login,name:chat.name});}catch{}return;}
   if(boss.active()&&(word==='!join'||word==='!fire')){try{boss.receive({kind:word.slice(1),platform:chat.platform,userId:chat.userId,login:chat.login,name:chat.name,direct:true});}catch{}}
-},onCards:ev=>{cards.receive(ev);},onFleet:ev=>{fleetState={at:Date.now(),serverAt:Number(ev.serverAt)||Date.now(),state:ev.state};cards.fromFleet(ev.state,ev.serverAt);},onMedals:ev=>{if(ev.type==='voyager.medals.data')medals.ingestExport(ev);else medals.command(ev);},onBoss:ev=>{
+},onCards:ev=>{cards.receive(ev);},onFleet:ev=>{fleetState={at:Date.now(),serverAt:Number(ev.serverAt)||Date.now(),state:ev.state};cards.fromFleet(ev.state,ev.serverAt);fleetCamera.receive(ev);},onMedals:ev=>{if(ev.type==='voyager.medals.data')medals.ingestExport(ev);else medals.command(ev);},onBoss:ev=>{
   if(ev.kind==='call'&&!['lobby','result'].includes(game.phase)){game.note('Finish the Versus battle before calling the Dreadnought.','system');return;}
   boss.receive(ev);
 },onChat:chat=>{
@@ -282,7 +285,7 @@ const server=http.createServer(async(req,res)=>{
     // Goal FX overlay poll (no token: it only carries queued test plays) and the Streamer.bot actions page.
     // Camera frame overlay (2.20.55): the fleet alert queue and camera state, so the frame can follow the camera from any browser source.
     if(url.pathname==='/api/fleet/overlay'&&req.method==='GET'){res.setHeader('Access-Control-Allow-Origin','*');const st=fleetState?.state;
-      response(res,200,{serverAt:Date.now(),fleetAt:fleetState?.at||0,connected:bot.status.connected,
+      response(res,200,{serverAt:Date.now(),fleetAt:fleetState?.at||0,connected:bot.status.connected,hostCue:fleetCamera.view(),
         state:st?{enabled:st.enabled!==false,queue:(st.queue||[]).filter(e=>e&&e.status==='queued').map(e=>({id:e.id,stage:e.stage,startAt:Number(e.startAt),endAt:Number(e.endAt)})),camera:st.camera||null,cameraLast:st.cameraLast||null}:null});return;}
     if(url.pathname==='/api/goalfx/overlay'&&req.method==='GET'){res.setHeader('Access-Control-Allow-Origin','*');response(res,200,actions.goalOverlay(url.searchParams.get('since')));return;}
     if(url.pathname.startsWith('/api/streamerbot')||url.pathname==='/api/goalfx/control'){
@@ -398,6 +401,7 @@ const server=http.createServer(async(req,res)=>{
 });
 let ticks=0;const timer=setInterval(()=>{
   try{boss.tick();}catch{}
+  if(ticks%5===0)void fleetCamera.tick();
   try{game.tick(.1);}catch{game.paused=true;game.note('Host storage error. Check the game folder before restarting.');}ticks++;
   if(ticks%10===0){try{engage.tick();engage.observePilots();}catch{}community?.roll(Date.now());void publicSite?.tick();void pilots.tick();void rewards.tick();void announcements.tick();void matchChat.tick();}
   // Medals: read the action's export every minute, work out medals every 30 s, post grouped chat lines.
