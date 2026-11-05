@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.60 (5 November 2026)
+
+**Camera spotlight: finds the camera inside groups and nested scenes, and says what happened.** `Voyager_Fleet_Alerts.cs` v1.8 looks the camera source up through obs-websocket (the scene, its groups, then nested scenes) and enables that exact scene item, instead of the simple visibility call that silently does nothing when the source sits in a group or another scene. The result is recorded with where the source was found (`cameraLast.where`) or a clear error (`'Brio cam' is not in the scene 'BRB'…`), saved with the alert, logged in Streamer.bot, and shown on Support alerts › Camera spotlight, in the frame's `?debug=1` readout and on a new **Camera** line in the Fleet overlay diagnostics (Interact › D), which also reports each start/end cue the overlay sends. Setup page has a troubleshooting paragraph.
+
 ## 2.20.59 (3 November 2026)
 
 **All-three stinger now 3 seconds.** `stingers/Voyager_Stinger_all.webm` runs 3 s; transition point 1400 ms.

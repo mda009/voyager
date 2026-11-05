@@ -57,7 +57,7 @@ async function poll(){try{const r=await fetch(base+'/api/fleet/overlay',{cache:'
  if(debug){const now=Date.now()+offset,c=state?.camera;dbg.textContent=['Camera frame · '+(base||location.origin)+'/api/fleet/overlay',lastErr?'✗ '+lastErr:'✓ Voyager answered',info?(info.connected?'✓ Voyager is connected to Streamer.bot':'✗ Voyager is NOT connected to Streamer.bot (press Connect chat)'):'',
   info&&!info.fleetAt?'✗ No fleet alert state received yet (paste Voyager_Fleet_Alerts.cs v1.7 and let one alert or Show now run)':info?'✓ Fleet state '+Math.round((Date.now()-info.fleetAt)/1000)+' s ago':'',
   state?(state.enabled?'✓ Fleet alerts enabled':'✗ Fleet alerts are disabled'):'',state?(c?.enabled?'✓ Camera spotlight on · '+(c.source||'')+' · hold '+c.hold+' s':'✗ Camera spotlight is off (Support alerts › Camera spotlight)'):'',
-  state?'Queue: '+(state.queue||[]).length+' · playing now: '+(state.queue||[]).filter(e=>e.startAt<=now&&now<e.endAt).length+' · camera '+(state.cameraLast?(state.cameraLast.visible?'shown':'hidden')+(state.cameraLast.error?' · error: '+state.cameraLast.error:''):'not yet changed'):'','Frame: '+(frame.classList.contains('on')?'ON':'off')].filter(Boolean).join('\n');}}
+  state?'Queue: '+(state.queue||[]).length+' · playing now: '+(state.queue||[]).filter(e=>e.startAt<=now&&now<e.endAt).length+' · camera '+(state.cameraLast?(state.cameraLast.visible?'shown':'hidden')+(state.cameraLast.where?' in '+state.cameraLast.where:'')+(state.cameraLast.error?' · error: '+state.cameraLast.error:''):'not yet changed'):'','Frame: '+(frame.classList.contains('on')?'ON':'off')].filter(Boolean).join('\n');}}
 poll();setInterval(poll,1000);setInterval(tick,250);
 })();
 </script>

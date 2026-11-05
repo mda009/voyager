@@ -1,4 +1,4 @@
-// Voyager Fleet Alerts v1.6. One action: Voyager - Fleet Alerts.
+// Voyager Fleet Alerts v1.8. One action: Voyager - Fleet Alerts.
 // Separate blocking queue: Voyager Fleet. No delay/wait; animation timing is saved.
 using System;using System.Collections.Generic;using System.Globalization;using System.Linq;using Newtonsoft.Json;using Newtonsoft.Json.Linq;
 public class CPHInline {
@@ -59,17 +59,30 @@ public class CPHInline {
  long expires=Arg("fleetExpiresAt",1,9007199254740991L);if(expires<now||expires>now+90000)throw new Exception("Playback cue expired.");
  var e=((JArray)s["queue"]).OfType<JObject>().FirstOrDefault(x=>(string)x["id"]==Read("fleetEventId"));
  string phase=Read("fleetPhase");
- if(phase=="end"){CameraRelease(s,now,e);Broadcast(s,requestId,"");return;}
+ if(phase=="end"){CameraRelease(s,now,e);Save(s);Broadcast(s,requestId,"");return;}
  if(e==null)throw new Exception("This alert is no longer queued.");
- if(e["cameraCue"]==null&&(bool)s["enabled"]&&(bool)s["camera"]["enabled"]&&now<N(e["endAt"])){e["cameraCue"]=now;try{CameraSet(s,true,now);}catch(Exception cx){s["cameraLast"]=new JObject{["visible"]=false,["at"]=now,["error"]=cx.Message};}}
+ if(e["cameraCue"]==null&&(bool)s["enabled"]&&(bool)s["camera"]["enabled"]&&now<N(e["endAt"])){e["cameraCue"]=now;try{CameraSet(s,true,now);}catch(Exception cx){s["cameraLast"]=new JObject{["visible"]=false,["at"]=now,["error"]=cx.Message};CPH.LogWarn("[Voyager Fleet] Camera not shown: "+cx.Message);}Save(s);}
  if(e["lumiaCue"]!=null){Broadcast(s,requestId,"");return;}
  if(!(bool)s["enabled"]||!(bool)s["lumia"]["enabled"]||String.IsNullOrWhiteSpace((string)s["lumia"]["commands"][((int)e["stage"]).ToString()])){Broadcast(s,requestId,"");return;}
  if(now<N(e["startAt"])||now>N(e["startAt"])+5000||now>=N(e["endAt"]))throw new Exception("Lumia cue skipped: the alert is outside its start window.");
  SendLumia(s,(int)e["stage"],e,requestId,now);Broadcast(s,requestId,"");
  }
  // Hide the camera once the ending alert (and any other that is still playing) is over.
- void CameraRelease(JObject s,long now,JObject ending){if(!(bool)s["camera"]["enabled"])return;string endingId=ending==null?"":(string)ending["id"];bool other=((JArray)s["queue"]).OfType<JObject>().Any(x=>(string)x["id"]!=endingId&&N(x["startAt"])<=now&&N(x["endAt"])>now);if(other)return;try{CameraSet(s,false,now);}catch(Exception cx){s["cameraLast"]=new JObject{["visible"]=true,["at"]=now,["error"]=cx.Message};}}
- void CameraSet(JObject s,bool visible,long now){string source=(string)s["camera"]["source"];if(String.IsNullOrWhiteSpace(source))throw new Exception("Set the camera source name first.");string scene=(string)s["camera"]["scene"];if(String.IsNullOrWhiteSpace(scene))scene=CPH.ObsGetCurrentScene();if(String.IsNullOrWhiteSpace(scene))throw new Exception("OBS is not connected in Streamer.bot.");CPH.ObsSetSourceVisibility(scene,source,visible);s["cameraLast"]=new JObject{["visible"]=visible,["at"]=now,["scene"]=scene,["source"]=source};}
+ void CameraRelease(JObject s,long now,JObject ending){if(!(bool)s["camera"]["enabled"])return;string endingId=ending==null?"":(string)ending["id"];bool other=((JArray)s["queue"]).OfType<JObject>().Any(x=>(string)x["id"]!=endingId&&N(x["startAt"])<=now&&N(x["endAt"])>now);if(other)return;try{CameraSet(s,false,now);}catch(Exception cx){s["cameraLast"]=new JObject{["visible"]=true,["at"]=now,["error"]=cx.Message};CPH.LogWarn("[Voyager Fleet] Camera not hidden: "+cx.Message);}}
+ // 2.20.60 (v1.8): finds the camera in the scene, in its groups and in nested scenes through obs-websocket 5, so a grouped camera works;
+ // reports where it was found (cameraLast.where) or a clear error. Falls back to the simple visibility call if raw requests are unavailable.
+ void CameraSet(JObject s,bool visible,long now){string source=(string)s["camera"]["source"];if(String.IsNullOrWhiteSpace(source))throw new Exception("Set the camera source name first.");string scene=(string)s["camera"]["scene"];if(String.IsNullOrWhiteSpace(scene))scene=CPH.ObsGetCurrentScene();if(String.IsNullOrWhiteSpace(scene))throw new Exception("OBS is not connected in Streamer.bot (Stream Apps › OBS Studio).");
+ string where=null;try{where=ObsSetItem(scene,source,visible,0);}catch(Exception ex){if(ex.Message.StartsWith("'"+source+"'"))throw;CPH.LogWarn("[Voyager Fleet] Camera lookup unavailable, using the simple call: "+ex.Message);}
+ if(where==null){CPH.ObsSetSourceVisibility(scene,source,visible);where=scene+" (not verified)";}
+ s["cameraLast"]=new JObject{["visible"]=visible,["at"]=now,["scene"]=scene,["source"]=source,["where"]=where};CPH.LogInfo("[Voyager Fleet] Camera "+(visible?"shown":"hidden")+": "+source+" in "+where);}
+ string ObsSetItem(string scene,string source,bool visible,int depth){if(depth>2)return null;
+ string raw=CPH.ObsSendRaw("GetSceneItemList","{\"sceneName\":"+JsonConvert.ToString(scene)+"}");if(String.IsNullOrWhiteSpace(raw))throw new Exception("No reply from OBS.");JArray items=JObject.Parse(raw)["sceneItems"] as JArray;if(items==null){if(depth==0)throw new Exception("'"+source+"' could not be looked up: scene '"+scene+"' was not found in OBS.");return null;}
+ foreach(JObject it in items.OfType<JObject>())if(String.Equals((string)it["sourceName"],source,StringComparison.OrdinalIgnoreCase)){ObsEnable(scene,(long)it["sceneItemId"],visible);return scene;}
+ foreach(JObject it in items.OfType<JObject>())if((bool?)it["isGroup"]==true){string g=(string)it["sourceName"];string graw=CPH.ObsSendRaw("GetGroupSceneItemList","{\"sceneName\":"+JsonConvert.ToString(g)+"}");JArray gitems=String.IsNullOrWhiteSpace(graw)?null:JObject.Parse(graw)["sceneItems"] as JArray;if(gitems==null)continue;
+  foreach(JObject gi in gitems.OfType<JObject>())if(String.Equals((string)gi["sourceName"],source,StringComparison.OrdinalIgnoreCase)){ObsEnable(g,(long)gi["sceneItemId"],visible);return scene+" › "+g;}}
+ foreach(JObject it in items.OfType<JObject>())if((string)it["sourceType"]=="OBS_SOURCE_TYPE_SCENE"&&(bool?)it["isGroup"]!=true){string w=ObsSetItem((string)it["sourceName"],source,visible,depth+1);if(w!=null)return scene+" › "+w;}
+ if(depth==0)throw new Exception("'"+source+"' is not in the scene '"+scene+"', its groups or its nested scenes. Check the OBS source name on Support alerts › Camera spotlight, or set the scene that holds it.");return null;}
+ void ObsEnable(string scene,long id,bool visible){CPH.ObsSendRaw("SetSceneItemEnabled","{\"sceneName\":"+JsonConvert.ToString(scene)+",\"sceneItemId\":"+id+",\"sceneItemEnabled\":"+(visible?"true":"false")+"}");}
  void SendLumia(JObject s,int stage,JObject e,string requestId,long now){
  string command=(string)s["lumia"]["commands"][stage.ToString()]??"";if(command.Length==0)return;
  if(command.Length>100||command.Any(Char.IsControl))throw new Exception("Invalid saved Lumia command.");
@@ -127,7 +140,7 @@ public class CPHInline {
  }
 
  void Save(JObject s){s["revision"]=N(s["revision"])+1;s["updatedAt"]=Now();CPH.SetGlobalVar(Store,s.ToString(Formatting.None),true);}
- void Broadcast(JObject s,string id,string error){try{JObject state=s==null?null:(JObject)s.DeepClone();if(state!=null){state["backendVersion"]="1.7";state.Remove("requests");state.Remove("seen");}CPH.WebsocketBroadcastJson(new JObject{["type"]="voyager.fleet.alerts.v1",["schema"]=1,["ok"]=error.Length==0,["error"]=error,["requestId"]=id,["serverAt"]=Now(),["state"]=state}.ToString(Formatting.None));}catch(Exception e){CPH.LogWarn("[Voyager Fleet] State saved; broadcast unavailable: "+e.Message);}}
+ void Broadcast(JObject s,string id,string error){try{JObject state=s==null?null:(JObject)s.DeepClone();if(state!=null){state["backendVersion"]="1.8";state.Remove("requests");state.Remove("seen");}CPH.WebsocketBroadcastJson(new JObject{["type"]="voyager.fleet.alerts.v1",["schema"]=1,["ok"]=error.Length==0,["error"]=error,["requestId"]=id,["serverAt"]=Now(),["state"]=state}.ToString(Formatting.None));}catch(Exception e){CPH.LogWarn("[Voyager Fleet] State saved; broadcast unavailable: "+e.Message);}}
  static string Clean(string s,int max){s=new String((s??"").Where(c=>!Char.IsControl(c)).ToArray()).Trim();return s.Length>max?s.Substring(0,max):s;}
  static long N(JToken t){long n;if(t==null)return 0;if(!Int64.TryParse(t.ToString(),out n)||n<0||n>9007199254740991L)throw new Exception("Invalid fleet number.");return n;}
  long Arg(string k,long min,long max){long n;if(!Int64.TryParse(Read(k),NumberStyles.Integer,CultureInfo.InvariantCulture,out n)||n<min||n>max)throw new Exception("Invalid "+k+".");return n;}
