@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.68 (7 November 2026)
+
+**Right now ticker in the Stream banner's look.** The moments ticker now uses the same aesthetic as the Stream banner overlay: 56 px glass strip with the light-blue top edge and 7 px corners, Rajdhani 600 uppercase with 2 px tracking, diamond separators, faint scanlines, text glow; event icons and highlights take the banner's border colour. Default position moved to y 1012 (height 56); saved layouts keep their x, y and width.
+
 ## 2.20.67 (6 November 2026)
 
 **Voyager goals strip on screen.** A tenth on-screen moment, on by default: the Silver / Gold / Platinum giveaway goals drawn by Voyager as glass tiles with progress bars and points / target, from the same goal reading the next-celebration chip uses (Voyager - Read OBS Percentages). Reached tiers turn green, the next one is outlined. Position and width on Screen layout (default bottom centre, 1120 px). With it on, the StreamUP goals strip source can be removed; its reference box is now off by default.

@@ -51,12 +51,17 @@
 #goals .tile.silver{color:#eef3f9}#goals .tile.gold{color:#ffd56a}#goals .tile.platinum{color:#bfe9ff}
 #goals .tile.reached{border-color:rgba(127,240,181,.5);box-shadow:inset 0 0 18px rgba(127,240,181,.12)}#goals .tile.reached i{background:#7ff0b5}#goals .tile.reached small{color:#7ff0b5}
 #goals .tile.next{border-color:rgba(255,255,255,.35)}
-/* ticker */
-#ticker{left:28px;top:1014px;width:1864px;height:44px;display:flex;align-items:center;overflow:hidden;border-radius:8px;transform:translateY(8px)}#ticker.on{transform:none}
-#ticker .tag{flex:none;height:100%;display:flex;align-items:center;padding:0 16px;background:rgba(151,223,255,.14);border-right:1px solid rgba(151,223,255,.3);font:700 12px Rajdhani;letter-spacing:.22em;color:#97dfff}
-#ticker .tag i{width:8px;height:8px;border-radius:50%;background:#7ff0b5;margin-right:10px;box-shadow:0 0 8px #7ff0b5}
-#ticker .items-wrap{flex:1;overflow:hidden;height:100%;display:flex;align-items:center}#ticker .items{display:flex;white-space:nowrap;font:600 16px Rajdhani;color:#dce7f3;letter-spacing:.03em;will-change:transform}
-#ticker .items span{padding:0 22px;border-right:1px solid rgba(151,223,255,.12)}#ticker .items b{color:#fff}#ticker .items .m{color:#f0b07a}#ticker .items .g{color:#ffd56a}#ticker .items .v{color:#97dfff}#ticker .items .c{color:#eef3f9}#ticker .items .r{color:#ff9aa6}
+/* ticker (2.20.68): same look as the Stream banner (Voyager_Banner_Overlay): 56 px glass strip, light-blue top edge, Rajdhani 600,
+   uppercase, diamond separators, faint scanlines; the kind icon takes the border colour */
+#ticker{--bt:#f3f6fb;--bb:#a7d8ff;left:28px;top:1012px;width:1864px;height:56px;display:flex;align-items:center;overflow:hidden;border-radius:7px;border:1px solid rgba(218,231,248,.18);border-top:2px solid var(--bb);
+  background:linear-gradient(115deg,rgba(8,15,24,.43),rgba(15,30,45,.34));box-shadow:0 0 18px #00d8ff09,0 8px 24px #0002;color:var(--bt);font:600 28px/1.1 Rajdhani,'Segoe UI',sans-serif;letter-spacing:2px;text-transform:uppercase;transform:translateY(8px)}#ticker.on{transform:none}
+#ticker::after{content:'';position:absolute;inset:0;z-index:2;pointer-events:none;background:repeating-linear-gradient(0deg,transparent,transparent 3px,#d9e5ef0a 3px,#d9e5ef0a 4px);opacity:.36}
+#ticker .tag{flex:none;height:100%;display:flex;align-items:center;padding:0 22px 0 26px;font:600 20px Rajdhani;letter-spacing:3px;color:var(--bb);text-shadow:0 1px 3px #0009}
+#ticker .tag i{width:8px;height:8px;border-radius:50%;background:#7ff0b5;margin-right:12px;box-shadow:0 0 8px #7ff0b5}
+#ticker .tag::after{content:'';display:inline-block;width:.24em;height:.24em;margin-left:22px;transform:rotate(45deg);border:1px solid var(--bb);opacity:.8}
+#ticker .items-wrap{flex:1;overflow:hidden;height:100%;display:flex;align-items:center}#ticker .items{display:flex;white-space:nowrap;will-change:transform;text-shadow:0 1px 3px #0009,0 0 10px rgba(167,216,255,.12)}
+#ticker .items span{display:inline-block}#ticker .items span::after{content:'';display:inline-block;width:.24em;height:.24em;margin:0 25px 2px;vertical-align:middle;transform:rotate(45deg);border:1px solid var(--bb);opacity:.8}
+#ticker .items b{color:var(--bt);font-weight:700}#ticker .items b.m,#ticker .items b.g,#ticker .items b.v,#ticker .items b.c,#ticker .items b.r{color:var(--bb);font-weight:600}#ticker .items b:first-child{margin-right:10px;font-size:.8em}
 /* points added: a column of chips rising from above the medal toast, one per gain (largest first), then a summary */
 #points{position:absolute;left:28px;top:480px;width:420px;height:300px;pointer-events:none}
 .pchip{position:absolute;left:0;bottom:0;display:flex;align-items:center;gap:10px;height:44px;padding:0 14px 0 10px;border-radius:22px;background:linear-gradient(115deg,rgba(8,15,24,.82),rgba(15,30,45,.76));border:1px solid rgba(127,240,181,.45);box-shadow:0 0 22px rgba(127,240,181,.25),inset 0 1px 0 rgba(255,255,255,.14);opacity:0;animation:prise var(--d,4s) cubic-bezier(.2,.7,.3,1) forwards;animation-delay:var(--delay,0s);white-space:nowrap}

@@ -13,7 +13,7 @@ const TIERS=['silver','gold','platinum'],TIER_LABEL={silver:'Silver',gold:'Gold'
 // 2.20.66 Screen layout: where each moment sits on the 1920 x 1080 canvas (top-left corner; the ticker also has a width), and
 // reference boxes for the other OBS overlays so they can be arranged around each other on the Screen layout page.
 export const LAYOUT_DEFAULTS={hints:{x:28,y:28,w:420,h:58},surge:{x:1532,y:28,w:360,h:70},dread:{x:1512,y:120,w:380,h:300},promo:{x:640,y:150,w:640,h:150},next:{x:744,y:890,w:460,h:40},
-  ticker:{x:28,y:1014,w:1864,h:44},toast:{x:28,y:838,w:420,h:92},points:{x:28,y:480,w:420,h:300},streak:{x:0,y:380,w:1920,h:160},goals:{x:400,y:944,w:1120,h:54}};
+  ticker:{x:28,y:1012,w:1864,h:56},toast:{x:28,y:838,w:420,h:92},points:{x:28,y:480,w:420,h:300},streak:{x:0,y:380,w:1920,h:160},goals:{x:400,y:944,w:1120,h:54}};
 export const LAYOUT_FIXED={streak:'x',ticker:''}; // streak always spans the width; the ticker's width can change
 export const MARKERS={camera:{label:'Camera (Brio) + frame',x:1512,y:716,w:380,h:214,on:true,setup:'Support alerts › Camera spotlight',src:'obs'},
   goals:{label:'Goals strip (StreamUP, if still used)',x:400,y:944,w:1120,h:54,on:false,setup:'Goal FX setup',src:'obs'},
