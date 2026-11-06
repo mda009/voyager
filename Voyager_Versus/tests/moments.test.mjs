@@ -67,3 +67,10 @@ test('screen layout: positions validate, the streak spans the width, the ticker 
   assert.throws(()=>m.configure({layout:{hints:{x:5000}}}),/Command hints/);assert.throws(()=>m.configure({markers:{camera:{w:1}}}),/Camera/);
   await m.saving;const again=await new Moments({dataDir:m.dataDir,now:()=>0}).load();assert.equal(again.settings.layout.hints.x,100);assert.equal(again.view().layoutDefaults.hints.x,28);
 });
+test('Voyager goals strip: tiers with progress from the reading, reached flag, stale after two minutes (2.20.67)',async()=>{
+  const {m,at}=await make();assert.equal(m.overlay().goals,null);assert.equal(m.overlay().elements.goals,true);assert.equal(m.overlay().layout.goals.w,1120);
+  m.goalsReading({samples:{silver:{points:30,targetPoints:25},gold:{points:30,targetPoints:50},platinum:{points:30,targetPoints:100}}});
+  const g=m.overlay().goals;assert.deepEqual(g.tiers.map(t=>[t.tier,t.points,t.target,t.reached]),[['silver',30,25,true],['gold',30,50,false],['platinum',30,100,false]]);
+  m.configure({layout:{goals:{x:100,y:900,w:800}}});assert.deepEqual(m.overlay().layout.goals,{x:100,y:900,w:800,h:54});
+  at(121000);assert.equal(m.overlay().goals,null);
+});

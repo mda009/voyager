@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.67 (6 November 2026)
+
+**Voyager goals strip on screen.** A tenth on-screen moment, on by default: the Silver / Gold / Platinum giveaway goals drawn by Voyager as glass tiles with progress bars and points / target, from the same goal reading the next-celebration chip uses (Voyager - Read OBS Percentages). Reached tiers turn green, the next one is outlined. Position and width on Screen layout (default bottom centre, 1120 px). With it on, the StreamUP goals strip source can be removed; its reference box is now off by default.
+
 ## 2.20.66 (6 November 2026)
 
 **Screen layout.** A new page (sidebar › Stream › Screen layout, also linked from the Stream deck and On-screen moments) shows the whole 1920 × 1080 canvas with every on-screen moment held still on it. Drag any box (arrow keys nudge, Shift = 10 px, snap to 4 px, the ticker's width by its corner) and Save: the overlay moves within 2 seconds. The other overlays are on the same canvas as amber boxes: the Community panel moves for real (top, right edge and width saved to the panel), and the OBS-positioned ones (camera + frame, goals strip, medal toast, membership card, support alerts, live stats strip, Christmas panel, Dreadnought, Versus) are reference boxes you match to where the source sits in OBS, ticked on or off, so overlaps show in red with a list. Layout and markers are saved with the moments settings (`layout`, `markers`); the overlay reads `layout` from `/api/moments/overlay`. The next-celebration chip's "goals strip top edge" setting is replaced by its position here.
