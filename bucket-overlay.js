@@ -10,10 +10,20 @@ let data=null,receivedAt=null,connected=false,failed=false,connectionState='conn
 // 2.20.31: shown on a cycle. ?every=300&show=30 (seconds) are the defaults; ?always=1 keeps the strip on screen as before.
 const num=(k,d,min,max)=>{const n=Number(params.get(k));return Number.isFinite(n)&&params.has(k)?Math.max(min,Math.min(max,n)):d;};
 const always=params.get('always')==='1'||(preview&&params.get('cycle')!=='1'),everyMs=num('every',300,45,86400)*1000,showMs=num('show',30,8,600)*1000;
-let visible=always,cycleTimer=0,hideTimer=0,shownOnce=false,hideAt=0;
-function show(){if(visible||always)return;visible=true;shownOnce=true;strip.classList.remove('out');strip.classList.add('on');render();hideAt=Date.now()+showMs;
- hideTimer=setTimeout(()=>{strip.classList.add('out');setTimeout(()=>{strip.classList.remove('on','out');visible=false;hideAt=0;render();},700);},showMs);}
-function startCycle(){if(always||cycleTimer)return;show();cycleTimer=setInterval(show,everyMs);}
+// 2.20.69: no timer by default. The strip is shown and hidden from Voyager (Stream deck › On-screen moments › Giveaway goals strip,
+// or Voyager Control › On-screen moments): it reads that switch from the Voyager host every 2 s. ?every=&show= keep the old timed
+// cycle, ?always=1 keeps it on screen; while Voyager cannot be reached the strip stays as it was (shown if it never got an answer).
+const controlled=!always&&!preview&&!params.has('every')&&!params.has('show');
+const hosted=location.protocol==='http:'&&/^(127\.0\.0\.1|localhost)$/.test(location.hostname),base=hosted?'':'http://127.0.0.1:'+(Number(params.get('voyager'))||8740);
+let visible=always,cycleTimer=0,hideTimer=0,shownOnce=false,hideAt=0,wanted=null,hostOk=0;
+function showNow(){if(visible)return;visible=true;shownOnce=true;strip.classList.remove('out');strip.classList.add('on');render();}
+function hideNow(){if(!visible||always)return;strip.classList.add('out');setTimeout(()=>{strip.classList.remove('on','out');visible=false;hideAt=0;render();},700);}
+function show(){if(visible||always)return;showNow();hideAt=Date.now()+showMs;hideTimer=setTimeout(hideNow,showMs);}
+function startCycle(){if(controlled){apply();return;}if(always||cycleTimer)return;show();cycleTimer=setInterval(show,everyMs);}
+const loadedAt=Date.now();
+function apply(){if(!controlled||!data)return;const want=wanted===null?Date.now()-loadedAt>20000:wanted;if(want&&!visible)showNow();else if(wanted===false&&visible)hideNow();}
+async function pollHost(){try{const r=await fetch(base+'/api/moments/overlay',{cache:'no-store'});if(!r.ok)throw new Error(String(r.status));const d=await r.json();hostOk=Date.now();wanted=d?.elements?.goals!==false;}catch{}apply();}
+if(controlled){pollHost();setInterval(pollHost,2000);}
 function render(){
  const fresh=!!data&&connected&&!failed&&M.freshness(data,receivedAt);
  strip.dataset.fresh=String(!data||fresh);

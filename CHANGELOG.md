@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.69 (7 November 2026)
+
+**Giveaway goals strip: the original design, shown and hidden from Voyager.** The moments overlay no longer draws its own goals tiles. The giveaway goals strip is the original `Voyager_Bucket_Overlay.html` source (Silver / Gold / Platinum glass tiles from the Points Ledger) again, and its timer is gone: the **Giveaway goals strip** switch on the Stream deck's On-screen moments row (and the On-screen moments page) shows it (heading fades in, tiles fly in, bars fill) and hides it (folds away). The source reads the switch from the Voyager app every 2 s; `?every=&show=` still gives the old timed cycle and `?always=1` keeps it on. Also restores `Voyager_Bucket_Overlay.html`, which had been emptied by mistake in 2.20.39 (sources loaded from the installed folder showed nothing since then). Its box on Screen layout is a reference, on by default.
+
 ## 2.20.68 (7 November 2026)
 
 **Right now ticker in the Stream banner's look.** The moments ticker now uses the same aesthetic as the Stream banner overlay: 56 px glass strip with the light-blue top edge and 7 px corners, Rajdhani 600 uppercase with 2 px tracking, diamond separators, faint scanlines, text glow; event icons and highlights take the banner's border colour. Default position moved to y 1012 (height 56); saved layouts keep their x, y and width.

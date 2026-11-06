@@ -20,7 +20,7 @@ function conflicts(all){const shown=all.filter(b=>b.on&&!(b.w>=1920&&b.h>=1080)&
 function render(){if(!view)return;const all=boxes(),bad=conflicts(all),host=$('boxes');host.replaceChildren();
   for(const b of all){if(b.kind==='marker'&&!b.on)continue;const d=el('div','box'+(b.kind==='marker'?' marker':'')+(b.src==='obs'?' obs':'')+(sel===b.id?' sel':'')+(bad.has(b.id)?' conflict':'')+(!b.on?' off':''));
     d.style.left=b.x+'px';d.style.top=b.y+'px';d.style.width=b.w+'px';d.style.height=b.h+'px';d.dataset.id=b.id;d.append(el('span','lab',b.label+(b.kind==='moment'&&!b.on?' · hidden':'')));
-    if(b.kind==='marker'||b.key==='ticker'||b.key==='goals'){const r=el('span','rs');r.dataset.resize='1';d.append(r);}
+    if(b.kind==='marker'||b.key==='ticker'){const r=el('span','rs');r.dataset.resize='1';d.append(r);}
     d.onpointerdown=e=>start(e,b,e.target.dataset.resize==='1');host.append(d);}
   $('conflicts').textContent=bad.size?'Overlapping: '+all.filter(b=>bad.has(b.id)).map(b=>b.label).join(', '):'No overlaps';$('conflicts').className=bad.size?'sl-conf':'st-note';
   renderList(all,bad);sendPreview();$('saved').textContent=dirty?'Unsaved changes':'Drag anything on the canvas · arrow keys nudge · Shift = 10 px';}
@@ -28,11 +28,11 @@ function renderList(all,bad){const list=$('list');list.replaceChildren();
   const group=(title,items)=>{list.append(el('div','sl-group',title));for(const b of items){const it=el('div','sl-item'+(sel===b.id?' sel':'')+(bad.has(b.id)?' conflict':''));it.onclick=()=>{sel=b.id;render();};
     const name=el('b','',b.label);const tg=el('label','tg');const cb=el('input');cb.type='checkbox';cb.checked=!!b.on;cb.onclick=e=>e.stopPropagation();cb.onchange=async()=>{if(b.kind==='moment'){try{view={...view,...await api('/api/moments/element',{key:b.key,on:cb.checked})};}catch(e){notice(e.message,true);}}else{markers[b.key].on=cb.checked;dirty=true;}render();};
     tg.append(cb,document.createTextNode(b.kind==='moment'?'on stream':'on layout'));it.append(name,tg);
-    const note=b.kind==='moment'?(b.key==='streak'?'Crosses the full width at this height; never counted as an overlap.':b.key==='ticker'||b.key==='goals'?'Drag the corner to set its width.':'Voyager moment.'):b.src==='community'?'Moves the real Community panel (top, right edge and width).':'Positioned in OBS · '+view.markerInfo[b.key].setup+'. Match this box to the source.';it.append(el('small','',note));
+    const note=b.kind==='moment'?(b.key==='streak'?'Crosses the full width at this height; never counted as an overlap.':b.key==='ticker'?'Drag the corner to set its width.':'Voyager moment.'):b.src==='community'?'Moves the real Community panel (top, right edge and width).':'Positioned in OBS · '+view.markerInfo[b.key].setup+'. Match this box to the source.';it.append(el('small','',note));
     const xy=el('div','xy');const mk=(k,v,min,max)=>{const i=el('input');i.type='number';i.value=v;i.min=min;i.max=max;i.onclick=e=>e.stopPropagation();i.onchange=()=>{set(b,{[k]:clamp(Number(i.value)||0,min,max)});};xy.append(document.createTextNode(k.toUpperCase()+' '),i);};
-    if(!(b.kind==='moment'&&b.key==='streak'))mk('x',b.x,-200,1920);mk('y',b.y,-200,1080);if(b.kind==='marker'||b.key==='ticker'||b.key==='goals')mk('w',b.w,40,1920);if(b.kind==='marker'&&!b.fixedH)mk('h',b.h,24,1080);it.append(xy);list.append(it);}};
+    if(!(b.kind==='moment'&&b.key==='streak'))mk('x',b.x,-200,1920);mk('y',b.y,-200,1080);if(b.kind==='marker'||b.key==='ticker')mk('w',b.w,40,1920);if(b.kind==='marker'&&!b.fixedH)mk('h',b.h,24,1080);it.append(xy);list.append(it);}};
   group('Voyager moments (this overlay)',all.filter(b=>b.kind==='moment'));group('Other overlays',all.filter(b=>b.kind==='marker'));}
-function set(b,patch,quiet){if(b.kind==='moment'){const L=layout[b.key];Object.assign(L,patch);if(b.key==='streak')L.x=0;L.x=clamp(L.x,-200,1920);L.y=clamp(L.y,-200,1080);if(b.key==='ticker'||b.key==='goals')L.w=clamp(L.w,300,1920);}
+function set(b,patch,quiet){if(b.kind==='moment'){const L=layout[b.key];Object.assign(L,patch);if(b.key==='streak')L.x=0;L.x=clamp(L.x,-200,1920);L.y=clamp(L.y,-200,1080);if(b.key==='ticker')L.w=clamp(L.w,300,1920);}
   else{if(b.src==='community'&&community?.panel?.config){const c=community.panel.config;const nb={x:b.x,y:b.y,w:b.w,...patch};c.width=clamp(nb.w,320,480);c.top=clamp(nb.y,0,600);c.right=clamp(1920-nb.x-c.width,0,1440);community.dirty=true;}
     else{const M=markers[b.key];Object.assign(M,patch);M.x=clamp(M.x,-200,1920);M.y=clamp(M.y,-200,1080);M.w=clamp(M.w,40,1920);M.h=clamp(M.h,24,1080);}}
   dirty=true;if(!quiet)render();}

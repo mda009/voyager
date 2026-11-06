@@ -5,7 +5,7 @@
 // Events feed the ticker: support alerts (Fleet Alerts queue), medals (Medals recent list), Versus results, promotions, Dreadnought results.
 import {readFile,writeFile,mkdir,rename} from 'node:fs/promises';
 import {join} from 'node:path';
-export const ELEMENTS={hints:'Command hints',surge:'Crew surge',dread:'Dreadnought live HUD',promo:'Promotion ceremony',next:'Next-celebration chip',ticker:'Right now ticker',toast:'Medal toasts',points:'Points added',streak:'Stream streak',goals:'Voyager goals strip'};
+export const ELEMENTS={hints:'Command hints',surge:'Crew surge',dread:'Dreadnought live HUD',promo:'Promotion ceremony',next:'Next-celebration chip',ticker:'Right now ticker',toast:'Medal toasts',points:'Points added',streak:'Stream streak',goals:'Giveaway goals strip'}; // goals = the Bucket overlay source (Voyager_Bucket_Overlay.html) shown and hidden from here
 export const RANK_NAMES=['Midshipman','Acting Sub-Lieutenant','Sub-Lieutenant','Lieutenant','Lieutenant Commander','Commander','Captain','Commodore','Rear Admiral','Vice Admiral','Admiral','Admiral of the Fleet'];
 export const RANK_ABBR=['MIDN','ASLT','SBLT','LEUT','LCDR','CMDR','CAPT','CDRE','RADM','VADM','ADML','AF'];
 const STAGE={1:'follow',2:'sub',3:'gift',4:'resub',5:'bits',6:'raid'};
@@ -13,10 +13,10 @@ const TIERS=['silver','gold','platinum'],TIER_LABEL={silver:'Silver',gold:'Gold'
 // 2.20.66 Screen layout: where each moment sits on the 1920 x 1080 canvas (top-left corner; the ticker also has a width), and
 // reference boxes for the other OBS overlays so they can be arranged around each other on the Screen layout page.
 export const LAYOUT_DEFAULTS={hints:{x:28,y:28,w:420,h:58},surge:{x:1532,y:28,w:360,h:70},dread:{x:1512,y:120,w:380,h:300},promo:{x:640,y:150,w:640,h:150},next:{x:744,y:890,w:460,h:40},
-  ticker:{x:28,y:1012,w:1864,h:56},toast:{x:28,y:838,w:420,h:92},points:{x:28,y:480,w:420,h:300},streak:{x:0,y:380,w:1920,h:160},goals:{x:400,y:944,w:1120,h:54}};
+  ticker:{x:28,y:1012,w:1864,h:56},toast:{x:28,y:838,w:420,h:92},points:{x:28,y:480,w:420,h:300},streak:{x:0,y:380,w:1920,h:160}};
 export const LAYOUT_FIXED={streak:'x',ticker:''}; // streak always spans the width; the ticker's width can change
 export const MARKERS={camera:{label:'Camera (Brio) + frame',x:1512,y:716,w:380,h:214,on:true,setup:'Support alerts › Camera spotlight',src:'obs'},
-  goals:{label:'Goals strip (StreamUP, if still used)',x:400,y:944,w:1120,h:54,on:false,setup:'Goal FX setup',src:'obs'},
+  goals:{label:'Giveaway goals strip (Bucket overlay)',x:480,y:930,w:960,h:120,on:true,setup:'Giveaway goals strip setup',src:'obs'},
   community:{label:'Community panel',x:1548,y:132,w:356,h:420,on:true,setup:'Community goals › OBS panel',src:'community'},
   leaderboard:{label:'Leaderboard panel',x:1548,y:132,w:356,h:420,on:false,setup:'Leaderboard panel setup',src:'obs'},
   medals:{label:'Medal toast (medals.html)',x:56,y:826,w:680,h:164,on:true,setup:'Medals setup',src:'obs'},
@@ -49,7 +49,7 @@ export function normalizeSettings(raw,base=DEFAULTS){
   if(r.surge&&typeof r.surge==='object'){for(const [k,min,max] of [['count',2,20],['windowMinutes',1,30],['durationMinutes',1,60]])if(r.surge[k]!==undefined){const n=int(r.surge[k],min,max);if(n===null)throw new Error('Crew surge '+k+' must be a whole number between '+min+' and '+max+'.');s.surge[k]=n;}
     if(r.surge.label!==undefined)s.surge.label=clean(r.surge.label,24)||'CREW SURGE';}
   if(r.layout&&typeof r.layout==='object')for(const k of Object.keys(LAYOUT_DEFAULTS)){const b=r.layout[k];if(!b||typeof b!=='object')continue;const d=LAYOUT_DEFAULTS[k],cur=s.layout[k];
-    const x=LAYOUT_FIXED[k]==='x'?0:int(b.x??cur.x,-200,1920),y=int(b.y??cur.y,-200,1080),w=k==='ticker'||k==='goals'?int(b.w??cur.w,300,1920):d.w,h=d.h;if(x===null||y===null||w===null)throw new Error(ELEMENTS[k]+': the position must be whole pixels on the 1920 x 1080 canvas.');s.layout[k]={x,y,w,h};}
+    const x=LAYOUT_FIXED[k]==='x'?0:int(b.x??cur.x,-200,1920),y=int(b.y??cur.y,-200,1080),w=k==='ticker'?int(b.w??cur.w,300,1920):d.w,h=d.h;if(x===null||y===null||w===null)throw new Error(ELEMENTS[k]+': the position must be whole pixels on the 1920 x 1080 canvas.');s.layout[k]={x,y,w,h};}
   if(r.markers&&typeof r.markers==='object')for(const k of Object.keys(MARKERS)){const b=r.markers[k];if(!b||typeof b!=='object')continue;const cur=s.markers[k];
     const x=int(b.x??cur.x,-200,1920),y=int(b.y??cur.y,-200,1080),w=int(b.w??cur.w,40,1920),h=int(b.h??cur.h,24,1080);if(x===null||y===null||w===null||h===null)throw new Error(MARKERS[k].label+': the box must be whole pixels on the 1920 x 1080 canvas.');s.markers[k]={x,y,w,h,on:b.on===undefined?cur.on:b.on===true};}
   return s;
@@ -117,7 +117,7 @@ export class Moments{
   overlay(){const now=this.now(),s=this.settings,b=this.bossView();
     const dread=b&&b.phase&&b.phase!=='idle'?{phase:b.phase,hp:b.hp,maxHp:b.maxHp,startedAt:b.startedAt,endsAt:b.endsAt,lobbyEndsAt:b.lobbyEndsAt,outcome:b.outcome||'',speed:b.speed||'',bonus:b.bonus||0,elapsed:b.elapsed||0,endedAt:b.endedAt||0,shield:!!b.shield,goals:b.goals,leaders:(b.leaders||[]).slice(0,5),pilots:b.pilots||0,name:b.name,demo:!!b.demo}:null;
     return {serverAt:now,revision:this.revision,elements:s.elements,hints:s.hints,hintSeconds:s.hintSeconds,hintsQuietUntil:this.lastCommandAt?this.lastCommandAt+s.hintQuietMinutes*60000:0,
-      layout:s.layout,surge:this.surge(),dread,next:this.nextCelebration(),goals:this.goalsStrip(),promoMin:s.promoMin,promoSeconds:s.promoSeconds,toastSeconds:s.toastSeconds,goalsStripTop:s.goalsStripTop,pointsSeconds:s.pointsSeconds,streakSeconds:s.streakSeconds,
+      layout:s.layout,surge:this.surge(),dread,next:this.nextCelebration(),promoMin:s.promoMin,promoSeconds:s.promoSeconds,toastSeconds:s.toastSeconds,goalsStripTop:s.goalsStripTop,pointsSeconds:s.pointsSeconds,streakSeconds:s.streakSeconds,
       events:this.events.filter(e=>now-e.at<=s.tickerMinutes*60000).slice(0,s.tickerCount),toasts:s.elements.toast?(this.medalToasts()||[]).filter(t=>now-t.at<5*60000).slice(-10).map(t=>({...t,icon:this.medalIcon(t.medal)||''})):[]};}
   view(){return {settings:this.settings,defaults:DEFAULTS,elements:ELEMENTS,layoutDefaults:LAYOUT_DEFAULTS,markerInfo:MARKERS,ranks:RANK_NAMES,revision:this.revision,surge:this.surge(),next:this.nextCelebration(),goalsAt:this.goalsAt,events:this.events.slice(0,20),dread:this.bossView()?.phase||'idle'};}
 }
