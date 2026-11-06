@@ -95,7 +95,7 @@ export class Moments{
     if(!items.length)return null;const shown=items.filter(x=>x.amount>=s.pointsMin).slice(0,s.pointsMax);const sum=items.reduce((a,x)=>a+x.amount,0);
     return this.push({kind:'points',items:shown,count:items.length,sum,top:items[0]});}
   // Stream streaks kept today (a viewer earned points on consecutive stream days): one batch event per scan.
-  streaks(list){const s=this.settings,items=(Array.isArray(list)?list:[]).filter(x=>Number(x?.streak)>=s.streakMin).map(x=>({name:clean(x.name,40),platform:x.platform,streak:Number(x.streak),best:Number(x.best)||0})).sort((a,b)=>b.streak-a.streak);
+  streaks(list){const s=this.settings,items=(Array.isArray(list)?list:[]).filter(x=>Number(x?.streak)>=s.streakMin).map(x=>({name:clean(x.name,40),platform:x.platform,streak:Number(x.streak),best:Number(x.best)||0,source:x.source==='twitch'?'twitch':''})).sort((a,b)=>b.streak-a.streak);
     if(!items.length)return null;return this.push({kind:'streak',items:items.slice(0,s.streakMax),count:items.length,top:items[0]});}
   commandSeen(){this.lastCommandAt=this.now();}
   nextCelebration(){const g=this.goals;if(!g||this.now()-this.goalsAt>120000)return null;const order=TIERS.filter(t=>g[t]&&g[t].target>0);

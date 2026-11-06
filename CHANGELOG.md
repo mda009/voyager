@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.70 (7 November 2026)
+
+**Stream streaks match Twitch watch streaks.** Voyager now subscribes to Streamer.bot's Twitch **Watch Streak** event (and recognises the viewermilestone chat message). When a viewer shares their watch streak, Twitch's number becomes their stream streak in Voyager (card, medals, Right now ticker and the streak comet, which says "Twitch watch streak"); the day Voyager counts does not stack on top of a shared number, and the next stream day continues from it. Between shares Voyager's own count carries on as before. `medals.syncStreak`, `parseWatchStreak`; separate subscription so older Streamer.bot builds are unaffected.
+
 ## 2.20.69 (7 November 2026)
 
 **Giveaway goals strip: the original design, shown and hidden from Voyager.** The moments overlay no longer draws its own goals tiles. The giveaway goals strip is the original `Voyager_Bucket_Overlay.html` source (Silver / Gold / Platinum glass tiles from the Points Ledger) again, and its timer is gone: the **Giveaway goals strip** switch on the Stream deck's On-screen moments row (and the On-screen moments page) shows it (heading fades in, tiles fly in, bars fill) and hides it (folds away). The source reads the switch from the Voyager app every 2 s; `?every=&show=` still gives the old timed cycle and `?always=1` keeps it on. Also restores `Voyager_Bucket_Overlay.html`, which had been emptied by mistake in 2.20.39 (sources loaded from the installed folder showed nothing since then). Its box on Screen layout is a reference, on by default.

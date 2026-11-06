@@ -208,6 +208,17 @@ export class Medals{
     if(n>2)this.state.foundingOpen=false;
   }
   // A viewer earned points today: one stream day. Streaks follow "stream days" (days at least 3 viewers earned points).
+  // 2.20.70: Twitch watch streaks. When a viewer shares their watch streak in chat (Streamer.bot's Twitch "Watch Streak" event),
+  // Voyager takes Twitch's number as the viewer's stream streak: the card, medals and the on-screen comet then match Twitch.
+  syncStreak({userId,login,name,streak}){
+    const n=Math.round(Number(streak));if(!Number.isFinite(n)||n<1||n>100000)return null;
+    const key='twitch:'+String(userId||'').trim();const v=KEY.test(key)&&String(userId||'').trim()?this.viewer(key,{name,login,platform:'twitch'}):this.viewerByLogin('twitch',login);
+    if(!v)return null;const now=this.now(),day=dayId(now),before=v.c.streak||0;
+    v.c.streak=n;v.c.bestStreak=Math.max(v.c.bestStreak||0,n);v.c.twitchDay=day;v.c.twitchStreakAt=now;
+    if(n>=2&&v.c.twitchShown!==day){v.c.twitchShown=day;this.streaks.push({name:v.name,platform:'twitch',streak:n,best:v.c.bestStreak,source:'twitch'});const list=this.streaks;this.streaks=[];try{this.onStreak(list);}catch{}}
+    this.persist();return {key:v.key||key,name:v.name,streak:n,before};
+  }
+  viewerByLogin(platform,login){const l=String(login||'').toLowerCase();if(!l)return null;for(const v of Object.values(this.state.viewers))if(v.platform===platform&&v.login===l)return v;return null;}
   attended(v,now){
     const day=dayId(now),days=this.state.days;
     if(new Date(now).getHours()<5&&v.c.lastNight!==day){v.c.lastNight=day;this.inc(v,'nights');}
@@ -216,9 +227,11 @@ export class Medals{
     const keys=Object.keys(days).sort();if(keys.length>400)for(const k of keys.slice(0,keys.length-400))delete days[k];
     const prev=Object.keys(days).filter(k=>k<day&&days[k]>=3).sort().pop();
     const recent=v.c.ad||[];
-    v.c.streak=prev&&recent.includes(prev)?(v.c.streak||0)+1:1;
+    // 2.20.70: a Twitch watch streak the viewer shared today is the truth for today; Voyager's own count only fills the gaps.
+    if(v.c.twitchDay===day){v.c.bestStreak=Math.max(v.c.bestStreak||0,v.c.streak||0);}
+    else{v.c.streak=prev&&recent.includes(prev)?(v.c.streak||0)+1:1;
     v.c.bestStreak=Math.max(v.c.bestStreak||0,v.c.streak);
-    if(v.c.streak>=2)this.streaks.push({name:v.name,platform:v.platform,streak:v.c.streak,best:v.c.bestStreak}); // 2.20.65: stream streak kept, for the on-screen animation
+    if(v.c.streak>=2)this.streaks.push({name:v.name,platform:v.platform,streak:v.c.streak,best:v.c.bestStreak});} // 2.20.65: stream streak kept, for the on-screen animation
     v.c.ad=[...recent,day].slice(-6);v.c.lastDay=day;this.inc(v,'days');
   }
   observePilots(rankings){

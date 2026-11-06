@@ -147,3 +147,18 @@ test('Settings validate grade targets; switched-off medals are not awarded; sett
   const saved=JSON.parse(await readFile(join(dir,'medals.json'),'utf8'));assert.deepEqual(saved.settings.off,['watch']);
   assert.equal(MEDALS.filter(x=>x.grades).length,27);
 });
+
+test('Twitch watch streaks: a shared streak becomes the viewer\'s stream streak, plays the comet once, and the day count does not add to it (2.20.70)',async()=>{
+  const {m,at}=await make();m.state.backfilled=true;const streaks=[];m.onStreak=l=>streaks.push(...l);
+  const members={};for(const k of ['twitch:1','twitch:2','twitch:3','twitch:4'])members[k]={name:k,login:k.replace(':','_'),platform:'twitch',value:0};const c=fakeCommunity(members);m.observeCommunity(c);
+  assert.equal(m.syncStreak({userId:'1',login:'nova',name:'Nova',streak:7}).streak,7);
+  assert.equal(m.state.viewers['twitch:1'].c.streak,7);assert.equal(m.state.viewers['twitch:1'].c.bestStreak,7);
+  assert.deepEqual(streaks.map(x=>[x.streak,x.source]),[[7,'twitch']]);
+  m.syncStreak({userId:'1',login:'nova',name:'Nova',streak:7});assert.equal(streaks.length,1,'sharing twice in a day plays once');
+  for(const k of Object.keys(members))members[k].value+=10;m.observeCommunity(c);
+  assert.equal(m.state.viewers['twitch:1'].c.streak,7,'the day Voyager counts does not stack on the Twitch number');
+  at(DAY);for(const k of Object.keys(members))members[k].value+=10;m.observeCommunity(c);
+  assert.equal(m.state.viewers['twitch:1'].c.streak,8,'the next stream day continues from the Twitch number');
+  assert.equal(m.syncStreak({userId:'',login:'Twitch_2',name:'Two',streak:3}).streak,3,'falls back to the login when there is no user id');
+  assert.equal(m.syncStreak({userId:'9',login:'ghost',streak:0}),null);
+});

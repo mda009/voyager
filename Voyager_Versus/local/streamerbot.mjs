@@ -7,6 +7,19 @@ export function parseStreamOnline(payload){
   if(!/^\d{1,25}$/.test(channelId)||!Number.isFinite(startedAt)||startedAt<=0)return null;
   return {key:`twitch:${channelId}:${startedAt}`,channelId,startedAt};
 }
+// 2.20.70: Twitch watch streak shared in chat (Streamer.bot Twitch › Watch Streak event, or a viewermilestone chat message).
+export function parseWatchStreak(payload){
+  const src=payload?.event?.source,type=payload?.event?.type;if(src!=='Twitch')return null;const d=payload.data;if(!d||d.isTest||d.meta?.isTest)return null;
+  let streak=null;
+  if(type==='WatchStreak')streak=d.watchStreak??d.streak??d.value;
+  else if(type==='ChatMessage'){const m=d.message&&typeof d.message==='object'?d.message:{};const msgId=d.msgId||m.msgId||d.messageType||'';const cat=d.msgParamCategory||m.msgParamCategory||d.tags?.['msg-param-category']||'';
+    if(!(/viewermilestone/i.test(String(msgId))||/watch-streak/i.test(String(cat))))return null;streak=d.msgParamValue??m.msgParamValue??d.tags?.['msg-param-value']??d.watchStreak;}
+  else return null;
+  if(streak==null&&typeof d.systemMessage==='string'){const m=/(\d+)\s+consecutive streams/i.exec(d.systemMessage);if(m)streak=m[1];}
+  const n=Number(streak);if(!Number.isFinite(n)||n<1)return null;
+  const user=d.user||(d.message&&typeof d.message==='object'?d.message.user:null)||{};const login=user.login||d.userName||d.username||d.login||'';const name=user.name||d.displayName||user.displayName||login;
+  return {userId:String(user.id||user.userId||d.userId||''),login:String(login).toLowerCase(),name:String(name),streak:Math.round(n),points:Number(d.channelPointsAwarded)||0};
+}
 export function parseChat(payload){
   if(payload?.event?.source!=='Twitch'||payload?.event?.type!=='ChatMessage')return null;
   const d=payload.data;if(!d||d.isTest||d.isInternal||d.isFromSharedChatGuest||d.meta?.internal||d.meta?.isTest)return null;
@@ -35,8 +48,8 @@ export function parseOtherChat(payload){
   return {platform,userId:id,login,name,text,messageId:d.messageId||m?.id||d.id||null,demo:false};
 }
 export class StreamerBot {
-  constructor({onOtherChat=()=>{},onChat=()=>{},onStatus=()=>{},onStreamOnline=()=>{},onBoss=()=>{},onMedals=()=>{},onCards=()=>{},onFleet=()=>{},onGoals=()=>{},WebSocketImpl=globalThis.WebSocket,retryMs=3000}={}){
-    this.onStreamOnline=onStreamOnline;this.onOtherChat=onOtherChat;this.otherChat={kick:0,youtube:0,subscribed:null};this.onBoss=onBoss;this.onMedals=onMedals;this.onGoals=onGoals;this.onCards=onCards;this.onFleet=onFleet;this.rewardResponses=new Map();
+  constructor({onOtherChat=()=>{},onChat=()=>{},onStatus=()=>{},onStreamOnline=()=>{},onBoss=()=>{},onMedals=()=>{},onCards=()=>{},onFleet=()=>{},onGoals=()=>{},onWatchStreak=()=>{},WebSocketImpl=globalThis.WebSocket,retryMs=3000}={}){
+    this.onStreamOnline=onStreamOnline;this.onOtherChat=onOtherChat;this.otherChat={kick:0,youtube:0,subscribed:null};this.onBoss=onBoss;this.onMedals=onMedals;this.onGoals=onGoals;this.onWatchStreak=onWatchStreak;this.onCards=onCards;this.onFleet=onFleet;this.rewardResponses=new Map();
     this.pending=new Map();this.requestSequence=0;this.onChat=onChat;this.onStatus=onStatus;this.WebSocketImpl=WebSocketImpl;this.retryMs=retryMs;this.generation=0;this.socket=null;this.timer=null;this.handshake=null;this.wanted=false;this.seen=new Map();this.status={connected:false,message:'Streamer.bot disconnected'};
   }
   statusUpdate(connected,message){this.status={connected,message};this.onStatus(this.status);}
@@ -70,10 +83,13 @@ export class StreamerBot {
         if(data.status!=='ok'){this.wanted=false;this.statusUpdate(false,'Chat subscription rejected by Streamer.bot.');ws.close();return;}
         subscribed=true;clearTimeout(this.handshake);this.statusUpdate(true,'Streamer.bot connected · Twitch chat ready');
         // Separate request: an older Streamer.bot that doesn't know these events must not break the Twitch subscription.
-        send({request:'Subscribe',id:'vv-subscribe-chat',events:{Kick:['ChatMessage'],YouTube:['Message']}});return;
+        send({request:'Subscribe',id:'vv-subscribe-chat',events:{Kick:['ChatMessage'],YouTube:['Message']}});
+        send({request:'Subscribe',id:'vv-subscribe-streak',events:{Twitch:['WatchStreak']}}); // 2.20.70: separate, older builds may not know it
+        return;
       }
       if(!authenticated||!subscribed)return;
       if(data.id==='vv-subscribe-chat'){this.otherChat.subscribed=data.status==='ok';return;}
+      if(data.id==='vv-subscribe-streak'){this.watchStreakSubscribed=data.status==='ok';return;}
       if(data.id&&this.pending.has(data.id)){const p=this.pending.get(data.id);clearTimeout(p.timer);this.pending.delete(data.id);p.resolve(data);return;}
       // C# broadcasts can arrive before the DoAction acknowledgement. Retain only
       // bounded, correlated rewards replies; the dispatcher still verifies IDs.
@@ -96,6 +112,7 @@ export class StreamerBot {
       // Giveaway goal readings (2.20.64): the "Voyager - Read OBS Percentages" broadcast the goals strip and Goal FX use.
       {let g=reply;for(let i=0;i<3&&g&&g.channel!=='mda009.voyager.goals';i++){g=typeof g.data==='string'?(()=>{try{return JSON.parse(g.data);}catch{return null;}})():g.data;}
         if(g&&g.channel==='mda009.voyager.goals'){if(g.samples)try{this.onGoals(g);}catch{}return;}}
+      const streak=parseWatchStreak(data);if(streak){try{this.onWatchStreak(streak);}catch{}if(data.event?.type==='WatchStreak')return;}
       const online=parseStreamOnline(data);if(online){this.onStreamOnline(online);return;}
       const other=parseOtherChat(data);
       if(other){if(other.messageId){if(this.seen.has(other.messageId))return;this.seen.set(other.messageId,Date.now());}this.otherChat[other.platform]=Date.now();try{this.onOtherChat(other);}catch{}return;}

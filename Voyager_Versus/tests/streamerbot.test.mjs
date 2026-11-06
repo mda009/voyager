@@ -1,7 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
-import {StreamerBot,authentication,parseChat,parseStreamOnline} from '../local/streamerbot.mjs';
+import {StreamerBot,authentication,parseChat,parseStreamOnline,parseWatchStreak} from '../local/streamerbot.mjs';
 import {Arena} from '../dist/engine.mjs';
 class FakeSocket {
   static all=[];
@@ -73,4 +73,14 @@ test('Kick and YouTube chat are read from Streamer.bot events (2.20.8)',async()=
   assert.deepEqual([yt.platform,yt.userId,yt.text],['youtube','UC1','!fire']);
   assert.equal(parseOtherChat({event:{source:'Twitch',type:'ChatMessage'},data:{}}),null);
   assert.equal(parseOtherChat({event:{source:'Kick',type:'Follow'},data:{user:{id:'1'}}}),null);
+});
+
+test('parseWatchStreak reads the Twitch Watch Streak event and a viewermilestone chat message (2.20.70)',()=>{
+  const ev=parseWatchStreak({event:{source:'Twitch',type:'WatchStreak'},data:{user:{id:'42',login:'Nova',name:'Nova'},watchStreak:5,channelPointsAwarded:450,systemMessage:'Nova watched 5 consecutive streams this month and sparked a watch streak!'}});
+  assert.deepEqual(ev,{userId:'42',login:'nova',name:'Nova',streak:5,points:450});
+  const chat=parseWatchStreak({event:{source:'Twitch',type:'ChatMessage'},data:{user:{id:'42',login:'nova',name:'Nova'},msgId:'viewermilestone',msgParamCategory:'watch-streak',msgParamValue:'12',text:'hi'}});
+  assert.equal(chat.streak,12);
+  assert.equal(parseWatchStreak({event:{source:'Twitch',type:'ChatMessage'},data:{user:{id:'42',login:'nova'},text:'hello'}}),null);
+  assert.equal(parseWatchStreak({event:{source:'Twitch',type:'WatchStreak'},data:{user:{id:'42',login:'nova'},systemMessage:'Nova watched 3 consecutive streams'}}).streak,3,'falls back to the system message');
+  assert.equal(parseWatchStreak({event:{source:'Twitch',type:'WatchStreak'},data:{isTest:true,user:{id:'42',login:'nova'},watchStreak:2}}),null);
 });

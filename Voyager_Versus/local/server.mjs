@@ -131,7 +131,7 @@ const bot=new StreamerBot({onOtherChat:chat=>{
   if(word==='!voyager'){voyagerCommand(chat);return;}
   if(word==='!medals'){try{medals.command({kind:'medals',platform:chat.platform,userId:chat.userId,login:chat.login,name:chat.name});}catch{}return;}
   if(boss.active()&&(word==='!join'||word==='!fire')){try{boss.receive({kind:word.slice(1),platform:chat.platform,userId:chat.userId,login:chat.login,name:chat.name,direct:true});}catch{}}
-},onCards:ev=>{cards.receive(ev);},onFleet:ev=>{fleetState={at:Date.now(),serverAt:Number(ev.serverAt)||Date.now(),state:ev.state};cards.fromFleet(ev.state,ev.serverAt);fleetCamera.receive(ev);try{moments.fleet(ev);}catch{}},onGoals:packet=>{try{moments.goalsReading(packet);}catch{}},onMedals:ev=>{if(ev.type==='voyager.medals.data')medals.ingestExport(ev);else medals.command(ev);},onBoss:ev=>{
+},onCards:ev=>{cards.receive(ev);},onFleet:ev=>{fleetState={at:Date.now(),serverAt:Number(ev.serverAt)||Date.now(),state:ev.state};cards.fromFleet(ev.state,ev.serverAt);fleetCamera.receive(ev);try{moments.fleet(ev);}catch{}},onGoals:packet=>{try{moments.goalsReading(packet);}catch{}},onWatchStreak:w=>{try{const r=medals.syncStreak(w);if(r)console.log('[streak] '+r.name+' shared a Twitch watch streak of '+r.streak+(r.before!==r.streak?' (Voyager had '+r.before+')':''));}catch{}},onMedals:ev=>{if(ev.type==='voyager.medals.data')medals.ingestExport(ev);else medals.command(ev);},onBoss:ev=>{
   if(ev.kind==='call'&&!['lobby','result'].includes(game.phase)){game.note('Finish the Versus battle before calling the Dreadnought.','system');return;}
   boss.receive(ev);
 },onChat:chat=>{

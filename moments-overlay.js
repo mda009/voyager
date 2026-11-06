@@ -97,10 +97,10 @@ function renderPoints(on){const box=$('points');if(!on){box.replaceChildren();re
     items.forEach((x,i)=>chip('',x.amount,x.name,x.total?x.total.toLocaleString()+' PTS':'',i));
     const rest=e.count-items.length;if(rest>0)chip('sum',e.sum-items.reduce((a,x)=>a+x.amount,0),rest+' more crew',e.count+' EARNED',items.length);}}
 function renderStreak(on){const el=$('streak');if(!on){el.classList.remove('on');streakQueue=[];return;}if(data.pin){$('streak-title').textContent='STREAM STREAK ×5';$('streak-sub').textContent='StarNova · 5 streams in a row';el.classList.add('on');return;}
-  for(const e of (data?.events||[]).filter(e=>e.kind==='streak'&&!streakShown.has(e.id)&&now()-e.at<60000).sort((a,b)=>a.at-b.at)){streakShown.add(e.id);const items=e.items||[];for(const x of items)streakQueue.push({name:x.name,streak:x.streak,best:x.best});const rest=e.count-items.length;if(rest>0)streakQueue.push({summary:true,count:e.count,top:e.top});}
+  for(const e of (data?.events||[]).filter(e=>e.kind==='streak'&&!streakShown.has(e.id)&&now()-e.at<60000).sort((a,b)=>a.at-b.at)){streakShown.add(e.id);const items=e.items||[];for(const x of items)streakQueue.push({name:x.name,streak:x.streak,best:x.best,source:x.source});const rest=e.count-items.length;if(rest>0)streakQueue.push({summary:true,count:e.count,top:e.top});}
   if(now()>=streakUntil&&streakQueue.length){const x=streakQueue.shift();const sec=data.streakSeconds||4;streakUntil=now()+sec*1000+300;el.style.setProperty('--s',sec+'s');
     if(x.summary){$('streak-title').textContent='STREAM STREAKS KEPT · '+x.count+' CREW';$('streak-sub').textContent=x.top?'Longest: '+x.top.name+' · '+x.top.streak+' streams in a row':'';}
-    else{$('streak-title').textContent='STREAM STREAK ×'+x.streak;$('streak-sub').textContent=x.name+' · '+x.streak+' streams in a row'+(x.best&&x.streak>=x.best&&x.streak>2?' · personal best':'');}
+    else{$('streak-title').textContent='STREAM STREAK ×'+x.streak;$('streak-sub').textContent=x.name+' · '+x.streak+' streams in a row'+(x.source==='twitch'?' · Twitch watch streak':'')+(x.best&&x.streak>=x.best&&x.streak>2?' · personal best':'');}
     el.classList.remove('on');void el.offsetWidth;el.classList.add('on');}
   if(now()>=streakUntil)el.classList.remove('on');}
 function animate(t){const dt=Math.min(100,t-(lastFrame||t));lastFrame=t;if(tickerW>wrapW&&$('ticker').classList.contains('on')){pos=(pos+dt*0.06)%tickerW;$('ticker-items').style.transform='translateX('+(-pos)+'px)';}requestAnimationFrame(animate);}
