@@ -213,3 +213,16 @@ test('receive reports points added since the last ledger (2.20.65)',async()=>{
   assert.equal(got.length,1);assert.deepEqual(got[0],[{key:'twitch:1',name:'Nova',platform:'twitch',amount:60,total:160,balance:140}]);
   c.receive([{key:'twitch:1',name:'Nova',capturedIn:160,points:40}]);assert.equal(got.length,1,'spending is not a gain');
 });
+
+test('contributions (2.20.71): a new gifter is credited with the whole last gift, a member first seen during a goal counts all their points, and explain() says why',async()=>{
+  const monday=weekStart(Date.UTC(2026,10,2)),{c,set}=await make(monday);
+  c.receive([{key:'twitch:1',name:'Nova',login:'nova',capturedIn:100}]);c.receiveSupport([{key:'twitch:1',name:'Nova',gifts:2,giftsAt:monday-DAY}]);
+  c.startSeason({name:'Christmas 2026',endsAt:monday+50*DAY,goals:[{id:'g',title:'Gift 10 subs',metric:'gifts',platform:'all',target:10,reward:100,minimum:1},{id:'p',title:'5,000 points',metric:'points',platform:'all',target:5000,reward:50,minimum:1}]});
+  set(monday+DAY);
+  c.receiveSupport([{key:'twitch:1',name:'Nova',gifts:5,giftsAt:monday+DAY},{key:'kick:9',name:'Bomber',gifts:5,giftsAt:monday+DAY,giftsLast:5},{key:'youtube:7',name:'Old',gifts:3,giftsAt:monday+DAY}]);
+  const g=c.goalProgress()[0];assert.equal(g.total,3+5+1,'Nova +3, Bomber the whole bomb of 5, Old (no size known) 1');
+  c.receive([{key:'twitch:1',name:'Nova',login:'nova',capturedIn:400},{key:'twitch:2',name:'Newbie',login:'newbie',capturedIn:250}]);
+  const p=c.goalProgress()[1];assert.equal(p.total,300+250,'the new member counts from zero');
+  const e=c.explain('bomber');assert.equal(e.matches.length,1);assert.equal(e.matches[0].support.season.gifts,5);assert.equal(e.matches[0].goals[0].counts,true);assert.equal(e.matches[0].goals[1].counts,false);assert.match(e.matches[0].goals[1].why,/Not in the points ledger/);
+  assert.equal(c.explain('nobody').matches.length,0);assert.equal(c.view().feed.supporters,3);assert.ok(c.view().feed.supportAt>0);
+});

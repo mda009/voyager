@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.71 (7 November 2026)
+
+**Community goal contributions: fixes and a "Check a viewer" tool.** Two counting gaps closed: a gifter first seen after a goal started was credited with one gift even when their first gift was a bomb (the Community Tracker now records the size of the latest gift, `giftsLast`, Stream Stats passes it on, and Voyager credits the whole gift; without the updated C# it still credits one), and a member first seen in the points ledger while a goal runs now counts all their points (before, their first reading became the baseline, so nothing counted). Community goals shows the feed status (points ledger: members and last read; subs & gifts: supporters and last read, flagged when stale) and a **Check a viewer** box: type a name and it lists their tracker record, baselines, what counts towards each goal and, when nothing does, why. `POST /api/community/explain`.
+
 ## 2.20.70 (7 November 2026)
 
 **Stream streaks match Twitch watch streaks.** Voyager now subscribes to Streamer.bot's Twitch **Watch Streak** event (and recognises the viewermilestone chat message). When a viewer shares their watch streak, Twitch's number becomes their stream streak in Voyager (card, medals, Right now ticker and the streak comet, which says "Twitch watch streak"); the day Voyager counts does not stack on top of a shared number, and the next stream day continues from it. Between shares Voyager's own count carries on as before. `medals.syncStreak`, `parseWatchStreak`; separate subscription so older Streamer.bot builds are unaffected.

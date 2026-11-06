@@ -122,7 +122,7 @@ public class CPHInline
     {
         JObject seen = ObjectAt(record, "giftReceipts"); if (seen[receipt] != null) return;
         if (seen.Count >= 50000) throw new Exception("Gift receipt limit reached for a user. Ledger was preserved; archive it before extending capacity.");
-        seen[receipt] = now; record["gifts"] = checked(Long(record["gifts"]) + count); record["giftsUpdatedAt"] = now;
+        seen[receipt] = now; record["gifts"] = checked(Long(record["gifts"]) + count); record["giftsUpdatedAt"] = now; record["giftsLast"] = count; // 2.20.71: size of the latest gift, so a new gifter's first bomb counts in full
     }
     private static void Maximum(JObject users, string id, string login, string name, string key, long value, long now)
     {

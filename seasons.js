@@ -65,8 +65,10 @@ function renderGoals(){
   });
   if(!goals.length)box.append(el('p','cm-empty','No goals yet. Add one, for example "Christmas gift drive · 25 gifted subs · 200 points each".'));
   $('goal-add').disabled=goals.length>=(view.goalLimit||8);
+  const f=view.feed||{},ago=t=>t?Math.round((Date.now()-t)/60000)+' min ago':'never';
+  const feedNote=' · Points ledger: '+f.members+' members, last '+ago(f.membersAt)+' · Subs & gifts: '+f.supporters+' supporters, last '+ago(f.supportAt)+(f.supportAt&&Date.now()-f.supportAt>10*60000?' (STALE: the Public website publisher asks Voyager - Stream Stats v6 once a minute; is Voyager connected to Streamer.bot?)':'');
   const sup=view.support||{};
-  $('support-note').textContent=sup.updatedAt?sup.tracked+' recent subscribers and gifters tracked · last read '+new Date(sup.updatedAt).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'})+'.':'Sub and gift goals need subscriber data: install Voyager - Community Tracker, update Voyager - Stream Stats to v6 and keep Voyager running. Points and Versus goals work without it.';
+  $('support-note').textContent=feedNote+' · '+sup.updatedAt?sup.tracked+' recent subscribers and gifters tracked · last read '+new Date(sup.updatedAt).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'})+'.':'Sub and gift goals need subscriber data: install Voyager - Community Tracker, update Voyager - Stream Stats to v6 and keep Voyager running. Points and Versus goals work without it.';
 }
 $('goals').addEventListener('input',()=>{goalsEditing=true;});$('goals').addEventListener('change',()=>{goalsEditing=true;});
 $('goal-add').onclick=()=>{goals.push({id:'g'+Date.now().toString(36),title:'New goal',metric:'gifts',platform:'all',target:25,reward:200,minimum:1,dueAt:0,description:''});goalsEditing=true;renderGoals();};
@@ -106,3 +108,17 @@ $('panel-show').onclick=()=>panel({config:formConfig(),visible:true});
 $('panel-hide').onclick=()=>panel({visible:false});
 if(!hosted)$('not-hosted').hidden=false;else{load();setInterval(()=>{if(!editing&&!goalsEditing)load();},30000);}
 })();
+
+// 2.20.71: why a viewer does or does not count towards each goal.
+(()=>{const q=document.getElementById('explain-q'),go=document.getElementById('explain-go'),out=document.getElementById('explain');if(!q||!go)return;
+const fmt=t=>t?new Date(t).toLocaleString([],{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'}):'—';
+async function check(){out.textContent='Checking…';try{const d=await api('/api/community/explain',{query:q.value});out.replaceChildren();
+  if(!d.matches.length){out.textContent='No member or supporter matches "'+d.query+'". Members come from the Points Ledger (every 30 s); supporters from Voyager - Stream Stats v6 (every minute).';return;}
+  for(const m of d.matches){const box=document.createElement('div');box.style.cssText='margin:8px 0;padding:10px 12px;border:1px solid rgba(151,223,255,.14);background:rgba(8,15,24,.35);border-radius:10px';
+    const h=document.createElement('b');h.textContent=m.name+' · '+m.platform+(m.member?'':' · not in the points ledger');box.append(h);
+    const lines=[];if(m.points)lines.push('Points: lifetime '+m.points.lifetime.toLocaleString()+', goal baseline '+(m.points.baseline==null?'none':m.points.baseline.toLocaleString())+', earned during the goal '+m.points.season.toLocaleString());
+    if(m.support)lines.push('Tracker: '+m.support.months+' sub months (last '+fmt(m.support.monthsAt)+'), '+m.support.gifts+' gifted subs (last '+fmt(m.support.giftsAt)+') · counted this goal: '+m.support.season.subs+' subs, '+m.support.season.gifts+' gifts'+(m.support.baseline?' (baseline '+m.support.baseline.months+' / '+m.support.baseline.gifts+')':' (no baseline yet)'));else lines.push('Tracker: no sub or gift record for this viewer.');
+    for(const g of m.goals)lines.push((g.counts?'✓ ':'✗ ')+g.title+': '+g.count+' '+g.metric+(g.counts?(g.earns?' · earns the reward':' · below the minimum of '+g.minimum):' · '+g.why));
+    for(const l of lines){const p=document.createElement('div');p.textContent=l;box.append(p);}out.append(box);}
+}catch(e){out.textContent=e.message;}}
+go.onclick=check;q.addEventListener('keydown',e=>{if(e.key==='Enter')check();});})();

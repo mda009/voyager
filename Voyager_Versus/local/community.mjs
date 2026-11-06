@@ -171,10 +171,12 @@ export class Community{
       const balance=Number(m.points);
       s.members[key]={name:clean(m.name||m.login,60)||key,login:clean(m.login,60).toLowerCase(),platform:key.split(':')[0],value,...(Number.isFinite(balance)&&balance>=0?{balance}:{}),...(['blue','silver','gold','platinum'].includes(m.tier)?{tier:m.tier}:{}),...(m.vip===true?{vip:true}:{}),...(m.emerald===true?{emerald:true}:{}),seen:now};
       if(s.week.baseline[key]===undefined){s.week.baseline[key]=value;changed=true;}
-      if(s.season.baseline[key]===undefined){s.season.baseline[key]=value;changed=true;}
+      // 2.20.71: the ledger lists every member with points, so a member first seen while a goal runs is new: all their points count.
+      if(s.season.baseline[key]===undefined){s.season.baseline[key]=!prev&&s.season.active&&s.season.startedAt<now?0:value;changed=true;}
       if(prev&&value>prev.value){const d=s.week.days[key]||(s.week.days[key]=[]);if(!d.includes(today)){d.push(today);changed=true;}gained.push({key,name:s.members[key].name,platform:s.members[key].platform,amount:value-prev.value,total:value,balance:s.members[key].balance});}
       if(!prev||prev.value!==value)changed=true;
     }
+    s.membersAt=now;
     this.notePilots();this.noteMedals();
     if(gained.length)try{this.onPoints(gained);}catch{}
     if(changed)this.persist();
@@ -187,16 +189,18 @@ export class Community{
     const now=this.now(),s=this.state;this.roll(now);let changed=false;
     for(const r of Array.isArray(list)?list.slice(0,5000):[]){
       const key=clean(r?.key,120);if(!/^(twitch|youtube|kick):/.test(key))continue;
-      const months=int(r.months,0,1e9)??0,gifts=int(r.gifts,0,1e9)??0,monthsAt=int(r.monthsAt,0,1e15)??0,giftsAt=int(r.giftsAt,0,1e15)??0;
-      const prev=s.support[key],first=(v,at,since)=>at>=since&&v>0?v-1:v;
-      if(s.week.gifts[key]===undefined){s.week.gifts[key]=prev?prev.gifts:first(gifts,giftsAt,s.week.id);changed=true;}
-      if(s.season.support[key]===undefined){s.season.support[key]={months:prev?prev.months:first(months,monthsAt,s.season.startedAt),gifts:prev?prev.gifts:first(gifts,giftsAt,s.season.startedAt)};changed=true;}
+      const months=int(r.months,0,1e9)??0,gifts=int(r.gifts,0,1e9)??0,monthsAt=int(r.monthsAt,0,1e15)??0,giftsAt=int(r.giftsAt,0,1e15)??0,giftsLast=int(r.giftsLast,0,1e9)??0;
+      // A supporter first seen after the season (or week) started is credited with their latest event: the whole last gift when the
+      // tracker reports its size (2.20.71), else one; a first sub month counts as one.
+      const prev=s.support[key],first=(v,at,since,last)=>at>=since&&v>0?Math.max(0,v-(last>0?Math.min(last,v):1)):v;
+      if(s.week.gifts[key]===undefined){s.week.gifts[key]=prev?prev.gifts:first(gifts,giftsAt,s.week.id,giftsLast);changed=true;}
+      if(s.season.support[key]===undefined){s.season.support[key]={months:prev?prev.months:first(months,monthsAt,s.season.startedAt,0),gifts:prev?prev.gifts:first(gifts,giftsAt,s.season.startedAt,giftsLast)};changed=true;}
       const next={name:clean(r.name||r.login,60)||s.members[key]?.name||key,login:clean(r.login,60).toLowerCase(),platform:key.split(':')[0],
         months:Math.max(prev?.months||0,months),monthsAt:Math.max(prev?.monthsAt||0,monthsAt),gifts:Math.max(prev?.gifts||0,gifts),giftsAt:Math.max(prev?.giftsAt||0,giftsAt)};
       if(!prev||prev.months!==next.months||prev.gifts!==next.gifts||prev.monthsAt!==next.monthsAt||prev.name!==next.name)changed=true;
       s.support[key]=next;
     }
-    s.supportAt=now;
+    s.supportAt=now;s.supportCount=Object.keys(s.support).length;
     if(changed)this.persist();
     return this.view();
   }
@@ -304,6 +308,21 @@ export class Community{
       return {...g,label:GOAL_METRICS[g.metric],total,reached,missed,dueAt,status:reached?'reached':missed?'missed':active?'open':'waiting',helpers,contributors};
     });
   }
+  // 2.20.71: why a viewer does or does not count towards each goal (Community goals › Check a viewer).
+  explain(query){
+    const s=this.state,q=clean(query,60).toLowerCase();if(!q)return {query:'',matches:[]};
+    const keys=new Set();for(const [k,m] of Object.entries(s.members))if(m.name.toLowerCase()===q||m.login===q||k===q)keys.add(k);
+    for(const [k,v] of Object.entries(s.support||{}))if(String(v.name||'').toLowerCase()===q||v.login===q||k===q)keys.add(k);
+    if(!keys.size){for(const [k,m] of Object.entries(s.members))if(m.name.toLowerCase().includes(q)||m.login.includes(q))keys.add(k);for(const [k,v] of Object.entries(s.support||{}))if(String(v.name||'').toLowerCase().includes(q)||String(v.login||'').includes(q))keys.add(k);}
+    const rows=this.standings(100000),active=!!s.season.active;
+    const matches=[...keys].slice(0,5).map(key=>{const m=s.members[key],sup=s.support?.[key],u=this.seasonSupport(key),st=rows.find(r=>r.key===key);
+      return {key,name:m?.name||sup?.name||key,platform:key.split(':')[0],member:!!m,points:m?{lifetime:m.value,baseline:s.season.baseline[key]??null,season:st?.points??0}:null,
+        support:sup?{months:sup.months,monthsAt:sup.monthsAt,gifts:sup.gifts,giftsAt:sup.giftsAt,baseline:s.season.support?.[key]||null,season:u}:null,
+        goals:(s.goals||[]).map(g=>{const n=!active?0:g.metric==='points'?(st?.points||0):g.metric==='versus'?(st?.wins||0):g.metric==='subs'?u.subs:g.metric==='gifts'?u.gifts:u.subs+u.gifts;const on=onPlatform(g.platform,key.split(':')[0]);
+          return {id:g.id,title:g.title,metric:g.metric,count:on?n:0,minimum:g.minimum||1,counts:on&&n>0,earns:on&&n>=(g.minimum||1),why:!active?'No community goal is running.':!on?'Goal is for '+g.platform+' only.':n>0?'':g.metric==='points'?(m?'No Voyager points earned since the goal started (baseline '+(s.season.baseline[key]??'none')+').':'Not in the points ledger yet.'):g.metric==='versus'?'No Versus wins since the goal started.':sup?'No '+(g.metric==='gifts'?'gifts':g.metric==='subs'?'subs or renewals':'subs or gifts')+' recorded since the goal started (tracker total '+(g.metric==='gifts'?sup.gifts:sup.months)+', baseline '+(s.season.support?.[key]?(g.metric==='gifts'?s.season.support[key].gifts:s.season.support[key].months):'none')+').':'No support record from Voyager - Stream Stats for this viewer (the Community Tracker has not recorded a sub or gift for them, or the support feed has not arrived).'};})};});
+    return {query:q,matches,feed:this.feed()};
+  }
+  feed(){const s=this.state;return {supportAt:s.supportAt||0,supporters:Object.keys(s.support||{}).length,membersAt:s.membersAt||0,members:Object.keys(s.members).length,seasonStartedAt:s.season.startedAt||0,active:!!s.season.active};}
   goalCompletions(){
     const out=[];
     for(const g of this.goalProgress().filter(x=>x.reached))for(const h of g.helpers)out.push({missionId:'goal-'+g.id,title:'Community goal: '+g.title,reward:g.reward,key:h.key,name:h.name,platform:h.platform,...(h.account?{}:{account:false})});
@@ -378,7 +397,7 @@ export class Community{
   view(){
     const s=this.state,missions=s.missions.map(m=>{const p=this.progressFor(m);return {...m,typeLabel:TYPES[m.type].label,unit:TYPES[m.type].unit,started:p.length,completed:p.filter(x=>x.done).length,top:p.slice(0,8)};});
     return {missions,week:{id:s.week.id,endsAt:s.week.id+7*DAY},members:Object.keys(s.members).length,payables:this.payables(),
-      season:{number:s.season.number,name:s.season.name,startedAt:s.season.startedAt,endsAt:s.season.endsAt,weeks:s.season.weeks,active:!!s.season.active},standings:this.standings(),topPilot:this.topPilot(),hall:s.hall,types:TYPES,goalLimit:GOAL_LIMIT,missionMedals:MISSION_MEDALS,ideas:MISSION_IDEAS,rewardMax:MISSION_REWARD_MAX,panel:this.panelView(),panelKinds:PANEL_KINDS,
+      season:{number:s.season.number,name:s.season.name,startedAt:s.season.startedAt,endsAt:s.season.endsAt,weeks:s.season.weeks,active:!!s.season.active},feed:this.feed(),standings:this.standings(),topPilot:this.topPilot(),hall:s.hall,types:TYPES,goalLimit:GOAL_LIMIT,missionMedals:MISSION_MEDALS,ideas:MISSION_IDEAS,rewardMax:MISSION_REWARD_MAX,panel:this.panelView(),panelKinds:PANEL_KINDS,
       platforms:PLATFORM_OPTIONS,goalMetrics:GOAL_METRICS,goals:this.goalProgress().map(g=>({...g,helpers:g.helpers.slice(0,10)})),supportBonus:s.supportBonus??DEFAULT_SUPPORT_BONUS,
       support:{tracked:Object.keys(s.support||{}).length,updatedAt:s.supportAt||0}};
   }

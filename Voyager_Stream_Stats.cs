@@ -108,7 +108,7 @@ public class CPHInline
                 if (!Number(u["monthsUpdatedAt"] ?? 0, out monthsAt)) monthsAt = 0;
                 if (!Number(u["giftsUpdatedAt"] ?? 0, out giftsAt)) giftsAt = 0;
                 if ((months <= 0 && gifts <= 0) || Math.Max(monthsAt, giftsAt) < since) continue;
-                rows.Add(new JObject { ["key"] = platform + ":" + property.Name, ["platform"] = platform, ["name"] = (string)u["name"] ?? (string)u["login"] ?? property.Name, ["login"] = (string)u["login"] ?? "", ["months"] = (long)months, ["monthsAt"] = (long)monthsAt, ["gifts"] = (long)gifts, ["giftsAt"] = (long)giftsAt });
+                rows.Add(new JObject { ["key"] = platform + ":" + property.Name, ["platform"] = platform, ["name"] = (string)u["name"] ?? (string)u["login"] ?? property.Name, ["login"] = (string)u["login"] ?? "", ["months"] = (long)months, ["monthsAt"] = (long)monthsAt, ["gifts"] = (long)gifts, ["giftsAt"] = (long)giftsAt, ["giftsLast"] = u["giftsLast"] == null ? 0L : (long)u["giftsLast"] });
             }
         }
         return new JArray(rows.OrderByDescending(x => Math.Max((long)x["monthsAt"], (long)x["giftsAt"])).Take(2000));
