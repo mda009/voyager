@@ -25,6 +25,7 @@ const PAGES=[
  {file:'Voyager_Fleet_Control.html',label:'Support alerts',ico:'✧',group:'Stream',keys:'support alerts fleet follow subscription raid bits',help:'FLEET_ALERTS_SETUP.html'},
  {file:'Voyager_Engage.html',label:'Chat engagement',ico:'✺',group:'Stream',live:true,keys:'chat engagement report muster quiz trivia squadron squadrons team relay comms arrival log captain recap',help:'Voyager_Guide.html'},
  {file:'Voyager_Banner_Control.html',label:'Stream banner',ico:'▰',group:'Stream',keys:'banner message ticker',help:'BANNER_SETUP.html'},
+ {file:'Voyager_Screen_Layout.html',label:'Screen layout',ico:'▦',group:'Stream',live:true,keys:'screen layout positions overlays canvas drag arrange overlap obs sources where on screen',help:'MOMENTS_SETUP.html'},
  {file:'Voyager_Moments_Control.html',label:'On-screen moments',ico:'✺',group:'Stream',live:true,keys:'moments overlay ticker right now crew surge command hints promotion ceremony dreadnought hud next celebration chip medal toast on screen',help:'MOMENTS_SETUP.html'},
  {file:'Voyager_Streamerbot.html',label:'Streamer.bot actions',ico:'⚡',group:'Stream',live:true,keys:'streamer.bot streamerbot actions run trigger test goal fx celebration upgrade animation ledger scan medals export fleet alert',help:'Voyager_Guide.html'},
  {file:'Voyager_Points.html',label:'Points & members',ico:'★',group:'Community',keys:'points members membership tiers silver gold platinum ledger',help:'POINTS_SETUP.html'},

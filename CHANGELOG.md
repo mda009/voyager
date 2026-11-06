@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.66 (6 November 2026)
+
+**Screen layout.** A new page (sidebar › Stream › Screen layout, also linked from the Stream deck and On-screen moments) shows the whole 1920 × 1080 canvas with every on-screen moment held still on it. Drag any box (arrow keys nudge, Shift = 10 px, snap to 4 px, the ticker's width by its corner) and Save: the overlay moves within 2 seconds. The other overlays are on the same canvas as amber boxes: the Community panel moves for real (top, right edge and width saved to the panel), and the OBS-positioned ones (camera + frame, goals strip, medal toast, membership card, support alerts, live stats strip, Christmas panel, Dreadnought, Versus) are reference boxes you match to where the source sits in OBS, ticked on or off, so overlaps show in red with a list. Layout and markers are saved with the moments settings (`layout`, `markers`); the overlay reads `layout` from `/api/moments/overlay`. The next-celebration chip's "goals strip top edge" setting is replaced by its position here.
+
 ## 2.20.65 (6 November 2026)
 
 **Points added and stream streak animations.** Two more on-screen moments on the same overlay, on by default: **Points added** floats a chip up the left side for every member the Points Ledger reports a gain for (amount and new total, largest first, up to 6 per ledger with the rest summed into one chip; gains under 5 are only counted), and **Stream streak** sends a comet with a trail across the upper screen when a member keeps a stream streak (first points of the day on consecutive stream days: name, ×length, personal best; up to 5 per scan, the rest summed). Both also appear in the Right now ticker. Hooks: `community.onPoints` (gains between ledgers) and `medals.onStreak` (from the stream-day logic). Settings and sample buttons on the On-screen moments page.

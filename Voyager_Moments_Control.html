@@ -32,7 +32,7 @@
 <div class="shell">
 <aside class="rail"><a class="brand" href="Voyager_Command_Center.html"><img class="logo-voyager" src="brand-assets/voyager.png" alt="Voyager membership program" width="68" height="68"><span>VOYAGER<small>MDA009 · MISSION CONTROL</small></span></a></aside>
 <main>
-<header class="top"><div><span class="eyebrow">STREAM</span><h1>On-screen moments</h1></div><div class="toolbar"><span class="st-pill" id="conn-pill" data-state="wait">Checking…</span><a class="link" href="MOMENTS_SETUP.html" target="_blank" rel="noopener">Setup ↗</a></div></header>
+<header class="top"><div><span class="eyebrow">STREAM</span><h1>On-screen moments</h1></div><div class="toolbar"><span class="st-pill" id="conn-pill" data-state="wait">Checking…</span><a class="link" href="Voyager_Screen_Layout.html">Screen layout ↗</a><a class="link" href="MOMENTS_SETUP.html" target="_blank" rel="noopener">Setup ↗</a></div></header>
 <p class="st-notice" id="notice" hidden></p>
 <p class="st-notice" id="not-hosted" hidden>Open this page from the Voyager app (or START-VOYAGER-CONTROL.bat).</p>
 <div class="mo-grid">
@@ -46,7 +46,7 @@
 <section class="card mo-card">
 <div class="card-heading"><div><span class="eyebrow">OBS SOURCE</span><h2>Add once to every scene</h2></div></div>
 <div class="cs-url"><code id="url"></code><button type="button" id="copy">Copy</button></div>
-<p class="st-hint">One <b>Browser</b> source, 1920 × 1080, untick Local file, this address. Everything above draws on it; what is off stays invisible. The next-celebration chip sits above your goals strip: set the strip's top edge below.</p>
+<p class="st-hint">One <b>Browser</b> source, 1920 × 1080, untick Local file, this address. Everything above draws on it; what is off stays invisible. Where each one sits is set on <a href="Voyager_Screen_Layout.html">Screen layout</a>.</p>
 <div class="cs-preview"><iframe id="preview" title="Preview" src="Voyager_Moments.html?preview=1" style="background:radial-gradient(ellipse at 30% 20%,#1a2a44,#0b1322 60%)"></iframe></div>
 </section>
 
@@ -65,7 +65,6 @@
 <label>Ticker: events shown<input name="tickerCount" type="number" min="3" max="20"></label>
 <label>Ticker: forget events after (min)<input name="tickerMinutes" type="number" min="5" max="240"></label>
 <label>Medal toast shows for (s)<input name="toastSeconds" type="number" min="3" max="20"></label>
-<label>Goals strip top edge (px from the top of 1080)<input name="goalsStripTop" type="number" min="0" max="1080"></label>
 <label>Points added: show gains of at least<input name="pointsMin" type="number" min="1" max="100000"></label>
 <label>Points added: chips per ledger (rest summed)<input name="pointsMax" type="number" min="1" max="12"></label>
 <label>Points chip floats for (s)<input name="pointsSeconds" type="number" min="2" max="12"></label>
@@ -90,8 +89,8 @@
 </div>
 </main>
 </div>
-<script src="moments-control.js?v=2.20.65"></script>
-<script src="voyager-shell.js?v=2.20.65"></script>
+<script src="moments-control.js?v=2.20.66"></script>
+<script src="voyager-shell.js?v=2.20.66"></script>
 <script src="voyager-navigation.js"></script>
 </body>
 </html>

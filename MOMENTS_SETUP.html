@@ -16,9 +16,11 @@
 <tr><td>Medal toast</td><td>Bottom-left</td><td>Off by default: the <code>medals.html</code> source already shows medal toasts. Turn this on only if you remove that source.</td></tr></table>
 <div class="card"><h2 style="margin-top:0">OBS</h2>
 <ol><li>Add one <b>Browser</b> source to each scene where you want these (or to a nested "Overlays" scene): 1920 × 1080, untick Local file, address <code>http://127.0.0.1:8740/control/Voyager_Moments.html</code> (copy it from the control page). Leave "Shutdown source when not visible" off.</li>
-<li>On the control page set <b>Goals strip top edge</b> to where your goals strip starts (pixels from the top of the 1080 canvas) so the chip sits just above it.</li>
+<li>Open <b>Screen layout</b> and drag each moment to where you want it (the next-celebration chip usually just above your goals strip), then Save layout.</li>
 <li>Keep <b>Connect chat</b> on: supports, medals, promotions and the goal reading all arrive through Voyager's Streamer.bot connection. The next-celebration chip needs the <b>Voyager - Read OBS Percentages</b> action running (it does when the goals strip is set up).</li>
 <li>Press the test buttons on the control page to see each element on stream with the name <i>Sample Pilot</i>.</li></ol></div>
+<h2>Screen layout (2.20.66)</h2>
+<p><b>Voyager Control › Screen layout</b> shows the whole 1920 × 1080 canvas with every moment held still on it. Drag any box (arrow keys nudge, Shift = 10 px, snap to 4 px) and press <b>Save layout</b>: the overlay moves within 2 seconds. Amber boxes are the other overlays: the <b>Community panel</b> moves for real (its top, right edge and width are saved to the panel), while the dotted ones (camera, goals strip, medal toast, membership card, support alerts, live stats strip, Christmas panel, Dreadnought, Versus) are OBS sources you position in OBS: drag the box to where the source sits, or move the source in OBS to match, and tick the ones you use so overlaps show in red.</p>
 <h2>Checking</h2>
 <p>Add <code>?debug=1</code> to the source address to see what the overlay last received (which elements are on, how many events, the goal reading). <code>?preview=1</code> shows sample data everywhere, which is what the control page's preview uses.</p>
 </main></body></html>

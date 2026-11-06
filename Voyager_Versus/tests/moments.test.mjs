@@ -59,3 +59,11 @@ test('points added and stream streaks become batch events, largest first, with t
   m.configure({pointsMax:1,streakMax:1,pointsMin:1});const e2=m.points([{name:'A',amount:3},{name:'B',amount:7}]);assert.equal(e2.items.length,1);assert.equal(e2.items[0].name,'B');
   assert.equal(m.overlay().elements.points,true);assert.equal(m.overlay().pointsSeconds,4);assert.equal(m.test('points').kind,'points');assert.equal(m.test('streak').items[0].streak,5);
 });
+test('screen layout: positions validate, the streak spans the width, the ticker keeps its width, markers toggle (2.20.66)',async()=>{
+  const {m}=await make();assert.equal(m.overlay().layout.hints.x,28);
+  m.configure({layout:{hints:{x:100,y:200},ticker:{x:40,y:1000,w:900},streak:{x:700,y:300}},markers:{camera:{x:1400,y:700,w:400,h:230,on:false},goals:{on:true}}});
+  const o=m.overlay();assert.deepEqual(o.layout.hints,{x:100,y:200,w:420,h:58});assert.deepEqual(o.layout.ticker,{x:40,y:1000,w:900,h:44});assert.equal(o.layout.streak.x,0,'the streak always spans the width');
+  assert.deepEqual(m.settings.markers.camera,{x:1400,y:700,w:400,h:230,on:false});assert.equal(m.settings.markers.goals.on,true);
+  assert.throws(()=>m.configure({layout:{hints:{x:5000}}}),/Command hints/);assert.throws(()=>m.configure({markers:{camera:{w:1}}}),/Camera/);
+  await m.saving;const again=await new Moments({dataDir:m.dataDir,now:()=>0}).load();assert.equal(again.settings.layout.hints.x,100);assert.equal(again.view().layoutDefaults.hints.x,28);
+});
