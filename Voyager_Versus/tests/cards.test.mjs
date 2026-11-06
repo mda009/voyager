@@ -183,3 +183,10 @@ test('Crew rows (2.20.34): Kick, YouTube and Silver+ members are included even b
   const rows=cards.crewRows(10),names=rows.map(r=>r.name);
   assert.equal(rows.length,13);assert.ok(names.includes('KickLow')&&names.includes('TubeLow')&&names.includes('GoldLow'));assert.ok(!names.includes('BlueLow'),'low Blue Twitch members stay outside the cut-off');
 });
+
+test('rank overlay for the OBS leaderboard panel lists each member with naval rank and tier, no balances (2.20.63)',async()=>{
+  const {cards}=await make();
+  const o=cards.rankOverlay();const nova=o.members.find(m=>m.key==='twitch:1');
+  assert.equal(nova.login,'nova');assert.equal(nova.tier,'blue');assert.equal(nova.platform,'twitch');assert.equal(nova.rank.abbr,'LEUT','52,000 lifetime points is Lieutenant');assert.equal(nova.place,1);
+  assert.ok(!('balance' in nova)&&!('lifetime' in nova)&&!('value' in nova),'no points on the panel feed');assert.equal(o.ranks,true);
+});

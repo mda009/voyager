@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.63 (6 November 2026)
+
+**Leaderboard panel shows rank and member tier.** Under each leader on the OBS leaderboard panel (points, pilots, watch time, months, gifts) the caption now reads the viewer's naval rank and member tier (*Lieutenant · Gold member*), tinted by tier, instead of only the platform name; the platform icon stays. The panel reads them from a new local feed, `GET /api/cards/ranks/overlay` (rank, tier and all-time place per member; no points or balances), so Voyager must be running; local-file panels look for it on port 8740 (`?voyager=port`). Ranks are omitted when ranks are turned off.
+
 ## 2.20.62 (6 November 2026)
 
 **Community goal contributors panel.** A new choice for the on-stream community panel (Community goals › OBS panel › Show, and the Stream deck): under each running goal (a heading row with its progress bar, total and how many are helping), the crew members who have given the most are ranked with what they gave (gifted subs, subs, points or Versus wins), a bar against the top helper, and whether they have reached the goal's minimum for the reward. Rows sets the people per goal; names are real, as on the standings panel (local overlay only; the website still shows counts). Goal values over 10,000 are shortened (25k) so reached goals fit.

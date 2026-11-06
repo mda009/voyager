@@ -194,7 +194,7 @@ const mime={'.wav':'audio/wav','.mp3':'audio/mpeg','.html':'text/html; charset=u
 const actions=new Actions({bot,medalsSince:()=>medals.exportSince(),version:VERSION});
 const server=http.createServer(async(req,res)=>{
   if(!allowedHosts.has(req.headers.host)){response(res,403,{message:'Invalid host.'});return;}
-  const origin=req.headers.origin,goalPoll=req.method==='GET'&&(req.url.startsWith('/api/goalfx/overlay')||req.url.startsWith('/api/fleet/overlay'));if(origin&&!goalPoll&&!['http://127.0.0.1:'+port,'http://localhost:'+port].includes(origin)){response(res,403,{message:'Cross-origin requests are not allowed.'});return;}
+  const origin=req.headers.origin,goalPoll=req.method==='GET'&&(req.url.startsWith('/api/goalfx/overlay')||req.url.startsWith('/api/fleet/overlay')||req.url.startsWith('/api/cards/ranks/overlay'));if(origin&&!goalPoll&&!['http://127.0.0.1:'+port,'http://localhost:'+port].includes(origin)){response(res,403,{message:'Cross-origin requests are not allowed.'});return;}
   if(req.headers['sec-fetch-site']==='cross-site'&&!goalPoll){response(res,403,{message:'Cross-site requests are not allowed.'});return;}
   res.setHeader('X-Content-Type-Options','nosniff');res.setHeader('Referrer-Policy','no-referrer');
   const url=new URL(req.url,'http://127.0.0.1:'+port);
@@ -254,6 +254,7 @@ const server=http.createServer(async(req,res)=>{
       if(url.pathname==='/api/public-site/publish-now'){await body(req);if(!publicSite.view().upload.enabled){response(res,400,{ok:false,message:'Turn on publishing and add the repository and token first.'});return;}publicSite.rebuild();await publicSite.push();const v=publicSite.view();response(res,200,{ok:!v.upload.lastError,message:v.upload.lastError||'Published. The public site shows it within about 5 minutes.',status:v});return;}
       response(res,404,{message:'Not found.'});return;
     }
+    if(url.pathname==='/api/cards/ranks/overlay'&&req.method==='GET'){res.setHeader('Access-Control-Allow-Origin','*');res.setHeader('Cache-Control','no-store');response(res,200,cards.rankOverlay());return;}
     if(url.pathname==='/api/cards/overlay'&&req.method==='GET'){res.setHeader('Cache-Control','no-store');response(res,200,cards.overlay());return;}
     if(url.pathname.startsWith('/api/cards')){
       if(!validToken(req)){response(res,403,{message:'Open Voyager Control › Membership cards.'});return;}

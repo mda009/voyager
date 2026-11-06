@@ -421,6 +421,14 @@ export class Cards{
       defaults:CARD_DEFAULTS.rankPoints,ranks:RANKS.map((x,i)=>({...x,points:pts[i],holders:count[i]})),insignia:INSIGNIA,total:roster.length,
       lifetime:rows.reduce((a,r)=>a+r.value,0),members:roster.slice(0,limit),promotions:(this.state.promotions||[]).slice(0,50)};
   }
+  // 2.20.63: what the OBS leaderboard panel reads to show each leader's naval rank and member tier (local only, no balances).
+  rankOverlay(){
+    const {rows,place}=this.board(),members=this.community()?.state?.members||{},on=this.state.settings.ranks;
+    const out=rows.slice(0,3000).map(r=>{const m=members[r.key]||{},i=this.rankOf(r.value,place.get(r.key));
+      return {key:r.key,login:String(m.login||'').toLowerCase(),platform:r.key.split(':')[0],tier:TIER_ORDER.includes(m.tier)?m.tier:this.state.members[r.key]?.tier||'blue',rank:on?{abbr:RANKS[i].abbr,name:RANKS[i].name}:null,place:place.get(r.key)||0};});
+    for(const [key,m] of Object.entries(this.state.members))if(!members[key]&&m.tier)out.push({key,login:String(m.login||'').toLowerCase(),platform:key.split(':')[0],tier:m.tier,rank:null,place:0});
+    return {serverAt:this.now(),ranks:on,members:out};
+  }
   view(){const {rows,place}=this.board(),count=new Array(RANKS.length).fill(0);for(const r of rows)count[this.rankOf(r.value,place.get(r.key))]++;
     return {settings:this.state.settings,defaults:CARD_DEFAULTS,recent:this.state.recent,lastEvent:this.lastEvent,tiers:TIER_INFO,ranks:RANKS.map((x,i)=>({...x,points:this.state.settings.rankPoints[i],holders:count[i]}))};}
 }
