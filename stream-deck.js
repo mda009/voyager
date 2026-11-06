@@ -41,8 +41,8 @@ function render(){
 async function refresh(){
   if(!hosted)return;
   const get=async(path,withToken=true)=>{try{return withToken?await api(path):await(await fetch(path,{cache:'no-store'})).json();}catch{return null;}};
-  const [state,boss,community,sb,site,lo]=await Promise.all([get('/api/state',false),get('/api/boss'),get('/api/community'),get('/api/streamerbot'),get('/api/public-site'),get('/api/live-overlay',false)]);
-  s={state,boss,community,sb,site,lo};render();
+  const [state,boss,community,sb,site,lo,mo]=await Promise.all([get('/api/state',false),get('/api/boss'),get('/api/community'),get('/api/streamerbot'),get('/api/public-site'),get('/api/live-overlay',false),get('/api/moments')]);
+  s={state,boss,community,sb,site,lo,mo};render();renderMoments();
 }
 // ---- buttons ----
 $('connect').onclick=()=>act($('connect'),'Connect chat',()=>api('/api/control',{type:'connect_saved'}));
@@ -62,6 +62,10 @@ $('vs-ready').onclick=()=>act($('vs-ready'),'Versus ready alert',()=>api('/api/c
 $('panel-show').onclick=()=>act($('panel-show'),'Community panel',()=>api('/api/community/panel',{config:{...(s.community?.panel?.config||{}),kind:$('panel-kind').value},visible:true}),'On stream.');
 $('panel-hide').onclick=()=>act($('panel-hide'),'Community panel',()=>api('/api/community/panel',{visible:false}),'Hidden.');
 for(const [id,seconds,msg] of [['sq-show',60,'On stream for 60 s.'],['sq-stay',3600,'On stream until hidden.'],['sq-hide',0,'Hidden.']])$(id).onclick=()=>act($(id),'Squadron panel',()=>api('/api/engage/panel',{seconds}),msg);
+// On-screen moments (2.20.64): one button per element, pressed = on stream.
+function renderMoments(){const box=$('moments');if(!box)return;const m=s.mo;box.replaceChildren();if(!m){box.append(Object.assign(document.createElement('span'),{className:'st-hint',textContent:'Update Voyager to 2.20.64 for on-screen moments.'}));return;}
+  for(const [k,name] of Object.entries(m.elements)){const b=document.createElement('button');b.type='button';const on=!!m.settings.elements[k];b.className=on?'primary':'';b.setAttribute('aria-pressed',String(on));b.innerHTML='<span></span><small></small>';b.firstChild.textContent=name;b.lastChild.textContent=on?'On stream · press to hide':'Hidden · press to show';
+    b.onclick=()=>act(b,name,async()=>{s.mo={...s.mo,...await api('/api/moments/element',{key:k,on:!on})};renderMoments();},on?'Hidden.':'On stream.');box.append(b);}}
 $('lo-show').onclick=()=>act($('lo-show'),'Live stats strip',()=>api('/api/live-overlay/settings',{visible:true}),'Shown.');
 $('lo-hide').onclick=()=>act($('lo-hide'),'Live stats strip',()=>api('/api/live-overlay/settings',{visible:false}),'Hidden.');
 for(const t of ['silver','gold','platinum'])$('fx-'+t).onclick=()=>act($('fx-'+t),'Goal FX · '+t,()=>api('/api/goalfx/control',{kind:'play',tier:t}),'Queued for the overlay.');

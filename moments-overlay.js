@@ -1,0 +1,89 @@
+/* Voyager on-screen moments (2.20.64). One transparent 1920 x 1080 browser source. Reads /api/moments/overlay from the Voyager host
+   every 2 s (same-origin when opened from the host, otherwise http://127.0.0.1:8740 or ?voyager=port). Each element is switched on
+   Voyager Control › On-screen moments or the Stream deck. ?preview=1 shows sample data; ?debug=1 shows what the host answered. */
+(()=>{'use strict';
+const $=id=>document.getElementById(id),q=new URLSearchParams(location.search),preview=q.get('preview')==='1',debug=q.get('debug')==='1';
+const hosted=location.protocol==='http:'&&/^(127\.0\.0\.1|localhost)$/.test(location.hostname),base=hosted?'':'http://127.0.0.1:'+(Number(q.get('voyager'))||8740);
+const RANKS=['Midshipman','Acting Sub-Lieutenant','Sub-Lieutenant','Lieutenant','Lieutenant Commander','Commander','Captain','Commodore','Rear Admiral','Vice Admiral','Admiral','Admiral of the Fleet'],ABBR=['MIDN','ASLT','SBLT','LEUT','LCDR','CMDR','CAPT','CDRE','RADM','VADM','ADML','AF'];
+const METAL=[['linear-gradient(180deg,#ffe6cc,#f0a868 30%,#a5582a 52%,#6e3510 60%,#d68a4c 84%,#ffd9b0)','#f0b07a','BRONZE'],['linear-gradient(180deg,#ffffff,#d9e2ec 30%,#8d9bab 52%,#5b6774 60%,#c3cfdb 84%,#f4f8fb)','#e3ebf3','SILVER'],['linear-gradient(180deg,#fff6d6,#ffd56a 30%,#b8860b 52%,#7a5600 60%,#e6b83a 84%,#fff1c2)','#ffd56a','GOLD'],['linear-gradient(180deg,#eafcff,#bfe9ff 30%,#5fb0ff 52%,#1d4f8a 60%,#9ad6ff 84%,#f0fbff)','#bfe9ff','LEGEND']];
+const TIER={silver:'SILVER',gold:'GOLD',platinum:'PLATINUM'};
+let data=null,readAt=0,lastErr='',offset=0,hintI=0,hintAt=0,promoQueue=[],promoShown=new Set(),promoUntil=0,toastQueue=[],toastShown=new Set(),toastUntil=0,tickerKey='',tickerW=0,wrapW=0,pos=0,lastFrame=0,dreadSeenResultAt=0,eventSeen=new Set();
+const node=(tag,text,cls)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(cls)n.className=cls;return n;};
+const mmss=ms=>{const s=Math.max(0,Math.round(ms/1000));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');};
+const now=()=>Date.now()+offset;
+function fit(){const s=Math.min(innerWidth/1920,innerHeight/1080);$('stage').style.transform='translate('+((innerWidth-1920*s)/2)+'px,'+((innerHeight-1080*s)/2)+'px) scale('+s+')';}
+addEventListener('resize',fit);fit();
+// ---------- sample data for the preview ----------
+function sample(settings){const t=Date.now();return {serverAt:t,elements:settings?.elements||{hints:true,surge:true,dread:true,promo:true,next:true,ticker:true,toast:true},hints:settings?.hints||[{cmd:'!voyager',text:'Shows your membership card'},{cmd:'!versus',text:'Challenge a pilot in the arena'}],hintSeconds:settings?.hintSeconds||6,hintsQuietUntil:0,
+  surge:{active:true,until:t+252000,startedAt:t-48000,count:5,recent:5,label:settings?.surge?.label||'CREW SURGE'},
+  dread:{phase:'fight',hp:62,maxHp:100,startedAt:t-79000,endsAt:t+101000,goals:{legendary:60,hero:120,bonusPct:10},leaders:[{name:'StarNova',damage:4180},{name:'Quillon',damage:3390},{name:'PixelDrift',damage:2410},{name:'Ashgrove',damage:1675},{name:'Lumen_7',damage:920}],pilots:9,name:'Dreadnought'},
+  next:{tier:'silver',label:'Silver',remaining:3,points:22,target:25,next:{tier:'gold',label:'Gold',target:50}},promoMin:settings?.promoMin??7,promoSeconds:settings?.promoSeconds||9,toastSeconds:settings?.toastSeconds||6,goalsStripTop:settings?.goalsStripTop||1010,
+  events:[{id:1,at:t-5000,kind:'medal',name:'StarNova',title:'Night Watch',gradeName:'Bronze',grade:0,medal:'watch'},{id:2,at:t-20000,kind:'support',sub:'gift',name:'Orion',amount:3},{id:3,at:t-40000,kind:'versus',winner:'Lyra',loser:'Corvid',duration:38},{id:4,at:t-3000,kind:'promo',name:'Quillon',from:7,to:8,place:4},{id:5,at:t-90000,kind:'support',sub:'resub',name:'Tamsin',months:7},{id:6,at:t-120000,kind:'support',sub:'raid',name:'Ashgrove',amount:42}],
+  toasts:[{id:901,at:t-1000,name:'StarNova',medal:'watch',title:'Night Watch',grade:0,gradeName:'Bronze',desc:'10 hours watched',icon:'M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0-18 0 M12 7v5l3 2'}]};}
+// ---------- polling ----------
+async function poll(){if(preview)return;try{const t0=Date.now(),r=await fetch(base+'/api/moments/overlay',{cache:'no-store'});if(!r.ok)throw new Error('Voyager answered '+r.status+(r.status===404?' (update Voyager to 2.20.64 or later)':''));const d=await r.json();offset=(Number(d.serverAt)||Date.now())-(t0+Date.now())/2;data=d;readAt=Date.now();lastErr='';}
+  catch(e){lastErr=e.message&&e.message!=='Failed to fetch'?e.message:'Voyager is not reachable at '+(base||location.origin)+' (is Voyager running? add ?voyager=port if not on 8740)';}render();}
+if(preview){data=sample();addEventListener('message',e=>{if(e.source!==window.parent||e.data?.type!=='voyager.moments.preview')return;data=sample(e.data.settings);render();});window.parent.postMessage({type:'voyager.moments.preview.ready'},'*');}
+else{poll();setInterval(poll,2000);}
+// ---------- render ----------
+function render(){
+  const d=data,ok=preview||(d&&Date.now()-readAt<15000);const on=k=>!!(ok&&d.elements?.[k]);
+  if(debug){$('debug').hidden=false;$('debug').textContent=['Moments · '+(base||location.origin)+'/api/moments/overlay',lastErr?'✗ '+lastErr:'✓ Voyager answered '+(readAt?Math.round((Date.now()-readAt)/1000)+' s ago':''),d?'Elements on: '+Object.entries(d.elements||{}).filter(([,v])=>v).map(([k])=>k).join(', '):'',d?'Events: '+(d.events||[]).length+' · surge '+(d.surge?.active?'ACTIVE':'off')+' · dread '+(d.dread?.phase||'idle')+' · next '+(d.next?d.next.label+' '+d.next.remaining:'no goal reading yet'):''].filter(Boolean).join('\n');}
+  renderHints(on('hints'));renderSurge(on('surge'));renderDread(on('dread'));renderPromo(on('promo'));renderNext(on('next'));renderTicker(on('ticker'));renderToast(on('toast'));
+}
+function renderHints(on){const el=$('hints'),hints=data?.hints||[];const quiet=data?.hintsQuietUntil&&now()<data.hintsQuietUntil;if(!on||!hints.length||quiet){el.classList.remove('on');return;}
+  const sec=(data.hintSeconds||20)*1000;if(Date.now()-hintAt>=sec){hintAt=Date.now();hintI=(hintI+1)%hints.length;el.classList.remove('swap');void el.offsetWidth;el.classList.add('swap');}
+  const h=hints[hintI%hints.length];$('hint-cmd').textContent=h.cmd;$('hint-text').textContent=h.text;const dots=$('hint-dots');if(dots.childElementCount!==hints.length){dots.replaceChildren(...hints.map(()=>node('i')));}
+  [...dots.children].forEach((i,k)=>i.classList.toggle('on',k===hintI%hints.length));el.classList.add('on');}
+function renderSurge(on){const el=$('surge'),s=data?.surge;if(!on||!s?.active||now()>=s.until){el.classList.remove('on');return;}
+  const dur=Math.max(1,s.until-s.startedAt),left=s.until-now();$('surge-count').textContent='×'+s.count;$('surge-label').textContent=s.label||'CREW SURGE';$('surge-sub').textContent=s.count+' SUPPORTS · '+mmss(left)+' LEFT';$('surge-bar').style.width=Math.max(0,Math.min(100,left/dur*100))+'%';el.classList.add('on');}
+function renderDread(on){const el=$('dread'),b=data?.dread;if(!on||!b||b.phase==='idle'||b.phase==='done'||(b.phase==='result'&&now()-(b.endedAt||dreadSeenResultAt||now())>20000)){el.classList.remove('on');return;}
+  if(b.phase==='result'&&!dreadSeenResultAt)dreadSeenResultAt=now();if(b.phase!=='result')dreadSeenResultAt=0;
+  const pct=b.maxHp?Math.max(0,Math.min(100,Math.round(100*b.hp/b.maxHp))):100;el.classList.toggle('lobby',b.phase==='lobby');el.classList.toggle('shield',!!b.shield);
+  const elapsed=b.phase==='fight'?now()-(b.startedAt||now()):b.phase==='result'?(b.elapsed||0)*1000:0;
+  $('dread-eyebrow').textContent=(b.name||'DREADNOUGHT').toUpperCase()+' · '+(b.phase==='lobby'?'BOARDING':b.phase==='fight'?'LIVE':'RESULT');
+  $('dread-title').textContent=b.phase==='lobby'?'Boarding · '+mmss((b.lobbyEndsAt||now())-now())+' to launch':b.phase==='fight'?'Hull '+pct+'% · '+mmss(elapsed):b.outcome==='victory'?'Destroyed in '+mmss(elapsed)+(b.speed?' · '+b.speed.toUpperCase()+' +'+b.bonus+'%':''):'The Dreadnought escaped';
+  $('dread-hull').style.width=pct+'%';$('dread-pct').textContent=pct+'%';
+  const g=b.goals||{},leg=(g.legendary||0)*1000,hero=(g.hero||0)*1000,fmt=(name,limit,cls)=>{const e=$(cls);if(!limit){e.hidden=true;return;}e.hidden=false;const left=limit-elapsed;e.classList.toggle('gone',left<=0&&b.phase!=='lobby');e.innerHTML=name+' <small>'+(b.phase==='lobby'?'UNDER '+mmss(limit):left>0?mmss(left)+' LEFT · +'+(g.bonusPct||10)+'%':'MISSED')+'</small>';};
+  fmt('LEGENDARY',leg,'dread-leg');fmt('HERO',hero,'dread-hero');
+  const rows=$('dread-rows'),leaders=(b.leaders||[]).slice(0,5),top=leaders[0]?.damage||1;rows.replaceChildren();
+  if(!leaders.length){const tr=node('tr'),td=node('td',b.phase==='lobby'?(b.pilots||0)+' pilots boarding · type !board':'No damage yet · fire with !fire','empty');td.colSpan=3;tr.append(td);rows.append(tr);}
+  leaders.forEach((p,i)=>{const tr=node('tr'),n=node('td',String(i+1).padStart(2,'0'),'n'),name=node('td',p.name),v=node('td',undefined,'v');const bar=node('div',undefined,'dmg'),fill=node('i');fill.style.width=Math.round(100*p.damage/top)+'%';bar.append(fill);name.append(bar);v.append(document.createTextNode(Number(p.damage).toLocaleString()),node('small','DMG'));tr.append(n,name,v);rows.append(tr);});
+  el.classList.add('on');}
+function renderPromo(on){const el=$('promo');if(!on){el.classList.remove('on');return;}
+  for(const e of (data?.events||[]).filter(e=>e.kind==='promo'&&!promoShown.has(e.id)&&now()-e.at<60000&&e.to>=(data.promoMin??7)).sort((a,b)=>a.at-b.at)){promoShown.add(e.id);promoQueue.push(e);}
+  if(now()>=promoUntil&&promoQueue.length){const e=promoQueue.shift();promoUntil=now()+(data.promoSeconds||9)*1000;
+    $('promo-eyebrow').textContent='PROMOTION CEREMONY'+(e.place?' · ALL-TIME #'+e.place:'');$('promo-name').textContent=e.name;$('promo-ranks').innerHTML='';$('promo-ranks').append(document.createTextNode((RANKS[e.from]||'').toUpperCase()),node('em','→'),document.createTextNode((RANKS[e.to]||'').toUpperCase()));$('promo-seal').textContent=ABBR[e.to]||'';
+    const lace=$('promo-lace');lace.replaceChildren();const stripes=Math.min(4,1+Math.floor(e.to/3));lace.append(node('i',undefined,'loop'));for(let i=0;i<stripes;i++){const s=node('i',undefined,e.to>=9&&i===stripes-1?'thin':'');s.style.animationDelay=(0.15+i*0.15)+'s';lace.append(s);}
+    el.classList.remove('on');void el.offsetWidth;}
+  el.classList.toggle('on',now()<promoUntil);}
+function renderNext(on){const el=$('next'),n=data?.next;if(!on||!n){el.classList.remove('on');return;}
+  el.style.top=Math.max(0,(data.goalsStripTop||1010)-74)+'px';el.className='glass el '+(n.tier||'silver');
+  if(n.done){$('next-n').textContent='✓';$('next-text').textContent='ALL CELEBRATIONS REACHED';$('next-after').textContent='';el.classList.add('on');return;}
+  $('next-n').textContent=Number(n.remaining).toLocaleString();$('next-text').textContent='TO THE '+TIER[n.tier]+' CELEBRATION';$('next-after').textContent='· '+Number(n.points).toLocaleString()+' / '+Number(n.target).toLocaleString()+(n.next?' · THEN '+TIER[n.next.tier]+' AT '+Number(n.next.target).toLocaleString():'');
+  el.classList.toggle('close',n.remaining<=Math.max(3,n.target*0.1));el.classList.add('on');}
+function tickerText(e){const b=(t,c)=>{const x=node('b',t);if(c)x.className=c;return x;},frag=document.createDocumentFragment(),add=(...parts)=>{for(const p of parts)frag.append(typeof p==='string'?document.createTextNode(p):p);return frag;};
+  const n=data?.next,toNext=n&&!n.done?' · '+n.remaining+' to '+n.label:'';
+  if(e.kind==='support'){const who=b(e.name);if(e.sub==='gift')return add(b('★','g'),' ',who,' gifted ',b((e.amount||1)+' sub'+(e.amount===1?'':'s'),'g'),toNext);if(e.sub==='sub')return add(b('★','g'),' ',who,' subscribed',toNext);if(e.sub==='resub')return add(b('★','g'),' ',who,' resubscribed',e.months?' · '+e.months+' months':'',toNext);
+    if(e.sub==='bits')return add(b('✦','g'),' ',who,' cheered ',b((e.amount||0).toLocaleString()+' bits','g'));if(e.sub==='raid')return add(b('⚑','v'),' ',who,' raided',e.amount?' with '+b(e.amount+' viewers','v').textContent:'');return add(b('★','g'),' ',who,' followed');}
+  if(e.kind==='medal')return add(b('◆','m'),' ',b(e.name),' earned ',b(e.title+(e.special?'':e.gradeName?' '+e.gradeName:''),'m'));
+  if(e.kind==='versus')return e.draw?add(b('⚔','v'),' ',b(e.a),' and ',b(e.b),' drew in Versus'):add(b('⚔','v'),' ',b(e.winner),' won Versus vs ',b(e.loser,'v'));
+  if(e.kind==='promo')return add(b('▲','c'),' ',b(e.name),' promoted to ',b(RANKS[e.to]||'','c'));
+  if(e.kind==='dread')return e.outcome==='victory'?add(b('●','r'),' Dreadnought destroyed in ',b(mmss((e.elapsed||0)*1000),'r'),e.speed?' · '+e.speed.toUpperCase()+' +'+e.bonus+'%':'',e.top?' · top gun '+b(e.top).textContent:''):add(b('●','r'),' The Dreadnought escaped');
+  return add(String(e.text||''));}
+function renderTicker(on){const el=$('ticker');if(!on){el.classList.remove('on');return;}
+  const items=[];const b=data?.dread;if(b&&b.phase==='fight'){items.push({key:'live',live:true});}for(const e of data?.events||[])items.push({key:e.id,e});
+  const key=items.map(i=>i.key).join('|')+'|'+(data?.next?.remaining??'');
+  if(key!==tickerKey){tickerKey=key;const list=$('ticker-items');list.replaceChildren();const make=()=>{const out=[];for(const i of items){const s=node('span');if(i.live){const pct=b.maxHp?Math.round(100*b.hp/b.maxHp):100;s.append(node('b','●','r'),document.createTextNode(' Dreadnought hull '),node('b',pct+'%','r'),document.createTextNode(' · '+(b.leaders?.[0]?'top gun '+b.leaders[0].name:'!fire to attack')));}else s.append(tickerText(i.e));out.push(s);}
+      if(!out.length){const s=node('span');s.append(node('b','◆','v'),document.createTextNode(' Welcome aboard · '),node('b','!voyager'),document.createTextNode(' shows your membership card'));out.push(s);}return out;};
+    list.append(...make());wrapW=el.querySelector('.items-wrap').clientWidth;tickerW=list.scrollWidth;if(tickerW>wrapW){list.append(...make());}pos=0;}
+  el.classList.add('on');}
+function renderToast(on){const el=$('toast');if(!on){el.classList.remove('on');return;}
+  for(const t of (data?.toasts||[]).filter(t=>!toastShown.has(t.id)&&now()-t.at<60000).sort((a,b)=>a.at-b.at)){toastShown.add(t.id);toastQueue.push(t);}
+  if(now()>=toastUntil&&toastQueue.length){const t=toastQueue.shift();toastUntil=now()+(data.toastSeconds||6)*1000;const m=METAL[t.special?3:Math.max(0,Math.min(3,t.grade||0))];
+    el.style.setProperty('--metal',m[0]);el.style.setProperty('--tag',m[1]);$('toast-eyebrow').textContent=(t.upgrade?'MEDAL UPGRADED':'MEDAL EARNED')+' · '+(t.special?'SPECIAL':t.gradeName?t.gradeName.toUpperCase():m[2]);$('toast-title').textContent=t.title;$('toast-sub').textContent=t.name+(t.desc?' · '+t.desc:'')+(t.next?' · '+t.next:'');
+    const svg=$('toast-icon');svg.innerHTML='';if(t.icon){const p=document.createElementNS('http://www.w3.org/2000/svg','path');p.setAttribute('d',t.icon);svg.append(p);}el.classList.remove('on');void el.offsetWidth;}
+  el.classList.toggle('on',now()<toastUntil);}
+function animate(t){const dt=Math.min(100,t-(lastFrame||t));lastFrame=t;if(tickerW>wrapW&&$('ticker').classList.contains('on')){pos=(pos+dt*0.06)%tickerW;$('ticker-items').style.transform='translateX('+(-pos)+'px)';}requestAnimationFrame(animate);}
+requestAnimationFrame(animate);setInterval(render,500);render();
+})();

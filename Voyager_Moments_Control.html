@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Voyager • On-screen moments</title>
+<link rel="icon" href="brand-assets/voyager.png">
+<link rel="stylesheet" href="stream-command.css">
+<link rel="stylesheet" href="voyager-brand.css">
+<link rel="stylesheet" href="settings.css?v=2.18">
+<link rel="stylesheet" href="community.css?v=2.20.48">
+<link rel="stylesheet" href="voyager-glass.css?v=2.18">
+<style>
+.mo-grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:16px;align-items:start}
+.mo-card{padding:18px 22px;display:flex;flex-direction:column;gap:12px}.mo-wide{grid-column:1/-1}
+.mo-els{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px}
+.mo-el{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid rgba(151,223,255,.14);background:rgba(8,15,24,.45);border-radius:12px;cursor:pointer}
+.mo-el[data-on=true]{border-color:rgba(127,240,181,.45)}.mo-el b{display:block;font:700 16px/1.15 Rajdhani,'Segoe UI',sans-serif;color:#e6eef7}.mo-el small{display:block;font:500 12px/1.3 'Segoe UI',sans-serif;color:#8ea6bd}
+.mo-el .sw{width:38px;height:22px;border-radius:11px;background:#2f4760;position:relative;flex:none;transition:background .2s}.mo-el .sw::after{content:'';position:absolute;left:3px;top:3px;width:16px;height:16px;border-radius:50%;background:#dce7f3;transition:left .2s}
+.mo-el[data-on=true] .sw{background:#3fbf86}.mo-el[data-on=true] .sw::after{left:19px}
+.mo-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 14px}.mo-form label{display:flex;flex-direction:column;gap:4px;font:600 12px 'Segoe UI',sans-serif;color:#9ab0c5}.mo-form label.wide{grid-column:1/-1}
+.mo-form input,.mo-form select,.mo-form textarea{height:34px;padding:0 10px;border:1px solid rgba(151,223,255,.18);background:rgba(8,15,24,.55);color:#e6eef7;font:14px 'Segoe UI',sans-serif;border-radius:8px}
+.mo-form textarea{height:110px;padding:8px 10px;resize:vertical;font:13px ui-monospace,Consolas,monospace}
+.mo-tests{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}.mo-tests button{min-height:46px}
+.mo-log{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px;max-height:240px;overflow:auto;font-size:13px}
+.mo-log li{display:flex;gap:10px;padding:5px 10px;border:1px solid rgba(151,223,255,.08);background:rgba(8,15,24,.3);color:#c9d7e4}.mo-log li time{color:#8ea6bd;font-size:12px;white-space:nowrap}
+.mo-status{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}.mo-st{padding:10px 12px;border:1px solid rgba(151,223,255,.14);background:rgba(8,15,24,.45);border-radius:12px}.mo-st small{display:block;font:700 11px/1 Rajdhani,'Segoe UI',sans-serif;letter-spacing:1.6px;color:#8ea6bd;text-transform:uppercase;margin-bottom:4px}.mo-st b{font:700 16px/1.2 Rajdhani,'Segoe UI',sans-serif;color:#e6eef7}
+@media(max-width:1100px){.mo-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body class="voyager-console voyager-settings voyager-community">
+<div class="shell">
+<aside class="rail"><a class="brand" href="Voyager_Command_Center.html"><img class="logo-voyager" src="brand-assets/voyager.png" alt="Voyager membership program" width="68" height="68"><span>VOYAGER<small>MDA009 · MISSION CONTROL</small></span></a></aside>
+<main>
+<header class="top"><div><span class="eyebrow">STREAM</span><h1>On-screen moments</h1></div><div class="toolbar"><span class="st-pill" id="conn-pill" data-state="wait">Checking…</span><a class="link" href="MOMENTS_SETUP.html" target="_blank" rel="noopener">Setup ↗</a></div></header>
+<p class="st-notice" id="notice" hidden></p>
+<p class="st-notice" id="not-hosted" hidden>Open this page from the Voyager app (or START-VOYAGER-CONTROL.bat).</p>
+<div class="mo-grid">
+
+<section class="card mo-card mo-wide">
+<div class="card-heading"><div><span class="eyebrow">ON STREAM</span><h2>Show on screen</h2></div><span class="st-note">Click to turn each one on or off · the overlay follows within 2 s</span></div>
+<div class="mo-els" id="elements"></div>
+<div class="mo-status" id="status"></div>
+</section>
+
+<section class="card mo-card">
+<div class="card-heading"><div><span class="eyebrow">OBS SOURCE</span><h2>Add once to every scene</h2></div></div>
+<div class="cs-url"><code id="url"></code><button type="button" id="copy">Copy</button></div>
+<p class="st-hint">One <b>Browser</b> source, 1920 × 1080, untick Local file, this address. Everything above draws on it; what is off stays invisible. The next-celebration chip sits above your goals strip: set the strip's top edge below.</p>
+<div class="cs-preview"><iframe id="preview" title="Preview" src="Voyager_Moments.html?preview=1" style="background:radial-gradient(ellipse at 30% 20%,#1a2a44,#0b1322 60%)"></iframe></div>
+</section>
+
+<section class="card mo-card">
+<div class="card-heading"><div><span class="eyebrow">SETTINGS</span><h2>How they behave</h2></div></div>
+<form id="form" class="mo-form">
+<label class="wide">Command hints, one per line: <i>command | what it does</i><textarea name="hints" placeholder="!voyager | Shows your membership card"></textarea></label>
+<label>Hint rotates every (s)<input name="hintSeconds" type="number" min="5" max="120"></label>
+<label>Hide hints after a command is used (min)<input name="hintQuietMinutes" type="number" min="0" max="60"></label>
+<label>Crew surge: supports needed<input name="surge.count" type="number" min="2" max="20"></label>
+<label>…within (min)<input name="surge.windowMinutes" type="number" min="1" max="30"></label>
+<label>Surge lasts (min, topped up by each support)<input name="surge.durationMinutes" type="number" min="1" max="60"></label>
+<label>Surge label<input name="surge.label" type="text" maxlength="24"></label>
+<label>Promotion ceremony from rank<select name="promoMin"></select></label>
+<label>Ceremony shows for (s)<input name="promoSeconds" type="number" min="4" max="30"></label>
+<label>Ticker: events shown<input name="tickerCount" type="number" min="3" max="20"></label>
+<label>Ticker: forget events after (min)<input name="tickerMinutes" type="number" min="5" max="240"></label>
+<label>Medal toast shows for (s)<input name="toastSeconds" type="number" min="3" max="20"></label>
+<label>Goals strip top edge (px from the top of 1080)<input name="goalsStripTop" type="number" min="0" max="1080"></label>
+<div class="wide" style="display:flex;gap:8px;flex-wrap:wrap"><button type="submit" class="primary">Save settings</button><button type="button" id="reset">Defaults</button></div>
+</form>
+<p class="st-hint">The crew surge is a display: it shows the pile-up and a timer and does not change points by itself. The medal toast is off by default because the <b>medals.html</b> source already shows one; turn it on here only if you remove that source.</p>
+</section>
+
+<section class="card mo-card">
+<div class="card-heading"><div><span class="eyebrow">TESTS</span><h2>See each one on stream</h2></div></div>
+<div class="mo-tests"><button type="button" data-test="support">Sample gift</button><button type="button" data-test="medal">Sample medal</button><button type="button" data-test="promo">Sample promotion</button><button type="button" data-test="versus">Sample Versus result</button><button type="button" data-test="dread">Sample Dreadnought result</button><button type="button" data-test="surge">Start a crew surge</button><button type="button" data-test="goals">Sample goal reading</button><button type="button" id="surge-clear">End the surge</button></div>
+<p class="st-hint">Samples go through the real overlay (ticker, toast, ceremony) with the name <i>Sample Pilot</i>. The Dreadnought HUD follows the real fight: call one from the Stream deck to see it. The next-celebration chip needs the goals reading from Streamer.bot (<b>Voyager - Read OBS Percentages</b> runs every 2 s while the goals strip is set up); the sample reading lasts two minutes.</p>
+</section>
+
+<section class="card mo-card mo-wide">
+<div class="card-heading"><div><span class="eyebrow">LOG</span><h2>Recent events</h2></div></div>
+<ul class="mo-log" id="log"></ul>
+</section>
+</div>
+</main>
+</div>
+<script src="moments-control.js?v=2.20.64"></script>
+<script src="voyager-shell.js?v=2.20.64"></script>
+<script src="voyager-navigation.js"></script>
+</body>
+</html>

@@ -25,6 +25,7 @@ const PAGES=[
  {file:'Voyager_Fleet_Control.html',label:'Support alerts',ico:'✧',group:'Stream',keys:'support alerts fleet follow subscription raid bits',help:'FLEET_ALERTS_SETUP.html'},
  {file:'Voyager_Engage.html',label:'Chat engagement',ico:'✺',group:'Stream',live:true,keys:'chat engagement report muster quiz trivia squadron squadrons team relay comms arrival log captain recap',help:'Voyager_Guide.html'},
  {file:'Voyager_Banner_Control.html',label:'Stream banner',ico:'▰',group:'Stream',keys:'banner message ticker',help:'BANNER_SETUP.html'},
+ {file:'Voyager_Moments_Control.html',label:'On-screen moments',ico:'✺',group:'Stream',live:true,keys:'moments overlay ticker right now crew surge command hints promotion ceremony dreadnought hud next celebration chip medal toast on screen',help:'MOMENTS_SETUP.html'},
  {file:'Voyager_Streamerbot.html',label:'Streamer.bot actions',ico:'⚡',group:'Stream',live:true,keys:'streamer.bot streamerbot actions run trigger test goal fx celebration upgrade animation ledger scan medals export fleet alert',help:'Voyager_Guide.html'},
  {file:'Voyager_Points.html',label:'Points & members',ico:'★',group:'Community',keys:'points members membership tiers silver gold platinum ledger',help:'POINTS_SETUP.html'},
  {file:'Voyager_Membership_Cards.html',label:'Membership cards',ico:'▣',group:'Community',live:true,keys:'membership card voyager tier blue silver gold platinum upgrade badges',help:'MEMBERSHIP_CARD_SETUP.html'},
@@ -46,7 +47,7 @@ const GUIDES=[
  ['FLEET_ALERTS_SETUP.html','Support alerts setup'],['BANNER_SETUP.html','Stream banner setup'],['SECURITY_SETUP.html','Security setup'],
  ['COMMAND_CENTER_SETUP.html','Command center setup'],['LEADERBOARD_PANEL_SETUP.html','Leaderboard panel setup'],['BUCKET_OVERLAY_SETUP.html','OBS progress strip setup'],
  ['TWITCH_ANALYTICS_SETUP.html','Twitch analytics setup'],['EXTERNAL_ANALYTICS_SETUP.html','External analytics'],['NATIVE_COMMUNITY_SETUP.html','Native community setup'],
- ['BRAND_REFRESH_SETUP.html','Stream branding & preview'],['DREADNOUGHT_SETUP.html','Voyager Dreadnought setup'],['MEDALS_SETUP.html','Voyager Medals setup'],['MEMBERSHIP_CARD_SETUP.html','Membership card setup'],['STINGERS_SETUP.html','Scene transitions (stingers)'],['UPDATE_2.20_SETUP.html','Updating to 2.20']
+ ['BRAND_REFRESH_SETUP.html','Stream branding & preview'],['DREADNOUGHT_SETUP.html','Voyager Dreadnought setup'],['MEDALS_SETUP.html','Voyager Medals setup'],['MEMBERSHIP_CARD_SETUP.html','Membership card setup'],['STINGERS_SETUP.html','Scene transitions (stingers)'],['MOMENTS_SETUP.html','On-screen moments'],['UPDATE_2.20_SETUP.html','Updating to 2.20']
 ];
 const canonical=new Set([...PAGES.map(p=>p.file),'START_HERE.html','COMMAND_CENTER_SETUP.html','Voyager_Settings.html']);
 const hrefOf=p=>{let h=p.file+(p.page?'?page='+p.page:'');if(demo&&!/SETUP|START_HERE|Guide|Settings/.test(p.file))h+=(h.includes('?')?'&':'?')+'demo=1';return h;};

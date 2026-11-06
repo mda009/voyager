@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.64 (6 November 2026)
+
+**On-screen moments.** One transparent OBS source, `Voyager_Moments.html`, with seven elements switched from the Stream deck (new "On-screen moments" row) or the new **On-screen moments** page: command hints (top-left, rotating, quiet after a command is used), crew surge (top-right chip when supports pile up, timer topped up by each support; display only), Dreadnought live HUD (hull, clocks, speed goals, top five by damage), promotion ceremony (from a chosen rank, sleeve lace and seal), next-celebration chip (distance to the next Silver / Gold / Platinum celebration from the goal reading), the "Right now" ticker (last events: medals, supports, Versus, promotions, Dreadnought), and an optional medal toast (off by default; `medals.html` already shows one). Host: `local/moments.mjs` builds the event feed from the Fleet Alerts queue, the Medals recent list, card promotions, Versus match results and Dreadnought results, and now listens to the `mda009.voyager.goals` reading; `GET /api/moments/overlay` (public, local), `/api/moments` settings, element toggle, tests. `MOMENTS_SETUP.html`; guide and Help links.
+
 ## 2.20.63 (6 November 2026)
 
 **Leaderboard panel shows rank and member tier.** Under each leader on the OBS leaderboard panel (points, pilots, watch time, months, gifts) the caption now reads the viewer's naval rank and member tier (*Lieutenant · Gold member*), tinted by tier, instead of only the platform name; the platform icon stays. The panel reads them from a new local feed, `GET /api/cards/ranks/overlay` (rank, tier and all-time place per member; no points or balances), so Voyager must be running; local-file panels look for it on port 8740 (`?voyager=port`). Ranks are omitted when ranks are turned off.

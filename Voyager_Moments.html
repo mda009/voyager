@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Voyager • On-screen moments</title>
+<link rel="icon" href="brand-assets/voyager.png" type="image/png">
+<link rel="stylesheet" href="moments-overlay.css?v=2.20.64">
+</head>
+<body><div id="stage">
+<!-- 7 command hints -->
+<div class="glass el" id="hints"><span class="corner tl"></span><span class="k" id="hint-cmd">!voyager</span><span class="t"><span id="hint-text">Shows your membership card</span><small>NEW HERE? · VOYAGER COMMANDS</small></span><span class="dots" id="hint-dots"></span></div>
+<!-- 3 crew surge -->
+<div class="glass el" id="surge"><span class="x" id="surge-count">×5</span><span class="t"><span id="surge-label">CREW SURGE</span><small id="surge-sub">5 SUPPORTS IN 3 MIN · 4:12 LEFT</small></span><span class="bar"><i id="surge-bar"></i></span></div>
+<!-- 4 dreadnought live HUD -->
+<div class="glass el" id="dread"><span class="corner tl"></span><span class="eyebrow" id="dread-eyebrow">DREADNOUGHT · LIVE</span><h3 id="dread-title">Hull 100% · 0:00</h3>
+<div class="hull"><i id="dread-hull"></i><b id="dread-pct">100%</b></div>
+<div class="clock"><span class="leg" id="dread-leg">LEGENDARY <small>1:00</small></span><span class="hero" id="dread-hero">HERO <small>2:00</small></span></div>
+<table id="dread-rows"></table></div>
+<!-- 1 medal toast (optional) -->
+<div class="glass el" id="toast"><span class="ribbon"></span><span class="disc"><svg viewBox="0 0 24 24" id="toast-icon"></svg></span><span class="t"><span class="eyebrow" id="toast-eyebrow">MEDAL EARNED</span><b id="toast-title">Night Watch</b><span id="toast-sub">—</span></span></div>
+<!-- 2 promotion ceremony -->
+<div class="glass el" id="promo"><span class="corner tl"></span><span class="corner br"></span><span class="lace" id="promo-lace"></span><span class="t"><span class="eyebrow" id="promo-eyebrow">PROMOTION CEREMONY</span><b id="promo-name">Quillon</b><span id="promo-ranks">COMMODORE<em>→</em>REAR ADMIRAL</span></span><span class="seal" id="promo-seal">RADM</span></div>
+<!-- 6 next-celebration chip -->
+<div class="glass el" id="next"><b id="next-n">3</b><span id="next-text">GIFTS TO THE SILVER CELEBRATION</span><em id="next-after">· THEN GOLD AT 50</em></div>
+<!-- 5 right-now ticker -->
+<div class="glass el" id="ticker"><span class="tag"><i></i>RIGHT NOW</span><div class="items-wrap"><div class="items" id="ticker-items"></div></div></div>
+<div id="debug" hidden></div>
+</div>
+<script src="moments-overlay.js?v=2.20.64"></script>
+</body></html>

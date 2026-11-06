@@ -1,0 +1,22 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Voyager • On-screen moments</title>
+<style>:root{color-scheme:dark;font-family:"Segoe UI",Arial,sans-serif;background:#09111b;color:#dce7f3}*{box-sizing:border-box}body{margin:0;padding:36px 24px}main{max-width:980px;margin:auto}a{color:#b2cef5}h1{font-size:30px;margin:0 0 6px}h2{font-size:20px;margin:28px 0 8px;color:#e9f1fb}code{background:#122034;padding:2px 6px;border-radius:4px}ol li,ul li{margin:6px 0}.card{background:#0f1b2b;border:1px solid #1e3049;border-radius:10px;padding:16px 18px;margin:14px 0}table{border-collapse:collapse;width:100%}td,th{text-align:left;padding:7px 10px;border-bottom:1px solid #1e3049;vertical-align:top}</style></head>
+<body><main>
+<p><a href="Voyager_Guide.html">← Voyager guide</a></p>
+<h1>On-screen moments</h1>
+<p>Seven small glass elements on one transparent OBS source (2.20.64), fed by what Voyager already knows. Switch each one from <b>Stream deck › On-screen moments</b> or <b>Voyager Control › On-screen moments</b>; the overlay follows within 2 seconds.</p>
+<table><tr><th>Element</th><th>Where</th><th>What it shows</th></tr>
+<tr><td>Command hints</td><td>Top-left</td><td>Your chat commands, one at a time (edit the list on the control page). Hides for 10 minutes after anyone uses a command.</td></tr>
+<tr><td>Crew surge</td><td>Top-right</td><td>When 5 supports (follows, subs, gifts, resubs, bits, raids from the Fleet Alerts queue) land within 3 minutes: the count and a 5-minute timer that each new support tops up. A display only: it does not change points.</td></tr>
+<tr><td>Dreadnought live HUD</td><td>Right</td><td>While a fight runs: hull, elapsed time, the Legendary and Hero clocks with the speed bonus, the top five by damage. Boarding countdown in the lobby, result for 20 s after.</td></tr>
+<tr><td>Promotion ceremony</td><td>Centre-top</td><td>When someone reaches the chosen rank or above (default Commodore): sleeve lace, name, from → to, abbreviation seal, all-time place for the top ranks. 9 s, one at a time.</td></tr>
+<tr><td>Next-celebration chip</td><td>Above the goals strip</td><td>How far the community points are from the next Silver / Gold / Platinum celebration, from the same goal reading the goals strip and Goal FX use. Pulses when close.</td></tr>
+<tr><td>Right now ticker</td><td>Bottom</td><td>The last 10 events: medals, supports (with the distance to the next celebration), Versus results, promotions, Dreadnought results, plus the live hull while a fight runs. Forgets events after 30 minutes.</td></tr>
+<tr><td>Medal toast</td><td>Bottom-left</td><td>Off by default: the <code>medals.html</code> source already shows medal toasts. Turn this on only if you remove that source.</td></tr></table>
+<div class="card"><h2 style="margin-top:0">OBS</h2>
+<ol><li>Add one <b>Browser</b> source to each scene where you want these (or to a nested "Overlays" scene): 1920 × 1080, untick Local file, address <code>http://127.0.0.1:8740/control/Voyager_Moments.html</code> (copy it from the control page). Leave "Shutdown source when not visible" off.</li>
+<li>On the control page set <b>Goals strip top edge</b> to where your goals strip starts (pixels from the top of the 1080 canvas) so the chip sits just above it.</li>
+<li>Keep <b>Connect chat</b> on: supports, medals, promotions and the goal reading all arrive through Voyager's Streamer.bot connection. The next-celebration chip needs the <b>Voyager - Read OBS Percentages</b> action running (it does when the goals strip is set up).</li>
+<li>Press the test buttons on the control page to see each element on stream with the name <i>Sample Pilot</i>.</li></ol></div>
+<h2>Checking</h2>
+<p>Add <code>?debug=1</code> to the source address to see what the overlay last received (which elements are on, how many events, the goal reading). <code>?preview=1</code> shows sample data everywhere, which is what the control page's preview uses.</p>
+</main></body></html>

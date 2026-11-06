@@ -1,0 +1,41 @@
+/* Voyager Control > On-screen moments (2.20.64): switch the seven overlay elements, tune them, test them. */
+(()=>{'use strict';
+const $=id=>document.getElementById(id),hosted=location.protocol==='http:'&&/^(127\.0\.0\.1|localhost)$/.test(location.hostname);
+const el=(t,c,x)=>{const n=document.createElement(t);if(c)n.className=c;if(x!==undefined)n.textContent=x;return n;};
+let token='',view=null,editing=false,previewReady=false;
+const notice=(text,bad)=>{const n=$('notice');n.hidden=!text;n.textContent=text||'';n.dataset.state=bad?'error':'ok';};
+async function api(path,body){
+  if(!token)token=(await(await fetch('/api/admin')).json()).token;
+  const r=await fetch(path,{method:body?'POST':'GET',cache:'no-store',headers:{'X-Voyager-Token':token,...(body?{'Content-Type':'application/json'}:{})},body:body?JSON.stringify(body):undefined});
+  const d=await r.json().catch(()=>({}));if(!r.ok||d.ok===false)throw new Error(d.message||'Voyager answered '+r.status);return d;
+}
+const DESC={hints:'Top-left chip rotating your chat commands; hides for a while after someone uses one.',surge:'Top-right chip when supports pile up, with a timer that each new support tops up.',dread:'Hull, clock, speed goals and the top five attackers while a Dreadnought fight runs.',promo:'Centre-top ceremony when someone reaches the chosen rank or above.',next:'Above the goals strip: how far to the next Silver / Gold / Platinum celebration.',ticker:'Bottom strip cycling the latest medals, supports, Versus results, promotions and Dreadnought news.',toast:'Bottom-left medal toast (only if you do not use the medals.html source).'};
+const when=t=>new Date(t).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'});
+function renderElements(){const box=$('elements');box.replaceChildren();for(const [k,name] of Object.entries(view.elements)){const b=el('button','mo-el');b.type='button';b.dataset.on=String(!!view.settings.elements[k]);b.setAttribute('aria-pressed',b.dataset.on);
+  const sw=el('span','sw'),t=el('span');t.append(el('b','',name),el('small','',DESC[k]||''));b.append(sw,t);b.onclick=async()=>{b.disabled=true;try{view={...view,...await api('/api/moments/element',{key:k,on:!view.settings.elements[k]})};render();notice(name+(view.settings.elements[k]?' is on stream.':' is hidden.'));}catch(e){notice(e.message,true);}b.disabled=false;};box.append(b);}}
+function renderStatus(){const s=$('status');s.replaceChildren();const items=[['Streamer.bot',view.connected?'Connected':'Not connected · press Connect chat'],['Crew surge',view.surge?.active?'Active · '+view.surge.count+' supports':view.surge?.recent?view.surge.recent+' of '+view.settings.surge.count+' supports in the window':'Quiet'],
+  ['Next celebration',view.next?(view.next.done?'All reached':view.next.remaining+' to '+view.next.label):'No goal reading yet'],['Dreadnought',view.dread==='idle'?'Idle':view.dread],['Events kept',String(view.events?.length||0)]];
+  for(const [k,v] of items){const d=el('div','mo-st');d.append(el('small','',k),el('b','',v));s.append(d);}}
+function renderForm(){if(editing)return;const f=$('form'),s=view.settings;f.elements.hints.value=s.hints.map(h=>h.cmd+' | '+h.text).join('\n');
+  for(const k of ['hintSeconds','hintQuietMinutes','promoSeconds','tickerCount','tickerMinutes','toastSeconds','goalsStripTop'])f.elements[k].value=s[k];
+  for(const k of ['count','windowMinutes','durationMinutes','label'])f.elements['surge.'+k].value=s.surge[k];
+  const sel=f.elements.promoMin;if(!sel.options.length)view.ranks.forEach((r,i)=>{const o=el('option','',r);o.value=i;sel.append(o);});sel.value=s.promoMin;}
+function formSettings(){const f=$('form');const hints=f.elements.hints.value.split('\n').map(l=>l.trim()).filter(Boolean).map(l=>{const [cmd,...rest]=l.split('|');return {cmd:cmd.trim(),text:rest.join('|').trim()};});
+  const n=k=>Number(f.elements[k].value);return {hints,hintSeconds:n('hintSeconds'),hintQuietMinutes:n('hintQuietMinutes'),promoMin:n('promoMin'),promoSeconds:n('promoSeconds'),tickerCount:n('tickerCount'),tickerMinutes:n('tickerMinutes'),toastSeconds:n('toastSeconds'),goalsStripTop:n('goalsStripTop'),
+    surge:{count:n('surge.count'),windowMinutes:n('surge.windowMinutes'),durationMinutes:n('surge.durationMinutes'),label:f.elements['surge.label'].value}};}
+function renderLog(){const ul=$('log');ul.replaceChildren();for(const e of view.events||[]){const li=el('li');li.append(el('time','',when(e.at)),el('span','',describe(e)));ul.append(li);}if(!ul.childElementCount){const li=el('li');li.append(el('span','','Nothing yet. Events arrive from Streamer.bot while chat is connected; the test buttons add samples.'));ul.append(li);}}
+function describe(e){const t=e.test?' (sample)':'';if(e.kind==='support')return e.name+' · '+e.sub+(e.amount?' × '+e.amount:'')+(e.months?' · '+e.months+' months':'')+t;if(e.kind==='medal')return e.name+' earned '+e.title+(e.gradeName?' '+e.gradeName:'')+t;
+  if(e.kind==='versus')return e.draw?e.a+' and '+e.b+' drew':e.winner+' beat '+e.loser+' in Versus'+t;if(e.kind==='promo')return e.name+' promoted to '+(view.ranks[e.to]||e.to)+t;if(e.kind==='dread')return 'Dreadnought '+(e.outcome==='victory'?'destroyed in '+e.elapsed+' s':'escaped')+(e.top?' · top gun '+e.top:'')+t;return e.kind;}
+function sendPreview(){if(!previewReady||!view)return;$('preview').contentWindow?.postMessage({type:'voyager.moments.preview',settings:{...view.settings,...(editing?formSettings():{})}},'*');}
+addEventListener('message',e=>{if(e.source===$('preview').contentWindow&&e.data?.type==='voyager.moments.preview.ready'){previewReady=true;sendPreview();}});
+function render(){if(!view)return;$('conn-pill').dataset.state=view.connected?'ok':'warn';$('conn-pill').textContent=view.connected?'Streamer.bot connected':'Streamer.bot not connected';renderElements();renderStatus();renderForm();renderLog();sendPreview();}
+async function refresh(){try{view=await api('/api/moments');render();}catch(e){notice(e.message,true);}}
+$('url').textContent=location.origin+location.pathname.replace(/[^/]*$/,'')+'Voyager_Moments.html';
+$('copy').onclick=async()=>{try{await navigator.clipboard.writeText($('url').textContent);$('copy').textContent='Copied';setTimeout(()=>$('copy').textContent='Copy',1500);}catch{}};
+$('form').addEventListener('focusin',()=>{editing=true;});$('form').addEventListener('input',()=>{try{sendPreview();}catch{}});
+$('form').onsubmit=async e=>{e.preventDefault();try{view={...view,...await api('/api/moments/settings',formSettings())};editing=false;render();notice('Settings saved. The overlay picks them up within 2 s.');}catch(err){notice(err.message,true);}};
+$('reset').onclick=async()=>{try{view={...view,...await api('/api/moments/settings',view.defaults)};editing=false;render();notice('Defaults restored.');}catch(err){notice(err.message,true);}};
+for(const b of document.querySelectorAll('[data-test]'))b.onclick=async()=>{b.disabled=true;try{await api('/api/moments/test',{kind:b.dataset.test});notice('Sample sent to the overlay.');await refresh();}catch(e){notice(e.message,true);}b.disabled=false;};
+$('surge-clear').onclick=async()=>{try{view={...view,...await api('/api/moments/surge',{action:'clear'})};render();notice('Surge ended.');}catch(e){notice(e.message,true);}};
+if(!hosted){$('not-hosted').hidden=false;}else{refresh();setInterval(()=>{if(!document.hidden)refresh();},5000);}
+})();

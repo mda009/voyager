@@ -21,6 +21,7 @@ import {Medals,MEDAL_ICONS} from './medals.mjs';
 import {Actions} from './actions.mjs';
 import {Cards} from './cards.mjs';
 import {FleetCamera} from './fleet-camera.mjs';
+import {Moments} from './moments.mjs';
 import {Engage} from './engage.mjs';
 let VERSION='unknown';try{VERSION=JSON.parse(await readFile(new URL('../package.json',import.meta.url),'utf8')).version;}catch{}
 const major=Number(process.versions.node.split('.')[0]);
@@ -130,11 +131,11 @@ const bot=new StreamerBot({onOtherChat:chat=>{
   if(word==='!voyager'){voyagerCommand(chat);return;}
   if(word==='!medals'){try{medals.command({kind:'medals',platform:chat.platform,userId:chat.userId,login:chat.login,name:chat.name});}catch{}return;}
   if(boss.active()&&(word==='!join'||word==='!fire')){try{boss.receive({kind:word.slice(1),platform:chat.platform,userId:chat.userId,login:chat.login,name:chat.name,direct:true});}catch{}}
-},onCards:ev=>{cards.receive(ev);},onFleet:ev=>{fleetState={at:Date.now(),serverAt:Number(ev.serverAt)||Date.now(),state:ev.state};cards.fromFleet(ev.state,ev.serverAt);fleetCamera.receive(ev);},onMedals:ev=>{if(ev.type==='voyager.medals.data')medals.ingestExport(ev);else medals.command(ev);},onBoss:ev=>{
+},onCards:ev=>{cards.receive(ev);},onFleet:ev=>{fleetState={at:Date.now(),serverAt:Number(ev.serverAt)||Date.now(),state:ev.state};cards.fromFleet(ev.state,ev.serverAt);fleetCamera.receive(ev);try{moments.fleet(ev);}catch{}},onGoals:packet=>{try{moments.goalsReading(packet);}catch{}},onMedals:ev=>{if(ev.type==='voyager.medals.data')medals.ingestExport(ev);else medals.command(ev);},onBoss:ev=>{
   if(ev.kind==='call'&&!['lobby','result'].includes(game.phase)){game.note('Finish the Versus battle before calling the Dreadnought.','system');return;}
   boss.receive(ev);
 },onChat:chat=>{
-  lastChatAt=Date.now();
+  lastChatAt=Date.now();if(/^!/.test(String(chat.text||'')))try{moments.commandSeen();}catch{}
   try{medals.chatSeen({...chat,platform:chat.platform||'twitch'});}catch{}
   try{engage.chat({...chat,platform:chat.platform||'twitch'});}catch{}
   // Dreadnought (2.20.3): Twitch !join and !fire also work straight from chat, so a missing Streamer.bot command trigger
@@ -182,7 +183,9 @@ publicSite?.setCrew(()=>cards.crewRows(2000));
 const rewards=new RewardDispatcher({store:economy,bot,onCredit:r=>{game.note(`${r.name}: +${r.amount} Voyager points credited.`, 'reward');matchChat.credit(r);}});
 const announcements=new AvailabilityAnnouncer({store:economy,bot,game,action:()=>rewards.ready?rewards.action:null});
 const matchChat=new MatchChat({directory:dataDir,game,bot,action:()=>rewards.ready?rewards.action:null,protocol:()=>rewards.chatProtocol,reward:id=>economy.data.rewards.find(r=>r.id===id)});
-game.onEvent=event=>matchChat.capture(event);
+// On-screen moments (2.20.64): ticker, surge, hints, next-celebration chip, promotion ceremony, Dreadnought HUD.
+const moments=await new Moments({dataDir,boss:()=>boss.overlay(),medals:()=>medals.state.recent,promotions:()=>cards.state.promotions,medalToasts:()=>medals.state.toasts,medalIcon:id=>MEDAL_ICONS[id]||''}).load();
+game.onEvent=event=>{matchChat.capture(event);try{moments.versus(event);}catch{}};
 function packet(){const snapshot=game.snapshot();for(const r of snapshot.result?.rewards||[])r.status=economy.data.rewards.find(x=>x.id===r.id)?.status||r.status;return {serverTime:Date.now(),game:snapshot,connection:bot.status,rewards:rewards.snapshot(),announcements:announcements.snapshot(),matchChat:matchChat.snapshot(),entries:entries.snapshot(),pilotLeaderboard:pilots.snapshot()};}
 const failures=new Map();
 const allowedHosts=new Set([`127.0.0.1:${port}`,`localhost:${port}`]);
@@ -194,7 +197,7 @@ const mime={'.wav':'audio/wav','.mp3':'audio/mpeg','.html':'text/html; charset=u
 const actions=new Actions({bot,medalsSince:()=>medals.exportSince(),version:VERSION});
 const server=http.createServer(async(req,res)=>{
   if(!allowedHosts.has(req.headers.host)){response(res,403,{message:'Invalid host.'});return;}
-  const origin=req.headers.origin,goalPoll=req.method==='GET'&&(req.url.startsWith('/api/goalfx/overlay')||req.url.startsWith('/api/fleet/overlay')||req.url.startsWith('/api/cards/ranks/overlay'));if(origin&&!goalPoll&&!['http://127.0.0.1:'+port,'http://localhost:'+port].includes(origin)){response(res,403,{message:'Cross-origin requests are not allowed.'});return;}
+  const origin=req.headers.origin,goalPoll=req.method==='GET'&&(req.url.startsWith('/api/goalfx/overlay')||req.url.startsWith('/api/fleet/overlay')||req.url.startsWith('/api/cards/ranks/overlay')||req.url.startsWith('/api/moments/overlay'));if(origin&&!goalPoll&&!['http://127.0.0.1:'+port,'http://localhost:'+port].includes(origin)){response(res,403,{message:'Cross-origin requests are not allowed.'});return;}
   if(req.headers['sec-fetch-site']==='cross-site'&&!goalPoll){response(res,403,{message:'Cross-site requests are not allowed.'});return;}
   res.setHeader('X-Content-Type-Options','nosniff');res.setHeader('Referrer-Policy','no-referrer');
   const url=new URL(req.url,'http://127.0.0.1:'+port);
@@ -269,6 +272,19 @@ const server=http.createServer(async(req,res)=>{
       }catch(e){response(res,400,{ok:false,message:e.message});}
       return;
     }
+    if(url.pathname==='/api/moments/overlay'&&req.method==='GET'){res.setHeader('Access-Control-Allow-Origin','*');res.setHeader('Cache-Control','no-store');response(res,200,moments.overlay());return;}
+    if(url.pathname.startsWith('/api/moments')){
+      if(!validToken(req)){response(res,403,{message:'Open Voyager Control › On-screen moments.'});return;}
+      if(url.pathname==='/api/moments'&&req.method==='GET'){response(res,200,{...moments.view(),connected:bot.status.connected});return;}
+      if(req.method!=='POST'||!req.headers['content-type']?.startsWith('application/json')){response(res,405,{message:'Method not allowed.'});return;}
+      try{const input=await body(req,65536);
+        if(url.pathname==='/api/moments/settings'){response(res,200,{ok:true,...moments.configure(input||{})});return;}
+        if(url.pathname==='/api/moments/element'){response(res,200,{ok:true,...moments.setElement(String(input?.key||''),input?.on===true)});return;}
+        if(url.pathname==='/api/moments/test'){const ev=moments.test(String(input?.kind||''));response(res,200,{ok:true,event:ev});return;}
+        if(url.pathname==='/api/moments/surge'){moments.clearSurge();response(res,200,{ok:true,...moments.view()});return;}
+        response(res,404,{message:'Not found.'});}
+      catch(e){response(res,400,{ok:false,message:e.message});}
+      return;}
     if(url.pathname==='/api/medals/overlay'&&req.method==='GET'){res.setHeader('Cache-Control','no-store');response(res,200,medals.overlay());return;}
     if(url.pathname.startsWith('/api/medals')){
       if(!validToken(req)){response(res,403,{message:'Open Voyager Control › Medals.'});return;}
@@ -403,6 +419,7 @@ const server=http.createServer(async(req,res)=>{
 let ticks=0;const timer=setInterval(()=>{
   try{boss.tick();}catch{}
   if(ticks%5===0)void fleetCamera.tick();
+  if(ticks%20===0)try{moments.tick();}catch{}
   try{game.tick(.1);}catch{game.paused=true;game.note('Host storage error. Check the game folder before restarting.');}ticks++;
   if(ticks%10===0){try{engage.tick();engage.observePilots();}catch{}community?.roll(Date.now());void publicSite?.tick();void pilots.tick();void rewards.tick();void announcements.tick();void matchChat.tick();}
   // Medals: read the action's export every minute, work out medals every 30 s, post grouped chat lines.
