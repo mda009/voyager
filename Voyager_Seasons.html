@@ -47,8 +47,8 @@
 <section class="card cs-panel" aria-labelledby="panel-h">
 <div class="card-heading"><div><span class="eyebrow">OBS PANEL</span><h2 id="panel-h">Show on stream</h2></div><span class="st-pill" id="panel-state" data-state="wait">Hidden</span></div>
 <form id="panel-form" class="cs-form cs-panel-form">
-<label class="wide">Show<select name="kind"><option value="season">Community goal standings</option><option value="goals">Community goals</option><option value="hall">Hall of Fame</option><option value="missions">This week's missions</option></select></label>
-<label>Rows<input name="limit" type="number" min="3" max="10"></label>
+<label class="wide">Show<select name="kind"><option value="season">Community goal standings</option><option value="goals">Community goals</option><option value="helpers">Community goal contributors</option><option value="hall">Hall of Fame</option><option value="missions">This week's missions</option></select></label>
+<label>Rows<input name="limit" type="number" min="3" max="10" title="For Community goal contributors: people shown per goal"></label>
 <label>Show for (seconds, 0 = until hidden)<input name="duration" type="number" min="0" max="600"></label>
 <label class="wide">Title (optional)<input name="title" maxlength="80" placeholder="Uses the community goal name"></label>
 <details class="wide"><summary>Position and look</summary><div class="cs-form">
@@ -60,6 +60,7 @@
 <div class="cs-preview"><iframe id="panel-preview" title="Panel preview" src="Voyager_Community_Panel.html?preview=1&amp;compact=1"></iframe></div>
 <p class="st-hint">OBS: add a <b>Browser</b> source, 1920 × 1080, with this address. Leave "Local file" unticked.</p>
 <div class="cs-url"><code id="panel-url"></code><button type="button" id="panel-copy">Copy</button></div>
+<p class="st-hint"><b>Community goal contributors</b> lists, under each goal, the crew members who have given the most (gifted subs, subs, points or Versus wins), ranked with a bar against the top helper and whether they have reached the minimum for the reward: the same leaderboard look as the standings panel, per goal. Rows is the number of people per goal.</p>
 </section>
 <section class="card cs-panel" aria-labelledby="xmas-h">
 <div class="card-heading"><div><span class="eyebrow">OBS · FESTIVE PANEL</span><h2 id="xmas-h">Christmas goal panel</h2></div></div>

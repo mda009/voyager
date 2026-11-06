@@ -75,7 +75,7 @@ export function weekStart(now){const d=new Date(now);d.setHours(0,0,0,0);d.setDa
 export function dayId(now){const d=new Date(now);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 
 // On-stream panel (2.14): same look and placement options as the OBS leaderboard panel.
-export const PANEL_KINDS={season:'Community goal standings',goals:'Community goals',hall:'Hall of Fame',missions:"This week's missions"};
+export const PANEL_KINDS={season:'Community goal standings',goals:'Community goals',helpers:'Community goal contributors',hall:'Hall of Fame',missions:"This week's missions"};
 export const PANEL_DEFAULTS={kind:'season',limit:10,speed:14,width:356,top:132,right:16,opacity:40,duration:0,title:''};
 export function normalizePanel(raw){
   const r=raw&&typeof raw==='object'?raw:{},c={};
@@ -371,7 +371,9 @@ export class Community{
   }
   panelView(){const p=this.state.panel||{config:{...PANEL_DEFAULTS},visible:false,expiresAt:0,revision:0};return {config:p.config,visible:p.visible&&(!p.expiresAt||this.now()<p.expiresAt),expiresAt:p.expiresAt,revision:p.revision||0};}
   // What the OBS panel reads (local only). Real names: it's shown on your own stream, like the other panels.
-  overlay(){this.roll(this.now());return {serverAt:this.now(),panel:this.panelView(),...this.publicView()};}
+  overlay(){this.roll(this.now());const pv=this.publicView(),full=this.goalProgress();
+    // 2.20.62: the contributors panel lists who helped each goal and by how much (top 25 per goal), with the goal's minimum and reward.
+    return {serverAt:this.now(),panel:this.panelView(),...pv,season:{...pv.season,goals:pv.season.goals.map((g,i)=>({...g,contributors:full[i]?.contributors||0,minimum:full[i]?.minimum||1,people:(full[i]?.helpers||[]).slice(0,25).map(h=>({name:h.name,platform:h.platform,count:h.count}))}))}};}
   view(){
     const s=this.state,missions=s.missions.map(m=>{const p=this.progressFor(m);return {...m,typeLabel:TYPES[m.type].label,unit:TYPES[m.type].unit,started:p.length,completed:p.filter(x=>x.done).length,top:p.slice(0,8)};});
     return {missions,week:{id:s.week.id,endsAt:s.week.id+7*DAY},members:Object.keys(s.members).length,payables:this.payables(),

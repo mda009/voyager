@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.62 (6 November 2026)
+
+**Community goal contributors panel.** A new choice for the on-stream community panel (Community goals › OBS panel › Show, and the Stream deck): under each running goal (a heading row with its progress bar, total and how many are helping), the crew members who have given the most are ranked with what they gave (gifted subs, subs, points or Versus wins), a bar against the top helper, and whether they have reached the goal's minimum for the reward. Rows sets the people per goal; names are real, as on the standings panel (local overlay only; the website still shows counts). Goal values over 10,000 are shortened (25k) so reached goals fit.
+
 ## 2.20.61 (5 November 2026)
 
 **Camera spotlight cues now come from Voyager itself.** Until now only the Fleet overlay browser source in OBS told Streamer.bot when an alert started and ended, so an old copy of the overlay in OBS (cached, or loaded as a local file from an old folder; its diagnostics say a build below 1.13) showed the frame but never the camera. The Voyager host hears the same alert queue from the Fleet Alerts broadcasts and now sends the start cue when an alert begins and the end cue after the alert plus the hold (`local/fleet-camera.mjs`, every 0.5 s while connected to Streamer.bot). The action ignores a repeated start or hide, so the overlay's own cues still work alongside. Support alerts › Camera spotlight shows the host's last cue; the frame's `?debug=1` readout too. Tip: point OBS browser sources at the Voyager host (`http://127.0.0.1:8740/control/Voyager_Fleet_Overlay.html`) instead of a local file, so they are always the current version.

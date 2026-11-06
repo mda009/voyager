@@ -193,3 +193,15 @@ test('2.20.21 medal missions: weekly progress on medal counters, linked medals, 
   assert.deepEqual(p('fight').map(r=>[r.name,r.done]),[['Nova',true]]);
   assert.equal(c.view().missionMedals.watchHours,'watch');assert.equal(c.publicView().missions[0].medal,'watch');
 });
+
+test('contributors panel: the overlay lists who helped each goal and by how much (2.20.62)',async()=>{
+  const monday=weekStart(Date.UTC(2026,10,2)),{c,set}=await make(monday);
+  c.receive([{key:'twitch:1',name:'Nova',login:'nova',capturedIn:10},{key:'kick:2',name:'Orion',capturedIn:10}]);
+  c.receiveSupport([{key:'kick:2',name:'Orion',gifts:0,giftsAt:0},{key:'twitch:1',name:'Nova',gifts:0,giftsAt:0}]);
+  c.startSeason({name:'Christmas 2026',endsAt:monday+50*DAY,goals:[{id:'gifts',title:'Gift 10 subs',metric:'gifts',platform:'all',target:10,reward:100,minimum:2}]});
+  set(monday+DAY);c.receiveSupport([{key:'kick:2',name:'Orion',gifts:3,giftsAt:monday+DAY},{key:'twitch:1',name:'Nova',gifts:1,giftsAt:monday+DAY}]);
+  const g=c.overlay().season.goals[0];
+  assert.deepEqual(g.people,[{name:'Orion',platform:'kick',count:3}],'below the minimum is not listed');assert.equal(g.contributors,2);assert.equal(g.minimum,2);assert.equal(g.total,4);
+  assert.equal(c.publicView().season.goals[0].people,undefined,'the website only gets counts');
+  assert.equal(c.setPanel({config:{kind:'helpers',limit:5}}).config.kind,'helpers');
+});
