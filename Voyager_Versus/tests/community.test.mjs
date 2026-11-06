@@ -205,3 +205,11 @@ test('contributors panel: the overlay lists who helped each goal and by how much
   assert.equal(c.publicView().season.goals[0].people,undefined,'the website only gets counts');
   assert.equal(c.setPanel({config:{kind:'helpers',limit:5}}).config.kind,'helpers');
 });
+
+test('receive reports points added since the last ledger (2.20.65)',async()=>{
+  const monday=weekStart(Date.UTC(2026,10,2)),{c}=await make(monday);const got=[];c.onPoints=l=>got.push(l);
+  c.receive([{key:'twitch:1',name:'Nova',capturedIn:100,points:80},{key:'kick:2',name:'Orion',capturedIn:50}]);assert.equal(got.length,0,'the first ledger is a baseline');
+  c.receive([{key:'twitch:1',name:'Nova',capturedIn:160,points:140},{key:'kick:2',name:'Orion',capturedIn:50}]);
+  assert.equal(got.length,1);assert.deepEqual(got[0],[{key:'twitch:1',name:'Nova',platform:'twitch',amount:60,total:160,balance:140}]);
+  c.receive([{key:'twitch:1',name:'Nova',capturedIn:160,points:40}]);assert.equal(got.length,1,'spending is not a gain');
+});

@@ -120,7 +120,7 @@ export function normalizeGoals(raw){
 const onPlatform=(want,platform)=>!want||want==='all'||want===platform;
 
 export class Community{
-  constructor({dataDir,now=Date.now}){this.dataDir=dataDir;this.now=now;this.state=this.fresh();this.saving=Promise.resolve();this.pilots=()=>[];this.boss=()=>[];}
+  constructor({dataDir,now=Date.now}){this.dataDir=dataDir;this.now=now;this.state=this.fresh();this.saving=Promise.resolve();this.pilots=()=>[];this.boss=()=>[];this.onPoints=()=>{};}
   fresh(){
     const now=this.now();
     return {schema:1,missions:normalizeMissions([...DEFAULT_MISSIONS,...SUB_MISSIONS]),subSeeded:true,rewards2161:true,members:{},support:{},supportAt:0,
@@ -163,7 +163,7 @@ export class Community{
   // Called with the points ledger members (from the publisher page) about once a minute.
   receive(list){
     const now=this.now(),s=this.state;this.roll(now);
-    const today=dayId(now);let changed=false;
+    const today=dayId(now);let changed=false;const gained=[]; // 2.20.65: points added since the last ledger, for the on-screen animation
     for(const m of Array.isArray(list)?list.slice(0,20000):[]){
       const key=clean(m?.key,120);if(!/^(twitch|youtube|kick):/.test(key))continue;
       const value=metric(m);if(value===null)continue;
@@ -172,10 +172,11 @@ export class Community{
       s.members[key]={name:clean(m.name||m.login,60)||key,login:clean(m.login,60).toLowerCase(),platform:key.split(':')[0],value,...(Number.isFinite(balance)&&balance>=0?{balance}:{}),...(['blue','silver','gold','platinum'].includes(m.tier)?{tier:m.tier}:{}),...(m.vip===true?{vip:true}:{}),...(m.emerald===true?{emerald:true}:{}),seen:now};
       if(s.week.baseline[key]===undefined){s.week.baseline[key]=value;changed=true;}
       if(s.season.baseline[key]===undefined){s.season.baseline[key]=value;changed=true;}
-      if(prev&&value>prev.value){const d=s.week.days[key]||(s.week.days[key]=[]);if(!d.includes(today)){d.push(today);changed=true;}}
+      if(prev&&value>prev.value){const d=s.week.days[key]||(s.week.days[key]=[]);if(!d.includes(today)){d.push(today);changed=true;}gained.push({key,name:s.members[key].name,platform:s.members[key].platform,amount:value-prev.value,total:value,balance:s.members[key].balance});}
       if(!prev||prev.value!==value)changed=true;
     }
     this.notePilots();this.noteMedals();
+    if(gained.length)try{this.onPoints(gained);}catch{}
     if(changed)this.persist();
     return this.view();
   }

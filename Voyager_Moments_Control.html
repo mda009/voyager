@@ -66,14 +66,20 @@
 <label>Ticker: forget events after (min)<input name="tickerMinutes" type="number" min="5" max="240"></label>
 <label>Medal toast shows for (s)<input name="toastSeconds" type="number" min="3" max="20"></label>
 <label>Goals strip top edge (px from the top of 1080)<input name="goalsStripTop" type="number" min="0" max="1080"></label>
+<label>Points added: show gains of at least<input name="pointsMin" type="number" min="1" max="100000"></label>
+<label>Points added: chips per ledger (rest summed)<input name="pointsMax" type="number" min="1" max="12"></label>
+<label>Points chip floats for (s)<input name="pointsSeconds" type="number" min="2" max="12"></label>
+<label>Stream streak: from (streams in a row)<input name="streakMin" type="number" min="2" max="100"></label>
+<label>Streak comets per scan (rest summed)<input name="streakMax" type="number" min="1" max="12"></label>
+<label>Streak comet crosses in (s)<input name="streakSeconds" type="number" min="2" max="12"></label>
 <div class="wide" style="display:flex;gap:8px;flex-wrap:wrap"><button type="submit" class="primary">Save settings</button><button type="button" id="reset">Defaults</button></div>
 </form>
-<p class="st-hint">The crew surge is a display: it shows the pile-up and a timer and does not change points by itself. The medal toast is off by default because the <b>medals.html</b> source already shows one; turn it on here only if you remove that source.</p>
+<p class="st-hint"><b>Points added</b> plays when the Points Ledger reports gains (every 30 s or so while Voyager runs): one chip per member, largest first, the rest summed into one chip. <b>Stream streak</b> plays when a member earns their first points of the day on consecutive stream days. The crew surge is a display: it shows the pile-up and a timer and does not change points by itself. The medal toast is off by default because the <b>medals.html</b> source already shows one; turn it on here only if you remove that source.</p>
 </section>
 
 <section class="card mo-card">
 <div class="card-heading"><div><span class="eyebrow">TESTS</span><h2>See each one on stream</h2></div></div>
-<div class="mo-tests"><button type="button" data-test="support">Sample gift</button><button type="button" data-test="medal">Sample medal</button><button type="button" data-test="promo">Sample promotion</button><button type="button" data-test="versus">Sample Versus result</button><button type="button" data-test="dread">Sample Dreadnought result</button><button type="button" data-test="surge">Start a crew surge</button><button type="button" data-test="goals">Sample goal reading</button><button type="button" id="surge-clear">End the surge</button></div>
+<div class="mo-tests"><button type="button" data-test="support">Sample gift</button><button type="button" data-test="medal">Sample medal</button><button type="button" data-test="promo">Sample promotion</button><button type="button" data-test="versus">Sample Versus result</button><button type="button" data-test="dread">Sample Dreadnought result</button><button type="button" data-test="surge">Start a crew surge</button><button type="button" data-test="goals">Sample goal reading</button><button type="button" data-test="points">Sample points added</button><button type="button" data-test="streak">Sample stream streak</button><button type="button" id="surge-clear">End the surge</button></div>
 <p class="st-hint">Samples go through the real overlay (ticker, toast, ceremony) with the name <i>Sample Pilot</i>. The Dreadnought HUD follows the real fight: call one from the Stream deck to see it. The next-celebration chip needs the goals reading from Streamer.bot (<b>Voyager - Read OBS Percentages</b> runs every 2 s while the goals strip is set up); the sample reading lasts two minutes.</p>
 </section>
 
@@ -84,8 +90,8 @@
 </div>
 </main>
 </div>
-<script src="moments-control.js?v=2.20.64"></script>
-<script src="voyager-shell.js?v=2.20.64"></script>
+<script src="moments-control.js?v=2.20.65"></script>
+<script src="voyager-shell.js?v=2.20.65"></script>
 <script src="voyager-navigation.js"></script>
 </body>
 </html>

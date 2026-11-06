@@ -49,3 +49,13 @@ test('settings validate, persist and toggle elements; command use quiets the hin
   assert.equal(normalizeSettings({}).elements.toast,false,'medal toasts are off by default (medals.html has its own)');
   assert.equal(m.test('surge').kind,'surge');assert.equal(m.surge().active,true);m.clearSurge();assert.equal(m.surge().active,false);
 });
+test('points added and stream streaks become batch events, largest first, with the small ones only counted (2.20.65)',async()=>{
+  const {m}=await make();
+  const e=m.points([{name:'A',platform:'twitch',amount:10,total:100},{name:'B',platform:'kick',amount:150,total:900},{name:'C',platform:'twitch',amount:2,total:50},{name:'D',amount:0}]);
+  assert.equal(e.kind,'points');assert.deepEqual(e.items.map(x=>x.name),['B','A'],'2 points is below pointsMin');assert.equal(e.count,3);assert.equal(e.sum,162);assert.equal(e.top.name,'B');
+  assert.equal(m.points([]),null);
+  const s=m.streaks([{name:'A',platform:'twitch',streak:1,best:4},{name:'B',platform:'twitch',streak:5,best:5},{name:'C',platform:'twitch',streak:2,best:2}]);
+  assert.equal(s.kind,'streak');assert.deepEqual(s.items.map(x=>x.streak),[5,2],'a single day is not a streak');assert.equal(s.count,2);
+  m.configure({pointsMax:1,streakMax:1,pointsMin:1});const e2=m.points([{name:'A',amount:3},{name:'B',amount:7}]);assert.equal(e2.items.length,1);assert.equal(e2.items[0].name,'B');
+  assert.equal(m.overlay().elements.points,true);assert.equal(m.overlay().pointsSeconds,4);assert.equal(m.test('points').kind,'points');assert.equal(m.test('streak').items[0].streak,5);
+});

@@ -95,7 +95,7 @@ export function normalizeMedalSettings(raw={},base=MEDAL_DEFAULTS){
 }
 
 export class Medals{
-  constructor({dataDir,now=Date.now,say=()=>{}}={}){
+  constructor({dataDir,now=Date.now,say=()=>{},onStreak=()=>{}}={}){this.onStreak=onStreak;this.streaks=[];
     this.dataDir=dataDir;this.now=now;this.say=say;this.state=this.fresh();this.saving=Promise.resolve();this.dirty=false;this.savedAt=0;
     this.community=null;this.startedAt=now();this.lastChatAt=0;this.replyAt=new Map();this.lastReplyAt=0;
   }
@@ -185,6 +185,7 @@ export class Medals{
       if(prev!==undefined&&value>prev)this.attended(v,now);
       this.state.pv[key]=value;
     }
+    if(this.streaks.length){const list=this.streaks;this.streaks=[];try{this.onStreak(list);}catch{}}
     // Weekly missions completed (each mission counts once per week).
     let completions=[];try{completions=community.completions();}catch{}
     for(const c of completions){
@@ -217,6 +218,7 @@ export class Medals{
     const recent=v.c.ad||[];
     v.c.streak=prev&&recent.includes(prev)?(v.c.streak||0)+1:1;
     v.c.bestStreak=Math.max(v.c.bestStreak||0,v.c.streak);
+    if(v.c.streak>=2)this.streaks.push({name:v.name,platform:v.platform,streak:v.c.streak,best:v.c.bestStreak}); // 2.20.65: stream streak kept, for the on-screen animation
     v.c.ad=[...recent,day].slice(-6);v.c.lastDay=day;this.inc(v,'days');
   }
   observePilots(rankings){

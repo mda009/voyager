@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.65 (6 November 2026)
+
+**Points added and stream streak animations.** Two more on-screen moments on the same overlay, on by default: **Points added** floats a chip up the left side for every member the Points Ledger reports a gain for (amount and new total, largest first, up to 6 per ledger with the rest summed into one chip; gains under 5 are only counted), and **Stream streak** sends a comet with a trail across the upper screen when a member keeps a stream streak (first points of the day on consecutive stream days: name, ×length, personal best; up to 5 per scan, the rest summed). Both also appear in the Right now ticker. Hooks: `community.onPoints` (gains between ledgers) and `medals.onStreak` (from the stream-day logic). Settings and sample buttons on the On-screen moments page.
+
 ## 2.20.64 (6 November 2026)
 
 **On-screen moments.** One transparent OBS source, `Voyager_Moments.html`, with seven elements switched from the Stream deck (new "On-screen moments" row) or the new **On-screen moments** page: command hints (top-left, rotating, quiet after a command is used), crew surge (top-right chip when supports pile up, timer topped up by each support; display only), Dreadnought live HUD (hull, clocks, speed goals, top five by damage), promotion ceremony (from a chosen rank, sleeve lace and seal), next-celebration chip (distance to the next Silver / Gold / Platinum celebration from the goal reading), the "Right now" ticker (last events: medals, supports, Versus, promotions, Dreadnought), and an optional medal toast (off by default; `medals.html` already shows one). Host: `local/moments.mjs` builds the event feed from the Fleet Alerts queue, the Medals recent list, card promotions, Versus match results and Dreadnought results, and now listens to the `mda009.voyager.goals` reading; `GET /api/moments/overlay` (public, local), `/api/moments` settings, element toggle, tests. `MOMENTS_SETUP.html`; guide and Help links.

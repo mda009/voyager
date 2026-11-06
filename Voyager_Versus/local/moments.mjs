@@ -5,17 +5,18 @@
 // Events feed the ticker: support alerts (Fleet Alerts queue), medals (Medals recent list), Versus results, promotions, Dreadnought results.
 import {readFile,writeFile,mkdir,rename} from 'node:fs/promises';
 import {join} from 'node:path';
-export const ELEMENTS={hints:'Command hints',surge:'Crew surge',dread:'Dreadnought live HUD',promo:'Promotion ceremony',next:'Next-celebration chip',ticker:'Right now ticker',toast:'Medal toasts'};
+export const ELEMENTS={hints:'Command hints',surge:'Crew surge',dread:'Dreadnought live HUD',promo:'Promotion ceremony',next:'Next-celebration chip',ticker:'Right now ticker',toast:'Medal toasts',points:'Points added',streak:'Stream streak'};
 export const RANK_NAMES=['Midshipman','Acting Sub-Lieutenant','Sub-Lieutenant','Lieutenant','Lieutenant Commander','Commander','Captain','Commodore','Rear Admiral','Vice Admiral','Admiral','Admiral of the Fleet'];
 export const RANK_ABBR=['MIDN','ASLT','SBLT','LEUT','LCDR','CMDR','CAPT','CDRE','RADM','VADM','ADML','AF'];
 const STAGE={1:'follow',2:'sub',3:'gift',4:'resub',5:'bits',6:'raid'};
 const TIERS=['silver','gold','platinum'],TIER_LABEL={silver:'Silver',gold:'Gold',platinum:'Platinum'};
 export const DEFAULTS={
-  elements:{hints:true,surge:true,dread:true,promo:true,next:true,ticker:true,toast:false},
+  elements:{hints:true,surge:true,dread:true,promo:true,next:true,ticker:true,toast:false,points:true,streak:true},
   hints:[{cmd:'!voyager',text:'Shows your membership card'},{cmd:'!versus',text:'Challenge a pilot in the arena'},{cmd:'!report',text:'Report for duty and earn points'},{cmd:'!medals',text:'See the medals you have earned'}],
   hintSeconds:20,hintQuietMinutes:10,
   surge:{count:5,windowMinutes:3,durationMinutes:5,label:'CREW SURGE'},
   promoMin:7,promoSeconds:9,tickerCount:10,tickerMinutes:30,toastSeconds:6,
+  pointsMin:5,pointsMax:6,pointsSeconds:4,streakMin:2,streakMax:5,streakSeconds:4,
   goalsStripTop:1010,
 };
 const clean=(v,max)=>String(v??'').replace(/[\u0000-\u001f\u007f]/g,' ').trim().slice(0,max);
@@ -25,7 +26,7 @@ export function normalizeSettings(raw,base=DEFAULTS){
   if(r.elements&&typeof r.elements==='object')for(const k of Object.keys(ELEMENTS))if(r.elements[k]!==undefined)s.elements[k]=r.elements[k]===true;
   if(r.hints!==undefined){if(!Array.isArray(r.hints)||r.hints.length>12)throw new Error('Up to 12 hints.');
     s.hints=r.hints.map(h=>({cmd:clean(h?.cmd,24),text:clean(h?.text,60)})).filter(h=>h.cmd&&h.text);}
-  for(const [k,min,max] of [['hintSeconds',5,120],['hintQuietMinutes',0,60],['promoMin',0,11],['promoSeconds',4,30],['tickerCount',3,20],['tickerMinutes',5,240],['toastSeconds',3,20],['goalsStripTop',0,1080]])
+  for(const [k,min,max] of [['hintSeconds',5,120],['hintQuietMinutes',0,60],['promoMin',0,11],['promoSeconds',4,30],['tickerCount',3,20],['tickerMinutes',5,240],['toastSeconds',3,20],['goalsStripTop',0,1080],['pointsMin',1,100000],['pointsMax',1,12],['pointsSeconds',2,12],['streakMin',2,100],['streakMax',1,12],['streakSeconds',2,12]])
     if(r[k]!==undefined){const n=int(r[k],min,max);if(n===null)throw new Error(k+' must be a whole number between '+min+' and '+max+'.');s[k]=n;}
   if(r.surge&&typeof r.surge==='object'){for(const [k,min,max] of [['count',2,20],['windowMinutes',1,30],['durationMinutes',1,60]])if(r.surge[k]!==undefined){const n=int(r.surge[k],min,max);if(n===null)throw new Error('Crew surge '+k+' must be a whole number between '+min+' and '+max+'.');s.surge[k]=n;}
     if(r.surge.label!==undefined)s.surge.label=clean(r.surge.label,24)||'CREW SURGE';}
@@ -66,6 +67,14 @@ export class Moments{
   // Giveaway goals reading (Streamer.bot "Voyager - Read OBS Percentages", channel mda009.voyager.goals).
   goalsReading(packet){const s=packet?.samples;if(!s||typeof s!=='object')return;const out={};for(const t of TIERS){const x=s[t];if(x&&typeof x.points==='number')out[t]={points:Math.max(0,x.points),target:Number(x.targetPoints)>0?Number(x.targetPoints):0};}
     if(Object.keys(out).length){this.goals=out;this.goalsAt=this.now();}}
+  // 2.20.65: points added to members' accounts since the last ledger (every ~30 s) become one batch event; the overlay
+  // floats up to pointsMax chips (largest first) and sums the rest. Below pointsMin a gain is only counted in the batch.
+  points(list){const s=this.settings,items=(Array.isArray(list)?list:[]).filter(x=>Number(x?.amount)>0).map(x=>({name:clean(x.name,40),platform:x.platform,amount:Math.round(Number(x.amount)),total:Math.round(Number(x.total)||0)})).sort((a,b)=>b.amount-a.amount);
+    if(!items.length)return null;const shown=items.filter(x=>x.amount>=s.pointsMin).slice(0,s.pointsMax);const sum=items.reduce((a,x)=>a+x.amount,0);
+    return this.push({kind:'points',items:shown,count:items.length,sum,top:items[0]});}
+  // Stream streaks kept today (a viewer earned points on consecutive stream days): one batch event per scan.
+  streaks(list){const s=this.settings,items=(Array.isArray(list)?list:[]).filter(x=>Number(x?.streak)>=s.streakMin).map(x=>({name:clean(x.name,40),platform:x.platform,streak:Number(x.streak),best:Number(x.best)||0})).sort((a,b)=>b.streak-a.streak);
+    if(!items.length)return null;return this.push({kind:'streak',items:items.slice(0,s.streakMax),count:items.length,top:items[0]});}
   commandSeen(){this.lastCommandAt=this.now();}
   nextCelebration(){const g=this.goals;if(!g||this.now()-this.goalsAt>120000)return null;const order=TIERS.filter(t=>g[t]&&g[t].target>0);
     const open=order.filter(t=>g[t].points<g[t].target);if(!open.length)return {done:true,tier:'platinum',label:'ALL CELEBRATIONS REACHED',remaining:0};
@@ -76,13 +85,15 @@ export class Moments{
   test(kind){const samples={support:()=>this.support('gift','Sample Gifter',{amount:3,test:true}),medal:()=>this.push({kind:'medal',name:'Sample Pilot',platform:'twitch',medal:'watch',title:'Night Watch',grade:0,gradeName:'Bronze',test:true}),
     promo:()=>this.push({kind:'promo',name:'Sample Pilot',platform:'twitch',from:7,to:8,place:4,test:true}),versus:()=>this.push({kind:'versus',winner:'Sample Pilot',loser:'Sample Rival',duration:38,test:true}),
     dread:()=>this.push({kind:'dread',outcome:'victory',speed:'hero',elapsed:98,bonus:10,top:'Sample Pilot',pilots:7,test:true}),surge:()=>{const now=this.now();this.surgeStartedAt=now;this.surgeCount=this.settings.surge.count;this.surgeUntil=now+this.settings.surge.durationMinutes*60000;return {kind:'surge',test:true};},
+    points:()=>this.points([{name:'Sample Pilot',platform:'twitch',amount:150,total:12650},{name:'Sample Rival',platform:'kick',amount:40,total:3200},{name:'Sample Scout',platform:'youtube',amount:10,total:410}]),
+    streak:()=>this.streaks([{name:'Sample Pilot',platform:'twitch',streak:5,best:5},{name:'Sample Rival',platform:'twitch',streak:2,best:9}]),
     goals:()=>{this.goalsReading({samples:{silver:{points:22,targetPoints:25},gold:{points:22,targetPoints:50},platinum:{points:22,targetPoints:100}}});return {kind:'goals',test:true};}};
     if(!samples[kind])throw new Error('Unknown test.');return samples[kind]();}
   clearSurge(){this.surgeUntil=0;this.supports=[];}
   overlay(){const now=this.now(),s=this.settings,b=this.bossView();
     const dread=b&&b.phase&&b.phase!=='idle'?{phase:b.phase,hp:b.hp,maxHp:b.maxHp,startedAt:b.startedAt,endsAt:b.endsAt,lobbyEndsAt:b.lobbyEndsAt,outcome:b.outcome||'',speed:b.speed||'',bonus:b.bonus||0,elapsed:b.elapsed||0,endedAt:b.endedAt||0,shield:!!b.shield,goals:b.goals,leaders:(b.leaders||[]).slice(0,5),pilots:b.pilots||0,name:b.name,demo:!!b.demo}:null;
     return {serverAt:now,revision:this.revision,elements:s.elements,hints:s.hints,hintSeconds:s.hintSeconds,hintsQuietUntil:this.lastCommandAt?this.lastCommandAt+s.hintQuietMinutes*60000:0,
-      surge:this.surge(),dread,next:this.nextCelebration(),promoMin:s.promoMin,promoSeconds:s.promoSeconds,toastSeconds:s.toastSeconds,goalsStripTop:s.goalsStripTop,
+      surge:this.surge(),dread,next:this.nextCelebration(),promoMin:s.promoMin,promoSeconds:s.promoSeconds,toastSeconds:s.toastSeconds,goalsStripTop:s.goalsStripTop,pointsSeconds:s.pointsSeconds,streakSeconds:s.streakSeconds,
       events:this.events.filter(e=>now-e.at<=s.tickerMinutes*60000).slice(0,s.tickerCount),toasts:s.elements.toast?(this.medalToasts()||[]).filter(t=>now-t.at<5*60000).slice(-10).map(t=>({...t,icon:this.medalIcon(t.medal)||''})):[]};}
   view(){return {settings:this.settings,defaults:DEFAULTS,elements:ELEMENTS,ranks:RANK_NAMES,revision:this.revision,surge:this.surge(),next:this.nextCelebration(),goalsAt:this.goalsAt,events:this.events.slice(0,20),dread:this.bossView()?.phase||'idle'};}
 }

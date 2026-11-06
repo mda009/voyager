@@ -45,7 +45,7 @@ test('Loyalty, support and Hall of Honour medals count double for Honour; specia
 });
 
 test('Stream streaks follow stream days, and nights after midnight count towards Night Watch',async()=>{
-  const {m,at}=await make();m.state.backfilled=true;
+  const {m,at}=await make();m.state.backfilled=true;const streaks=[];m.onStreak=l=>streaks.push(...l);
   const members={};for(const k of ['twitch:1','twitch:2','twitch:3','twitch:4'])members[k]={name:k,platform:'twitch',value:0};
   const c=fakeCommunity(members);m.observeCommunity(c);
   for(let d=0;d<6;d++){
@@ -55,6 +55,8 @@ test('Stream streaks follow stream days, and nights after midnight count towards
   assert.equal(m.state.viewers['twitch:1'].c.bestStreak,6);assert.equal(m.state.viewers['twitch:1'].c.days,6);
   assert.equal(m.state.viewers['twitch:3'].c.streak,2,'missing a stream day resets the streak');
   assert.equal(m.state.viewers['twitch:3'].c.bestStreak,3);
+  // 2.20.65: the on-screen animation hears every streak of 2+ kept (not first days)
+  assert.equal(streaks.filter(x=>x.name==='twitch:1').map(x=>x.streak).join(','),'2,3,4,5,6');assert.equal(streaks.filter(x=>x.name==='twitch:3').map(x=>x.streak).join(','),'2,3,2');
 });
 
 test('Rank medals go to the biggest supporters and longest-serving viewers, and the best grade is kept',async()=>{

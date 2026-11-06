@@ -3,7 +3,7 @@
 <body><main>
 <p><a href="Voyager_Guide.html">← Voyager guide</a></p>
 <h1>On-screen moments</h1>
-<p>Seven small glass elements on one transparent OBS source (2.20.64), fed by what Voyager already knows. Switch each one from <b>Stream deck › On-screen moments</b> or <b>Voyager Control › On-screen moments</b>; the overlay follows within 2 seconds.</p>
+<p>Nine small glass elements on one transparent OBS source (2.20.64–65), fed by what Voyager already knows. Switch each one from <b>Stream deck › On-screen moments</b> or <b>Voyager Control › On-screen moments</b>; the overlay follows within 2 seconds.</p>
 <table><tr><th>Element</th><th>Where</th><th>What it shows</th></tr>
 <tr><td>Command hints</td><td>Top-left</td><td>Your chat commands, one at a time (edit the list on the control page). Hides for 10 minutes after anyone uses a command.</td></tr>
 <tr><td>Crew surge</td><td>Top-right</td><td>When 5 supports (follows, subs, gifts, resubs, bits, raids from the Fleet Alerts queue) land within 3 minutes: the count and a 5-minute timer that each new support tops up. A display only: it does not change points.</td></tr>
@@ -11,6 +11,8 @@
 <tr><td>Promotion ceremony</td><td>Centre-top</td><td>When someone reaches the chosen rank or above (default Commodore): sleeve lace, name, from → to, abbreviation seal, all-time place for the top ranks. 9 s, one at a time.</td></tr>
 <tr><td>Next-celebration chip</td><td>Above the goals strip</td><td>How far the community points are from the next Silver / Gold / Platinum celebration, from the same goal reading the goals strip and Goal FX use. Pulses when close.</td></tr>
 <tr><td>Right now ticker</td><td>Bottom</td><td>The last 10 events: medals, supports (with the distance to the next celebration), Versus results, promotions, Dreadnought results, plus the live hull while a fight runs. Forgets events after 30 minutes.</td></tr>
+<tr><td>Points added</td><td>Left, rising</td><td>Whenever the Points Ledger reports gains (about every 30 s while Voyager runs): one chip per member with the amount and their new total, largest first, up to 6; the rest are summed into one chip. Gains under the minimum (default 5) are only counted.</td></tr>
+<tr><td>Stream streak</td><td>Across the upper screen</td><td>A comet with a trail when a member earns their first points of the day on consecutive stream days (×2 and up): name, streak length, personal best. Up to 5 per scan, the rest summed ("Stream streaks kept · 23 crew · longest ×12").</td></tr>
 <tr><td>Medal toast</td><td>Bottom-left</td><td>Off by default: the <code>medals.html</code> source already shows medal toasts. Turn this on only if you remove that source.</td></tr></table>
 <div class="card"><h2 style="margin-top:0">OBS</h2>
 <ol><li>Add one <b>Browser</b> source to each scene where you want these (or to a nested "Overlays" scene): 1920 × 1080, untick Local file, address <code>http://127.0.0.1:8740/control/Voyager_Moments.html</code> (copy it from the control page). Leave "Shutdown source when not visible" off.</li>

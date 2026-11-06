@@ -7,18 +7,18 @@ const hosted=location.protocol==='http:'&&/^(127\.0\.0\.1|localhost)$/.test(loca
 const RANKS=['Midshipman','Acting Sub-Lieutenant','Sub-Lieutenant','Lieutenant','Lieutenant Commander','Commander','Captain','Commodore','Rear Admiral','Vice Admiral','Admiral','Admiral of the Fleet'],ABBR=['MIDN','ASLT','SBLT','LEUT','LCDR','CMDR','CAPT','CDRE','RADM','VADM','ADML','AF'];
 const METAL=[['linear-gradient(180deg,#ffe6cc,#f0a868 30%,#a5582a 52%,#6e3510 60%,#d68a4c 84%,#ffd9b0)','#f0b07a','BRONZE'],['linear-gradient(180deg,#ffffff,#d9e2ec 30%,#8d9bab 52%,#5b6774 60%,#c3cfdb 84%,#f4f8fb)','#e3ebf3','SILVER'],['linear-gradient(180deg,#fff6d6,#ffd56a 30%,#b8860b 52%,#7a5600 60%,#e6b83a 84%,#fff1c2)','#ffd56a','GOLD'],['linear-gradient(180deg,#eafcff,#bfe9ff 30%,#5fb0ff 52%,#1d4f8a 60%,#9ad6ff 84%,#f0fbff)','#bfe9ff','LEGEND']];
 const TIER={silver:'SILVER',gold:'GOLD',platinum:'PLATINUM'};
-let data=null,readAt=0,lastErr='',offset=0,hintI=0,hintAt=0,promoQueue=[],promoShown=new Set(),promoUntil=0,toastQueue=[],toastShown=new Set(),toastUntil=0,tickerKey='',tickerW=0,wrapW=0,pos=0,lastFrame=0,dreadSeenResultAt=0,eventSeen=new Set();
+let pointsShown=new Set(),streakQueue=[],streakShown=new Set(),streakUntil=0,data=null,readAt=0,lastErr='',offset=0,hintI=0,hintAt=0,promoQueue=[],promoShown=new Set(),promoUntil=0,toastQueue=[],toastShown=new Set(),toastUntil=0,tickerKey='',tickerW=0,wrapW=0,pos=0,lastFrame=0,dreadSeenResultAt=0,eventSeen=new Set();
 const node=(tag,text,cls)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(cls)n.className=cls;return n;};
 const mmss=ms=>{const s=Math.max(0,Math.round(ms/1000));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');};
 const now=()=>Date.now()+offset;
 function fit(){const s=Math.min(innerWidth/1920,innerHeight/1080);$('stage').style.transform='translate('+((innerWidth-1920*s)/2)+'px,'+((innerHeight-1080*s)/2)+'px) scale('+s+')';}
 addEventListener('resize',fit);fit();
 // ---------- sample data for the preview ----------
-function sample(settings){const t=Date.now();return {serverAt:t,elements:settings?.elements||{hints:true,surge:true,dread:true,promo:true,next:true,ticker:true,toast:true},hints:settings?.hints||[{cmd:'!voyager',text:'Shows your membership card'},{cmd:'!versus',text:'Challenge a pilot in the arena'}],hintSeconds:settings?.hintSeconds||6,hintsQuietUntil:0,
+function sample(settings){const t=Date.now();return {serverAt:t,elements:settings?.elements||{hints:true,surge:true,dread:true,promo:true,next:true,ticker:true,toast:true,points:true,streak:true},pointsSeconds:settings?.pointsSeconds||4,streakSeconds:settings?.streakSeconds||4,hints:settings?.hints||[{cmd:'!voyager',text:'Shows your membership card'},{cmd:'!versus',text:'Challenge a pilot in the arena'}],hintSeconds:settings?.hintSeconds||6,hintsQuietUntil:0,
   surge:{active:true,until:t+252000,startedAt:t-48000,count:5,recent:5,label:settings?.surge?.label||'CREW SURGE'},
   dread:{phase:'fight',hp:62,maxHp:100,startedAt:t-79000,endsAt:t+101000,goals:{legendary:60,hero:120,bonusPct:10},leaders:[{name:'StarNova',damage:4180},{name:'Quillon',damage:3390},{name:'PixelDrift',damage:2410},{name:'Ashgrove',damage:1675},{name:'Lumen_7',damage:920}],pilots:9,name:'Dreadnought'},
   next:{tier:'silver',label:'Silver',remaining:3,points:22,target:25,next:{tier:'gold',label:'Gold',target:50}},promoMin:settings?.promoMin??7,promoSeconds:settings?.promoSeconds||9,toastSeconds:settings?.toastSeconds||6,goalsStripTop:settings?.goalsStripTop||1010,
-  events:[{id:1,at:t-5000,kind:'medal',name:'StarNova',title:'Night Watch',gradeName:'Bronze',grade:0,medal:'watch'},{id:2,at:t-20000,kind:'support',sub:'gift',name:'Orion',amount:3},{id:3,at:t-40000,kind:'versus',winner:'Lyra',loser:'Corvid',duration:38},{id:4,at:t-3000,kind:'promo',name:'Quillon',from:7,to:8,place:4},{id:5,at:t-90000,kind:'support',sub:'resub',name:'Tamsin',months:7},{id:6,at:t-120000,kind:'support',sub:'raid',name:'Ashgrove',amount:42}],
+  events:[{id:1,at:t-5000,kind:'medal',name:'StarNova',title:'Night Watch',gradeName:'Bronze',grade:0,medal:'watch'},{id:2,at:t-20000,kind:'support',sub:'gift',name:'Orion',amount:3},{id:3,at:t-40000,kind:'versus',winner:'Lyra',loser:'Corvid',duration:38},{id:4,at:t-3000,kind:'promo',name:'Quillon',from:7,to:8,place:4},{id:5,at:t-90000,kind:'support',sub:'resub',name:'Tamsin',months:7},{id:6,at:t-120000,kind:'support',sub:'raid',name:'Ashgrove',amount:42},{id:7,at:t-500,kind:'points',items:[{name:'StarNova',amount:150,total:12650},{name:'Quillon',amount:40,total:9800},{name:'PixelDrift',amount:10,total:410}],count:9,sum:260,top:{name:'StarNova',amount:150}},{id:8,at:t-800,kind:'streak',items:[{name:'StarNova',streak:5,best:5},{name:'Quillon',streak:2,best:9}],count:2,top:{name:'StarNova',streak:5}}],
   toasts:[{id:901,at:t-1000,name:'StarNova',medal:'watch',title:'Night Watch',grade:0,gradeName:'Bronze',desc:'10 hours watched',icon:'M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0-18 0 M12 7v5l3 2'}]};}
 // ---------- polling ----------
 async function poll(){if(preview)return;try{const t0=Date.now(),r=await fetch(base+'/api/moments/overlay',{cache:'no-store'});if(!r.ok)throw new Error('Voyager answered '+r.status+(r.status===404?' (update Voyager to 2.20.64 or later)':''));const d=await r.json();offset=(Number(d.serverAt)||Date.now())-(t0+Date.now())/2;data=d;readAt=Date.now();lastErr='';}
@@ -29,7 +29,7 @@ else{poll();setInterval(poll,2000);}
 function render(){
   const d=data,ok=preview||(d&&Date.now()-readAt<15000);const on=k=>!!(ok&&d.elements?.[k]);
   if(debug){$('debug').hidden=false;$('debug').textContent=['Moments · '+(base||location.origin)+'/api/moments/overlay',lastErr?'✗ '+lastErr:'✓ Voyager answered '+(readAt?Math.round((Date.now()-readAt)/1000)+' s ago':''),d?'Elements on: '+Object.entries(d.elements||{}).filter(([,v])=>v).map(([k])=>k).join(', '):'',d?'Events: '+(d.events||[]).length+' · surge '+(d.surge?.active?'ACTIVE':'off')+' · dread '+(d.dread?.phase||'idle')+' · next '+(d.next?d.next.label+' '+d.next.remaining:'no goal reading yet'):''].filter(Boolean).join('\n');}
-  renderHints(on('hints'));renderSurge(on('surge'));renderDread(on('dread'));renderPromo(on('promo'));renderNext(on('next'));renderTicker(on('ticker'));renderToast(on('toast'));
+  renderHints(on('hints'));renderSurge(on('surge'));renderDread(on('dread'));renderPromo(on('promo'));renderNext(on('next'));renderTicker(on('ticker'));renderToast(on('toast'));renderPoints(on('points'));renderStreak(on('streak'));
 }
 function renderHints(on){const el=$('hints'),hints=data?.hints||[];const quiet=data?.hintsQuietUntil&&now()<data.hintsQuietUntil;if(!on||!hints.length||quiet){el.classList.remove('on');return;}
   const sec=(data.hintSeconds||20)*1000;if(Date.now()-hintAt>=sec){hintAt=Date.now();hintI=(hintI+1)%hints.length;el.classList.remove('swap');void el.offsetWidth;el.classList.add('swap');}
@@ -70,6 +70,8 @@ function tickerText(e){const b=(t,c)=>{const x=node('b',t);if(c)x.className=c;re
   if(e.kind==='versus')return e.draw?add(b('⚔','v'),' ',b(e.a),' and ',b(e.b),' drew in Versus'):add(b('⚔','v'),' ',b(e.winner),' won Versus vs ',b(e.loser,'v'));
   if(e.kind==='promo')return add(b('▲','c'),' ',b(e.name),' promoted to ',b(RANKS[e.to]||'','c'));
   if(e.kind==='dread')return e.outcome==='victory'?add(b('●','r'),' Dreadnought destroyed in ',b(mmss((e.elapsed||0)*1000),'r'),e.speed?' · '+e.speed.toUpperCase()+' +'+e.bonus+'%':'',e.top?' · top gun '+b(e.top).textContent:''):add(b('●','r'),' The Dreadnought escaped');
+  if(e.kind==='points')return e.count===1?add(b('▲','c'),' ',b(e.top.name),' earned ',b('+'+e.top.amount.toLocaleString()+' points','c')):add(b('▲','c'),' ',b(e.count+' crew'),' earned points · top ',b(e.top.name),' ',b('+'+e.top.amount.toLocaleString(),'c'));
+  if(e.kind==='streak')return e.count===1?add(b('✦','m'),' ',b(e.top.name),' kept a ',b('×'+e.top.streak+' stream streak','m')):add(b('✦','m'),' ',b(e.count+' crew'),' kept their stream streaks · longest ',b(e.top.name),' ',b('×'+e.top.streak,'m'));
   return add(String(e.text||''));}
 function renderTicker(on){const el=$('ticker');if(!on){el.classList.remove('on');return;}
   const items=[];const b=data?.dread;if(b&&b.phase==='fight'){items.push({key:'live',live:true});}for(const e of data?.events||[])items.push({key:e.id,e});
@@ -84,6 +86,19 @@ function renderToast(on){const el=$('toast');if(!on){el.classList.remove('on');r
     el.style.setProperty('--metal',m[0]);el.style.setProperty('--tag',m[1]);$('toast-eyebrow').textContent=(t.upgrade?'MEDAL UPGRADED':'MEDAL EARNED')+' · '+(t.special?'SPECIAL':t.gradeName?t.gradeName.toUpperCase():m[2]);$('toast-title').textContent=t.title;$('toast-sub').textContent=t.name+(t.desc?' · '+t.desc:'')+(t.next?' · '+t.next:'');
     const svg=$('toast-icon');svg.innerHTML='';if(t.icon){const p=document.createElementNS('http://www.w3.org/2000/svg','path');p.setAttribute('d',t.icon);svg.append(p);}el.classList.remove('on');void el.offsetWidth;}
   el.classList.toggle('on',now()<toastUntil);}
+function renderPoints(on){const box=$('points');if(!on){box.replaceChildren();return;}
+  for(const e of (data?.events||[]).filter(e=>e.kind==='points'&&!pointsShown.has(e.id)&&now()-e.at<60000).sort((a,b)=>a.at-b.at)){pointsShown.add(e.id);const sec=data.pointsSeconds||4,items=e.items||[];
+    const chip=(cls,plus,name,tot,i)=>{const c=node('div',undefined,'pchip '+cls);c.style.setProperty('--delay',(i*0.55)+'s');c.style.setProperty('--d',sec+'s');c.style.setProperty('--rise','-140px');c.style.bottom=(i*52)+'px';
+      const av=node('span',Array.from(name).slice(0,2).join('').toUpperCase(),'av');c.append(av,node('span','+'+plus.toLocaleString(),'plus'),node('span',name,'nm'));if(tot)c.append(node('span',tot,'tot'));box.append(c);setTimeout(()=>c.remove(),(sec+i*0.55+0.5)*1000);};
+    items.forEach((x,i)=>chip('',x.amount,x.name,x.total?x.total.toLocaleString()+' PTS':'',i));
+    const rest=e.count-items.length;if(rest>0)chip('sum',e.sum-items.reduce((a,x)=>a+x.amount,0),rest+' more crew',e.count+' EARNED',items.length);}}
+function renderStreak(on){const el=$('streak');if(!on){el.classList.remove('on');streakQueue=[];return;}
+  for(const e of (data?.events||[]).filter(e=>e.kind==='streak'&&!streakShown.has(e.id)&&now()-e.at<60000).sort((a,b)=>a.at-b.at)){streakShown.add(e.id);const items=e.items||[];for(const x of items)streakQueue.push({name:x.name,streak:x.streak,best:x.best});const rest=e.count-items.length;if(rest>0)streakQueue.push({summary:true,count:e.count,top:e.top});}
+  if(now()>=streakUntil&&streakQueue.length){const x=streakQueue.shift();const sec=data.streakSeconds||4;streakUntil=now()+sec*1000+300;el.style.setProperty('--s',sec+'s');
+    if(x.summary){$('streak-title').textContent='STREAM STREAKS KEPT · '+x.count+' CREW';$('streak-sub').textContent=x.top?'Longest: '+x.top.name+' · '+x.top.streak+' streams in a row':'';}
+    else{$('streak-title').textContent='STREAM STREAK ×'+x.streak;$('streak-sub').textContent=x.name+' · '+x.streak+' streams in a row'+(x.best&&x.streak>=x.best&&x.streak>2?' · personal best':'');}
+    el.classList.remove('on');void el.offsetWidth;el.classList.add('on');}
+  if(now()>=streakUntil)el.classList.remove('on');}
 function animate(t){const dt=Math.min(100,t-(lastFrame||t));lastFrame=t;if(tickerW>wrapW&&$('ticker').classList.contains('on')){pos=(pos+dt*0.06)%tickerW;$('ticker-items').style.transform='translateX('+(-pos)+'px)';}requestAnimationFrame(animate);}
 requestAnimationFrame(animate);setInterval(render,500);render();
 })();
