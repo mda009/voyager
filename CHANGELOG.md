@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.82 (8 November 2026)
+
+**On-screen moments, refreshed look.** The seven moments elements, the points chips and the stream-streak comet now share one glass language with the membership card, Stream banner and standings panels: deeper navy glass with backdrop blur, a coloured 2 px top edge, scanlines and sheen; Rajdhani for headings and numbers, Inter for names and notes. Colour where it carries meaning: medal toasts in the grade's metal (bronze / silver / gold / legend), the promotion ceremony in naval gold, the next-celebration chip in the tier colour with a progress line, the crew surge in gold with a striped countdown, Dreadnought places 01/02/03 in gold / silver / bronze, and ticker words tinted by kind (gold support, violet medals and streaks, red Versus and Dreadnought, green points). Positions and sizes are unchanged, so Screen layout settings carry over. OBS: refresh the Voyager_Moments.html source cache once.
+
 ## 2.20.81 (8 November 2026)
 
 **Card banners float.** The WELCOME ABOARD banner on a new follower's membership card (and the TIER UP / PROMOTED banners) no longer sits on a dark band across the card: the words float over the card face with a stronger shadow, and the stat tiles underneath soften while the banner is read. OBS: refresh the card.html browser source cache once after updating.
