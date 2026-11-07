@@ -36,6 +36,11 @@
 <p class="st-hint" id="campaign-hint"></p>
 <p class="st-hint" id="support-note"></p>
 <div id="contributors"></div>
+<div class="card-heading" style="margin-top:14px"><div><span class="eyebrow">IMPORT PAST SUBS &amp; GIFTS</span><h2>Credit what happened before Voyager was counting</h2></div></div>
+<p class="st-hint">Paste lines from Streamer.bot's log files (<code>%AppData%\Streamer.bot\logs</code>), a Twitch or StreamElements export, or your own list, one event per line: <code>2026-11-03, StarNova, gift, 5</code> or <code>2026-11-04, Quillon, sub, 1</code> (free text like "StarNova gifted 5 subs" works too). Press <b>Preview</b> to see what was understood, fix anything in the table, then <b>Apply</b>. From the moment you apply, the tracker's own counts take over, so nothing is counted twice.</p>
+<textarea id="import-text" rows="6" style="width:100%;padding:8px 10px;border:1px solid rgba(151,223,255,.18);background:rgba(8,15,24,.55);color:#e6eef7;font:13px ui-monospace,Consolas,monospace;border-radius:8px" placeholder="2026-11-02, StarNova, gift, 5&#10;2026-11-03, Quillon, sub, 1"></textarea>
+<div class="st-actions" style="margin-top:8px"><button type="button" id="import-preview">Preview</button><button type="button" class="primary" id="import-apply" hidden>Apply</button><button type="button" id="import-clear" hidden>Remove imported credits</button></div>
+<div id="import-out" class="st-hint"></div>
 <div class="card-heading" style="margin-top:14px"><div><span class="eyebrow">CHECK A VIEWER</span><h2>Why isn't someone counted?</h2></div></div>
 <div class="sd-row" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><input type="search" id="explain-q" placeholder="Viewer name or login" style="height:36px;padding:0 10px;border:1px solid rgba(151,223,255,.18);background:rgba(8,15,24,.55);color:#e6eef7;font:14px 'Segoe UI',sans-serif;min-width:240px"><button type="button" class="primary" id="explain-go">Check</button></div>
 <div id="explain" class="st-hint"></div>
@@ -78,7 +83,7 @@
 </main>
 </div>
 <script src="seasons.js?v=2.20.72"></script>
-<script src="voyager-shell.js?v=2.20.75"></script>
+<script src="voyager-shell.js?v=2.20.76"></script>
 <script src="voyager-navigation.js"></script>
 </body>
 </html>

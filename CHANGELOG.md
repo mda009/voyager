@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.76 (7 November 2026)
+
+**Import past subs and gifts into a run.** Community goals has an import box for the part of a run before Voyager was counting: paste lines from Streamer.bot's logs, a Twitch or StreamElements export, or a hand-written list (`2026-11-03, StarNova, gift, 5`, `2026-11-04, Quillon, sub, 1`, or free text like "StarNova gifted 5 subs"), Preview shows what was understood (editable), Apply credits each viewer. From the import time on the tracker's own counts take over, so nothing is counted twice; viewers the tracker has no record of are credited by name and matched to a points account when one exists. `POST /api/community/import` (parse / apply / clear).
+
 ## 2.20.75 (7 November 2026)
 
 **Panels: no more doubling, and the deck says when a source is missing.** The Christmas goal panel now steps aside while the Community panel (goals, standings or contributors) is showing, so the two no longer sit on top of each other at the top right like a ghost image (`?always=1` on the Christmas panel keeps the old behaviour). The Stream deck's On-stream panels card now shows a notice when the OBS source behind a panel is not loaded (the host sees each page polling): the Community panel source and the Chat engagement source (`engage.html`), which is where the squadron war panel lives, with the address to add. The squadron panel row has a status pill with the seconds left.

@@ -214,10 +214,11 @@ export class Community{
   // whole last gift) when it fell inside the window. So a run that counts from 1 November credits what the tracker knows about since then.
   seasonSupport(key){
     const s=this.state,v=s.support[key],b=s.season.support?.[key];if(!v||!s.season.active)return {subs:0,gifts:0};
-    const since=s.season.startedAt||0,day=dayId(since),sum=m=>m?Object.entries(m).reduce((a,[d,n])=>d>=day?a+n:a,0):0;
-    const base={subs:b?Math.max(0,v.months-b.months):0,gifts:b?Math.max(0,v.gifts-b.gifts):0};
+    const man=this.manualFor(key),since=Math.max(s.season.startedAt||0,man?s.season.manualUntil||0:0),day=dayId(since),sum=m=>m?Object.entries(m).reduce((a,[d,n])=>d>=day?a+n:a,0):0;
+    // The change-since-opened reading overlaps an import (its baseline predates the imported events), so it only counts without one.
+    const useBase=!!b&&(!man||(s.season.openedAt||0)>(s.season.manualUntil||0));const base={subs:useBase?Math.max(0,v.months-b.months):0,gifts:useBase?Math.max(0,v.gifts-b.gifts):0};
     const late={subs:v.monthsAt>=since?1:0,gifts:v.giftsAt>=since?Math.max(1,Math.min(v.gifts,v.giftsLast||1)):0};
-    return {subs:Math.max(sum(v.subsByDay),base.subs,late.subs),gifts:Math.max(sum(v.giftsByDay),base.gifts,late.gifts)};
+    return {subs:(man?.subs||0)+Math.max(sum(v.subsByDay),base.subs,late.subs),gifts:(man?.gifts||0)+Math.max(sum(v.giftsByDay),base.gifts,late.gifts)};
   }
   // Medal missions: snapshot each counter the first time it's seen this week (0 for viewers who first appeared this week).
   medalViewers(){try{return this.medals?.()?.state?.viewers||{};}catch{return {};}}
@@ -310,11 +311,16 @@ export class Community{
       if(active&&(g.metric==='points'||g.metric==='versus')){
         for(const r of rows){if(!onPlatform(g.platform,r.platform))continue;add(r.key,r.name,r.platform,g.metric==='points'?r.points:r.wins,!!s.members[r.key]);}
       }else if(active){
+        const seen=new Set();
         for(const [key,v] of Object.entries(s.support||{})){
           if(!onPlatform(g.platform,v.platform))continue;
-          const u=this.seasonSupport(key),n=g.metric==='subs'?u.subs:g.metric==='gifts'?u.gifts:u.subs+u.gifts;
+          const u=this.seasonSupport(key),n=g.metric==='subs'?u.subs:g.metric==='gifts'?u.gifts:u.subs+u.gifts;const man=this.manualFor(key);if(man)seen.add(man);
           add(key,s.members[key]?.name||v.name,v.platform,n,!!s.members[key]);
         }
+        // Imported credits for viewers the tracker has no record of: matched to a member by name when possible (so bonuses can be paid).
+        for(const man of Object.values(s.season.manual||{})){if(seen.has(man))continue;const n=g.metric==='subs'?man.subs:g.metric==='gifts'?man.gifts:man.subs+man.gifts;
+          const mk=Object.keys(s.members).find(k=>s.members[k].login===man.name.toLowerCase()||s.members[k].name.toLowerCase()===man.name.toLowerCase());const platform=man.platform||(mk?mk.split(':')[0]:'twitch');
+          if(!onPlatform(g.platform,platform))continue;add(mk||'manual:'+man.name.toLowerCase(),mk?s.members[mk].name:man.name,platform,n,!!mk);}
       }
       helpers.sort((a,b)=>b.count-a.count||a.name.localeCompare(b.name));
       const dueAt=g.dueAt||s.season.endsAt||0,reached=total>=g.target,missed=!reached&&!!dueAt&&now>dueAt;
@@ -336,6 +342,31 @@ export class Community{
     return {query:q,matches,feed:this.feed()};
   }
   feed(){const s=this.state;return {supportAt:s.supportAt||0,supporters:Object.keys(s.support||{}).length,membersAt:s.membersAt||0,members:Object.keys(s.members).length,seasonStartedAt:s.season.startedAt||0,active:!!s.season.active};}
+  // 2.20.76: past subs and gifts pasted in (Streamer.bot logs, a Twitch export, a CSV) for the part of the run before Voyager was counting.
+  // Rows: {at,name,platform?,kind:'sub'|'gift',count}. Credited per viewer; from the import time on, the automatic counting takes over.
+  static parseSupportText(text){
+    const rows=[],lines=String(text||'').split(/\r?\n/).slice(0,5000);
+    const dateIn=l=>{const m=/(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{2}):(\d{2}))?/.exec(l)||/(\d{1,2})\/(\d{1,2})\/(\d{4})/.exec(l);if(!m)return 0;
+      if(m[0].includes('/')){const d=Date.UTC(Number(m[3]),Number(m[2])-1,Number(m[1]));return Number.isFinite(d)?d:0;}return Date.UTC(Number(m[1]),Number(m[2])-1,Number(m[3]),Number(m[4]||0),Number(m[5]||0));};
+    for(const raw of lines){const l=raw.trim();if(!l||/^(date|time|when)[,;\t]/i.test(l))continue;
+      const parts=l.split(/[,;\t]/).map(x=>x.trim());
+      if(parts.length>=3&&/^(sub|subs|resub|gift|gifts|gifted|giftsub|giftbomb|bomb)$/i.test(parts[parts.length-2]||'')&&/^\d+$/.test(parts[parts.length-1])){
+        const kind=/gift|bomb/i.test(parts[parts.length-2])?'gift':'sub';rows.push({at:dateIn(parts[0])||0,name:parts.length>=4?parts[1]:parts[0],kind,count:Number(parts[parts.length-1])});continue;}
+      let m=/([A-Za-z0-9_]{3,25})\s+(?:has\s+)?gift(?:ed|s)?\s+(?:a\s+|an\s+)?(\d+)?\s*(?:x\s*)?(?:tier\s*\d\s*)?(?:community\s+)?sub/i.exec(l)||/gift(?:ed)?\s*(?:bomb|subs?)?[^A-Za-z0-9_]+([A-Za-z0-9_]{3,25})[^0-9]*(\d+)?/i.exec(l);
+      if(m&&/gift/i.test(l)){rows.push({at:dateIn(l),name:m[1],kind:'gift',count:Math.max(1,Number(m[2])||1)});continue;}
+      m=/([A-Za-z0-9_]{3,25})\s+(?:just\s+)?(?:re)?subscribed/i.exec(l)||/(?:sub|resub)(?:scription)?[^A-Za-z0-9_]+([A-Za-z0-9_]{3,25})/i.exec(l);
+      if(m&&/sub/i.test(l)&&!/gift/i.test(l)){rows.push({at:dateIn(l),name:m[1],kind:'sub',count:1});continue;}}
+    return rows;
+  }
+  importSupport({rows,until,replace=true}={}){
+    const s=this.state,sea=s.season;if(!sea.active)throw new Error('Start the run first, then import.');
+    const upto=Number(until)||this.now();const by=replace?{}:(sea.manual||{});let n=0;
+    for(const r of Array.isArray(rows)?rows.slice(0,5000):[]){const name=clean(r?.name,40);const count=int(r?.count,1,100000);const kind=r?.kind==='gift'?'gifts':r?.kind==='sub'?'subs':null;if(!name||!count||!kind)continue;
+      const at=Number(r.at)||0;if(at&&(at<sea.startedAt-DAY||at>upto+DAY))continue;const k=name.toLowerCase();by[k]=by[k]||{name,platform:['twitch','youtube','kick'].includes(r.platform)?r.platform:'',subs:0,gifts:0};by[k][kind]+=count;n++;}
+    sea.manual=by;sea.manualUntil=upto;this.persist();return {imported:n,viewers:Object.keys(by).length,...this.view()};
+  }
+  clearImport(){const sea=this.state.season;delete sea.manual;delete sea.manualUntil;this.persist();return this.view();}
+  manualFor(key){const m=this.state.season.manual;if(!m)return null;const v=this.state.members[key],sup=this.state.support?.[key];for(const c of [v?.login,v?.name,sup?.login,sup?.name])if(c&&m[String(c).toLowerCase()])return m[String(c).toLowerCase()];return null;}
   seasonPointsOf(key){const s=this.state,v=s.members[key];return v?Math.max(0,v.value-(s.season.baseline[key]??v.value)):0;}
   // 2.20.74: points bonus for every contributor of a goal with a multiplier (x1.5 = half their run points again), paid when the run ends.
   goalBonuses(){const out=[];for(const g of this.goalProgress().filter(x=>x.multiplier>1))for(const h of g.helpers)if(h.bonus>0)out.push({missionId:'bonus-'+g.id,title:'Points x'+g.multiplier+' · '+g.title,reward:h.bonus,key:h.key,name:h.name,platform:h.platform,bonus:true,...(h.account?{}:{account:false})});return out;}
@@ -416,7 +447,7 @@ export class Community{
   view(){
     const s=this.state,missions=s.missions.map(m=>{const p=this.progressFor(m);return {...m,typeLabel:TYPES[m.type].label,unit:TYPES[m.type].unit,started:p.length,completed:p.filter(x=>x.done).length,top:p.slice(0,8)};});
     return {missions,week:{id:s.week.id,endsAt:s.week.id+7*DAY},members:Object.keys(s.members).length,payables:this.payables(),
-      season:{number:s.season.number,name:s.season.name,startedAt:s.season.startedAt,openedAt:s.season.openedAt||s.season.startedAt,endsAt:s.season.endsAt,weeks:s.season.weeks,active:!!s.season.active},feed:this.feed(),standings:this.standings(),topPilot:this.topPilot(),hall:s.hall,types:TYPES,goalLimit:GOAL_LIMIT,missionMedals:MISSION_MEDALS,ideas:MISSION_IDEAS,rewardMax:MISSION_REWARD_MAX,panel:this.panelView(),panelKinds:PANEL_KINDS,
+      season:{number:s.season.number,name:s.season.name,startedAt:s.season.startedAt,openedAt:s.season.openedAt||s.season.startedAt,endsAt:s.season.endsAt,weeks:s.season.weeks,active:!!s.season.active,manual:s.season.manual?{viewers:Object.keys(s.season.manual).length,subs:Object.values(s.season.manual).reduce((a,x)=>a+x.subs,0),gifts:Object.values(s.season.manual).reduce((a,x)=>a+x.gifts,0),until:s.season.manualUntil||0}:null},feed:this.feed(),standings:this.standings(),topPilot:this.topPilot(),hall:s.hall,types:TYPES,goalLimit:GOAL_LIMIT,missionMedals:MISSION_MEDALS,ideas:MISSION_IDEAS,rewardMax:MISSION_REWARD_MAX,panel:this.panelView(),panelKinds:PANEL_KINDS,
       platforms:PLATFORM_OPTIONS,goalMetrics:GOAL_METRICS,goals:this.goalProgress().map(g=>({...g,helpers:g.helpers.slice(0,10),contributorsList:g.helpers.slice(0,500)})),supportBonus:s.supportBonus??DEFAULT_SUPPORT_BONUS,
       support:{tracked:Object.keys(s.support||{}).length,updatedAt:s.supportAt||0}};
   }

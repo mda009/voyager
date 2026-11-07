@@ -220,6 +220,7 @@ const server=http.createServer(async(req,res)=>{
         const input=await body(req,['/api/community/members','/api/community/support'].includes(url.pathname)?8*1024*1024:65536);
         if(url.pathname==='/api/community/members'){community.receive(input?.members);response(res,200,{ok:true});return;}
         if(url.pathname==='/api/community/support'){community.receiveSupport(input?.support);response(res,200,{ok:true});return;}
+        if(url.pathname==='/api/community/import'){const C=community.constructor;if(input?.action==='parse'){response(res,200,{ok:true,rows:C.parseSupportText(String(input.text||''))});return;}if(input?.action==='clear'){response(res,200,{ok:true,...community.clearImport()});return;}response(res,200,{ok:true,...community.importSupport(input||{})});return;}
         if(url.pathname==='/api/community/explain'){response(res,200,{ok:true,...community.explain(String(input?.query||''))});return;}
         if(url.pathname==='/api/community/missions'){response(res,200,{ok:true,...community.setMissions(input?.missions)});return;}
         if(url.pathname==='/api/community/season'){try{response(res,200,{ok:true,...(input?.action==='end'?community.endSeason():input?.action==='start'?community.startSeason(input):community.configureSeason(input||{}))});}catch(e){response(res,400,{ok:false,message:e.message});}return;}

@@ -122,6 +122,18 @@ pf.onsubmit=e=>{e.preventDefault();panel({config:formConfig()});};
 $('panel-show').onclick=()=>panel({config:formConfig(),visible:true});
 $('panel-hide').onclick=()=>panel({visible:false});
 if(!hosted)$('not-hosted').hidden=false;else{load();setInterval(()=>{if(!editing&&!goalsEditing)load();},30000);}
+// 2.20.76: import past subs and gifts for the part of the run before Voyager was counting.
+(()=>{const ta=document.getElementById('import-text'),pv=document.getElementById('import-preview'),ap=document.getElementById('import-apply'),cl=document.getElementById('import-clear'),out=document.getElementById('import-out');if(!ta)return;let rows=[];
+const fmt=t=>t?new Date(t).toLocaleDateString([],{day:'numeric',month:'short'}):'(no date)';
+function status(){const m=view?.season?.manual;cl.hidden=!m;if(m&&!rows.length)out.textContent='Imported so far: '+m.subs+' subs and '+m.gifts+' gifted subs for '+m.viewers+' viewers, up to '+new Date(m.until).toLocaleString([],{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'})+'. Applying again replaces this.';}
+pv.onclick=async()=>{try{const d=await api('/api/community/import',{action:'parse',text:ta.value});rows=d.rows;out.replaceChildren();if(!rows.length){out.textContent='Nothing recognised. Use one event per line: date, name, sub or gift, count.';ap.hidden=true;return;}
+  const t=el('table');t.style.cssText='width:100%;border-collapse:collapse;font-size:13px';const h=el('tr');for(const x of ['Date','Viewer','Kind','Count',''])h.append(el('th','',x));t.append(h);
+  rows.forEach((r,i)=>{const tr=el('tr');const name=el('input');name.value=r.name;name.oninput=()=>{r.name=name.value;};const kind=el('select');for(const k of ['sub','gift']){const o=el('option','',k);o.value=k;o.selected=r.kind===k;kind.append(o);}kind.onchange=()=>{r.kind=kind.value;};const n=el('input');n.type='number';n.min='1';n.value=r.count;n.style.width='70px';n.oninput=()=>{r.count=Number(n.value);};const del=el('button','link','remove');del.type='button';del.onclick=()=>{rows.splice(i,1);pv.onclick();};
+    for(const c of [el('td','',fmt(r.at)),name,kind,n,del]){const td=c.tagName==='TD'?c:el('td');if(c.tagName!=='TD')td.append(c);tr.append(td);}t.append(tr);});
+  out.append(t,el('p','',rows.length+' events · '+rows.filter(r=>r.kind==='sub').reduce((a,r)=>a+r.count,0)+' subs · '+rows.filter(r=>r.kind==='gift').reduce((a,r)=>a+r.count,0)+' gifted subs. Rows without a date are taken as inside the run.'));ap.hidden=false;}catch(e){out.textContent=e.message;}};
+ap.onclick=async()=>{if(!confirm('Apply '+rows.length+' events to '+(view?.season?.name||'the run')+'? This replaces any earlier import; from now on the tracker counts on its own.'))return;try{view=await api('/api/community/import',{rows,until:Date.now()});rows=[];ta.value='';out.textContent='';ap.hidden=true;notice('Imported '+view.imported+' events for '+view.viewers+' viewers.');render();status();}catch(e){notice(e.message,true);}};
+cl.onclick=async()=>{if(!confirm('Remove the imported credits? The run will count only what the tracker knows.'))return;try{view=await api('/api/community/import',{action:'clear'});notice('Imported credits removed.');render();status();}catch(e){notice(e.message,true);}};
+const orig=render;render=function(){orig();status();};})();
 // 2.20.71: why a viewer does or does not count towards each goal.
 (()=>{const q=document.getElementById('explain-q'),go=document.getElementById('explain-go'),out=document.getElementById('explain');if(!q||!go)return;
 const fmt=t=>t?new Date(t).toLocaleString([],{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'}):'—';

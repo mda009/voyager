@@ -243,3 +243,18 @@ test('a run that counts from an earlier date credits subs and gifts since then f
   c.endSeason();const owed=c.payables().filter(r=>r.missionId==='bonus-subs');assert.equal(owed.length,1);assert.equal(owed[0].status,'owed');assert.equal(owed[0].reward,200);
   assert.throws(()=>c.startSeason({name:'x',startsAt:nov7+2*DAY,endsAt:Date.UTC(2026,11,25)}),/future/);assert.throws(()=>c.startSeason({name:'x',endsAt:Date.UTC(2026,11,25),goals:[{title:'g',metric:'gifts',target:5,reward:0,multiplier:9}]}),/multiplier/);
 });
+
+test('imported past subs and gifts credit the run and hand over to automatic counting from the import time (2.20.76)',async()=>{
+  const nov1=Date.UTC(2026,10,1),nov7=Date.UTC(2026,10,7),{c,set}=await make(nov7);set(nov7);
+  c.receive([{key:'twitch:1',name:'Nova',login:'nova',capturedIn:1000}]);c.receiveSupport([{key:'twitch:1',name:'Nova',months:12,monthsAt:nov1-5*DAY,gifts:40,giftsAt:nov1-5*DAY}]);
+  c.startSeason({name:'Christmas 2026',startsAt:nov1,endsAt:Date.UTC(2026,11,25),goals:[{id:'s',title:'1,000 subs',metric:'support',platform:'all',target:1000,reward:0}]});
+  assert.equal(c.goalProgress()[0].total,0);
+  const rows=Community.parseSupportText('2026-11-02,nova,gift,10\n2026-11-03 Nova subscribed\n2026-11-04,Ghost,gift,4\n2026-10-20,nova,gift,99');
+  const r=c.importSupport({rows,until:nov7});assert.equal(r.imported,3,'the October row is outside the run');
+  let g=c.goalProgress()[0];assert.equal(g.total,15);assert.deepEqual(g.helpers.map(h=>[h.name,h.count,h.key]),[['Nova',11,'twitch:1'],['Ghost',4,'manual:ghost']]);
+  assert.equal(c.view().season.manual.viewers,2);
+  // after the import, a gift logged by the tracker on 8 Nov adds to the imported credit; the 2 Nov gift in the log is not counted twice
+  set(nov7+DAY);c.receiveSupport([{key:'twitch:1',name:'Nova',months:13,monthsAt:nov7+DAY,gifts:55,giftsAt:nov7+DAY,giftsLast:5,giftsByDay:{'2026-11-02':10,'2026-11-08':5},subsByDay:{'2026-11-03':1,'2026-11-08':1}}]);
+  g=c.goalProgress()[0];assert.equal(g.helpers.find(h=>h.name==='Nova').count,11+5+1);
+  c.clearImport();assert.equal(c.goalProgress()[0].helpers.find(h=>h.name==='Nova').count,15+2,'without the import, the per-day counts since 1 Nov stand on their own');
+});
