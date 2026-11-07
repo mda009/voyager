@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.72 (7 November 2026)
+
+**Fix: Check a viewer said "api is not defined"**, and the feed line (points ledger / subs & gifts last read) was not shown on Community goals. Both from 2.20.71 work now.
+
 ## 2.20.71 (7 November 2026)
 
 **Community goal contributions: fixes and a "Check a viewer" tool.** Two counting gaps closed: a gifter first seen after a goal started was credited with one gift even when their first gift was a bomb (the Community Tracker now records the size of the latest gift, `giftsLast`, Stream Stats passes it on, and Voyager credits the whole gift; without the updated C# it still credits one), and a member first seen in the points ledger while a goal runs now counts all their points (before, their first reading became the baseline, so nothing counted). Community goals shows the feed status (points ledger: members and last read; subs & gifts: supporters and last read, flagged when stale) and a **Check a viewer** box: type a name and it lists their tracker record, baselines, what counts towards each goal and, when nothing does, why. `POST /api/community/explain`.

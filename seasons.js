@@ -68,7 +68,7 @@ function renderGoals(){
   const f=view.feed||{},ago=t=>t?Math.round((Date.now()-t)/60000)+' min ago':'never';
   const feedNote=' · Points ledger: '+f.members+' members, last '+ago(f.membersAt)+' · Subs & gifts: '+f.supporters+' supporters, last '+ago(f.supportAt)+(f.supportAt&&Date.now()-f.supportAt>10*60000?' (STALE: the Public website publisher asks Voyager - Stream Stats v6 once a minute; is Voyager connected to Streamer.bot?)':'');
   const sup=view.support||{};
-  $('support-note').textContent=feedNote+' · '+sup.updatedAt?sup.tracked+' recent subscribers and gifters tracked · last read '+new Date(sup.updatedAt).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'})+'.':'Sub and gift goals need subscriber data: install Voyager - Community Tracker, update Voyager - Stream Stats to v6 and keep Voyager running. Points and Versus goals work without it.';
+  $('support-note').textContent=(sup.updatedAt?sup.tracked+' recent subscribers and gifters tracked · last read '+new Date(sup.updatedAt).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'})+'.':'Sub and gift goals need subscriber data: install Voyager - Community Tracker, update Voyager - Stream Stats to v6 and keep Voyager running. Points and Versus goals work without it.')+feedNote;
 }
 $('goals').addEventListener('input',()=>{goalsEditing=true;});$('goals').addEventListener('change',()=>{goalsEditing=true;});
 $('goal-add').onclick=()=>{goals.push({id:'g'+Date.now().toString(36),title:'New goal',metric:'gifts',platform:'all',target:25,reward:200,minimum:1,dueAt:0,description:''});goalsEditing=true;renderGoals();};
@@ -107,8 +107,6 @@ pf.onsubmit=e=>{e.preventDefault();panel({config:formConfig()});};
 $('panel-show').onclick=()=>panel({config:formConfig(),visible:true});
 $('panel-hide').onclick=()=>panel({visible:false});
 if(!hosted)$('not-hosted').hidden=false;else{load();setInterval(()=>{if(!editing&&!goalsEditing)load();},30000);}
-})();
-
 // 2.20.71: why a viewer does or does not count towards each goal.
 (()=>{const q=document.getElementById('explain-q'),go=document.getElementById('explain-go'),out=document.getElementById('explain');if(!q||!go)return;
 const fmt=t=>t?new Date(t).toLocaleString([],{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'}):'—';
@@ -122,3 +120,5 @@ async function check(){out.textContent='Checking…';try{const d=await api('/api
     for(const l of lines){const p=document.createElement('div');p.textContent=l;box.append(p);}out.append(box);}
 }catch(e){out.textContent=e.message;}}
 go.onclick=check;q.addEventListener('keydown',e=>{if(e.key==='Enter')check();});})();
+
+})();
