@@ -51,6 +51,28 @@ body{font-family:Rajdhani,'Segoe UI',sans-serif;font-variant-numeric:tabular-num
 .status[data-state=stale] i{background:#e8c783}.status[data-state=preview] i{background:#92c9f0}
 .star{position:absolute;right:22px;top:14px;font-size:30px;color:var(--accent);text-shadow:0 0 16px var(--accent)}
 @media(prefers-reduced-motion:reduce){#snow{display:none}}
+
+/* 2.20.83 glass refresh: same surface as the card / panels, metal title and percentages, blur, sheen. Garland and snow stay. */
+.card{background:linear-gradient(135deg,rgba(9,17,31,.80),rgba(14,28,46,.72) 60%,rgba(10,20,36,.78));-webkit-backdrop-filter:blur(12px) saturate(1.25);backdrop-filter:blur(12px) saturate(1.25);
+  box-shadow:inset 0 0 0 1px var(--edge),inset 0 1px 0 rgba(255,255,255,.18),0 16px 40px rgba(0,0,0,.45)}
+.card::after{content:'';position:absolute;inset:0;pointer-events:none;clip-path:inherit;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(217,229,239,.035) 3px,rgba(217,229,239,.035) 4px),linear-gradient(100deg,transparent 35%,rgba(255,255,255,.05) 50%,transparent 65%)}
+.card>*:not(.star){position:relative;z-index:1}.star{z-index:2}
+.brand{font:700 11px/1 Rajdhani,sans-serif;letter-spacing:.24em;color:#a7d8ff}.brand span{color:#a7d8ff;font-weight:700;letter-spacing:.24em}
+.title{font:700 36px/1 Rajdhani,sans-serif;letter-spacing:.04em}
+.title b{background:linear-gradient(180deg,#fffbe6 0%,#ffe48a 30%,#f2b52e 50%,#7a4d00 56%,#ffcf4a 80%,#fff3b8 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 2px 2px rgba(0,0,0,.8))}
+#panel.glass .title b{background:linear-gradient(180deg,#eaf6ff 0%,#9fd4ff 30%,#2f8df0 52%,#0d3f84 60%,#6fb8ff 84%,#e6f4ff 100%);-webkit-background-clip:text;background-clip:text}
+.sub{font:600 14px/1.2 Rajdhani,sans-serif;letter-spacing:.1em;color:#c9d7e4;text-transform:uppercase}.sub .count{font-size:24px}
+.goal{background:linear-gradient(90deg,rgba(255,255,255,.07),rgba(255,255,255,.03));border-left-width:3px;box-shadow:inset 0 1px 0 rgba(255,255,255,.08)}
+.g-title{font:700 19px/1.1 Rajdhani,sans-serif;letter-spacing:.03em}
+.g-desc{font:500 12.5px/1.3 Inter,'Segoe UI',Arial,sans-serif;color:#c0d5e4}
+.g-reward{background:rgba(255,211,106,.14);border:1px solid rgba(255,211,106,.4);padding:3px 7px;border-radius:4px;font-size:12px;letter-spacing:.12em}
+.goal.reached .g-reward{color:var(--green);background:rgba(62,196,124,.14);border-color:rgba(62,196,124,.4)}
+.g-num .pct{font-size:20px;background:linear-gradient(180deg,#fffbe6 0%,#ffe48a 30%,#f2b52e 50%,#7a4d00 56%,#ffcf4a 80%,#fff3b8 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 1px 1px rgba(0,0,0,.8))}
+.goal.reached .g-num .pct{background:none;-webkit-background-clip:initial;color:var(--green);filter:none}
+.bar{height:8px;border-radius:2px;background:rgba(0,0,0,.4);box-shadow:inset 0 0 0 1px rgba(255,255,255,.12)}
+.bar i{border-radius:2px;box-shadow:0 0 10px rgba(255,211,106,.55)}.goal.reached .bar i{box-shadow:0 0 10px rgba(62,196,124,.55)}
+.g-help{font:700 11px/1.2 Rajdhani,sans-serif;letter-spacing:.14em}
+.foot{font:700 11px/1 Rajdhani,sans-serif;letter-spacing:.16em}
 </style></head>
 <body><div id="stage"><canvas id="snow" width="1920" height="1080"></canvas>
 <div id="panel"><div class="card"><div class="garland"></div><div class="star">✦</div>

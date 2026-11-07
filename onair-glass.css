@@ -1,0 +1,49 @@
+/* Voyager on-air glass (2.20.83): one look for the OBS panels — Leaderboard panel and Community goals panel.
+   Loaded after giveaway-panel.css / leaderboard-panel.css. Same language as the membership card, Stream banner and
+   On-screen moments: deep-navy glass with backdrop blur, a light-blue 2 px top edge, scanlines and a sheen; Rajdhani for
+   headings, numbers and labels, Inter for names; gold / silver / bronze for places 01–03; tier metals on the avatars. */
+@font-face{font-family:Rajdhani;src:url(brand-assets/Rajdhani-700.ttf);font-weight:700}@font-face{font-family:Rajdhani;src:url(brand-assets/Rajdhani-600.ttf);font-weight:600}@font-face{font-family:Rajdhani;src:url(brand-assets/Rajdhani-500.ttf);font-weight:500}
+.voyager-onair.compact-panel{--panel-accent:#a7d8ff;--ink:#eef4fb;--mute:#8faac1;--gold:#ffd56a;
+  --metal-gold:linear-gradient(180deg,#fffbe6 0%,#ffe48a 30%,#f2b52e 50%,#7a4d00 56%,#ffcf4a 80%,#fff3b8 100%);
+  --metal-silver:linear-gradient(180deg,#ffffff 0%,#dfe7f1 30%,#9fb0c4 50%,#4c5a6c 56%,#c7d3e2 80%,#f4f8fc 100%);
+  --metal-bronze:linear-gradient(180deg,#ffe6cc 0%,#f0a868 30%,#a5582a 52%,#6e3510 60%,#d68a4c 84%,#ffd9b0 100%);
+  --metal-blue:linear-gradient(180deg,#eaf6ff 0%,#9fd4ff 30%,#2f8df0 52%,#0d3f84 60%,#6fb8ff 84%,#e6f4ff 100%);
+  --metal-platinum:linear-gradient(180deg,#ffffff 0%,#e6d6ff 26%,#b48cff 50%,#3a1a8a 58%,#d6b8ff 84%,#ffffff 100%);
+  font-family:Inter,'Segoe UI',Arial,sans-serif;color:var(--ink)}
+/* panel */
+.voyager-onair.compact-panel #panel{background:linear-gradient(135deg,rgba(9,17,31,calc(var(--leader-opacity,.4) + .38)),rgba(14,28,46,calc(var(--leader-opacity,.4) + .30)) 60%,rgba(10,20,36,calc(var(--leader-opacity,.4) + .36)));
+  border:1px solid rgba(167,216,255,.26);border-top:2px solid var(--panel-accent);border-radius:10px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 16px 40px rgba(0,0,0,.45),0 0 28px rgba(95,176,240,.10);
+  -webkit-backdrop-filter:blur(12px) saturate(1.25);backdrop-filter:blur(12px) saturate(1.25);text-shadow:0 1px 3px #0009}
+.voyager-onair.compact-panel #panel::before{content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(217,229,239,.035) 3px,rgba(217,229,239,.035) 4px),linear-gradient(100deg,transparent 35%,rgba(255,255,255,.05) 50%,transparent 65%)}
+.voyager-onair.compact-panel #panel>*{position:relative;z-index:1}
+/* header */
+.voyager-onair.compact-panel .eyebrow{font:700 10px/1 Rajdhani,'Segoe UI',sans-serif;letter-spacing:.24em;color:var(--panel-accent);display:flex;align-items:center;gap:8px}
+.voyager-onair.compact-panel .panel-brand .logo-voyager{width:22px;height:22px}
+.voyager-onair.compact-panel #status{font:700 10px/1 Rajdhani,'Segoe UI',sans-serif;letter-spacing:.12em;text-transform:uppercase;padding:5px 9px}
+.voyager-onair.compact-panel h1{font:700 24px/1.1 Rajdhani,'Segoe UI',sans-serif;letter-spacing:.02em;margin:12px 0 14px;color:#fff;-webkit-line-clamp:2}
+.voyager-onair.compact-panel .list-heading{border-bottom:1px solid rgba(167,216,255,.16);padding-bottom:9px;font:700 9px/1 Rajdhani,'Segoe UI',sans-serif;letter-spacing:.2em;color:var(--mute)}
+.voyager-onair.compact-panel .list-heading #total{font:600 11px/1 Inter,'Segoe UI',Arial,sans-serif;letter-spacing:0;color:#d4deeb}
+/* rows */
+.voyager-onair.compact-panel .entry+.entry{border-top:1px solid rgba(167,216,255,.08)}
+.voyager-onair.compact-panel .leader-rank{font:700 14px/1 Rajdhani,'Segoe UI',sans-serif;color:var(--mute);letter-spacing:.02em}
+.voyager-onair.compact-panel .entry[data-place="1"] .leader-rank,.voyager-onair.compact-panel .entry[data-place="2"] .leader-rank,.voyager-onair.compact-panel .entry[data-place="3"] .leader-rank{font-size:16px;-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:none;filter:drop-shadow(0 1px 1px rgba(0,0,0,.8))}
+.voyager-onair.compact-panel .entry[data-place="1"] .leader-rank{background-image:var(--metal-gold)}.voyager-onair.compact-panel .entry[data-place="2"] .leader-rank{background-image:var(--metal-silver)}.voyager-onair.compact-panel .entry[data-place="3"] .leader-rank{background-image:var(--metal-bronze)}
+.voyager-onair.compact-panel .avatar{font:700 10px/1 Rajdhani,'Segoe UI',sans-serif;letter-spacing:.04em;color:#dfeaf6;background:linear-gradient(180deg,#2b4a6c,#16293f);border:1px solid rgba(167,216,255,.3);box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 2px 6px rgba(0,0,0,.5)}
+.voyager-onair.compact-panel .entry[data-tier] .avatar{color:#07101c;border-color:transparent;box-shadow:inset 0 1px 0 rgba(255,255,255,.6),0 2px 6px rgba(0,0,0,.5)}
+.voyager-onair.compact-panel .entry[data-tier=blue] .avatar{background:var(--metal-blue);color:#fff;text-shadow:0 1px 1px #000}.voyager-onair.compact-panel .entry[data-tier=silver] .avatar{background:var(--metal-silver)}.voyager-onair.compact-panel .entry[data-tier=gold] .avatar{background:var(--metal-gold)}.voyager-onair.compact-panel .entry[data-tier=platinum] .avatar{background:var(--metal-platinum)}
+.voyager-onair.compact-panel .leader-person .name,.voyager-onair.compact-panel .name{font:600 15px/17px Inter,'Segoe UI',Arial,sans-serif;color:#fff}
+.voyager-onair.compact-panel .leader-platform{font:600 9.5px/11px Rajdhani,'Segoe UI',sans-serif;letter-spacing:.06em;color:var(--mute)}
+.voyager-onair.compact-panel .leader-score b{font:700 17px/18px Rajdhani,'Segoe UI',sans-serif;color:#fff;letter-spacing:.01em}
+.voyager-onair.compact-panel .leader-score small{font:700 7.5px/1 Rajdhani,'Segoe UI',sans-serif;letter-spacing:.14em;color:var(--panel-accent);opacity:.85;margin-top:2px}
+/* community panel: goal heading rows and progress */
+.voyager-onair.compact-panel .entry.goal-head{background:linear-gradient(90deg,rgba(167,216,255,.12),rgba(167,216,255,.03));border-top:1px solid rgba(167,216,255,.25)!important}
+.voyager-onair.compact-panel .entry.goal-head .name{font:700 15px/17px Rajdhani,'Segoe UI',sans-serif;letter-spacing:.04em;color:var(--panel-accent)}
+.voyager-onair.compact-panel .entry.goal-head .avatar{background:none;border:0;box-shadow:none;color:var(--panel-accent);font-size:14px}
+.voyager-onair.compact-panel .entry.goal-row::after{height:3px;background:linear-gradient(90deg,#5fb0ff,#a7d8ff 55%,#ffd56a);box-shadow:0 0 8px rgba(167,216,255,.5);opacity:1}
+/* footer */
+.voyager-onair.compact-panel footer{border-top:1px solid rgba(167,216,255,.16)}
+.voyager-onair.compact-panel footer strong{font:600 13px/1.3 Inter,'Segoe UI',Arial,sans-serif;color:#e4f2ff}
+.voyager-onair.compact-panel footer>span{font:700 8px/1.4 Rajdhani,'Segoe UI',sans-serif;letter-spacing:.2em;color:var(--mute)}
+.voyager-onair.compact-panel #empty{font-family:Inter,'Segoe UI',Arial,sans-serif}

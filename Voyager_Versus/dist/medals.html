@@ -35,6 +35,13 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:transparent
 .title{font:700 38px/1 var(--font);letter-spacing:1px;background:var(--metal);-webkit-background-clip:text;background-clip:text;color:transparent;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .who{font:600 16px/1.2 var(--body);color:rgba(235,242,250,.86);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .next{font:500 13px/1.2 var(--body);color:rgba(235,242,250,.66)}
+
+/* 2.20.83 glass refresh: the same surface as the card and panels (blur, sheen, scanlines); the medal and metals are unchanged. */
+.toast{background:linear-gradient(135deg,rgba(9,17,31,.82),rgba(14,28,46,.74) 60%,rgba(10,20,36,.80));-webkit-backdrop-filter:blur(12px) saturate(1.25);backdrop-filter:blur(12px) saturate(1.25)}
+.toast::after{content:'';position:absolute;inset:0;pointer-events:none;clip-path:inherit;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(217,229,239,.035) 3px,rgba(217,229,239,.035) 4px),linear-gradient(100deg,transparent 35%,rgba(255,255,255,.05) 50%,transparent 65%)}
+.toast .edge{border-width:1px;opacity:.55}.toast .topline{position:absolute;left:24px;right:0;top:0;height:2px;background:linear-gradient(90deg,var(--accent),transparent 85%);box-shadow:0 0 10px var(--accent)}
+.eb{display:flex;align-items:center;gap:8px;letter-spacing:.24em;font-size:12px}.eb::before{content:'';width:6px;height:6px;background:currentColor;transform:rotate(45deg)}
+.who{font-weight:600;color:#eef4fb}.next{color:rgba(235,242,250,.7)}
 </style></head>
 <body>
 <div id="stage"></div>
@@ -63,7 +70,7 @@ function show(t){
   busy=true;const [metal,accent]=t.special?SPECIAL:GRADES[t.grade]||GRADES[0];
   const d=document.createElement('div');d.className='toast';d.style.setProperty('--metal',metal);d.style.setProperty('--accent',accent);
   const svg='<svg class="star" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1.5l1.6 6.9L20.5 10l-6.9 1.6L12 18.5l-1.6-6.9L3.5 10l6.9-1.6z"></path></svg><svg class="mark" viewBox="0 0 24 24" aria-hidden="true"><path d="'+(ICONS[t.medal]||ICONS.spectrum)+'"></path></svg>';
-  d.innerHTML='<div class="glow"></div><div class="edge"></div><div class="medal"><div class="in">'+svg+'</div></div><div class="flash"></div><div class="sheen"></div><div class="text"><span class="eb"></span><span class="title"></span><span class="who"></span><span class="next"></span></div>';
+  d.innerHTML='<div class="glow"></div><div class="edge"></div><div class="topline"></div><div class="medal"><div class="in">'+svg+'</div></div><div class="flash"></div><div class="sheen"></div><div class="text"><span class="eb"></span><span class="title"></span><span class="who"></span><span class="next"></span></div>';
   d.querySelector('.eb').textContent=t.special?'★ SPECIAL MEDAL ★':t.upgrade?'★ MEDAL UPGRADED · '+t.gradeName.toUpperCase()+' ★':'MEDAL UNLOCKED · '+t.gradeName.toUpperCase();
   d.querySelector('.title').textContent=t.title+(t.special?'':' '+['I','II','III','IV'][t.grade]);
   d.querySelector('.who').textContent=t.name+' · '+t.desc;d.querySelector('.next').textContent=t.next||'';

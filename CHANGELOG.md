@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.83 (8 November 2026)
+
+**Screen overlays, refreshed look.** The Leaderboard panel and the Community goal panels (standings, goals, contributors) share a new `onair-glass.css`: the same navy glass as the On-screen moments and membership card (blur, scanlines, sheen, light-blue top edge), Rajdhani headings and numbers with Inter names, places 01 / 02 / 03 in gold, silver and bronze metal, the member's tier metal on the Leaderboard avatars, and a blue-to-gold progress bar on goal rows. The Christmas goal panel gets the same surface with a gold-metal title, metal percentages and reward chips (garland and snow kept). Giveaway goals (Bucket overlay, goals-glass-4) gain the glass blur and sheen, metal tier names and a brighter tier edge; the medals toast gets the glass surface and an accent top line. Platinum stays ultraviolet everywhere, matching the card (the moments next-celebration chip is corrected to match). Positions, sizes and opacity settings are unchanged. OBS: refresh each source's cache once.
+
 ## 2.20.82 (8 November 2026)
 
 **On-screen moments, refreshed look.** The seven moments elements, the points chips and the stream-streak comet now share one glass language with the membership card, Stream banner and standings panels: deeper navy glass with backdrop blur, a coloured 2 px top edge, scanlines and sheen; Rajdhani for headings and numbers, Inter for names and notes. Colour where it carries meaning: medal toasts in the grade's metal (bronze / silver / gold / legend), the promotion ceremony in naval gold, the next-celebration chip in the tier colour with a progress line, the crew surge in gold with a striped countdown, Dreadnought places 01/02/03 in gold / silver / bronze, and ticker words tinted by kind (gold support, violet medals and streaks, red Versus and Dreadnought, green points). Positions and sizes are unchanged, so Screen layout settings carry over. OBS: refresh the Voyager_Moments.html source cache once.

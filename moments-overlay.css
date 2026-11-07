@@ -12,6 +12,7 @@
   --metal-bronze:linear-gradient(180deg,#ffe6cc 0%,#f0a868 30%,#a5582a 52%,#6e3510 60%,#d68a4c 84%,#ffd9b0 100%);
   --metal-legend:linear-gradient(180deg,#f3e9ff 0%,#d4b3ff 30%,#8a5cf5 52%,#3d1f8a 60%,#b48cff 84%,#efe4ff 100%);
   --metal-blue:linear-gradient(180deg,#eaf6ff 0%,#9fd4ff 30%,#2f8df0 52%,#0d3f84 60%,#6fb8ff 84%,#e6f4ff 100%);
+  --metal-platinum:linear-gradient(180deg,#ffffff 0%,#e6d6ff 26%,#b48cff 50%,#3a1a8a 58%,#d6b8ff 84%,#ffffff 100%);
   --glass:linear-gradient(135deg,rgba(9,17,31,.78),rgba(14,28,46,.70) 60%,rgba(10,20,36,.76));
   --edge:rgba(167,216,255,.26);
 }
@@ -86,7 +87,7 @@
 
 /* ---- 6 · next-celebration chip (tier colour) ---- */
 #next{--tc:#dfe7f1;--tm:var(--metal-silver);left:744px;top:890px;height:42px;display:flex;align-items:center;gap:12px;padding:0 18px 0 8px;border-radius:21px;border-top-width:1px;border-color:rgba(255,255,255,.22);box-shadow:0 0 24px rgba(223,231,241,.18),0 10px 30px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.18);transform:translateY(8px);overflow:hidden}#next.on{transform:none}
-#next.silver{--tc:#dfe7f1;--tm:var(--metal-silver)}#next.gold{--tc:var(--gold);--tm:var(--metal-gold);border-color:rgba(255,213,106,.45)}#next.platinum{--tc:#bfe9ff;--tm:var(--metal-blue);border-color:rgba(191,233,255,.5)}#next.blue{--tc:#9fd4ff;--tm:var(--metal-blue)}
+#next.silver{--tc:#dfe7f1;--tm:var(--metal-silver)}#next.gold{--tc:var(--gold);--tm:var(--metal-gold);border-color:rgba(255,213,106,.45)}#next.platinum{--tc:#c08bff;--tm:var(--metal-platinum);border-color:rgba(192,139,255,.5)}#next.blue{--tc:#9fd4ff;--tm:var(--metal-blue)}
 #next b{font:700 20px/1 Rajdhani;color:#07101c;background:var(--tm);min-width:30px;height:30px;padding:0 8px;border-radius:15px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 14px var(--tc),inset 0 1px 0 rgba(255,255,255,.7)}
 #next span{font:700 14px Rajdhani;letter-spacing:.16em;color:#fff;white-space:nowrap;text-shadow:0 1px 3px #0009}#next em{font:600 12px Rajdhani;font-style:normal;letter-spacing:.12em;color:var(--tc);white-space:nowrap;opacity:.9}
 #next::after{content:'';position:absolute;left:0;bottom:0;height:2px;width:var(--prog,88%);background:var(--tm);box-shadow:0 0 8px var(--tc);z-index:1}
