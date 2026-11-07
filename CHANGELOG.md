@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.77 (7 November 2026)
+
+**Website and manual updated for this week's changes.** voyagercommand.com: the community goal shows its counting dates ("Counting from 1 November to 25 December"), each goal shows a helper multiplier ("×1.5 points for helpers") and what it means, and the Guide tab has a Good-to-know card (stream streaks follow Twitch watch streaks, goals count from a date, multipliers, ranks and tiers on stream). Public feed carries `multiplier` per goal. Member manual revised 7 Nov: Christmas 2026 run (1,000 subs, 1 Nov–25 Dec, ×1.5 points for contributors, Christmas Eve draw), per-person contribution tracking, stream streak synced to Twitch, FAQ.
+
 ## 2.20.76 (7 November 2026)
 
 **Import past subs and gifts into a run.** Community goals has an import box for the part of a run before Voyager was counting: paste lines from Streamer.bot's logs, a Twitch or StreamElements export, or a hand-written list (`2026-11-03, StarNova, gift, 5`, `2026-11-04, Quillon, sub, 1`, or free text like "StarNova gifted 5 subs"), Preview shows what was understood (editable), Apply credits each viewer. From the import time on the tracker's own counts take over, so nothing is counted twice; viewers the tracker has no record of are credited by name and matched to a points account when one exists. `POST /api/community/import` (parse / apply / clear).

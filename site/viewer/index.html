@@ -85,6 +85,7 @@ h2{font:700 26px/1.1 var(--display);letter-spacing:.6px;margin:0 0 4px}
 ol.rows{list-style:none;margin:0;padding:0}
 ol.rows li{display:grid;grid-template-columns:34px 1fr auto;align-items:center;gap:10px;padding:10px 4px;border-top:1px solid #1b2b3f}
 ol.rows li:first-child{border-top:0}
+ul.rows.plain{list-style:none;margin:0;padding:0}ul.rows.plain li{padding:10px 4px;border-top:1px solid #1b2b3f;font-size:14px;line-height:1.5;color:#c9d7e4}ul.rows.plain li:first-child{border-top:0}ul.rows.plain b{color:#e9f1fb}
 .rank{font:700 18px/1 var(--display);color:var(--faint);text-align:center}
 li:nth-child(1) .rank{color:#f2cd73}li:nth-child(2) .rank{color:#d4dfeb}li:nth-child(3) .rank{color:#e3a36c}
 .name{display:flex;align-items:center;gap:8px;min-width:0}
@@ -450,6 +451,14 @@ ol.logrows .quote{font-size:16px;color:var(--text)}
   <h2 id="h-program">How Voyager works</h2><p class="lede" id="program-intro"></p>
   <div class="tiers" id="tier-list"></div>
   <div class="card" id="command-card" style="margin-top:14px"><table><tbody id="command-list"></tbody></table></div>
+  <div class="card" style="margin-top:14px"><span class="kind">Good to know</span>
+   <ul class="rows plain">
+    <li><b>Stream streaks follow Twitch.</b> Your streak on the card is your Twitch watch streak: share it in chat when Twitch offers (a few minutes into each stream) and Voyager takes that number. Between shares Voyager counts one per stream day you earn points on.</li>
+    <li><b>Community goals count from a date.</b> A community goal can count subs, renewals and gifted subs from the day it is announced (for example 1 November), not just from when it appears here. Your contribution shows on stream and in the goal's helper count above.</li>
+    <li><b>Helper multipliers.</b> When a goal shows "×1.5 points for helpers", everyone who contributes earns half as much again on all the Voyager points they earn while the goal runs, paid when it ends.</li>
+    <li><b>Medals, ranks and tiers on stream.</b> The on-stream leaderboards show each member's naval rank and tier, and the community panel lists who has helped each goal and by how much.</li>
+   </ul>
+  </div>
  </section>
 
  <dialog class="proof" id="proof-dialog" aria-labelledby="proof-title">
@@ -459,7 +468,7 @@ ol.logrows .quote{font-size:16px;color:var(--text)}
  <footer><p id="updated">Updates every few minutes while the stream tools are running.</p><p><a href="manual.pdf" target="_blank" rel="noopener">Voyager member manual (PDF)</a></p><p>Voyager community site. Giveaway entry happens in stream chat only; this site never asks for passwords or payment.</p></footer>
 </div>
 <script src="fair-draw.js"></script>
-<script src="companion.js?v=2.20.51" defer></script>
+<script src="companion.js?v=2.20.77" defer></script>
 <script>
 (()=>{'use strict';
 // ?embed=1: shown inside another site. Report our height so the host page can size its frame.
@@ -626,11 +635,11 @@ function renderMissions(){
 }
 function renderSeason(){
  const s=feed.season;$('season').hidden=!s;if(!s)return;
- const running=s.active!==false&&!!s.name;$('h-season').textContent=running?s.name:'Community goal';$('season-lede').textContent=running?(s.endsAt?'Due '+new Date(s.endsAt).toLocaleDateString(undefined,{day:'numeric',month:'long',year:'numeric'})+'. ':'')+'Earn points'+(s.supportBonus?', or sub, renew and gift subs (+'+fmt(s.supportBonus)+' each),':'')+' to climb the standings; the champion joins the Hall of Fame.':'No community goal is running right now. The next one is announced on stream.';
+ const running=s.active!==false&&!!s.name;$('h-season').textContent=running?s.name:'Community goal';$('season-lede').textContent=running?(s.startedAt?'Counting from '+new Date(s.startedAt).toLocaleDateString(undefined,{day:'numeric',month:'long'})+(s.endsAt?' to '+new Date(s.endsAt).toLocaleDateString(undefined,{day:'numeric',month:'long',year:'numeric'}):'')+'. ':s.endsAt?'Due '+new Date(s.endsAt).toLocaleDateString(undefined,{day:'numeric',month:'long',year:'numeric'})+'. ':'')+'Earn points'+(s.supportBonus?', or sub, renew and gift subs (+'+fmt(s.supportBonus)+' each),':'')+' to climb the standings; the champion joins the Hall of Fame.':'No community goal is running right now. The next one is announced on stream.';
  const gl=$('sub-goal-list');gl.textContent='';gl.hidden=!(s.goals||[]).length;
- for(const g of s.goals||[]){const c=el('article','card mission sub');const top=el('div','gw-top');top.append(el('span','kind','Community goal'+(ON[g.platform]||'')),el('span','reward','+'+fmt(g.reward)+' pts each'));
+ for(const g of s.goals||[]){const c=el('article','card mission sub');const top=el('div','gw-top');top.append(el('span','kind','Community goal'+(ON[g.platform]||'')),el('span','reward',g.multiplier>1?'×'+g.multiplier+' points for helpers'+(g.reward?' · +'+fmt(g.reward):''):'+'+fmt(g.reward)+' pts each'));
   const bar=el('div','goal-bar');const fill=el('i');fill.style.width=Math.min(100,g.total/g.target*100).toFixed(1)+'%';bar.append(fill);
-  c.append(top,el('h3','',g.title));if(g.description)c.append(el('p','lede small',g.description));c.append(el('p','who',fmt(g.total)+' of '+fmt(g.target)+' '+(GOAL_TEXT[g.metric]||'')+(g.dueAt?' · due '+new Date(g.dueAt).toLocaleDateString(undefined,{day:'numeric',month:'short'}):'')),bar,el('p','done',g.reached?'Reached! Everyone who helped earns the reward.':g.missed?'Not reached by the due date.':g.helpers?fmt(g.helpers)+(g.helpers===1?' member has':' members have')+' helped so far':'Be the first to help'));gl.append(c);}
+  c.append(top,el('h3','',g.title));if(g.description)c.append(el('p','lede small',g.description));c.append(el('p','who',fmt(g.total)+' of '+fmt(g.target)+' '+(GOAL_TEXT[g.metric]||'')+(g.dueAt?' · due '+new Date(g.dueAt).toLocaleDateString(undefined,{day:'numeric',month:'short'}):'')),bar,el('p','done',g.reached?'Reached! Everyone who helped earns the reward.':g.missed?'Not reached by the due date.':g.helpers?fmt(g.helpers)+(g.helpers===1?' member has':' members have')+' helped so far':'Be the first to help'));if(g.multiplier>1)c.append(el('p','lede small','Everyone who helps earns ×'+g.multiplier+' Voyager points on everything they earn while the goal runs, paid when it ends.'));gl.append(c);}
  const list=$('season-list');list.textContent='';
  for(const r of s.standings||[]){const li=el('li');const n=platformTag(r.platform);n.append(el('span','',r.name));li.append(el('span','rank',r.rank),n,el('span','val',fmt(r.points)+(r.support?' · '+r.support+' ♥':'')+(r.wins?' · '+r.wins+' W':'')));list.append(li);}
  if(!(s.standings||[]).length)list.append(el('li','empty',running?'The community goal has just begun. Be the first on the board!':'Standings appear when a community goal is running.'));

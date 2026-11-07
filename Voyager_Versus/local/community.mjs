@@ -455,7 +455,7 @@ export class Community{
   publicView(){
     const v=this.view();
     return {season:{name:v.season.name,endsAt:v.season.endsAt,startedAt:v.season.startedAt,active:v.season.active,supportBonus:v.supportBonus,standings:v.standings.slice(0,10).map(r=>({rank:r.rank,name:r.name,platform:r.platform,points:r.score,earned:r.points,support:r.support,wins:r.wins})),
-        goals:v.goals.map(g=>({title:g.title,metric:g.metric,platform:g.platform,target:g.target,total:g.total,reward:g.reward,reached:g.reached,missed:g.missed,dueAt:g.dueAt,description:g.description||'',helpers:g.helpers.length}))},
+        goals:v.goals.map(g=>({title:g.title,metric:g.metric,platform:g.platform,target:g.target,total:g.total,reward:g.reward,multiplier:g.multiplier||1,reached:g.reached,missed:g.missed,dueAt:g.dueAt,description:g.description||'',helpers:g.helpers.length}))},
       hall:v.hall.slice(0,6).map(h=>({name:h.name,endedAt:h.endedAt,champion:h.champion,topPilot:h.topPilot})),
       missions:v.missions.filter(m=>m.enabled).map(m=>({title:m.title,type:m.type,platform:m.platform,target:m.target,reward:m.reward,completed:m.completed,medal:MISSION_MEDALS[m.type]||''})),weekEndsAt:v.week.endsAt};
   }
