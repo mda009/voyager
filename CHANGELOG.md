@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.79 (7 November 2026)
+
+**Crew surge pays ×1.5 on bits and gifted subs.** While a crew surge is on, every gifted sub and every cheer earns the surge multiplier (1.5 by default, 1–5): Voyager works out the extra part from the normal StreamUP points (100 per gifted sub, 1 per bit; both editable on the On-screen moments page) and lists it on Missions › Points owed as "Crew surge ×1.5: 5 gifted subs", keyed to the supporter's account and paid with the other rewards. The surge chip shows the multiplier and the bonus so far; the Right now ticker adds "surge bonus +250" to the event. Can be switched to display-only. Bonuses persist in moments.json.
+
 ## 2.20.78 (7 November 2026)
 
 **voyagercommand.com: Commands tab.** A new tab between Community and Guide listing every chat command in five groups (Your membership, Every stream, Giveaways, The Dreadnought, Voyager Versus): what it does, when to use it, and its cooldown or limit as badges (per-viewer cooldowns, once-a-stream, energy costs, Twitch-only). Tap a command to copy it. `#commands` (also `#cmd`).

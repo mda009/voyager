@@ -72,3 +72,18 @@ test('giveaway goals strip: the switch is an element with no layout box; the goa
   m.setElement('goals',false);assert.equal(m.overlay().elements.goals,false);
   m.goalsReading({samples:{silver:{points:30,targetPoints:25},gold:{points:30,targetPoints:50}}});assert.equal(m.nextCelebration().tier,'gold');
 });
+test('crew surge bonus (2.20.79): bits and gifted subs during a surge owe the extra part of the multiplier, keyed to the account',async()=>{
+  const {m,at}=await make();const q=(list)=>({state:{queue:list.map(([id,stage,name,amount,extra])=>({id,stage,name,amount,platform:'twitch',userId:'1'+id.charCodeAt(0),login:name.toLowerCase(),...extra}))}});
+  m.fleet(q([]));for(const id of ['a','b','c','d'])m.fleet(q([[id,1,'Fan'+id,1]]));
+  assert.equal(m.bonuses.length,0,'no surge yet');
+  m.fleet(q([['e',3,'Gifter',5]]));assert.equal(m.surge().active,true);
+  assert.equal(m.bonuses.length,1,'the gift that started the surge counts');assert.equal(m.bonuses[0].bonus,250,'5 gifts x 100 pts x 0.5');assert.equal(m.bonuses[0].key,'twitch:1101');
+  m.fleet(q([['f',5,'Cheerer',1000]]));assert.equal(m.bonuses[1].bonus,500,'1000 bits x 1 pt x 0.5');
+  m.fleet(q([['g',2,'Subber',1]]));assert.equal(m.bonuses.length,2,'subs are not part of the bits & gifts bonus');
+  const pay=m.bonusPayables();assert.equal(pay.length,2);assert.equal(pay[0].scope,'surge');assert.match(pay[0].title,/5 gifted subs/);assert.equal(pay[1].reward,500);
+  assert.equal(m.surge().bonus,1.5);assert.equal(m.surge().bonusOwed,750);assert.equal(m.events.find(e=>e.name==='Gifter').bonus,250);
+  m.configure({surge:{bonus:false}});m.fleet(q([['h',3,'Late',2]]));assert.equal(m.bonuses.length,2,'bonus off');
+  m.configure({surge:{bonus:true,multiplier:2,pointsPerGift:50}});m.fleet(q([['i',3,'Double',2]]));assert.equal(m.bonuses[2].bonus,100,'2 gifts x 50 x 1.0');
+  await m.saving;const again=await new Moments({dataDir:m.dataDir,now:()=>0}).load();assert.equal(again.bonuses.length,3,'bonuses persist');
+  assert.throws(()=>m.configure({surge:{multiplier:9}}),/multiplier/);
+});

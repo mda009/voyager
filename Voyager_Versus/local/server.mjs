@@ -188,6 +188,7 @@ const matchChat=new MatchChat({directory:dataDir,game,bot,action:()=>rewards.rea
 // On-screen moments (2.20.64): ticker, surge, hints, next-celebration chip, promotion ceremony, Dreadnought HUD.
 const moments=await new Moments({dataDir,boss:()=>boss.overlay(),medals:()=>medals.state.recent,promotions:()=>cards.state.promotions,medalToasts:()=>medals.state.toasts,medalIcon:id=>MEDAL_ICONS[id]||''}).load();
 game.onEvent=event=>{matchChat.capture(event);try{moments.versus(event);}catch{}};
+if(community)community.extraPayables=()=>moments.bonusPayables();
 if(community)community.onPoints=list=>{try{moments.points(list);}catch{}};medals.onStreak=list=>{try{moments.streaks(list);}catch{}};
 function packet(){const snapshot=game.snapshot();for(const r of snapshot.result?.rewards||[])r.status=economy.data.rewards.find(x=>x.id===r.id)?.status||r.status;return {serverTime:Date.now(),game:snapshot,connection:bot.status,rewards:rewards.snapshot(),announcements:announcements.snapshot(),matchChat:matchChat.snapshot(),entries:entries.snapshot(),pilotLeaderboard:pilots.snapshot()};}
 const failures=new Map();

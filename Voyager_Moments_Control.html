@@ -60,6 +60,10 @@
 <label>…within (min)<input name="surge.windowMinutes" type="number" min="1" max="30"></label>
 <label>Surge lasts (min, topped up by each support)<input name="surge.durationMinutes" type="number" min="1" max="60"></label>
 <label>Surge label<input name="surge.label" type="text" maxlength="24"></label>
+<label>Surge bonus on bits &amp; gifted subs<select name="surge.bonus"><option value="true">On: multiply their points</option><option value="false">Off: display only</option></select></label>
+<label>Surge multiplier (1.5 = half again)<input name="surge.multiplier" type="number" min="1" max="5" step="0.1"></label>
+<label>Normal points per gifted sub (StreamUP)<input name="surge.pointsPerGift" type="number" min="0" max="100000"></label>
+<label>Normal points per bit (StreamUP)<input name="surge.pointsPerBit" type="number" min="0" max="1000" step="0.01"></label>
 <label>Promotion ceremony from rank<select name="promoMin"></select></label>
 <label>Ceremony shows for (s)<input name="promoSeconds" type="number" min="4" max="30"></label>
 <label>Ticker: events shown<input name="tickerCount" type="number" min="3" max="20"></label>
@@ -73,7 +77,7 @@
 <label>Streak comet crosses in (s)<input name="streakSeconds" type="number" min="2" max="12"></label>
 <div class="wide" style="display:flex;gap:8px;flex-wrap:wrap"><button type="submit" class="primary">Save settings</button><button type="button" id="reset">Defaults</button></div>
 </form>
-<p class="st-hint"><b>Points added</b> plays when the Points Ledger reports gains (every 30 s or so while Voyager runs): one chip per member, largest first, the rest summed into one chip. <b>Stream streak</b> plays when a member earns their first points of the day on consecutive stream days. The crew surge is a display: it shows the pile-up and a timer and does not change points by itself. The medal toast is off by default because the <b>medals.html</b> source already shows one; turn it on here only if you remove that source.</p>
+<p class="st-hint"><b>Points added</b> plays when the Points Ledger reports gains (every 30 s or so while Voyager runs): one chip per member, largest first, the rest summed into one chip. <b>Stream streak</b> plays when a member earns their first points of the day on consecutive stream days. While a crew surge is on, every gifted sub and every cheer earns the multiplier: Voyager works out the extra part from the normal StreamUP points you enter here and lists it on <b>Missions › Points owed</b> as "Crew surge ×1.5", paid with the other rewards. The chip on stream shows the multiplier and the bonus so far. The medal toast is off by default because the <b>medals.html</b> source already shows one; turn it on here only if you remove that source.</p>
 </section>
 
 <section class="card mo-card">
@@ -89,8 +93,8 @@
 </div>
 </main>
 </div>
-<script src="moments-control.js?v=2.20.69"></script>
-<script src="voyager-shell.js?v=2.20.78"></script>
+<script src="moments-control.js?v=2.20.79"></script>
+<script src="voyager-shell.js?v=2.20.79"></script>
 <script src="voyager-navigation.js"></script>
 </body>
 </html>

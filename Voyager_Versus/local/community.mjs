@@ -279,6 +279,8 @@ export class Community{
   // Who is owed what, this week and last week, with payment status.
   payables(){
     const s=this.state,rows=[];
+    // 2.20.79: rows other modules owe (crew surge bonuses), paid and recorded like the rest.
+    for(const c of (this.extraPayables?.()||[])){if(!c.reward)continue;const k=this.payKey(c.week,c.missionId,c.key);rows.push({...c,payable:!!c.key&&c.account!==false,status:s.payouts[k]?.status||'owed',paidAt:s.payouts[k]?.at||0,note:s.payouts[k]?.note||''});}
     // Season goals use the season's start time in place of a week, so their payouts never clash with missions.
     for(const [week,list,scope,label] of [[s.week.id,this.completions(),'week','this week'],[s.previous?.id,s.previous?.completions||[],'week','last week'],
       [s.season.startedAt,this.goalCompletions(),'season',s.season.name],[s.previousSeason?.id,s.previousSeason?.completions||[],'season',s.previousSeason?.name||'last season']]){

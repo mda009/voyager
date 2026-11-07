@@ -13,7 +13,7 @@
 #hints .dots{margin-left:auto;display:flex;gap:4px}#hints .dots i{width:6px;height:6px;border-radius:50%;background:#2f4760}#hints .dots i.on{background:#97dfff}
 #hints.swap .k,#hints.swap .t span{animation:hintswap .5s ease}@keyframes hintswap{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 /* surge */
-#surge{left:1532px;top:28px;width:360px;height:70px;display:flex;align-items:center;gap:14px;padding:0 18px;border-color:#ffd56a;box-shadow:0 0 0 1px rgba(255,213,106,.35),0 0 38px rgba(255,213,106,.35),inset 0 1px 0 rgba(255,255,255,.2);transform:translateY(-12px) scale(.96)}#surge.on{transform:none;animation:surgeglow 2.4s ease-in-out infinite}
+#surge{left:1532px;top:28px;width:440px;height:70px;display:flex;align-items:center;gap:14px;padding:0 18px;border-color:#ffd56a;box-shadow:0 0 0 1px rgba(255,213,106,.35),0 0 38px rgba(255,213,106,.35),inset 0 1px 0 rgba(255,255,255,.2);transform:translateY(-12px) scale(.96)}#surge.on{transform:none;animation:surgeglow 2.4s ease-in-out infinite}
 @keyframes surgeglow{50%{box-shadow:0 0 0 1px rgba(255,213,106,.55),0 0 60px rgba(255,213,106,.55),inset 0 1px 0 rgba(255,255,255,.2)}}
 #surge .x{font:700 38px/1 Rajdhani;color:#ffd56a;text-shadow:0 0 18px rgba(255,213,106,.7)}#surge .t{min-width:0}#surge .t span{font:700 18px/1.1 Rajdhani;letter-spacing:.12em;color:#fff}#surge .t small{display:block;font:500 12px Rajdhani;color:#ffe9b3;letter-spacing:.1em;margin-top:3px;white-space:nowrap}
 #surge .bar{position:absolute;left:14px;right:14px;bottom:6px;height:3px;background:#2f2a1a;border-radius:2px}#surge .bar i{display:block;width:100%;height:100%;background:linear-gradient(90deg,#ffd56a,#fff3b8);border-radius:2px;box-shadow:0 0 8px #ffd56a;transition:width 1s linear}

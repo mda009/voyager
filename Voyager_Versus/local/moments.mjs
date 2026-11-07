@@ -12,7 +12,7 @@ const STAGE={1:'follow',2:'sub',3:'gift',4:'resub',5:'bits',6:'raid'};
 const TIERS=['silver','gold','platinum'],TIER_LABEL={silver:'Silver',gold:'Gold',platinum:'Platinum'};
 // 2.20.66 Screen layout: where each moment sits on the 1920 x 1080 canvas (top-left corner; the ticker also has a width), and
 // reference boxes for the other OBS overlays so they can be arranged around each other on the Screen layout page.
-export const LAYOUT_DEFAULTS={hints:{x:28,y:28,w:420,h:58},surge:{x:1532,y:28,w:360,h:70},dread:{x:1512,y:120,w:380,h:300},promo:{x:640,y:150,w:640,h:150},next:{x:744,y:890,w:460,h:40},
+export const LAYOUT_DEFAULTS={hints:{x:28,y:28,w:420,h:58},surge:{x:1452,y:28,w:440,h:70},dread:{x:1512,y:120,w:380,h:300},promo:{x:640,y:150,w:640,h:150},next:{x:744,y:890,w:460,h:40},
   ticker:{x:28,y:1012,w:1864,h:56},toast:{x:28,y:838,w:420,h:92},points:{x:28,y:480,w:420,h:300},streak:{x:0,y:380,w:1920,h:160}};
 export const LAYOUT_FIXED={streak:'x',ticker:''}; // streak always spans the width; the ticker's width can change
 export const MARKERS={camera:{label:'Camera (Brio) + frame',x:1512,y:716,w:380,h:214,on:true,setup:'Support alerts › Camera spotlight',src:'obs'},
@@ -30,7 +30,7 @@ export const DEFAULTS={
   elements:{hints:true,surge:true,dread:true,promo:true,next:true,ticker:true,toast:false,points:true,streak:true,goals:true},
   hints:[{cmd:'!voyager',text:'Shows your membership card'},{cmd:'!versus',text:'Challenge a pilot in the arena'},{cmd:'!report',text:'Report for duty and earn points'},{cmd:'!medals',text:'See the medals you have earned'}],
   hintSeconds:20,hintQuietMinutes:10,
-  surge:{count:5,windowMinutes:3,durationMinutes:5,label:'CREW SURGE'},
+  surge:{count:5,windowMinutes:3,durationMinutes:5,label:'CREW SURGE',bonus:true,multiplier:1.5,pointsPerGift:100,pointsPerBit:1},
   promoMin:7,promoSeconds:9,tickerCount:10,tickerMinutes:30,toastSeconds:6,
   pointsMin:5,pointsMax:6,pointsSeconds:4,streakMin:2,streakMax:5,streakSeconds:4,
   goalsStripTop:1010,
@@ -47,7 +47,10 @@ export function normalizeSettings(raw,base=DEFAULTS){
   for(const [k,min,max] of [['hintSeconds',5,120],['hintQuietMinutes',0,60],['promoMin',0,11],['promoSeconds',4,30],['tickerCount',3,20],['tickerMinutes',5,240],['toastSeconds',3,20],['goalsStripTop',0,1080],['pointsMin',1,100000],['pointsMax',1,12],['pointsSeconds',2,12],['streakMin',2,100],['streakMax',1,12],['streakSeconds',2,12]])
     if(r[k]!==undefined){const n=int(r[k],min,max);if(n===null)throw new Error(k+' must be a whole number between '+min+' and '+max+'.');s[k]=n;}
   if(r.surge&&typeof r.surge==='object'){for(const [k,min,max] of [['count',2,20],['windowMinutes',1,30],['durationMinutes',1,60]])if(r.surge[k]!==undefined){const n=int(r.surge[k],min,max);if(n===null)throw new Error('Crew surge '+k+' must be a whole number between '+min+' and '+max+'.');s.surge[k]=n;}
-    if(r.surge.label!==undefined)s.surge.label=clean(r.surge.label,24)||'CREW SURGE';}
+    if(r.surge.label!==undefined)s.surge.label=clean(r.surge.label,24)||'CREW SURGE';
+    if(r.surge.bonus!==undefined)s.surge.bonus=r.surge.bonus===true;
+    if(r.surge.multiplier!==undefined){const m=Math.round(Number(r.surge.multiplier)*100)/100;if(!Number.isFinite(m)||m<1||m>5)throw new Error('The crew surge multiplier must be between 1 and 5.');s.surge.multiplier=m;}
+    for(const [k,min,max] of [['pointsPerGift',0,100000],['pointsPerBit',0,1000]])if(r.surge[k]!==undefined){const n=Number(r.surge[k]);if(!Number.isFinite(n)||n<min||n>max)throw new Error('Crew surge '+k+' must be between '+min+' and '+max+'.');s.surge[k]=Math.round(n*100)/100;}}
   if(r.layout&&typeof r.layout==='object')for(const k of Object.keys(LAYOUT_DEFAULTS)){const b=r.layout[k];if(!b||typeof b!=='object')continue;const d=LAYOUT_DEFAULTS[k],cur=s.layout[k];
     const x=LAYOUT_FIXED[k]==='x'?0:int(b.x??cur.x,-200,1920),y=int(b.y??cur.y,-200,1080),w=k==='ticker'?int(b.w??cur.w,300,1920):d.w,h=d.h;if(x===null||y===null||w===null)throw new Error(ELEMENTS[k]+': the position must be whole pixels on the 1920 x 1080 canvas.');s.layout[k]={x,y,w,h};}
   if(r.markers&&typeof r.markers==='object')for(const k of Object.keys(MARKERS)){const b=r.markers[k];if(!b||typeof b!=='object')continue;const cur=s.markers[k];
@@ -58,11 +61,11 @@ export class Moments{
   constructor({dataDir,now=()=>Date.now(),boss=()=>null,medals=()=>[],promotions=()=>[],medalToasts=()=>[],medalIcon=()=>''}={}){
     Object.assign(this,{dataDir,now,bossView:boss,medalsRecent:medals,promotionsList:promotions,medalToasts,medalIcon});
     this.settings=structuredClone(DEFAULTS);this.events=[];this.seq=0;this.seenFleet=new Set();this.fleetPrimed=false;this.medalSeen=0;this.medalPrimed=false;this.promoSeen=0;this.promoPrimed=false;
-    this.supports=[];this.surgeUntil=0;this.surgeCount=0;this.surgeStartedAt=0;this.goals=null;this.goalsAt=0;this.lastBossPhase='';this.lastBossId='';this.lastCommandAt=0;this.revision=0;this.saving=Promise.resolve();
+    this.supports=[];this.surgeUntil=0;this.surgeCount=0;this.surgeStartedAt=0;this.bonuses=[];this.goals=null;this.goalsAt=0;this.lastBossPhase='';this.lastBossId='';this.lastCommandAt=0;this.revision=0;this.saving=Promise.resolve();
   }
   get file(){return join(this.dataDir,'moments.json');}
-  async load(){try{const raw=JSON.parse(await readFile(this.file,'utf8'));this.settings=normalizeSettings(raw.settings||{});this.revision=Number(raw.revision)||0;}catch{}return this;}
-  persist(){const data=JSON.stringify({schema:1,settings:this.settings,revision:this.revision});this.saving=this.saving.then(async()=>{await mkdir(this.dataDir,{recursive:true});const tmp=this.file+'.tmp';await writeFile(tmp,data);await rename(tmp,this.file);}).catch(()=>{});return this.saving;}
+  async load(){try{const raw=JSON.parse(await readFile(this.file,'utf8'));this.settings=normalizeSettings(raw.settings||{});this.revision=Number(raw.revision)||0;this.bonuses=Array.isArray(raw.bonuses)?raw.bonuses.slice(-2000):[];}catch{}return this;}
+  persist(){const data=JSON.stringify({schema:1,settings:this.settings,revision:this.revision,bonuses:this.bonuses.slice(-2000)});this.saving=this.saving.then(async()=>{await mkdir(this.dataDir,{recursive:true});const tmp=this.file+'.tmp';await writeFile(tmp,data);await rename(tmp,this.file);}).catch(()=>{});return this.saving;}
   configure(raw){this.settings=normalizeSettings(raw,this.settings);this.revision++;void this.persist();return this.view();}
   setElement(key,on){if(!Object.hasOwn(ELEMENTS,key))throw new Error('Unknown element.');this.settings.elements[key]=!!on;this.revision++;void this.persist();return this.view();}
   // ---------- events ----------
@@ -70,11 +73,18 @@ export class Moments{
   support(kind,name,extra={}){const s=this.settings.surge,now=this.now();this.supports=[...this.supports.filter(t=>now-t<=s.windowMinutes*60000),now];
     if(this.supports.length>=s.count){if(now>=this.surgeUntil){this.surgeStartedAt=now;this.surgeCount=this.supports.length;}else this.surgeCount++;this.surgeUntil=now+s.durationMinutes*60000;}
     else if(now<this.surgeUntil){this.surgeCount++;this.surgeUntil=now+s.durationMinutes*60000;}
-    return this.push({kind:'support',sub:kind,name:clean(name,40),...extra});}
+    const ev=this.push({kind:'support',sub:kind,name:clean(name,40),...extra});
+    // 2.20.79: while a surge is on, bits and gifted subs earn the multiplier: the extra part is owed as a bonus (Missions › Points owed).
+    if(s.bonus&&s.multiplier>1&&now<this.surgeUntil&&(kind==='gift'||kind==='bits')&&!extra.test){const base=kind==='gift'?(Number(extra.amount)||1)*s.pointsPerGift:(Number(extra.amount)||0)*s.pointsPerBit;const bonus=Math.round(base*(s.multiplier-1));
+      if(bonus>0){const key=extra.platform&&/^\d{1,25}$|^[A-Za-z0-9_-]{2,64}$/.test(String(extra.userId||''))?extra.platform+':'+extra.userId:'';
+        this.bonuses.push({id:'s'+now.toString(36)+ev.id,at:now,surgeAt:this.surgeStartedAt,key,name:ev.name,platform:extra.platform||'',login:String(extra.login||'').toLowerCase(),kind,amount:Number(extra.amount)||1,base,bonus,multiplier:s.multiplier});ev.bonus=bonus;void this.persist();}}
+    return ev;}
+  // Surge bonuses as payable rows for Missions › Points owed (paid with the other rewards through the Points Engine).
+  bonusPayables(){return this.bonuses.map(b=>({missionId:'surge-'+b.id,title:'Crew surge x'+b.multiplier+': '+(b.kind==='gift'?b.amount+' gifted sub'+(b.amount===1?'':'s'):b.amount.toLocaleString()+' bits'),reward:b.bonus,key:b.key,name:b.name,platform:b.platform,week:b.surgeAt||b.at,scope:'surge',label:'Crew surge '+new Date(b.surgeAt||b.at).toLocaleDateString(),...(b.key?{}:{account:false})}));}
   // Fleet Alerts queue: every new entry is a support event (follow, sub, gift, resub, bits, raid). The first sync only primes.
   fleet(ev){const q=Array.isArray(ev?.state?.queue)?ev.state.queue:[];if(!this.fleetPrimed){for(const e of q)this.seenFleet.add(String(e.id));this.fleetPrimed=true;return;}
     for(const e of q){const id=String(e.id||'');if(!id||this.seenFleet.has(id))continue;this.seenFleet.add(id);if(e.test)continue;const kind=STAGE[Number(e.stage)]||'support';
-      this.support(kind,e.name,{amount:Number(e.amount)||0,months:Number(e.months)||0,tier:clean(e.tier,16)});}
+      this.support(kind,e.name,{amount:Number(e.amount)||0,months:Number(e.months)||0,tier:clean(e.tier,16),platform:['twitch','youtube','kick'].includes(e.platform)?e.platform:'',userId:clean(e.userId,128),login:clean(e.login,100)});}
     if(this.seenFleet.size>500)this.seenFleet=new Set([...this.seenFleet].slice(-250));}
   // Medals: new awards since the last look (recent[] is newest first with increasing ids).
   pollMedals(){const list=this.medalsRecent()||[];if(!this.medalPrimed){this.medalSeen=list.reduce((a,x)=>Math.max(a,Number(x.id)||0),0);this.medalPrimed=true;return;}
@@ -103,7 +113,7 @@ export class Moments{
     const t=open[0],after=open[1];return {done:false,tier:t,label:TIER_LABEL[t],remaining:g[t].target-g[t].points,points:g[t].points,target:g[t].target,next:after?{tier:after,label:TIER_LABEL[after],target:g[after].target}:null};}
   // 2.20.67: the goals strip drawn by Voyager (Silver / Gold / Platinum from the same reading the next-celebration chip uses).
   goalsStrip(){const g=this.goals;if(!g||this.now()-this.goalsAt>120000)return null;return {at:this.goalsAt,tiers:TIERS.filter(t=>g[t]).map(t=>({tier:t,label:TIER_LABEL[t],points:g[t].points,target:g[t].target,reached:g[t].target>0&&g[t].points>=g[t].target}))};}
-  surge(){const now=this.now();return {active:now<this.surgeUntil,until:this.surgeUntil,startedAt:this.surgeStartedAt,count:this.surgeCount,recent:this.supports.filter(t=>now-t<=this.settings.surge.windowMinutes*60000).length,label:this.settings.surge.label};}
+  surge(){const now=this.now(),s=this.settings.surge;return {active:now<this.surgeUntil,until:this.surgeUntil,startedAt:this.surgeStartedAt,count:this.surgeCount,recent:this.supports.filter(t=>now-t<=s.windowMinutes*60000).length,label:s.label,bonus:s.bonus&&s.multiplier>1?s.multiplier:0,bonusOwed:this.bonuses.filter(b=>b.surgeAt===this.surgeStartedAt).reduce((a,b)=>a+b.bonus,0)};}
   tick(){this.pollMedals();this.pollPromotions();this.pollBoss();}
   // Test buttons on the control page push a sample event (marked test, shown like a real one).
   test(kind){const samples={support:()=>this.support('gift','Sample Gifter',{amount:3,test:true}),medal:()=>this.push({kind:'medal',name:'Sample Pilot',platform:'twitch',medal:'watch',title:'Night Watch',grade:0,gradeName:'Bronze',test:true}),
