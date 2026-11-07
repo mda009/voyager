@@ -113,7 +113,9 @@ export function normalizeGoals(raw){
     const reward=int(g.reward,0,1e6);if(reward===null)throw new Error(title+': the reward must be 0 to 1,000,000 points.');
     const minimum=g.minimum===undefined||g.minimum===null||g.minimum===''?1:int(g.minimum,1,1e9);if(minimum===null)throw new Error(title+': the minimum contribution must be at least 1.');
     let dueAt=0;if(g.dueAt!==undefined&&g.dueAt!==null&&g.dueAt!==''){dueAt=Number(g.dueAt);if(!Number.isFinite(dueAt)||dueAt<0)throw new Error(title+': the due date is not valid.');dueAt=Math.round(dueAt);}
-    out.push({id,title,metric,platform,target,reward,minimum,dueAt,description:clean(g.description,120)});
+    // 2.20.74: contributors earn their Voyager points times this during the run (1 = no bonus, 1.5 = half as much again), paid when it ends.
+    let multiplier=1;if(g.multiplier!==undefined&&g.multiplier!==null&&g.multiplier!==''){multiplier=Math.round(Number(g.multiplier)*100)/100;if(!Number.isFinite(multiplier)||multiplier<1||multiplier>5)throw new Error(title+': the points multiplier must be between 1 and 5.');}
+    out.push({id,title,metric,platform,target,reward,minimum,dueAt,description:clean(g.description,120),multiplier});
   }
   return out;
 }
@@ -195,8 +197,10 @@ export class Community{
       const prev=s.support[key],first=(v,at,since,last)=>at>=since&&v>0?Math.max(0,v-(last>0?Math.min(last,v):1)):v;
       if(s.week.gifts[key]===undefined){s.week.gifts[key]=prev?prev.gifts:first(gifts,giftsAt,s.week.id,giftsLast);changed=true;}
       if(s.season.support[key]===undefined){s.season.support[key]={months:prev?prev.months:first(months,monthsAt,s.season.startedAt,0),gifts:prev?prev.gifts:first(gifts,giftsAt,s.season.startedAt,giftsLast)};changed=true;}
+      const days=m=>{if(!m||typeof m!=='object')return undefined;const o={};for(const [d,n] of Object.entries(m).sort().slice(-200)){if(!/^\d{4}-\d{2}-\d{2}$/.test(d))continue;const v=int(n,0,1e6);if(v)o[d]=v;}return Object.keys(o).length?o:undefined;};
       const next={name:clean(r.name||r.login,60)||s.members[key]?.name||key,login:clean(r.login,60).toLowerCase(),platform:key.split(':')[0],
-        months:Math.max(prev?.months||0,months),monthsAt:Math.max(prev?.monthsAt||0,monthsAt),gifts:Math.max(prev?.gifts||0,gifts),giftsAt:Math.max(prev?.giftsAt||0,giftsAt)};
+        months:Math.max(prev?.months||0,months),monthsAt:Math.max(prev?.monthsAt||0,monthsAt),gifts:Math.max(prev?.gifts||0,gifts),giftsAt:Math.max(prev?.giftsAt||0,giftsAt),giftsLast:giftsLast||prev?.giftsLast||0,
+        ...(days(r.giftsByDay)?{giftsByDay:days(r.giftsByDay)}:prev?.giftsByDay?{giftsByDay:prev.giftsByDay}:{}),...(days(r.subsByDay)?{subsByDay:days(r.subsByDay)}:prev?.subsByDay?{subsByDay:prev.subsByDay}:{})};
       if(!prev||prev.months!==next.months||prev.gifts!==next.gifts||prev.monthsAt!==next.monthsAt||prev.name!==next.name)changed=true;
       s.support[key]=next;
     }
@@ -205,9 +209,15 @@ export class Community{
     return this.view();
   }
   // Subs/renewals and gifted subs since the season began, per supporter.
+  // Subs and gifts during the run. Three lower-bound readings, the largest wins: the tracker's per-day counts from the run's start date
+  // (exact from Community Tracker v2 on), the change since the run was opened (baseline), and the latest event's time (one event, or the
+  // whole last gift) when it fell inside the window. So a run that counts from 1 November credits what the tracker knows about since then.
   seasonSupport(key){
-    const v=this.state.support[key],b=this.state.season.support?.[key];if(!v||!b)return {subs:0,gifts:0};
-    return {subs:Math.max(0,v.months-b.months),gifts:Math.max(0,v.gifts-b.gifts)};
+    const s=this.state,v=s.support[key],b=s.season.support?.[key];if(!v||!s.season.active)return {subs:0,gifts:0};
+    const since=s.season.startedAt||0,day=dayId(since),sum=m=>m?Object.entries(m).reduce((a,[d,n])=>d>=day?a+n:a,0):0;
+    const base={subs:b?Math.max(0,v.months-b.months):0,gifts:b?Math.max(0,v.gifts-b.gifts):0};
+    const late={subs:v.monthsAt>=since?1:0,gifts:v.giftsAt>=since?Math.max(1,Math.min(v.gifts,v.giftsLast||1)):0};
+    return {subs:Math.max(sum(v.subsByDay),base.subs,late.subs),gifts:Math.max(sum(v.giftsByDay),base.gifts,late.gifts)};
   }
   // Medal missions: snapshot each counter the first time it's seen this week (0 for viewers who first appeared this week).
   medalViewers(){try{return this.medals?.()?.state?.viewers||{};}catch{return {};}}
@@ -274,6 +284,8 @@ export class Community{
       if(!week)continue;
       for(const c of list){if(!c.reward)continue;const k=this.payKey(week,c.missionId,c.key);rows.push({...c,week,scope,label,payable:!!c.key&&c.account!==false,status:s.payouts[k]?.status||'owed',paidAt:s.payouts[k]?.at||0,note:s.payouts[k]?.note||''});}
     }
+    // Multiplier bonuses accrue while the run is on and become payable when it ends.
+    if(s.season.active)for(const c of this.goalBonuses())rows.push({...c,week:s.season.startedAt,scope:'season',label:s.season.name,payable:false,status:'accruing',paidAt:0,note:'Paid when '+s.season.name+' ends'});
     // Voyager Dreadnought victories (2.17): the same points for every pilot who fought.
     let batches=[];try{batches=this.boss()||[];}catch{}
     for(const b of batches)for(const p of b.pilots||[]){
@@ -293,7 +305,8 @@ export class Community{
     const s=this.state,now=this.now(),active=!!s.season.active,rows=active&&(s.goals||[]).some(g=>g.metric==='points'||g.metric==='versus')?this.standings(100000):[];
     return (s.goals||[]).map(g=>{
       const helpers=[];let total=0,contributors=0;const minimum=g.minimum||1;
-      const add=(key,name,platform,n,account)=>{if(n<=0)return;total+=n;contributors++;if(n>=minimum)helpers.push({key,name,platform,count:n,account});};
+      const pts=new Map(rows.length?rows.map(r=>[r.key,r.points]):[]),bonusOf=key=>g.multiplier>1?Math.round((pts.size?pts.get(key)||0:this.seasonPointsOf(key))*(g.multiplier-1)):0;
+      const add=(key,name,platform,n,account)=>{if(n<=0)return;total+=n;contributors++;if(n>=minimum)helpers.push({key,name,platform,count:n,account,bonus:bonusOf(key)});};
       if(active&&(g.metric==='points'||g.metric==='versus')){
         for(const r of rows){if(!onPlatform(g.platform,r.platform))continue;add(r.key,r.name,r.platform,g.metric==='points'?r.points:r.wins,!!s.members[r.key]);}
       }else if(active){
@@ -323,6 +336,9 @@ export class Community{
     return {query:q,matches,feed:this.feed()};
   }
   feed(){const s=this.state;return {supportAt:s.supportAt||0,supporters:Object.keys(s.support||{}).length,membersAt:s.membersAt||0,members:Object.keys(s.members).length,seasonStartedAt:s.season.startedAt||0,active:!!s.season.active};}
+  seasonPointsOf(key){const s=this.state,v=s.members[key];return v?Math.max(0,v.value-(s.season.baseline[key]??v.value)):0;}
+  // 2.20.74: points bonus for every contributor of a goal with a multiplier (x1.5 = half their run points again), paid when the run ends.
+  goalBonuses(){const out=[];for(const g of this.goalProgress().filter(x=>x.multiplier>1))for(const h of g.helpers)if(h.bonus>0)out.push({missionId:'bonus-'+g.id,title:'Points x'+g.multiplier+' · '+g.title,reward:h.bonus,key:h.key,name:h.name,platform:h.platform,bonus:true,...(h.account?{}:{account:false})});return out;}
   goalCompletions(){
     const out=[];
     for(const g of this.goalProgress().filter(x=>x.reached))for(const h of g.helpers)out.push({missionId:'goal-'+g.id,title:'Community goal: '+g.title,reward:g.reward,key:h.key,name:h.name,platform:h.platform,...(h.account?{}:{account:false})});
@@ -356,25 +372,28 @@ export class Community{
     if(s.season.active||top.length)s.hall.unshift({number:s.season.number,name:s.season.name||'Season '+s.season.number,startedAt:s.season.startedAt,endedAt:now,champion:top[0]?{name:top[0].name,platform:top[0].platform,points:top[0].score}:null,topPilot:this.topPilot(),top:top.map(r=>({name:r.name,platform:r.platform,points:r.score})),
       goals:goals.map(g=>({title:g.title,total:g.total,target:g.target,reached:g.reached}))});
     s.hall=s.hall.slice(0,20);
-    s.previousSeason={id:s.season.startedAt,name:s.season.name||'Season '+s.season.number,completions:this.goalCompletions()};
+    s.previousSeason={id:s.season.startedAt,name:s.season.name||'Season '+s.season.number,completions:[...this.goalCompletions(),...this.goalBonuses()]};
     s.season=this.idleSeason(s.season.number||0);if(!quiet)this.persist();return this.view();
   }
   // Start a community goal (2.20.48): a name, a due date and the goals to aim for. Standings and goal counts start from zero now.
-  startSeason({name,endsAt,goals,supportBonus}={}){
+  startSeason({name,startsAt,endsAt,goals,supportBonus}={}){
     const st=this.state,now=this.now();if(st.season.active)throw new Error(st.season.name+' is still running. End it first.');
     const n=clean(name,40);if(!n)throw new Error('Give the community goal a name, for example Christmas 2026.');
     const due=Number(endsAt);if(!Number.isFinite(due)||due<=now+60000)throw new Error('Choose a due date in the future.');if(due>now+366*DAY*2)throw new Error('The due date must be within two years.');
+    // 2.20.74: the run can count from an earlier date (up to 120 days back): subs and gifts from the tracker's records since then; points from now.
+    let from=now;if(startsAt!==undefined&&startsAt!==null&&startsAt!==''){from=Number(startsAt);if(!Number.isFinite(from))throw new Error('The start date is not valid.');if(from>now)throw new Error('The start date cannot be in the future.');if(from<now-120*DAY)throw new Error('The start date can be at most 120 days ago.');from=Math.round(from);}
     if(goals!==undefined)st.goals=normalizeGoals(goals);
     if(supportBonus!==undefined){const b=int(supportBonus,0,100000);if(b===null)throw new Error('The supporter bonus must be 0 to 100,000 points.');st.supportBonus=b;}
     // Points earned from this moment count: today's balances are the baseline. Support and Versus baselines follow on the next read.
     const baseline={};for(const [key,v] of Object.entries(st.members||{}))if(Number.isFinite(v?.value))baseline[key]=v.value;
-    st.season={number:(st.season.number||0)+1,name:n,startedAt:now,endsAt:Math.round(due),weeks:Math.max(1,Math.round((due-now)/(7*DAY))),active:true,baseline,versus:{},support:{}};
+    st.season={number:(st.season.number||0)+1,name:n,startedAt:from,openedAt:now,endsAt:Math.round(due),weeks:Math.max(1,Math.round((due-from)/(7*DAY))),active:true,baseline,versus:{},support:{}};
     this.notePilots();this.persist();return this.view();
   }
-  configureSeason({name,weeks,endsAt,goals,supportBonus}){
+  configureSeason({name,weeks,startsAt,endsAt,goals,supportBonus}){
     const st=this.state,s=st.season;
-    if(s.active&&(name!==undefined||weeks!==undefined||endsAt!==undefined)){
+    if(s.active&&(name!==undefined||weeks!==undefined||endsAt!==undefined||startsAt!==undefined)){
       const n=clean(name,40);if(n)s.name=n;
+      if(startsAt!==undefined&&startsAt!==null&&startsAt!==''){const from=Number(startsAt);const opened=s.openedAt||s.startedAt;if(!Number.isFinite(from)||from>opened||from<opened-120*DAY)throw new Error('The start date must be within the 120 days before the run was opened.');s.startedAt=Math.round(from);}
       if(endsAt!==undefined){const due=Number(endsAt);if(!Number.isFinite(due)||due<=s.startedAt)throw new Error('The due date must be after the start.');s.endsAt=Math.round(due);}
       else if(weeks!==undefined){const w=int(weeks,1,104);if(w===null)throw new Error('A community goal lasts 1 to 104 weeks.');s.endsAt=s.startedAt+w*7*DAY;}
       s.weeks=Math.max(1,Math.round((s.endsAt-s.startedAt)/(7*DAY)));
@@ -397,8 +416,8 @@ export class Community{
   view(){
     const s=this.state,missions=s.missions.map(m=>{const p=this.progressFor(m);return {...m,typeLabel:TYPES[m.type].label,unit:TYPES[m.type].unit,started:p.length,completed:p.filter(x=>x.done).length,top:p.slice(0,8)};});
     return {missions,week:{id:s.week.id,endsAt:s.week.id+7*DAY},members:Object.keys(s.members).length,payables:this.payables(),
-      season:{number:s.season.number,name:s.season.name,startedAt:s.season.startedAt,endsAt:s.season.endsAt,weeks:s.season.weeks,active:!!s.season.active},feed:this.feed(),standings:this.standings(),topPilot:this.topPilot(),hall:s.hall,types:TYPES,goalLimit:GOAL_LIMIT,missionMedals:MISSION_MEDALS,ideas:MISSION_IDEAS,rewardMax:MISSION_REWARD_MAX,panel:this.panelView(),panelKinds:PANEL_KINDS,
-      platforms:PLATFORM_OPTIONS,goalMetrics:GOAL_METRICS,goals:this.goalProgress().map(g=>({...g,helpers:g.helpers.slice(0,10)})),supportBonus:s.supportBonus??DEFAULT_SUPPORT_BONUS,
+      season:{number:s.season.number,name:s.season.name,startedAt:s.season.startedAt,openedAt:s.season.openedAt||s.season.startedAt,endsAt:s.season.endsAt,weeks:s.season.weeks,active:!!s.season.active},feed:this.feed(),standings:this.standings(),topPilot:this.topPilot(),hall:s.hall,types:TYPES,goalLimit:GOAL_LIMIT,missionMedals:MISSION_MEDALS,ideas:MISSION_IDEAS,rewardMax:MISSION_REWARD_MAX,panel:this.panelView(),panelKinds:PANEL_KINDS,
+      platforms:PLATFORM_OPTIONS,goalMetrics:GOAL_METRICS,goals:this.goalProgress().map(g=>({...g,helpers:g.helpers.slice(0,10),contributorsList:g.helpers.slice(0,500)})),supportBonus:s.supportBonus??DEFAULT_SUPPORT_BONUS,
       support:{tracked:Object.keys(s.support||{}).length,updatedAt:s.supportAt||0}};
   }
   // What the public site may show (names are masked later if "Show viewer names" is off).

@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.74 (7 November 2026)
+
+**Community goals: one run, many goals, counted from a chosen date, with a points multiplier for contributors.** The two ways to start (the run form and the separate Save goals) are now one: name, **Counts from**, due date and supporter bonus, the goals of the run underneath, and one **Start the run** / **Save changes** button. A run can count from a date up to 120 days back: subs and gifts are credited from that date using Community Tracker v2's per-day counts (`giftsByDay`, `subsByDay`, passed by Stream Stats v7), with the change-since-opened and latest-event readings as fallbacks before the tracker logged days; points count from when the run was opened. Each goal has a **Points multiplier for helpers** (x1.5 = half their run points again): the bonus accrues per helper while the run is on (shown on Points owed as accruing) and becomes payable when the run ends, separate from the fixed reward paid when the goal is reached. Under the goals, a **Contributors** table per goal lists every helper with their contribution and bonus, with **Copy names** for giveaways. Tracker v2 and Stream Stats v7 are optional: without them the run counts from the moment it is opened as before.
+
 ## 2.20.73 (7 November 2026)
 
 **No boxes behind the card or the promotion.** The membership card overlay (`card.html`) no longer darkens the screen behind PROMOTED and TIER UP title cards (it showed as a dark box when the source is not full-screen); `?dim=1` brings it back. The on-screen promotion ceremony has no panel, border or fill any more: just the sleeve lace, the name and the seal over the scene, with a text shadow for legibility.

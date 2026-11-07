@@ -53,7 +53,7 @@ function render(){
   for(const p of rows){
     const li=el('li','cm-owe');li.dataset.status=p.status;
     const who=el('div');who.append(el('b','',p.name),el('span','',p.title+' · '+(p.label||(p.week===view.week.id?'this week':'last week'))));
-    li.append(who,el('span','cm-amt','+'+p.reward.toLocaleString()),el('span','cm-st',p.status==='paid'?'Paid':!p.payable?'No points account':p.status==='failed'?'Failed':'Owed'));
+    li.append(who,el('span','cm-amt','+'+p.reward.toLocaleString()),el('span','cm-st',p.status==='paid'?'Paid':p.status==='accruing'?'Accruing · paid when the run ends':!p.payable?'No points account':p.status==='failed'?'Failed':'Owed'));
     if(p.note)li.title=p.note;owed.append(li);
   }
   if(!rows.length)owed.append(el('li','cm-empty','Nothing owed yet.'));

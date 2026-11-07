@@ -226,3 +226,20 @@ test('contributions (2.20.71): a new gifter is credited with the whole last gift
   const e=c.explain('bomber');assert.equal(e.matches.length,1);assert.equal(e.matches[0].support.season.gifts,5);assert.equal(e.matches[0].goals[0].counts,true);assert.equal(e.matches[0].goals[1].counts,false);assert.match(e.matches[0].goals[1].why,/Not in the points ledger/);
   assert.equal(c.explain('nobody').matches.length,0);assert.equal(c.view().feed.supporters,3);assert.ok(c.view().feed.supportAt>0);
 });
+
+test('a run that counts from an earlier date credits subs and gifts since then from the tracker\'s per-day counts, and contributors accrue a points multiplier bonus (2.20.74)',async()=>{
+  const nov1=Date.UTC(2026,10,1),nov7=Date.UTC(2026,10,7),{c,set}=await make(nov7);set(nov7);
+  c.receive([{key:'twitch:1',name:'Nova',login:'nova',capturedIn:1000,points:1000},{key:'twitch:2',name:'Orion',login:'orion',capturedIn:500,points:500}]);
+  c.receiveSupport([{key:'twitch:1',name:'Nova',months:12,monthsAt:nov1+2*DAY,gifts:40,giftsAt:nov1+3*DAY,giftsLast:5,giftsByDay:{'2026-10-20':10,'2026-11-02':20,'2026-11-04':5},subsByDay:{'2026-11-03':1}},
+    {key:'twitch:2',name:'Orion',months:3,monthsAt:nov1-DAY,gifts:0,giftsAt:0},{key:'kick:3',name:'Lyra',months:1,monthsAt:nov1+DAY,gifts:2,giftsAt:nov1+DAY,giftsLast:2}]);
+  c.startSeason({name:'Christmas 2026',startsAt:nov1,endsAt:Date.UTC(2026,11,25),goals:[{id:'subs',title:'1,000 subs',metric:'support',platform:'all',target:1000,reward:0,minimum:1,multiplier:1.5}]});
+  assert.equal(c.view().season.startedAt,nov1);assert.equal(c.view().season.openedAt,nov7);
+  let g=c.goalProgress()[0];const by=Object.fromEntries(g.helpers.map(h=>[h.name,h.count]));
+  assert.equal(by.Nova,25+1,'per-day counts since 1 Nov: 20 + 5 gifts and 1 sub');assert.equal(by.Lyra,1+2,'no per-day log: the latest sub and the whole last gift fell in the window');assert.equal(by.Orion,undefined,'last renewal before 1 Nov');
+  assert.equal(g.total,29);assert.equal(by.Nova>0&&g.helpers.find(h=>h.name==='Nova').bonus,0,'no points earned yet');
+  set(nov7+DAY);c.receive([{key:'twitch:1',name:'Nova',login:'nova',capturedIn:1400,points:1400},{key:'twitch:2',name:'Orion',login:'orion',capturedIn:900,points:900}]);
+  g=c.goalProgress()[0];assert.equal(g.helpers.find(h=>h.name==='Nova').bonus,200,'400 points earned x 0.5');
+  const acc=c.payables().filter(r=>r.status==='accruing');assert.equal(acc.length,1);assert.equal(acc[0].reward,200);assert.equal(acc[0].payable,false);
+  c.endSeason();const owed=c.payables().filter(r=>r.missionId==='bonus-subs');assert.equal(owed.length,1);assert.equal(owed[0].status,'owed');assert.equal(owed[0].reward,200);
+  assert.throws(()=>c.startSeason({name:'x',startsAt:nov7+2*DAY,endsAt:Date.UTC(2026,11,25)}),/future/);assert.throws(()=>c.startSeason({name:'x',endsAt:Date.UTC(2026,11,25),goals:[{title:'g',metric:'gifts',target:5,reward:0,multiplier:9}]}),/multiplier/);
+});

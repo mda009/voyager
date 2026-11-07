@@ -25,17 +25,17 @@
 <div class="cm-bar big"><i id="season-bar"></i></div>
 <form id="season-form" class="cs-form">
 <label>Name<input name="name" maxlength="40" placeholder="Christmas 2026"></label>
+<label>Counts from<input name="startsAt" type="datetime-local"></label>
 <label>Due date<input name="endsAt" type="datetime-local"></label>
 <label>Supporter bonus (score per sub, renewal or gifted sub)<input name="supportBonus" type="number" min="0" max="100000"></label>
-<div class="st-actions"><button type="submit" class="primary" id="season-start">Start community goal</button><button type="button" id="season-save" hidden>Save changes</button><button type="button" id="end-season" hidden>End now…</button></div>
 </form>
-<p class="st-hint" id="campaign-hint">Nothing runs on its own. Set the goals below, give the community goal a name and a due date, then press <b>Start</b>. Standings and every goal count from that moment; it ends on its due date (or when you end it) and the top five go into the Hall of Fame. The next one starts only when you start it.</p>
-</section>
-<section class="card cs-goals" aria-labelledby="goals-h">
-<div class="card-heading"><div><span class="eyebrow">GOALS</span><h2 id="goals-h">Community goals</h2></div><div class="st-actions"><button type="button" id="goal-add">+ Add goal</button><button type="button" class="primary" id="goals-save">Save goals</button></div></div>
+<div class="card-heading" style="margin-top:14px"><div><span class="eyebrow">GOALS IN THIS RUN</span><h2 id="goals-h">Goals</h2></div><div class="st-actions"><button type="button" id="goal-add">+ Add goal</button></div></div>
 <p class="st-hint">Each goal has its own target, points reward and (optionally) its own due date. When a goal is reached, everyone who helped (at least the minimum) earns its reward — pay it from Missions › Points owed. Goals can count subs and gifts, Voyager points earned by the crew, or Voyager Versus wins.</p>
 <div id="goals" class="cs-goal-list"></div>
+<div class="st-actions" style="margin-top:12px"><button type="button" class="primary" id="season-start">Start the run</button><button type="button" class="primary" id="season-save" hidden>Save changes</button><button type="button" id="end-season" hidden>End now…</button></div>
+<p class="st-hint" id="campaign-hint"></p>
 <p class="st-hint" id="support-note"></p>
+<div id="contributors"></div>
 <div class="card-heading" style="margin-top:14px"><div><span class="eyebrow">CHECK A VIEWER</span><h2>Why isn't someone counted?</h2></div></div>
 <div class="sd-row" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><input type="search" id="explain-q" placeholder="Viewer name or login" style="height:36px;padding:0 10px;border:1px solid rgba(151,223,255,.18);background:rgba(8,15,24,.55);color:#e6eef7;font:14px 'Segoe UI',sans-serif;min-width:240px"><button type="button" class="primary" id="explain-go">Check</button></div>
 <div id="explain" class="st-hint"></div>
@@ -78,7 +78,7 @@
 </main>
 </div>
 <script src="seasons.js?v=2.20.72"></script>
-<script src="voyager-shell.js?v=2.20.73"></script>
+<script src="voyager-shell.js?v=2.20.74"></script>
 <script src="voyager-navigation.js"></script>
 </body>
 </html>

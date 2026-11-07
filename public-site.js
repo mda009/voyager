@@ -52,7 +52,7 @@ function startSupport(){
 }
 let lastSupport='';
 async function sendSupport(rows){
-  const support=rows.slice(0,2000).map(r=>({key:r.key,name:r.name,login:r.login,months:r.months,monthsAt:r.monthsAt,gifts:r.gifts,giftsAt:r.giftsAt,giftsLast:r.giftsLast}));
+  const support=rows.slice(0,2000).map(r=>({key:r.key,name:r.name,login:r.login,months:r.months,monthsAt:r.monthsAt,gifts:r.gifts,giftsAt:r.giftsAt,giftsLast:r.giftsLast,giftsByDay:r.giftsByDay,subsByDay:r.subsByDay}));
   const json=JSON.stringify(support);if(!token||json===lastSupport&&Date.now()-(sendSupport.at||0)<300000)return;
   try{await api('/api/community/support',{support});lastSupport=json;sendSupport.at=Date.now();}catch{}
 }

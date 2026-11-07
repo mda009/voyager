@@ -1,4 +1,4 @@
-// Voyager Stream Stats v6 - native community ledger, optional stored user sources, and (on request)
+// Voyager Stream Stats v7 (v6 + per-day sub/gift counts) - native community ledger, optional stored user sources, and (on request)
 // recent subscriber/member and gifted-sub records for Voyager Missions and Seasons.
 // Action: Voyager - Stream Stats (dedicated Voyager Stats queue).
 // Sub-actions, in this order:
@@ -91,6 +91,14 @@ public class CPHInline
     }
     // Subscriber/member and gifted-sub records written by Voyager - Community Tracker in the last 90 days,
     // newest first (at most 2000). Read-only: months and gift totals exactly as the tracker saved them.
+    // v7: per-day counts from Community Tracker v2 (last 150 days), so a community goal can count from a chosen start date.
+    private static JObject Days(JObject days)
+    {
+        var o = new JObject(); if (days == null) return o;
+        string since = DateTime.UtcNow.AddDays(-150).ToString("yyyy-MM-dd");
+        foreach (JProperty d in days.Properties()) if (string.CompareOrdinal(d.Name, since) >= 0) o[d.Name] = (long)d.Value;
+        return o;
+    }
     private static JArray Support(JObject community, string error)
     {
         var rows = new List<JObject>();
@@ -108,7 +116,7 @@ public class CPHInline
                 if (!Number(u["monthsUpdatedAt"] ?? 0, out monthsAt)) monthsAt = 0;
                 if (!Number(u["giftsUpdatedAt"] ?? 0, out giftsAt)) giftsAt = 0;
                 if ((months <= 0 && gifts <= 0) || Math.Max(monthsAt, giftsAt) < since) continue;
-                rows.Add(new JObject { ["key"] = platform + ":" + property.Name, ["platform"] = platform, ["name"] = (string)u["name"] ?? (string)u["login"] ?? property.Name, ["login"] = (string)u["login"] ?? "", ["months"] = (long)months, ["monthsAt"] = (long)monthsAt, ["gifts"] = (long)gifts, ["giftsAt"] = (long)giftsAt, ["giftsLast"] = u["giftsLast"] == null ? 0L : (long)u["giftsLast"] });
+                rows.Add(new JObject { ["key"] = platform + ":" + property.Name, ["platform"] = platform, ["name"] = (string)u["name"] ?? (string)u["login"] ?? property.Name, ["login"] = (string)u["login"] ?? "", ["months"] = (long)months, ["monthsAt"] = (long)monthsAt, ["gifts"] = (long)gifts, ["giftsAt"] = (long)giftsAt, ["giftsLast"] = u["giftsLast"] == null ? 0L : (long)u["giftsLast"], ["giftsByDay"] = Days(u["giftsByDay"] as JObject), ["subsByDay"] = Days(u["monthsByDay"] as JObject) });
             }
         }
         return new JArray(rows.OrderByDescending(x => Math.Max((long)x["monthsAt"], (long)x["giftsAt"])).Take(2000));

@@ -1,9 +1,10 @@
-// Voyager Community Tracker v1. Native Streamer.bot events only.
+// Voyager Community Tracker v2 (per-day sub and gift counts for community goals). Native Streamer.bot events only.
 // Dedicated blocking queue: Voyager Community. Concurrent OFF. One enabled copy.
 // Persists one independent JSON ledger; never changes points, groups or giveaways.
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -122,13 +123,22 @@ public class CPHInline
     {
         JObject seen = ObjectAt(record, "giftReceipts"); if (seen[receipt] != null) return;
         if (seen.Count >= 50000) throw new Exception("Gift receipt limit reached for a user. Ledger was preserved; archive it before extending capacity.");
-        seen[receipt] = now; record["gifts"] = checked(Long(record["gifts"]) + count); record["giftsUpdatedAt"] = now; record["giftsLast"] = count; // 2.20.71: size of the latest gift, so a new gifter's first bomb counts in full
+        seen[receipt] = now; record["gifts"] = checked(Long(record["gifts"]) + count); record["giftsUpdatedAt"] = now; record["giftsLast"] = count; ByDay(record, "giftsByDay", now, count); // 2.20.71: size of the latest gift, so a new gifter's first bomb counts in full
     }
     private static void Maximum(JObject users, string id, string login, string name, string key, long value, long now)
     {
         if (!ValidId(id) || value < 1 || value > 1000000000L) return;
         JObject record = User(users, id, login, name, now);
-        if (value > Long(record[key])) { record[key] = value; record[key + "UpdatedAt"] = now; }
+        long before = Long(record[key]);
+        if (value > before) { record[key] = value; record[key + "UpdatedAt"] = now; ByDay(record, key + "ByDay", now, key == "months" ? 1 : value - before); }
+    }
+    // v2 (2.20.74): how many subs/renewals and gifted subs each day (UTC), so a community goal can count from any start date.
+    private static void ByDay(JObject record, string field, long now, long count)
+    {
+        if (count < 1) return;
+        JObject days = ObjectAt(record, field); string day = DateTimeOffset.FromUnixTimeMilliseconds(now).UtcDateTime.ToString("yyyy-MM-dd");
+        days[day] = Long(days[day]) + count;
+        if (days.Count > 220) { foreach (string old in days.Properties().Select(x => x.Name).OrderBy(x => x).Take(days.Count - 200).ToList()) days.Remove(old); }
     }
     private static JObject User(JObject users, string id, string login, string name, long now)
     {

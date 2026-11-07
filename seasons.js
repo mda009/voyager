@@ -24,9 +24,9 @@ function render(){
   $('week-of').textContent=active?Math.max(0,Math.ceil((s.endsAt-now)/DAY))+' days left · due '+when(s.endsAt):'';
   $('season-bar').style.width=active?Math.min(100,Math.max(0,(now-s.startedAt)/(s.endsAt-s.startedAt)*100)).toFixed(1)+'%':'0%';
   const f=$('season-form').elements;
-  if(!editing){if(active){f.name.value=s.name;f.endsAt.value=toLocal(s.endsAt);}else{if(!f.name.value)f.name.value='Christmas 2026';if(!f.endsAt.value)f.endsAt.value=toLocal(defaultDue());}f.supportBonus.value=view.supportBonus??100;}
+  if(!editing){if(active){f.name.value=s.name;f.startsAt.value=toLocal(s.startedAt);f.endsAt.value=toLocal(s.endsAt);}else{if(!f.name.value)f.name.value='Christmas 2026';if(!f.startsAt.value)f.startsAt.value=toLocal(Date.now());if(!f.endsAt.value)f.endsAt.value=toLocal(defaultDue());}f.supportBonus.value=view.supportBonus??100;}
   $('season-start').hidden=active;$('season-save').hidden=!active;$('end-season').hidden=!active;
-  $('campaign-hint').textContent=active?'Running until '+when(s.endsAt)+'. Change the name, due date or bonus and press Save, or end it now: the top five go into the Hall of Fame and reached goals stay payable. Nothing starts afterwards until you start the next one.':'Nothing runs on its own. Set the goals below, give the community goal a name and a due date, then press Start. Standings and every goal count from that moment; it ends on its due date (or when you end it) and the top five go into the Hall of Fame.';
+  $('campaign-hint').textContent=active?'Running until '+when(s.endsAt)+' · subs and gifts counted from '+date(s.startedAt)+(s.openedAt&&s.openedAt-s.startedAt>3600000?' (points from '+date(s.openedAt)+', when the run was opened)':'')+'. Change anything above or in the goals and press Save changes; End now closes it early: the top five go into the Hall of Fame, reached goals and multiplier bonuses become payable from Missions › Points owed.':'Nothing runs on its own. Set the goals below, give the community goal a name and a due date, then press Start. Standings and every goal count from that moment; it ends on its due date (or when you end it) and the top five go into the Hall of Fame.';
   const tb=$('standings');tb.textContent='';
   for(const r of view.standings){const tr=el('tr');tr.append(el('td','cs-rank',String(r.rank)),el('td','',r.name),el('td','',PLATFORM[r.platform]||r.platform),el('td','num',r.points.toLocaleString()),el('td','num',r.support?String(r.support):'–'),el('td','num cs-score',(r.score??r.points).toLocaleString()),el('td','num',r.wins?String(r.wins):'–'));tb.append(tr);}
   if(!view.standings.length){const tr=el('tr');const td=el('td','cm-empty',active?'Nobody has scored yet in '+s.name+'.':'Standings appear once a community goal is running.');td.colSpan=7;tr.append(td);tb.append(tr);}
@@ -38,7 +38,7 @@ function render(){
 }
 // Goals (2.20.48): custom goals with a reward, an optional due date and a minimum contribution.
 function renderGoals(){
-  if(!goalsEditing||!goals)goals=(view.goals||[]).map(({id,title,metric,platform,target,reward,minimum,dueAt,description})=>({id,title,metric,platform,target,reward,minimum:minimum||1,dueAt:dueAt&&dueAt!==view.season.endsAt?dueAt:0,description:description||''}));
+  if(!goalsEditing||!goals)goals=(view.goals||[]).map(({id,title,metric,platform,target,reward,minimum,dueAt,description,multiplier})=>({id,title,metric,platform,target,reward,minimum:minimum||1,dueAt:dueAt&&dueAt!==view.season.endsAt?dueAt:0,description:description||'',multiplier:multiplier||1}));
   const live=Object.fromEntries((view.goals||[]).map(g=>[g.id,g])),box=$('goals');box.textContent='';const active=!!view.season.active;
   const opts=(sel,map,val)=>{for(const [k,label] of Object.entries(map||{})){const o=el('option','',label);o.value=k;o.selected=k===val;sel.append(o);}return sel;};
   goals.forEach((g,i)=>{
@@ -53,33 +53,48 @@ function renderGoals(){
     const num=(key,min,max)=>{const i=el('input');i.type='number';i.min=String(min);i.max=String(max);i.value=g[key];i.oninput=()=>{g[key]=Number(i.value);};return i;};
     const due=el('input');due.type='datetime-local';due.value=toLocal(g.dueAt);due.oninput=()=>{g.dueAt=fromLocal(due.value);};
     const desc=el('input');desc.maxLength=120;desc.value=g.description;desc.placeholder='Shown on the panel and website (optional)';desc.oninput=()=>{g.description=desc.value;};
-    for(const [label,input] of [['Counts',metric],['Platform',plat],['Community target',num('target',1,1e9)],['Reward each helper (points)',num('reward',0,1e6)],['Minimum to count as a helper',num('minimum',1,1e9)],['Due date (blank = with the community goal)',due],['Description',desc]]){const l=el('label','',label);l.append(input);f.append(l);}
+    const mult=el('input');mult.type='number';mult.min='1';mult.max='5';mult.step='0.1';mult.value=g.multiplier;mult.oninput=()=>{g.multiplier=Number(mult.value);};
+    for(const [label,input] of [['Counts',metric],['Platform',plat],['Community target',num('target',1,1e9)],['Reward each helper when reached (points)',num('reward',0,1e6)],['Points multiplier for helpers during the run (1 = none, 1.5 = half again)',mult],['Minimum to count as a helper',num('minimum',1,1e9)],['Due date (blank = with the run)',due],['Description',desc]]){const l=el('label','',label);l.append(input);f.append(l);}
     card.append(f);
     if(lv&&active){
       const bar=el('div','cm-bar big');const fill=el('i');fill.style.width=Math.min(100,lv.total/lv.target*100).toFixed(1)+'%';bar.append(fill);
       const label=lv.reached?'✓ Reached · ':lv.missed?'✗ Missed · ':'';
       card.append(el('div','cs-goal-num',label+lv.total.toLocaleString()+' / '+lv.target.toLocaleString()+(lv.dueAt?' · due '+when(lv.dueAt):'')),bar,
         el('p','st-hint',lv.helpers.length?'Helping: '+lv.helpers.slice(0,6).map(h=>h.name+' ('+h.count.toLocaleString()+')').join(', ')+(lv.helpers.length>6?'…':'')+(lv.contributors>lv.helpers.length?' · '+(lv.contributors-lv.helpers.length)+' below the minimum':''):'Nobody yet.'));
-    }else card.append(el('p','st-hint',lv?'Counting starts when you start the community goal.':'Save to keep this goal.'));
+    }else card.append(el('p','st-hint','Counts once the run is started.'));
     box.append(card);
   });
   if(!goals.length)box.append(el('p','cm-empty','No goals yet. Add one, for example "Christmas gift drive · 25 gifted subs · 200 points each".'));
   $('goal-add').disabled=goals.length>=(view.goalLimit||8);
+  renderContributors();
   const f=view.feed||{},ago=t=>t?Math.round((Date.now()-t)/60000)+' min ago':'never';
   const feedNote=' · Points ledger: '+f.members+' members, last '+ago(f.membersAt)+' · Subs & gifts: '+f.supporters+' supporters, last '+ago(f.supportAt)+(f.supportAt&&Date.now()-f.supportAt>10*60000?' (STALE: the Public website publisher asks Voyager - Stream Stats v6 once a minute; is Voyager connected to Streamer.bot?)':'');
   const sup=view.support||{};
   $('support-note').textContent=(sup.updatedAt?sup.tracked+' recent subscribers and gifters tracked · last read '+new Date(sup.updatedAt).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'})+'.':'Sub and gift goals need subscriber data: install Voyager - Community Tracker, update Voyager - Stream Stats to v6 and keep Voyager running. Points and Versus goals work without it.')+feedNote;
 }
 $('goals').addEventListener('input',()=>{goalsEditing=true;});$('goals').addEventListener('change',()=>{goalsEditing=true;});
+// 2.20.74: who has contributed to each goal, with the multiplier bonus accrued, and a Copy names button for giveaways.
+function renderContributors(){const box=$('contributors');box.replaceChildren();if(!view.season.active)return;
+  for(const g of view.goals||[]){const list=g.contributorsList||g.helpers||[];const wrap=el('div','cm-table');wrap.style.marginTop='14px';
+    const head=el('div','card-heading');const t=el('div');t.append(el('span','eyebrow','CONTRIBUTORS · '+g.title.toUpperCase()),el('h2','',list.length+' helping · '+g.total.toLocaleString()+' of '+g.target.toLocaleString()+' '+(view.goalMetrics?.[g.metric]||g.metric).toLowerCase()));
+    const copy=el('button','','Copy names');copy.type='button';copy.onclick=async()=>{try{await navigator.clipboard.writeText(list.map(h=>h.name).join('\n'));copy.textContent='Copied '+list.length;setTimeout(()=>copy.textContent='Copy names',1500);}catch{}};
+    head.append(t,copy);wrap.append(head);
+    const table=el('table'),thead=el('thead'),tr=el('tr');for(const h of ['#','Viewer','Platform','Contribution',g.multiplier>1?'Bonus points (x'+g.multiplier+')':'Reward when reached']){const th=el('th','',h);if(h!=='#'&&h!=='Viewer'&&h!=='Platform')th.className='num';tr.append(th);}thead.append(tr);table.append(thead);
+    const tb=el('tbody');list.forEach((h,i)=>{const r=el('tr');r.append(el('td','cs-rank',String(i+1)),el('td','',h.name),el('td','',PLATFORM[h.platform]||h.platform),el('td','num',h.count.toLocaleString()),el('td','num',g.multiplier>1?(h.bonus||0).toLocaleString()+' accrued':g.reward.toLocaleString()));tb.append(r);});
+    if(!list.length){const r=el('tr');const td=el('td','cm-empty','Nobody has contributed yet'+(g.contributors?' at the minimum of '+g.minimum+' ('+g.contributors+' below it)':'')+'.');td.colSpan=5;r.append(td);tb.append(r);}
+    table.append(tb);wrap.append(table);
+    if(g.multiplier>1)wrap.append(el('p','st-hint','Bonus = Voyager points each helper earns during the run x '+(g.multiplier-1).toFixed(2).replace(/0+$/,'').replace(/\.$/,'')+', paid from Missions › Points owed when the run ends'+(g.reward?'; the '+g.reward.toLocaleString()+'-point reward is paid when the goal is reached':'')+'.'));
+    box.append(wrap);}}
 $('goal-add').onclick=()=>{goals.push({id:'g'+Date.now().toString(36),title:'New goal',metric:'gifts',platform:'all',target:25,reward:200,minimum:1,dueAt:0,description:''});goalsEditing=true;renderGoals();};
-$('goals-save').onclick=async()=>{try{view=await api('/api/community/season',{goals});goalsEditing=false;notice('Goals saved.');render();}catch(e){notice(e.message,true);}};
 async function load(){try{view=await api('/api/community');render();renderPanel();}catch(e){notice(e.message,true);}}
 const form=$('season-form');form.addEventListener('focusin',()=>{editing=true;});
-const campaign=()=>({name:form.elements.name.value,endsAt:fromLocal(form.elements.endsAt.value),supportBonus:Number(form.elements.supportBonus.value)});
-form.onsubmit=async e=>{e.preventDefault();if(view?.season?.active)return save();
-  if(!confirm('Start "'+form.elements.name.value+'" now? Standings and goals count from this moment until '+(form.elements.endsAt.value?when(fromLocal(form.elements.endsAt.value)):'its due date')+'.'))return;
-  try{view=await api('/api/community/season',{action:'start',...campaign(),goals});goalsEditing=false;editing=false;notice(view.season.name+' is running.');render();}catch(err){notice(err.message,true);}};
-async function save(){try{view=await api('/api/community/season',campaign());editing=false;notice('Community goal saved.');render();}catch(err){notice(err.message,true);}}
+const campaign=()=>({name:form.elements.name.value,startsAt:fromLocal(form.elements.startsAt.value),endsAt:fromLocal(form.elements.endsAt.value),supportBonus:Number(form.elements.supportBonus.value),goals});
+form.onsubmit=e=>{e.preventDefault();if(view?.season?.active)save();else start();};
+async function start(){if(!goals.length){notice('Add at least one goal first.',true);return;}
+  if(!confirm('Start "'+form.elements.name.value+'" now? Subs and gifts count from '+(form.elements.startsAt.value?date(fromLocal(form.elements.startsAt.value)):'now')+' (as far as the tracker\'s records go), points from now, until '+(form.elements.endsAt.value?when(fromLocal(form.elements.endsAt.value)):'its due date')+'.'))return;
+  try{view=await api('/api/community/season',{action:'start',...campaign()});goalsEditing=false;editing=false;notice(view.season.name+' is running.');render();}catch(err){notice(err.message,true);}}
+async function save(){try{view=await api('/api/community/season',campaign());goalsEditing=false;editing=false;notice('Run saved.');render();}catch(err){notice(err.message,true);}}
+$('season-start').onclick=start;
 $('season-save').onclick=save;
 $('end-season').onclick=async()=>{if(!view||!confirm('End '+view.season.name+' now? Its top five go into the Hall of Fame and reached goals stay payable. Nothing starts afterwards until you start the next community goal. Points balances are not changed.'))return;try{view=await api('/api/community/season',{action:'end'});editing=false;notice(view.hall[0]?.name+' has ended.');render();}catch(e){notice(e.message,true);}};
 // On-stream panel (2.14)
