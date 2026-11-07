@@ -243,7 +243,7 @@ export class Engage{
     return {settings:st.settings,defaults:ENGAGE_DEFAULTS,stream:{id:stream,lastAt:st.stream.lastAt},relay:this.relayView(),
       muster:{count:muster?.crew.length||0,crew:(muster?.crew||[]).slice(-40).reverse()},
       quiz:{bank:st.quiz.bank,active:st.quiz.active,history:st.quiz.history.slice(0,15)},
-      squadrons:{standings:this.standings(),members:Object.keys(st.squadrons.members).length,history:st.squadrons.history.slice(0,8),weekId:st.squadrons.week.id,panel:!!st.panel},
+      squadrons:{standings:this.standings(),members:Object.keys(st.squadrons.members).length,history:st.squadrons.history.slice(0,8),weekId:st.squadrons.week.id,panel:!!st.panel&&!(st.panel.until&&this.now()>st.panel.until),panelUntil:st.panel?.until||0},
       log:st.log.filter(e=>!e.hidden).slice(0,80),rewards:st.rewards.slice(0,12).map(b=>({title:b.title,label:b.label,reward:b.reward,count:b.pilots.length,at:b.at}))};
   }
   configure(raw){this.state.settings=normalizeEngageSettings({...this.state.settings,...raw},this.state.settings);this.persist(true);return this.view();}

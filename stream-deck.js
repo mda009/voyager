@@ -41,8 +41,8 @@ function render(){
 async function refresh(){
   if(!hosted)return;
   const get=async(path,withToken=true)=>{try{return withToken?await api(path):await(await fetch(path,{cache:'no-store'})).json();}catch{return null;}};
-  const [state,boss,community,sb,site,lo,mo]=await Promise.all([get('/api/state',false),get('/api/boss'),get('/api/community'),get('/api/streamerbot'),get('/api/public-site'),get('/api/live-overlay',false),get('/api/moments')]);
-  s={state,boss,community,sb,site,lo,mo};render();renderMoments();
+  const [state,boss,community,sb,site,lo,mo,eng]=await Promise.all([get('/api/state',false),get('/api/boss'),get('/api/community'),get('/api/streamerbot'),get('/api/public-site'),get('/api/live-overlay',false),get('/api/moments'),get('/api/engage')]);
+  s={state,boss,community,sb,site,lo,mo,eng};render();renderMoments();renderSources();
 }
 // ---- buttons ----
 $('connect').onclick=()=>act($('connect'),'Connect chat',()=>api('/api/control',{type:'connect_saved'}));
@@ -62,6 +62,10 @@ $('vs-ready').onclick=()=>act($('vs-ready'),'Versus ready alert',()=>api('/api/c
 $('panel-show').onclick=()=>act($('panel-show'),'Community panel',()=>api('/api/community/panel',{config:{...(s.community?.panel?.config||{}),kind:$('panel-kind').value},visible:true}),'On stream.');
 $('panel-hide').onclick=()=>act($('panel-hide'),'Community panel',()=>api('/api/community/panel',{visible:false}),'Hidden.');
 for(const [id,seconds,msg] of [['sq-show',60,'On stream for 60 s.'],['sq-stay',3600,'On stream until hidden.'],['sq-hide',0,'Hidden.']])$(id).onclick=()=>act($(id),'Squadron panel',()=>api('/api/engage/panel',{seconds}),msg);
+// 2.20.75: say whether the OBS source behind each panel is loaded (it polls the host every few seconds while open in OBS).
+function renderSources(){const sq=s.eng?.squadrons;if(sq&&$('sq-pill')){$('sq-pill').dataset.state=sq.panel?'ok':'wait';$('sq-pill').textContent=sq.panel?'On stream'+(sq.panelUntil?' · '+Math.max(0,Math.round((sq.panelUntil-Date.now())/1000))+' s':''):'Hidden';}
+  const line=(id,at,name,page)=>{const e=$(id);if(!e)return;const ok=at&&Date.now()-at<20000;e.textContent=ok?'':name+' source is not loaded in OBS: add a Browser source (1920 × 1080, Local file unticked) with '+location.origin+page+', or refresh its cache if it is there.';e.hidden=!!ok;};
+  line('panel-src',s.community?.sourceAt,'The Community panel','/control/Voyager_Community_Panel.html');line('sq-src',s.eng?.sourceAt,'The Chat engagement (squadron panel)','/engage.html');}
 // On-screen moments (2.20.64): one button per element, pressed = on stream.
 function renderMoments(){const box=$('moments');if(!box)return;const m=s.mo;box.replaceChildren();if(!m){box.append(Object.assign(document.createElement('span'),{className:'st-hint',textContent:'Update Voyager to 2.20.64 for on-screen moments.'}));return;}
   for(const [k,name] of Object.entries(m.elements)){const b=document.createElement('button');b.type='button';const on=!!m.settings.elements[k];b.className=on?'primary':'';b.setAttribute('aria-pressed',String(on));b.innerHTML='<span></span><small></small>';b.firstChild.textContent=name;b.lastChild.textContent=on?'On stream · press to hide':'Hidden · press to show';

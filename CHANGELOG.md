@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.75 (7 November 2026)
+
+**Panels: no more doubling, and the deck says when a source is missing.** The Christmas goal panel now steps aside while the Community panel (goals, standings or contributors) is showing, so the two no longer sit on top of each other at the top right like a ghost image (`?always=1` on the Christmas panel keeps the old behaviour). The Stream deck's On-stream panels card now shows a notice when the OBS source behind a panel is not loaded (the host sees each page polling): the Community panel source and the Chat engagement source (`engage.html`), which is where the squadron war panel lives, with the address to add. The squadron panel row has a status pill with the seconds left.
+
 ## 2.20.74 (7 November 2026)
 
 **Community goals: one run, many goals, counted from a chosen date, with a points multiplier for contributors.** The two ways to start (the run form and the separate Save goals) are now one: name, **Counts from**, due date and supporter bonus, the goals of the run underneath, and one **Start the run** / **Save changes** button. A run can count from a date up to 120 days back: subs and gifts are credited from that date using Community Tracker v2's per-day counts (`giftsByDay`, `subsByDay`, passed by Stream Stats v7), with the change-since-opened and latest-event readings as fallbacks before the tracker logged days; points count from when the run was opened. Each goal has a **Points multiplier for helpers** (x1.5 = half their run points again): the bonus accrues per helper while the run is on (shown on Points owed as accruing) and becomes payable when the run ends, separate from the fixed reward paid when the goal is reached. Under the goals, a **Contributors** table per goal lists every helper with their contribution and bonus, with **Copy names** for giveaways. Tracker v2 and Stream Stats v7 are optional: without them the run counts from the moment it is opened as before.

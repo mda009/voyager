@@ -121,6 +121,8 @@ const boss=await new BossFight({dataDir,say:text=>{void bossSay(text);},onResult
 engage=await new Engage({dataDir,say:(text,platform='')=>{void runAction('Voyager - Medals',{medalSay:String(text).slice(0,450),medalSayPlatform:['twitch','kick','youtube'].includes(platform)?platform:''});},boss:()=>boss,cards:()=>cards,community:()=>community,pilots:()=>savedRankings||[]}).load();
 // Fleet alert state as last broadcast by the Streamer.bot action (2.20.55): the camera frame overlay reads it from here.
 let fleetState=null;
+// 2.20.75: when each OBS overlay page last asked for its data, so the Stream deck can say whether a source is loaded in OBS.
+const sourceSeen={community:0,engage:0};
 // Camera spotlight cues from the host (2.20.61), so the camera follows alerts even when the OBS overlay copy is old.
 const fleetCamera=new FleetCamera({run:args=>actions.doAction('Voyager - Fleet Alerts',args),log:m=>console.log('[fleet] '+m)});
 const bot=new StreamerBot({onOtherChat:chat=>{
@@ -210,9 +212,9 @@ const server=http.createServer(async(req,res)=>{
     if(url.pathname.startsWith('/api/community')){
       if(!community){response(res,404,{message:'Missions and seasons need the full Voyager Control package.'});return;}
       // The OBS panel reads this without the control token (local only, no member keys), like /api/live-overlay.
-      if(url.pathname==='/api/community/overlay'&&req.method==='GET'){res.setHeader('Cache-Control','no-store');response(res,200,community.overlay());return;}
+      if(url.pathname==='/api/community/overlay'&&req.method==='GET'){res.setHeader('Cache-Control','no-store');sourceSeen.community=Date.now();response(res,200,community.overlay());return;}
       if(!validToken(req)){response(res,403,{message:'Open the local Missions or Seasons page.'});return;}
-      if(url.pathname==='/api/community'&&req.method==='GET'){community.roll(Date.now());response(res,200,community.view());return;}
+      if(url.pathname==='/api/community'&&req.method==='GET'){community.roll(Date.now());response(res,200,{...community.view(),sourceAt:sourceSeen.community});return;}
       if(req.method!=='POST'||!req.headers['content-type']?.startsWith('application/json')){response(res,405,{message:'Method not allowed.'});return;}
       try{
         const input=await body(req,['/api/community/members','/api/community/support'].includes(url.pathname)?8*1024*1024:65536);
@@ -317,10 +319,10 @@ const server=http.createServer(async(req,res)=>{
       response(res,404,{message:'Unknown Streamer.bot request.'});return;
     }
     if(url.pathname==='/api/boss/overlay'&&req.method==='GET'){res.setHeader('Cache-Control','no-store');response(res,200,{...boss.overlay(),relay:engage.relayView()});return;}
-    if(url.pathname==='/api/engage/overlay'&&req.method==='GET'){res.setHeader('Cache-Control','no-store');response(res,200,engage.overlay());return;}
+    if(url.pathname==='/api/engage/overlay'&&req.method==='GET'){res.setHeader('Cache-Control','no-store');sourceSeen.engage=Date.now();response(res,200,engage.overlay());return;}
     if(url.pathname.startsWith('/api/engage')){
       if(!validToken(req)){response(res,403,{message:'Open Voyager Control › Chat engagement.'});return;}
-      if(url.pathname==='/api/engage'&&req.method==='GET'){response(res,200,{...engage.view(),connected:bot.status.connected,medalsAction:await actionStatus('Voyager - Medals'),lastChatAt,otherChat:bot.otherChat});return;}
+      if(url.pathname==='/api/engage'&&req.method==='GET'){response(res,200,{...engage.view(),sourceAt:sourceSeen.engage,connected:bot.status.connected,medalsAction:await actionStatus('Voyager - Medals'),lastChatAt,otherChat:bot.otherChat});return;}
       if(req.method!=='POST'||!req.headers['content-type']?.startsWith('application/json')){response(res,405,{message:'Method not allowed.'});return;}
       try{
         const input=await body(req,262144)||{};

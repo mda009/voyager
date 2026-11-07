@@ -90,10 +90,10 @@
 <section class="card sd-card">
 <div class="card-heading"><div><span class="eyebrow">5 · ON-STREAM PANELS</span><h2>Show and hide</h2></div></div>
 <div class="sd-row"><label>Community panel <select id="panel-kind"><option value="goals">Community goals</option><option value="helpers">Contributors (who helped each goal)</option><option value="season">Community goal standings</option><option value="missions">This week's missions</option><option value="hall">Hall of Fame</option></select></label>
-<button type="button" class="primary" id="panel-show">Show</button><button type="button" id="panel-hide">Hide</button><span class="st-pill" id="panel-pill" data-state="wait">Hidden</span></div>
-<div class="sd-row"><span>Squadron war panel</span><button type="button" id="sq-show">Show 60 s</button><button type="button" id="sq-stay">Show until hidden</button><button type="button" id="sq-hide">Hide</button></div>
+<button type="button" class="primary" id="panel-show">Show</button><button type="button" id="panel-hide">Hide</button><span class="st-pill" id="panel-pill" data-state="wait">Hidden</span></div><p class="st-notice" id="panel-src" hidden></p>
+<div class="sd-row"><span>Squadron war panel</span><button type="button" id="sq-show">Show 60 s</button><button type="button" id="sq-stay">Show until hidden</button><button type="button" id="sq-hide">Hide</button><span class="st-pill" id="sq-pill" data-state="wait">Hidden</span></div><p class="st-notice" id="sq-src" hidden></p>
 <div class="sd-row"><span>Live stats strip</span><button type="button" id="lo-show">Show</button><button type="button" id="lo-hide">Hide</button><span class="st-pill" id="lo-pill" data-state="wait">—</span></div>
-<p class="st-hint">The Christmas goal panel and the goals strip show by themselves; the membership cards and support alerts play on their own as things happen.</p>
+<p class="st-hint">The Christmas goal panel shows by itself while a run is on and steps aside while the Community panel is showing; the membership cards and support alerts play on their own as things happen. The squadron war panel lives on the <b>Chat engagement</b> source (engage.html).</p>
 </section>
 
 <section class="card sd-card">
@@ -126,8 +126,8 @@
 </div>
 </main>
 </div>
-<script src="stream-deck.js?v=2.20.50"></script>
-<script src="voyager-shell.js?v=2.20.74"></script>
+<script src="stream-deck.js?v=2.20.75"></script>
+<script src="voyager-shell.js?v=2.20.75"></script>
 <script src="voyager-navigation.js"></script>
 </body>
 </html>
