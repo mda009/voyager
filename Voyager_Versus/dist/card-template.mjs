@@ -133,7 +133,7 @@ export function cardHTML(t,v,c,d,k={show:'none',roleShow:'inline'}){
       </div>
     </div>
 
-    <div style="position: absolute; left: 452px; top: 214px; width: 460px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+    <div data-tiles="1" style="position: absolute; left: 452px; top: 214px; width: 460px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
       ${(d.stats||[]).map(s=>`
         <div style="display: flex; flex-direction: column; gap: 5px; padding: 15px 18px; clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px); background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,0) 40%), linear-gradient(0deg, rgba(0,0,0,.25), rgba(0,0,0,0) 30%), rgba(3,6,12,.42); box-shadow: inset 0 1px 0 rgba(255,255,255,.14), inset 0 -1px 0 rgba(0,0,0,.6)">
           <span style="display: flex; align-items: center; gap: 8px; font: 600 11px/1 Inter, 'Segoe UI', Arial, sans-serif; letter-spacing: 1.4px; color: rgba(235,242,250,.66)"><span style="width: 6px; height: 6px; background: ${e(t.accent)}; transform: rotate(45deg)"></span>${e(s.label)}</span>
@@ -328,13 +328,13 @@ export function cardHTML(t,v,c,d,k={show:'none',roleShow:'inline'}){
     </div>
     </div>
   </div>
-  <div data-banner="1" style="position: absolute; left: 0; top: 330px; width: 1360px; height: 170px; display: ${e(v.banner)}; flex-direction: column; align-items: center; justify-content: center; gap: 10px; background: linear-gradient(90deg, rgba(3,5,10,0), rgba(3,5,10,.9) 18%, rgba(3,5,10,.92) 82%, rgba(3,5,10,0))">
+  <!-- 2.20.81: the banner floats over the card with no dark band behind it (WELCOME ABOARD, TIER UP, PROMOTED); shadows keep it readable over the tiles. -->
+  <div data-banner="1" style="position: absolute; left: 0; top: 330px; width: 1360px; height: 170px; display: ${e(v.banner)}; flex-direction: column; align-items: center; justify-content: center; gap: 10px; background: transparent">
     <div style="position: absolute; left: 10%; right: 10%; top: 0; height: 2px; background: linear-gradient(90deg, transparent, ${e(t.accent)}, #ffffff, ${e(t.accent)}, transparent); box-shadow: 0 0 18px ${e(t.glow)}"></div>
     <div style="position: absolute; left: 10%; right: 10%; bottom: 0; height: 2px; background: linear-gradient(90deg, transparent, ${e(t.accent)}, #ffffff, ${e(t.accent)}, transparent); box-shadow: 0 0 18px ${e(t.glow)}"></div>
-    <div style="position: absolute; left: 30%; top: 0; width: 22%; height: 100%; background: linear-gradient(100deg, transparent, rgba(255,255,255,.14), transparent)"></div>
-    <span data-banner-eyebrow="1" style="font: 700 16px/1 Rajdhani, sans-serif; letter-spacing: 9px; color: ${e(t.accent)}">${e(v.bannerEyebrow)}</span>
-    <span style="font: 700 54px/1 Rajdhani, sans-serif; letter-spacing: 3px; background: ${e(t.metal)}; -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 0 22px ${e(t.glow)})" data-banner-text="1">${e(v.bannerText)}</span>
-    <span data-banner-note="1" style="font: 600 15px/1 Inter, 'Segoe UI', Arial, sans-serif; color: rgba(235,242,250,.78)">${e(c.promoted)}</span>
+    <span data-banner-eyebrow="1" style="font: 700 16px/1 Rajdhani, sans-serif; letter-spacing: 9px; color: ${e(t.accent)}; text-shadow: 0 2px 6px rgba(0,0,0,.9), 0 0 14px rgba(0,0,0,.8)">${e(v.bannerEyebrow)}</span>
+    <span style="font: 700 54px/1 Rajdhani, sans-serif; letter-spacing: 3px; background: ${e(t.metal)}; -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 3px 4px rgba(0,0,0,.95)) drop-shadow(0 0 14px rgba(0,0,0,.85)) drop-shadow(0 0 22px ${e(t.glow)})" data-banner-text="1">${e(v.bannerText)}</span>
+    <span data-banner-note="1" style="font: 600 15px/1 Inter, 'Segoe UI', Arial, sans-serif; color: #eef4fb; text-shadow: 0 1px 4px rgba(0,0,0,.95), 0 0 12px rgba(0,0,0,.85)">${e(c.promoted)}</span>
   </div>
 </div>`;
 }

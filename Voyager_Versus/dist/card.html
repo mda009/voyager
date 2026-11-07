@@ -77,6 +77,8 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:transparent
 [data-rank-svg].flip{transform:scale(1.25) rotateY(90deg)!important}
 [data-rank-name].decode{color:#fff8dc!important;text-shadow:0 0 18px rgba(255,210,110,.9)!important}
 [data-banner].hold{opacity:0}
+/* 2.20.81: no dark band behind the banner; the tiles under it soften while it is read, so the words float over the card. */
+[data-tiles]{transition:opacity .45s ease,filter .45s ease}.veil [data-tiles]{opacity:.18;filter:blur(2px)}
 [data-banner].show{animation:bannerIn .7s cubic-bezier(.2,1.2,.3,1) both}
 @keyframes bannerIn{0%{opacity:0;transform:scaleY(.2);filter:brightness(3)}100%{opacity:1;transform:none;filter:none}}
 .shake{animation:shake .5s linear}
@@ -111,7 +113,7 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:transparent
 <body>
 <div id="stage"><canvas id="fxc" width="1920" height="1080"></canvas></div>
 <script type="module">
-import {TIERS,cardHTML} from './card-template.mjs?v=2.20.29';
+import {TIERS,cardHTML} from './card-template.mjs?v=2.20.81';
 const q=new URLSearchParams(location.search),stage=document.getElementById('stage');
 if(q.get('backdrop')==='0')stage.classList.add('nobackdrop');
 const dim=q.get('dim')==='1';
@@ -192,7 +194,7 @@ async function promote(el,card){
   sparks(p.x,p.y,'#ffd36b',70,13,3);embers(p.x,p.y,110);stage.classList.add('shake');setTimeout(()=>stage.classList.remove('shake'),520);
   if(name)scramble(name,newName);
   setTimeout(()=>confetti(['#ffd36b','#fff3c4','#f2b52e','#ffffff',ACCENT[card.tier][0]]),400);
-  const banner=root.querySelector('[data-banner]');if(banner){banner.classList.remove('hold');banner.classList.add('show');setTimeout(()=>{banner.classList.remove('show');banner.style.transition='opacity .8s';banner.style.opacity='0';},4200);}
+  const banner=root.querySelector('[data-banner]');if(banner){banner.classList.remove('hold');banner.classList.add('show');root.classList.add('veil');setTimeout(()=>{banner.classList.remove('show');root.classList.remove('veil');banner.style.transition='opacity .8s';banner.style.opacity='0';},4200);}
 }
 const esc=x=>String(x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
 function titleCard(card,t=null){
@@ -224,10 +226,10 @@ async function liveUpdate(el,card,L){
   const banner=root.querySelector('[data-banner]');
   if(banner){const set=(sel,text)=>{const n=banner.querySelector(sel);if(n)n.textContent=text;};
     set('[data-banner-eyebrow]',L.eyebrow);set('[data-banner-text]',L.text);set('[data-banner-note]',L.note);
-    banner.style.display='flex';banner.classList.remove('hold');banner.classList.add('show');
+    banner.style.display='flex';banner.classList.remove('hold');banner.classList.add('show');root.classList.add('veil');
     const p=at(banner);sparks(p.x,p.y,accent,40,9);fx(['shock'],'left:'+p.x+'px;top:'+p.y+'px;--c:'+accent+';--g:'+glow);
     // The banner sits over the stat tiles: let it be read, then clear it before the tiles change.
-    await wait(2300);banner.classList.remove('show');banner.style.transition='opacity .6s';banner.style.opacity='0';await wait(650);}
+    await wait(2300);banner.classList.remove('show');root.classList.remove('veil');banner.style.transition='opacity .6s';banner.style.opacity='0';await wait(650);}
   else await wait(700);
   // Changed tiles, one after another: flash, count to the new value, float a tag.
   const stats=root.querySelectorAll('[data-count]'),extras=root.querySelectorAll('[data-extra]');
@@ -260,7 +262,7 @@ async function play(item){
     const banner=now.querySelector('[data-banner]');
     await open(now,card.tier);
     confetti([ACCENT[card.tier][0],'#ffffff',ACCENT[card.tier][0],'#ffd36b']);
-    if(banner)setTimeout(()=>{banner.classList.remove('show');banner.style.transition='opacity .8s';banner.style.opacity='0';},4500);
+    if(banner){now.firstElementChild?.classList.add('veil');setTimeout(()=>{banner.classList.remove('show');now.firstElementChild?.classList.remove('veil');banner.style.transition='opacity .8s';banner.style.opacity='0';},4500);}
     await wait(Math.max(secs,8)*1000);await close(now);return;
   }
   if(item.live){

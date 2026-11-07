@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.81 (8 November 2026)
+
+**Card banners float.** The WELCOME ABOARD banner on a new follower's membership card (and the TIER UP / PROMOTED banners) no longer sits on a dark band across the card: the words float over the card face with a stronger shadow, and the stat tiles underneath soften while the banner is read. OBS: refresh the card.html browser source cache once after updating.
+
 ## 2.20.80 (7 November 2026)
 
 **Kick entries for impromptu giveaways.** `Voyager_Giveaway_Engine.cs` v10.1: `!enter` / `!ticket` are accepted from native Twitch / YouTube / Kick chat message triggers as well as Command Triggered (the command's Sources often leave Kick unticked, which silently dropped Kick entries), the platform falls back to `userType` when `commandSource` is missing, a Kick viewer without a numeric id still gets a stable entry key from their login, and rejected entries say why in the Streamer.bot log. Setup note in START_HERE.html.
