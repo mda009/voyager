@@ -1,4 +1,4 @@
-// Voyager Giveaway Engine v10: impromptu giveaways can mark recent winners "can enter, can't be drawn" (noWinLogins).
+// Voyager Giveaway Engine v10.1: !enter / !ticket accepted from Command Triggered and from native Twitch / YouTube / Kick chat message triggers; recent winners can be "can enter, can't be drawn" (noWinLogins).
 // Action name: Voyager - Giveaway Engine. One Execute C# Code sub-action only.
 // Use the dedicated Voyager Giveaways queue with Blocking ON; action Concurrent OFF.
 // Add ONE Core > Commands > Command Triggered trigger for !ticket / !enter.
@@ -33,9 +33,14 @@ public class CPHInline
                 if (state["controlRevision"] == null) state["controlRevision"] = (long)state["revision"];
                 state["engineVersion"] = 9;
                 // Chat commands have their own path. Chat arguments can never run operator commands.
-                if (CPH.GetEventType().ToString() == "CommandTriggered")
+                // v10.1 (2.20.80): native chat triggers (Twitch / YouTube / Kick › Chat Message) are accepted as well as Command Triggered,
+                // so Kick entries work even when the !enter command's Sources leave Kick unticked.
+                string eventType = CPH.GetEventType().ToString();
+                bool commandEvent = eventType == "CommandTriggered";
+                string chatPlatform = eventType == "TwitchChatMessage" ? "twitch" : eventType == "YouTubeMessage" ? "youtube" : eventType == "KickChatMessage" ? "kick" : "";
+                if (commandEvent || chatPlatform.Length > 0)
                 {
-                    JObject entrant = AddChatEntry(state);
+                    JObject entrant = AddChatEntry(state, commandEvent, chatPlatform);
                     if (entrant != null)
                     {
                         state["revision"] = (long)state["revision"] + 1;
@@ -366,21 +371,39 @@ public class CPHInline
         };
     }
 
-    private JObject AddChatEntry(JObject state)
+    private JObject AddChatEntry(JObject state, bool commandEvent, string chatPlatform)
     {
         var session = state["session"] as JObject;
-        if (session == null || (string)session["mode"] != "chat" || (bool?)session["entriesOpen"] != true) return null;
-        string command = Read("command").Trim().ToLowerInvariant();
-        string platform = Read("commandSource").Trim().ToLowerInvariant();
-        if ((command != "!ticket" && command != "!enter") || Read("commandType").ToLowerInvariant() != "message") return null;
-        if (platform != "twitch" && platform != "youtube" && platform != "kick") return null;
-        if (String.Equals(Read("isInternal"), "true", StringComparison.OrdinalIgnoreCase)) return null;
+        string command, platform;
+        if (commandEvent)
+        {
+            command = Read("command").Trim().ToLowerInvariant();
+            platform = Read("commandSource").Trim().ToLowerInvariant();
+            if (platform.Length == 0) platform = Read("userType").Trim().ToLowerInvariant();
+            string commandType = Read("commandType").Trim().ToLowerInvariant();
+            if (commandType.Length > 0 && commandType != "message") return null;
+        }
+        else
+        {
+            // Native chat message: the first word of the message is the command.
+            string text = Read("message"); if (text.Length == 0) text = Read("rawInput"); if (text.Length == 0) text = Read("text");
+            text = text.Trim(); int sp = text.IndexOfAny(new[] { ' ', '\t' }); command = (sp > 0 ? text.Substring(0, sp) : text).ToLowerInvariant();
+            platform = chatPlatform;
+        }
+        if (command != "!ticket" && command != "!enter") return null;
+        if (session == null || (string)session["mode"] != "chat" || (bool?)session["entriesOpen"] != true) { CPH.LogInfo("[Voyager Giveaway] " + command + " from " + platform + " ignored: no chat giveaway is open for entries."); return null; }
+        if (platform != "twitch" && platform != "youtube" && platform != "kick") { CPH.LogWarn("[Voyager Giveaway] " + command + " ignored: unsupported source '" + platform + "' (commandSource/userType)."); return null; }
+        if (String.Equals(Read("isInternal"), "true", StringComparison.OrdinalIgnoreCase) || String.Equals(Read("isTest"), "true", StringComparison.OrdinalIgnoreCase)) return null;
         string id = Read("userId").Trim();
         string login = Read("userName").Trim().TrimStart('@').ToLowerInvariant();
+        if (login.Length == 0) login = Read("userLogin").Trim().TrimStart('@').ToLowerInvariant();
         string name = Read("user").Trim();
+        if (name.Length == 0) name = Read("displayName").Trim();
         if (name.Length == 0) name = Read("userName").Trim();
+        if (name.Length == 0) name = login;
         // IDs (especially YouTube channel IDs) are case-sensitive. Display names are never identity keys.
-        if (id.Length == 0 || name.Length == 0) throw new Exception("Chat entry has no userId or name. Check the Command Triggered action arguments in Action History.");
+        if (id.Length == 0 && login.Length > 0) id = "login:" + login; // Kick chat without a numeric id still gets a stable key
+        if (id.Length == 0 || name.Length == 0) throw new Exception("Chat entry from " + platform + " has no userId, userName or name. Check the action arguments in Action History.");
         var exclusions = new HashSet<string>(((JArray)session["excludeLogins"]).Select(x => (string)x), StringComparer.Ordinal);
         if (exclusions.Contains(login) || exclusions.Contains(platform + ":" + login)) return null;
         // Also support an exact platform:id:ID exclusion, without lowercasing the incoming ID.
@@ -654,4 +677,4 @@ public class CPHInline
     private string Read(string name) { object value; return CPH.TryGetArg<object>(name, out value) && value != null ? Convert.ToString(value) : ""; }
     private static long Now() { return DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(); }
 }
-// End of Voyager Giveaway Engine v10.
+// End of Voyager Giveaway Engine v10.1 (Kick/YouTube/Twitch native chat triggers accepted for !enter / !ticket).

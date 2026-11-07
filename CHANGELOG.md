@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.80 (7 November 2026)
+
+**Kick entries for impromptu giveaways.** `Voyager_Giveaway_Engine.cs` v10.1: `!enter` / `!ticket` are accepted from native Twitch / YouTube / Kick chat message triggers as well as Command Triggered (the command's Sources often leave Kick unticked, which silently dropped Kick entries), the platform falls back to `userType` when `commandSource` is missing, a Kick viewer without a numeric id still gets a stable entry key from their login, and rejected entries say why in the Streamer.bot log. Setup note in START_HERE.html.
+
 ## 2.20.79 (7 November 2026)
 
 **Crew surge pays ×1.5 on bits and gifted subs.** While a crew surge is on, every gifted sub and every cheer earns the surge multiplier (1.5 by default, 1–5): Voyager works out the extra part from the normal StreamUP points (100 per gifted sub, 1 per bit; both editable on the On-screen moments page) and lists it on Missions › Points owed as "Crew surge ×1.5: 5 gifted subs", keyed to the supporter's account and paid with the other rewards. The surge chip shows the multiplier and the bonus so far; the Right now ticker adds "surge bonus +250" to the event. Can be switched to display-only. Bonuses persist in moments.json.
