@@ -32,11 +32,12 @@
 #toast .t{min-width:0}#toast .t b{display:block;font:700 22px/1 Rajdhani;color:#fff;letter-spacing:.04em;margin:4px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#toast .t span{font:500 13px Rajdhani;color:#c9d7e4;letter-spacing:.06em}#toast .t .eyebrow{color:var(--tag,#f0b07a)}
 #toast .ribbon{position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--metal,linear-gradient(180deg,#f0a868,#a5582a));border-radius:12px 0 0 12px}
 /* promotion */
-#promo{left:640px;top:150px;width:640px;height:150px;display:flex;align-items:center;gap:22px;padding:0 24px;border-color:rgba(242,205,115,.5);transform:translateY(-10px) scale(.96)}#promo.on{transform:none}
+/* 2.20.73: no panel behind the ceremony, just the lace, the name and the seal over the scene */
+#promo{left:640px;top:150px;width:640px;height:150px;display:flex;align-items:center;gap:22px;padding:0 24px;background:none;border:0;box-shadow:none;transform:translateY(-10px) scale(.96)}#promo.on{transform:none}#promo .corner{display:none}
 #promo .lace{width:92px;height:92px;border-radius:50%;background:radial-gradient(circle at 50% 40%,#1f3a5a,#0b1626 70%);border:2px solid #f2cd73;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:5px;box-shadow:0 0 30px rgba(242,205,115,.45);flex:none}
 #promo .lace i{display:block;width:56px;height:5px;background:#f2cd73;box-shadow:0 0 6px #f2cd73;transform-origin:left;animation:lace .5s ease both}#promo .lace i.loop{width:16px;height:16px;border:5px solid #f2cd73;border-radius:50%;background:transparent}#promo .lace i.thin{height:3px;width:44px}
 @keyframes lace{from{transform:scaleX(0);opacity:0}to{transform:none;opacity:1}}
-#promo .t{flex:1;min-width:0}#promo .t b{display:block;font:700 40px/1 Rajdhani;color:#fff;letter-spacing:.04em;margin:6px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#promo .t span{font:600 16px Rajdhani;letter-spacing:.14em;color:#f2cd73}#promo .t span em{font-style:normal;color:#8faac1;margin:0 8px}#promo .t .eyebrow{color:#f2cd73}
+#promo .t{flex:1;min-width:0}#promo .t b{display:block;font:700 40px/1 Rajdhani;color:#fff;letter-spacing:.04em;margin:6px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 2px 6px #000,0 0 24px rgba(242,205,115,.6)}#promo .t span,#promo .t .eyebrow{text-shadow:0 1px 4px #000,0 0 14px rgba(0,0,0,.8)}#promo .t span{font:600 16px Rajdhani;letter-spacing:.14em;color:#f2cd73}#promo .t span em{font-style:normal;color:#8faac1;margin:0 8px}#promo .t .eyebrow{color:#f2cd73}
 #promo .seal{font:700 12px Rajdhani;letter-spacing:.2em;color:#0b1626;background:#f2cd73;padding:6px 10px;border-radius:4px;align-self:flex-start;margin-top:14px}
 #promo.on .seal{animation:seal .6s cubic-bezier(.2,1.4,.4,1) .5s both}@keyframes seal{from{transform:scale(2) rotate(-12deg);opacity:0}to{transform:none;opacity:1}}
 /* next-celebration chip (sits above the goals strip; top set from Voyager Control) */

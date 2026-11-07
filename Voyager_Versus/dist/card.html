@@ -114,6 +114,7 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:transparent
 import {TIERS,cardHTML} from './card-template.mjs?v=2.20.29';
 const q=new URLSearchParams(location.search),stage=document.getElementById('stage');
 if(q.get('backdrop')==='0')stage.classList.add('nobackdrop');
+const dim=q.get('dim')==='1';
 if(q.get('frame')==='full')stage.classList.add('full');
 if(/^[0-9a-f]{6}$/i.test(q.get('bg')||''))document.documentElement.style.background=document.body.style.background='#'+q.get('bg');
 function fit(){const s=Math.min(innerWidth/1920,innerHeight/1080);stage.style.transform='scale('+s+')';}addEventListener('resize',fit);fit();
@@ -199,7 +200,7 @@ function titleCard(card,t=null){
   const word=[...(t?.word||'PROMOTED')].map((ch,i)=>'<span style="animation-delay:'+(.15+i*.07).toFixed(2)+'s">'+ch+'</span>').join('');
   const sub=t?esc(t.sub):esc(card.name)+' · '+esc(card.fromRankName)+' → <b>'+esc((card.k?.name)||'')+'</b>';
   d.innerHTML='<div class="eb">'+esc(t?.eyebrow||'★ VOYAGER FLEET ★')+'</div><div class="word">'+word+'</div><div class="sub">'+sub+'</div>';
-  stage.append(d);fx(['dim']);
+  stage.append(d);if(dim)fx(['dim']); // 2.20.73: the full-screen darkening behind PROMOTED / TIER UP is off unless ?dim=1 (it showed as a dark box when the source is not full-screen)
   setTimeout(()=>{sparks(960,520,'#ffd36b',90,15,2);fx(['flash']);},15*0+760);
   return d;
 }

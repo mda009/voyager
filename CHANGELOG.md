@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.73 (7 November 2026)
+
+**No boxes behind the card or the promotion.** The membership card overlay (`card.html`) no longer darkens the screen behind PROMOTED and TIER UP title cards (it showed as a dark box when the source is not full-screen); `?dim=1` brings it back. The on-screen promotion ceremony has no panel, border or fill any more: just the sleeve lace, the name and the seal over the scene, with a text shadow for legibility.
+
 ## 2.20.72 (7 November 2026)
 
 **Fix: Check a viewer said "api is not defined"**, and the feed line (points ledger / subs & gifts last read) was not shown on Community goals. Both from 2.20.71 work now.
