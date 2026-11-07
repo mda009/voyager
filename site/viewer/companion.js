@@ -20,8 +20,9 @@ const TABS=[
  ['crew','My card','M3 5h18v14H3z M7 10a2 2 0 1 0 4 0a2 2 0 0 0-4 0 M6 16c.6-1.6 1.8-2.4 3-2.4s2.4.8 3 2.4 M14 9h4 M14 13h4'],
  ['goal','Goals','M12 3l2.6 5.4 6 .8-4.3 4.2 1 5.9-5.3-2.8-5.3 2.8 1-5.9L3.4 9.2l6-.8z'],
  ['community','Community','M16 11a4 4 0 1 0-8 0 4 4 0 0 0 8 0z M4 21c0-3.3 3.6-6 8-6s8 2.7 8 6 M19 8a3 3 0 1 0 0-6 M5 8a3 3 0 1 1 0-6'],
+ ['commands','Commands','M4 6h16v12H4z M7 10l3 2-3 2 M12 14h5'],
  ['guide','Guide','M4 4h7a3 3 0 0 1 3 3v13a2 2 0 0 0-2-2H4z M20 4h-7a3 3 0 0 0-3 3v13a2 2 0 0 1 2-2h8z']];
-const TAB_ALIAS={medals:'community',winners:'community',boards:'community',leaderboards:'community',squad:'community',season:'goal',goals:'goal',dread:'live',giveaways:'live',missions:'live',arena:'live',ranks:'crew',find:'crew',program:'guide',manual:'guide'};
+const TAB_ALIAS={medals:'community',winners:'community',boards:'community',leaderboards:'community',squad:'community',season:'goal',goals:'goal',dread:'live',giveaways:'live',missions:'live',arena:'live',ranks:'crew',find:'crew',program:'guide',manual:'guide',command:'commands',cmd:'commands',cmds:'commands'};
 const resolveTab=h=>TABS.some(([t])=>t===h)?h:TAB_ALIAS[h]||null;
 let tab=(resolveTab(location.hash.slice(1))||'live'),wanted=tab; // a link to #crew waits for the feed before it can open that tab
 function sectionsOf(t){return [...document.querySelectorAll('section[data-tab="'+t+'"]')];}

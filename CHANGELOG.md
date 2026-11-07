@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.78 (7 November 2026)
+
+**voyagercommand.com: Commands tab.** A new tab between Community and Guide listing every chat command in five groups (Your membership, Every stream, Giveaways, The Dreadnought, Voyager Versus): what it does, when to use it, and its cooldown or limit as badges (per-viewer cooldowns, once-a-stream, energy costs, Twitch-only). Tap a command to copy it. `#commands` (also `#cmd`).
+
 ## 2.20.77 (7 November 2026)
 
 **Website and manual updated for this week's changes.** voyagercommand.com: the community goal shows its counting dates ("Counting from 1 November to 25 December"), each goal shows a helper multiplier ("×1.5 points for helpers") and what it means, and the Guide tab has a Good-to-know card (stream streaks follow Twitch watch streaks, goals count from a date, multipliers, ranks and tiers on stream). Public feed carries `multiplier` per goal. Member manual revised 7 Nov: Christmas 2026 run (1,000 subs, 1 Nov–25 Dec, ×1.5 points for contributors, Christmas Eve draw), per-person contribution tracking, stream streak synced to Twitch, FAQ.

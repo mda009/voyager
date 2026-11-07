@@ -85,6 +85,11 @@ h2{font:700 26px/1.1 var(--display);letter-spacing:.6px;margin:0 0 4px}
 ol.rows{list-style:none;margin:0;padding:0}
 ol.rows li{display:grid;grid-template-columns:34px 1fr auto;align-items:center;gap:10px;padding:10px 4px;border-top:1px solid #1b2b3f}
 ol.rows li:first-child{border-top:0}
+.cmd-groups{display:grid;grid-template-columns:minmax(0,1fr);gap:14px}.cmd-group{background:#0f1b2b;border:1px solid #1e3049;border-radius:12px;padding:14px 16px}.cmd-group h3{margin:0 0 4px;font-size:17px;color:#e9f1fb}.cmd-group p.cmd-when{margin:0 0 10px;font-size:13px;color:#8ea6bd}
+.cmd{display:grid;grid-template-columns:minmax(120px,170px) minmax(0,1fr);gap:6px 14px;padding:10px 0;border-top:1px solid #1b2b3f;align-items:start}.cmd:first-of-type{border-top:0}
+.cmd code{display:inline-block;background:#172840;border:1px solid #2a4260;color:#cfe8ff;border-radius:6px;padding:4px 8px;font:600 13px/1.3 ui-monospace,Consolas,monospace;cursor:pointer;margin:0 6px 4px 0;overflow-wrap:anywhere}.cmd code:hover{border-color:#5fb0ff}.cmd code.copied{border-color:#7ff0b5;color:#7ff0b5}
+.cmd .d{font-size:14px;line-height:1.5;color:#c9d7e4;min-width:0}.cmd .d b{color:#e9f1fb}.cmd .meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.cmd .meta span{font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:12px;background:#132235;color:#9ab0c5;border:1px solid #223650}.cmd .meta span.cool{color:#ffd56a;border-color:#4a3d1c}.cmd .meta span.plat{color:#97dfff}
+@media(max-width:560px){.cmd{grid-template-columns:minmax(0,1fr)}}
 ul.rows.plain{list-style:none;margin:0;padding:0}ul.rows.plain li{padding:10px 4px;border-top:1px solid #1b2b3f;font-size:14px;line-height:1.5;color:#c9d7e4}ul.rows.plain li:first-child{border-top:0}ul.rows.plain b{color:#e9f1fb}
 .rank{font:700 18px/1 var(--display);color:var(--faint);text-align:center}
 li:nth-child(1) .rank{color:#f2cd73}li:nth-child(2) .rank{color:#d4dfeb}li:nth-child(3) .rank{color:#e3a36c}
@@ -447,6 +452,12 @@ ol.logrows .quote{font-size:16px;color:var(--text)}
   </div>
  </section>
 
+ <section id="commands" data-tab="commands" aria-labelledby="h-commands">
+  <h2 id="h-commands">Chat commands</h2><p class="lede">Every Voyager command, what it does, when to use it and its limits. Type a command on its own at the start of a message. They work in Twitch, YouTube and Kick chat unless marked; tap a command to copy it.</p>
+  <div class="cmd-groups" id="cmd-groups"></div>
+  <p class="lede small">Cooldowns are per viewer unless they say otherwise. "Once a stream" resets when the stream goes live again. Spending points never lowers your rank or your streak.</p>
+ </section>
+
  <section id="program" data-tab="guide" aria-labelledby="h-program" hidden>
   <h2 id="h-program">How Voyager works</h2><p class="lede" id="program-intro"></p>
   <div class="tiers" id="tier-list"></div>
@@ -468,7 +479,7 @@ ol.logrows .quote{font-size:16px;color:var(--text)}
  <footer><p id="updated">Updates every few minutes while the stream tools are running.</p><p><a href="manual.pdf" target="_blank" rel="noopener">Voyager member manual (PDF)</a></p><p>Voyager community site. Giveaway entry happens in stream chat only; this site never asks for passwords or payment.</p></footer>
 </div>
 <script src="fair-draw.js"></script>
-<script src="companion.js?v=2.20.77" defer></script>
+<script src="companion.js?v=2.20.78" defer></script>
 <script>
 (()=>{'use strict';
 // ?embed=1: shown inside another site. Report our height so the host page can size its frame.
@@ -491,6 +502,44 @@ let feed=null,lastOk=0,tab='points';
 function ago(t){const s=Math.max(0,Math.round((Date.now()-t)/1000));if(s<60)return 'just now';const m=Math.round(s/60);if(m<60)return m+' min ago';const h=Math.round(m/60);if(h<48)return h+' hour'+(h===1?'':'s')+' ago';return new Date(t).toLocaleDateString(undefined,{day:'numeric',month:'short'});}
 function left(t){const s=Math.max(0,Math.round((t-Date.now())/1000));if(s<=0)return 'closing now';const d=Math.floor(s/86400),h=Math.floor(s%86400/3600),m=Math.floor(s%3600/60);return d?d+'d '+h+'h left':h?h+'h '+m+'m left':m?m+'m '+(s%60)+'s left':s+'s left';}
 function platformTag(p){const w=el('span','name');if(PLATFORM[p]){const d=el('i','dot '+p);d.setAttribute('aria-hidden','true');w.append(d);}return w;}
+// Commands tab (2.20.78): the full command set with what each does, when to use it and its limits.
+const COMMANDS=[
+ ['Your membership','Check, show and grow your membership. Everyone starts as a Blue Explorer; upgrades are bought with Voyager points when you choose.',[
+  [['!points'],'Your Voyager points balance posted in chat.','Any time you want to know where you stand before an upgrade or a giveaway.',['No cooldown']],
+  [['!voyager'],'Shows your membership card on stream: tier, naval rank, stats and medals. Add <b>stats</b> for the service record side or <b>badges</b> for the medal wall.','When you want to show the crew your card, or check your rank and medals live.',['1 minute per viewer','All platforms']],
+  [['!voyager stats','!voyager badges'],'The back sides of your card: the service record (Dreadnought, Versus, missions, streak) and the medal wall.','After a medal or a promotion, or to see your stream streak.',['Shares the card cooldown']],
+  [['!voyager title <medal>'],'Shows an earned medal as your callsign on the card; <b>!voyager title</b> alone clears it.','Once you have a medal you are proud of.',['Needs the medal']],
+  [['!voyager private','!voyager public'],'Hides or shows your hours watched and months subscribed on the card and on this site.','If you would rather keep those two numbers to yourself.',['Instant']],
+  [['!upgrade'],'Buys the next membership tier with points: Silver 1,200, Gold 1,800 more, Platinum 17,000 more. Nothing upgrades on its own.','When your balance covers it and you want that tier\'s giveaway.',['One tier at a time']],
+  [['!medals'],'Your medal count, your latest medal and the next one within reach.','To see what to chase next.',['All platforms']]]],
+ ['Every stream','The daily habits that build points, streaks and squadron scores.',[
+  [['!report'],'Reports for duty: points for showing up and a stream day for your streak.','Once each stream, as early as you like.',['Once a stream']],
+  [['!squadron red','!squadron gold','!squadron blue'],'Joins a squadron for the weekly war. Your chat, missions, Dreadnought damage and Versus wins score for it.','Pick once; the war resets every Monday.',['Switch every 30 days']],
+  [['!log <moment>'],'Logs a stream moment for the Captain\'s Log shown on stream and on this site.','When something worth remembering happens.',['3 per stream','1 minute between entries','No links']],
+  [['!quiz'],'Repeats the current Bridge Quiz question. Answer by typing the answer in chat; first correct answer wins the points.','While a quiz is up and you missed the question.',['While a quiz runs']]]],
+ ['Giveaways','Entries happen in stream chat only. Ticket balances are never shown on this site.',[
+  [['!enter','!ticket'],'Joins an open chat giveaway.','When MDA opens one on stream.',['Once per giveaway']],
+  [['!entergiveaway','!entry'],'Registers you for a ticketed giveaway; you earn 1 ticket per 10 minutes watched live.','As soon as a ticketed giveaway is announced.',['Once per giveaway']],
+  [['!tickets'],'Tells you how many tickets you hold in the current ticketed giveaway.','Before the draw.',['Ticketed giveaways only']]]],
+ ['The Dreadnought','A co-op boss fight for the whole crew. A moderator calls it; every pilot who fights a winning battle earns points.',[
+  [['!join'],'Boards the fleet while the Dreadnought approaches.','In the 60 seconds after it is called (late joiners add less hull).',['60-second window']],
+  [['!fire'],'Attacks the Dreadnought for 25–50 damage, 6% chance of a triple-damage critical.','Every 3 seconds during the fight. Cheers, gifted subs and chat charge the Comms Relay for extra damage.',['3 seconds','During the fight']]]],
+ ['Voyager Versus','One-on-one fighter battles in the arena, Twitch chat only.',[
+  [['!versus'],'Calls a battle, or answers an open call as the challenger.','When the arena is open: it recharges for 45 minutes after each battle.',['45 min arena recharge','One call + one answer per viewer each stream','Twitch']],
+  [['!ship interceptor','!ship sentinel','!ship phantom'],'Picks your fighter: VX-01 Dart (balanced), VX-02 Bulwark (heavy), VX-03 Wraith (shields).','Any time before your next battle.',['No cooldown','Twitch']],
+  [['!fire'],'Laser shot for 14 damage (your guns also fire on their own). Costs 10 energy.','During a battle, as often as energy allows.',['2 seconds','10 energy','Twitch']],
+  [['!missile'],'Heavy hit for 32 damage. Costs 35 energy.','When your shot will land: it has the longest recharge.',['10 seconds','35 energy','Twitch']],
+  [['!shield'],'Restores up to 30 shield. Costs 30 energy.','When your shield is down and the enemy is firing.',['12 seconds','30 energy','Twitch']],
+  [['!dodge'],'Evasive roll: shots miss you for 2.5 seconds. Costs 25 energy.','Just before a missile lands.',['9 seconds','25 energy','Twitch']],
+  [['!leave'],'Leaves the Versus queue before a battle starts.','If you called and cannot stay.',['Before the countdown','Twitch']],
+  [['!help'],'Lists the Versus commands in chat.','Your first battle.',['Twitch']]]]];
+function renderCommands(){const box=$('cmd-groups');if(!box||box.children.length)return;
+ for(const [title,when,list] of COMMANDS){const g=el('div','cmd-group');g.append(el('h3','',title),el('p','cmd-when',when));
+  for(const [cmds,what,use,meta] of list){const row=el('div','cmd');const left=el('div');for(const c of cmds){const code=el('code','',c);code.title='Copy';code.onclick=async()=>{try{await navigator.clipboard.writeText(c.replace(/\s*<[^>]+>$/,''));code.classList.add('copied');setTimeout(()=>code.classList.remove('copied'),1200);}catch{}};left.append(code);}
+   const right=el('div','d');const d=el('div');d.innerHTML=what;const u=el('div');u.innerHTML='<b>When:</b> '+use;const m=el('div','meta');for(const x of meta){const sp=el('span','',x);if(/second|minute|min|once|every|window|per /i.test(x))sp.classList.add('cool');if(/twitch|platform/i.test(x))sp.classList.add('plat');m.append(sp);}
+   right.append(d,u,m);row.append(left,right);g.append(row);}
+  box.append(g);}}
+renderCommands();
 function copyButton(btn,text){btn.dataset.copy=text;btn.onclick=async()=>{try{await navigator.clipboard.writeText(text);btn.textContent='Copied';setTimeout(()=>btn.textContent='Copy',1500);}catch{btn.textContent=text;}};}
 function fresh(){return feed&&feed.online&&Date.now()-feed.generatedAt<STALE_MS;}
 
