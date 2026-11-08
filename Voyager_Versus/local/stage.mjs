@@ -60,7 +60,9 @@ export class Stage{
   overlay(boss){const now=this.now();return {serverAt:now,active:this.active(boss),phase:boss?.phase||'idle',demo:!!boss?.demo,forced:this.forcedUntil>now,...this.layout(),chat:this.chatFeed(),chatNames:this.settings.chat.names,animationMs:this.settings.animationMs,cue:this.cue.last};}
   // Send the cue for the current state again (the control page's "Move my scene again" after fixing the action or the names).
   async resend(boss){this.cue.on=!this.active(boss);return this.tick(boss);}
-  view(){return {settings:this.settings,defaults:STAGE_DEFAULTS,slotKinds:SLOT_KINDS,stackKinds:STACK_KINDS,geometry:GEOMETRY,cue:this.cue.last,forced:this.forcedUntil>this.now(),chatCount:this.messages.length};}
+  // What OBS did, reported by the Streamer.bot action.
+  result(r){this.cue.obs={at:Number(r.at)||this.now(),phase:String(r.phase||''),ok:!!r.ok,message:String(r.message||'').slice(0,300),version:String(r.backendVersion||'')};return this.cue.obs;}
+  view(){return {settings:this.settings,defaults:STAGE_DEFAULTS,slotKinds:SLOT_KINDS,stackKinds:STACK_KINDS,geometry:GEOMETRY,cue:this.cue.last,obs:this.cue.obs||null,forced:this.forcedUntil>this.now(),chatCount:this.messages.length};}
   // Shrink / restore cue to Streamer.bot: once when the stage comes up, once when it goes down. Needs the scene and the
   // nested scene / group that holds the streamer's game, named on the Dreadnought page.
   async tick(boss){

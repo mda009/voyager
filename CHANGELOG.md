@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.86 (8 November 2026)
+
+**Dreadnought stage: OBS answers on the checklist.** `Voyager_Dreadnought_Stage.cs` v1.1 reports back to Voyager what OBS did with each move / restore cue (moved, restored, or the exact reason it could not — including the list of items actually in the named scene when the game source is not found), and the stage card shows that line, so no digging in the Streamer.bot log.
+
 ## 2.20.85 (8 November 2026)
 
 **Dreadnought stage: "Move my scene again".** A button on the stage card re-sends the shrink / restore cue for the current state, for after the Streamer.bot action is compiled or the scene and source names are corrected while the stage is already showing; the notice reports whether Streamer.bot took it and points to the `[Voyager Stage]` log line if the scene still did not move. The setup guide notes the Find Refs step the C# editor needs.
