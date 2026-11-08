@@ -1,4 +1,4 @@
-// Voyager Dreadnought Stage v1.3. One action: Voyager - Dreadnought Stage. No triggers: Voyager runs it (DoAction) when the
+// Voyager Dreadnought Stage v1.3.1. One action: Voyager - Dreadnought Stage. No triggers: Voyager runs it (DoAction) when the
 // Dreadnought stage comes up and goes down. It moves the OBS scene item that holds your game (a nested scene or a group,
 // named on Voyager Control › Voyager Dreadnought › Stage) into the picture-in-picture window with a short animation, and
 // moves it back afterwards. The item's original transform is kept in a Streamer.bot global so a restart can still restore it.
@@ -60,7 +60,7 @@ public class CPHInline {
   var names=new System.Collections.Generic.List<string>();foreach(JObject it in items)names.Add((string)it["sourceName"]+((bool?)it["isGroup"]==true?" (group)":(string)it["sourceType"]=="OBS_SOURCE_TYPE_SCENE"?" (scene)":""));return names.Count==0?"(none)":String.Join(", ",names);}catch{return "(could not list)";}}
  // Tells Voyager what OBS did, so the Dreadnought page's checklist can show it (and logs the same line in Streamer.bot).
  void Report(string requestId,string phase,bool ok,string message){if(ok)CPH.LogInfo("[Voyager Stage] "+message);else CPH.LogWarn("[Voyager Stage] "+message);
-  try{CPH.WebsocketBroadcastJson(new JObject{["type"]="voyager.stage.result",["v"]=1,["requestId"]=requestId,["phase"]=phase,["ok"]=ok,["message"]=message,["backendVersion"]="1.3",["at"]=DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}.ToString(Formatting.None));}catch{}}
+  try{CPH.WebsocketBroadcastJson(new JObject{["type"]="voyager.stage.result",["v"]=1,["requestId"]=requestId,["phase"]=phase,["ok"]=ok,["message"]=message,["backendVersion"]="1.3.1",["at"]=DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}.ToString(Formatting.None));}catch{}}
  // Hide the named sources (anywhere in the scene, including inside groups) that are visible now; remember them for Unhide.
  string Hide(string scene,JObject saved){string raw=Read("stageHide");JArray names;try{names=String.IsNullOrWhiteSpace(raw)?new JArray():JArray.Parse(raw);}catch{names=new JArray();}
   JArray hidden=saved["hidden"] as JArray??new JArray();var missing=new System.Collections.Generic.List<string>();
@@ -68,7 +68,8 @@ public class CPHInline {
    JObject hit=Find(scene,name);if(hit==null){missing.Add(name);continue;}
    if((bool?)hit["enabled"]!=true)continue;SetEnabled((string)hit["scene"],(long)hit["id"],false);hidden.Add(new JObject{["scene"]=hit["scene"],["id"]=hit["id"],["name"]=name});}
   saved["hidden"]=hidden;CPH.SetGlobalVar(Store,saved.ToString(Formatting.None),true);
-  return (hidden.Count>0?" Hidden: "+String.Join(", ",System.Linq.Enumerable.Select(hidden,h=>(string)h["name"]))+".":"")+(missing.Count>0?" Not found in '"+scene+"': "+String.Join(", ",missing)+".":"");}
+  var hiddenNames=new System.Collections.Generic.List<string>();foreach(JObject h in hidden)hiddenNames.Add((string)h["name"]);
+  return (hiddenNames.Count>0?" Hidden: "+String.Join(", ",hiddenNames)+".":"")+(missing.Count>0?" Not found in '"+scene+"': "+String.Join(", ",missing)+".":"");}
  string Unhide(JObject saved){JArray hidden=saved["hidden"] as JArray;if(hidden==null||hidden.Count==0)return "";var names=new System.Collections.Generic.List<string>();
   foreach(JObject h in hidden){try{SetEnabled((string)h["scene"],(long)h["id"],true);names.Add((string)h["name"]);}catch(Exception e){names.Add((string)h["name"]+" (failed: "+e.Message+")");}}
   return " Shown again: "+String.Join(", ",names)+".";}
