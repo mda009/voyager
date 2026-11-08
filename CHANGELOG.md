@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.85 (8 November 2026)
+
+**Dreadnought stage: "Move my scene again".** A button on the stage card re-sends the shrink / restore cue for the current state, for after the Streamer.bot action is compiled or the scene and source names are corrected while the stage is already showing; the notice reports whether Streamer.bot took it and points to the `[Voyager Stage]` log line if the scene still did not move. The setup guide notes the Find Refs step the C# editor needs.
+
 ## 2.20.84 (8 November 2026)
 
 **Dreadnought stage.** When the Dreadnought is called, one browser source (`/control/stage.html`, 1920 × 1080, above everything) takes over the screen: a "Dreadnought called" slam, the fight scene in the middle, your panels in the slots around it, and your own scene shrunk into a corner, restored after the battle report. Slots and the bottom stack are chosen on Voyager Control › Voyager Dreadnought › Dreadnought stage — Leaderboard panel, Community goal standings / goals / contributors, Hall of Fame, missions, Christmas panel, the new chat window or a transparent camera window; giveaway goals strip, Right now ticker, command hints & medal toasts; your scene bottom-right or bottom-left; battle report hold and move speed. The shrink is done by the new Streamer.bot action **Voyager - Dreadnought Stage** (`Voyager_Dreadnought_Stage.cs`, no triggers): it animates the named game scene / group into the picture-in-picture window and back, keeping the original transform. The standalone Dreadnought, panel, goals-strip, moments and Christmas sources step aside while the stage is up. **Chat window** (`/control/chat.html`): Twitch, YouTube and Kick messages as Voyager hears them from Streamer.bot, with name colours and MOD / VIP / SUB badges; platforms, !commands and names switchable; usable on its own at any size. "Show the stage for 60 s" tests the layout with sample chat lines.

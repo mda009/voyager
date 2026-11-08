@@ -120,6 +120,7 @@ form.onsubmit=async e=>{e.preventDefault();const value={enabled:f.enabled.checke
   for(const k of ['twitch','youtube','kick','commands','names'])value.chat[k]=f['chat.'+k].checked;
   try{st={...st,...(await api('/api/stage/settings',value))};stEditing=false;notice('Stage saved. A stage source that is open picks the layout up within a second.');renderStage();}catch(e){notice(e.message,true);}};
 $('stage-show').onclick=async()=>{try{st={...st,...(await api('/api/stage/force',{seconds:60}))};notice('The stage is showing for 60 seconds (your Dreadnought source shows the standby scene).');renderStage();setTimeout(loadStage,1500);}catch(e){notice(e.message,true);}};
+$('stage-cue').onclick=async()=>{try{const r=await api('/api/stage/cue',{});st={...st,...r};const c=r.cue;notice(c?('Move cue ('+c.phase+') '+(c.ok?'sent to Streamer.bot. If the scene did not move, read the Streamer.bot log for a [Voyager Stage] line.':'failed: '+c.message)):'No cue sent: name the live scene and the game source first, then save.',!(c&&c.ok));renderStage();}catch(e){notice(e.message,true);}};
 $('stage-hide').onclick=async()=>{try{st={...st,...(await api('/api/stage/force',{seconds:0}))};notice('Stage hidden.');renderStage();setTimeout(loadStage,1500);}catch(e){notice(e.message,true);}};
 loadStage();setInterval(loadStage,5000);
 }}

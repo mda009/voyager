@@ -223,7 +223,7 @@ const server=http.createServer(async(req,res)=>{
       try{const input=await body(req,65536);
         if(url.pathname==='/api/stage/settings'){response(res,200,{ok:true,...stage.configure(input||{})});return;}
         if(url.pathname==='/api/stage/force'){response(res,200,{ok:true,...stage.force(input?.seconds),...stage.view()});return;}
-        if(url.pathname==='/api/stage/cue'){const r=await stage.tick(boss.overlay());response(res,200,{ok:true,cue:r||stage.cue.last});return;}
+        if(url.pathname==='/api/stage/cue'){const r=await stage.resend(boss.overlay());response(res,200,{ok:true,cue:r||stage.cue.last,...stage.view()});return;}
       }catch(e){response(res,400,{message:e.message});return;}
       response(res,404,{message:'Not found.'});return;}
     if(url.pathname.startsWith('/api/community')){
