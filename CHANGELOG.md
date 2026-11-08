@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.87 (8 November 2026)
+
+**Dreadnought stage on 1440p / 4K canvases.** `Voyager_Dreadnought_Stage.cs` v1.2 reads the OBS canvas size and scales the picture-in-picture move to it, so a 2560 × 1440 or 3840 × 2160 canvas puts the game in the same corner as the 1080p layout instead of a small box in the middle.
+
 ## 2.20.86 (8 November 2026)
 
 **Dreadnought stage: OBS answers on the checklist.** `Voyager_Dreadnought_Stage.cs` v1.1 reports back to Voyager what OBS did with each move / restore cue (moved, restored, or the exact reason it could not — including the list of items actually in the named scene when the game source is not found), and the stage card shows that line, so no digging in the Streamer.bot log.

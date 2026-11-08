@@ -1,4 +1,4 @@
-// Voyager Dreadnought Stage v1.1. One action: Voyager - Dreadnought Stage. No triggers: Voyager runs it (DoAction) when the
+// Voyager Dreadnought Stage v1.2. One action: Voyager - Dreadnought Stage. No triggers: Voyager runs it (DoAction) when the
 // Dreadnought stage comes up and goes down. It moves the OBS scene item that holds your game (a nested scene or a group,
 // named on Voyager Control › Voyager Dreadnought › Stage) into the picture-in-picture window with a short animation, and
 // moves it back afterwards. The item's original transform is kept in a Streamer.bot global so a restart can still restore it.
@@ -14,13 +14,15 @@ public class CPHInline {
   if(scene.Length==0||source.Length==0){Report(requestId,phase,false,"Scene or game source not named yet (Voyager Control › Voyager Dreadnought › Stage).");return true;}
   double x=Num("stageX",1252),y=Num("stageY",704),w=Num("stageW",640),h=Num("stageH",360);int ms=(int)Math.Max(200,Math.Min(4000,Num("stageMs",1200)));
   lock(Gate){try{
+   // The window is given on Voyager's 1920 x 1080 layout; scale it to the OBS canvas (a 2560 x 1440 or 3840 x 2160 canvas puts it in the same corner).
+   double[] canvas=Canvas();double fx=canvas[0]/1920.0,fy=canvas[1]/1080.0;x*=fx;y*=fy;w*=fx;h*=fy;
    long id=ItemId(scene,source);JObject cur=Transform(scene,id);JObject saved=Saved();
    double[] from=Rect(cur);
    if(phase=="on"){
     if(saved==null||(string)saved["scene"]!=scene||(long)saved["id"]!=id){saved=new JObject{["scene"]=scene,["id"]=id,["source"]=source,["t"]=cur,["at"]=DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()};CPH.SetGlobalVar(Store,saved.ToString(Formatting.None),true);}
     else from=Rect(cur);
     Animate(scene,id,from,new double[]{x,y,w,h},ms);
-    Report(requestId,phase,true,"'"+source+"' moved to the picture-in-picture window ("+w+"x"+h+" at "+x+","+y+") in "+ms+" ms.");
+    Report(requestId,phase,true,"'"+source+"' moved to the picture-in-picture window ("+Math.Round(w)+"x"+Math.Round(h)+" at "+Math.Round(x)+","+Math.Round(y)+" on a "+canvas[0]+"x"+canvas[1]+" canvas) in "+ms+" ms.");
    }else{
     if(saved==null){Report(requestId,phase,true,"Nothing to restore (the game was never moved).");return true;}
     JObject t=(JObject)saved["t"];double[] to=Rect(t);
@@ -55,7 +57,9 @@ public class CPHInline {
   var names=new System.Collections.Generic.List<string>();foreach(JObject it in items)names.Add((string)it["sourceName"]+((bool?)it["isGroup"]==true?" (group)":(string)it["sourceType"]=="OBS_SOURCE_TYPE_SCENE"?" (scene)":""));return names.Count==0?"(none)":String.Join(", ",names);}catch{return "(could not list)";}}
  // Tells Voyager what OBS did, so the Dreadnought page's checklist can show it (and logs the same line in Streamer.bot).
  void Report(string requestId,string phase,bool ok,string message){if(ok)CPH.LogInfo("[Voyager Stage] "+message);else CPH.LogWarn("[Voyager Stage] "+message);
-  try{CPH.WebsocketBroadcastJson(new JObject{["type"]="voyager.stage.result",["v"]=1,["requestId"]=requestId,["phase"]=phase,["ok"]=ok,["message"]=message,["backendVersion"]="1.1",["at"]=DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}.ToString(Formatting.None));}catch{}}
+  try{CPH.WebsocketBroadcastJson(new JObject{["type"]="voyager.stage.result",["v"]=1,["requestId"]=requestId,["phase"]=phase,["ok"]=ok,["message"]=message,["backendVersion"]="1.2",["at"]=DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}.ToString(Formatting.None));}catch{}}
+ // OBS canvas (base) size; 1920 x 1080 when OBS does not answer.
+ double[] Canvas(){try{string raw=CPH.ObsSendRaw("GetVideoSettings","{}");JObject v=JObject.Parse(raw);double bw=D(v["baseWidth"]),bh=D(v["baseHeight"]);if(bw>=320&&bh>=180)return new double[]{bw,bh};}catch{}return new double[]{1920,1080};}
  JObject Saved(){string raw=CPH.GetGlobalVar<string>(Store,true);if(String.IsNullOrWhiteSpace(raw))return null;try{return JObject.Parse(raw);}catch{return null;}}
  double D(JToken v){return v==null?0:Convert.ToDouble(v.ToString(),CultureInfo.InvariantCulture);}
  double Num(string k,double d){string v=Read(k);double n;return Double.TryParse(v,NumberStyles.Float,CultureInfo.InvariantCulture,out n)?n:d;}
