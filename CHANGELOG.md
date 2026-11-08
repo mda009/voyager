@@ -2,6 +2,14 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.21.1 (8 November 2026)
+
+**Dreadnought page in three tabs.** *Live* (the live view, how chat plays, paying the pilots, recent fights), *The fight* (the settings form, difficulty presets, and the folded OBS and Streamer.bot set-up) and *Stage takeover* (the stage card, full width). The tab you were on is remembered; `#stage-card` links open the stage tab.
+
+**Difficulty presets.** Easier / Balanced / Brutal fill the fight fields in one click — hull, lasers, cooldown, clock, bits and gift damage, speed-goal times — and the form shows which preset the current numbers match (or Custom). Boss name, rewards and chat options are left alone; Save settings keeps the preset.
+
+**Streamer.bot install hub.** Settings & Streamer.bot › Streamer.bot now opens with every C# action Voyager relies on in one list: found / missing / disabled / duplicate in Streamer.bot, the version the shipped file declares, and Copy C# · Open .cs · Guide on each row, so re-pasting after an update is one place and one routine. The host serves the `.cs` files to make that possible, and `/api/streamerbot` carries the `install` rows. Versus page title shortened to match the sidebar.
+
 ## 2.21.0 (8 November 2026)
 
 **Voyager Control streamlined: 13 destinations instead of 27 pages.** The sidebar now reads the way a stream runs — *Operate* (Live), *Games & events* (Dreadnought, Versus, Giveaways, Chat engagement), *On screen* (Screen & overlays), *Community* (Members & points, Membership programme, Missions & goals, Public website, Reporting) and *Setup* (Settings & Streamer.bot, Help). Pages that belong together are tabs under one title: Cards · Ranks · Medals are the Membership programme; Community goals · Missions & points owed are Missions & goals; Points & members · Security review; Connection & branding · Streamer.bot actions · System check; Chat engagement · Chat commands; the three giveaway pages. Nothing moved on disk — every old link and bookmark still works.

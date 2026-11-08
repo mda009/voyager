@@ -37,6 +37,7 @@
 .sb-hist li.bad{border-color:rgba(255,154,166,.35)}.sb-hist li.bad i{color:#ff9aa6}
 .sb-check{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;font-size:13px;color:#c9d7e4}
 .sb-check li::before{content:'○ ';color:#8ea6bd}.sb-check li.ok::before{content:'✓ ';color:#7ce1cb}.sb-check li.info::before{content:'• ';color:#8ea6bd}
+.sb-install li{grid-template-columns:14px minmax(0,1fr) auto}.sb-install li i{width:10px;height:10px;border-radius:50%;background:#55667a;justify-self:center}.sb-install li[data-state=found] i{background:#5ee8a4;box-shadow:0 0 8px #5ee8a4}.sb-install li[data-state=missing] i,.sb-install li[data-state=disabled] i,.sb-install li[data-state=duplicate] i{background:#ffd27a;box-shadow:0 0 8px #ffd27a99}.sb-install li .v{font:700 11px/1 Rajdhani,'Segoe UI',sans-serif;letter-spacing:1px;color:#97dfff;background:rgba(151,223,255,.1);padding:3px 7px;border-radius:999px;margin-left:8px;vertical-align:middle}.sb-install li .act button,.sb-install li .act a.button{min-height:30px;padding:0 10px;font:700 12px/1 Rajdhani,'Segoe UI',sans-serif;letter-spacing:.8px}
 .sb-group{margin:8px 0 2px;font:700 12px/1 Rajdhani,'Segoe UI',sans-serif;letter-spacing:.14em;color:#97dfff;text-transform:uppercase}
 @media(max-width:1100px){.sb-grid{grid-template-columns:1fr}.sb-tiers{grid-template-columns:1fr}}
 </style>
@@ -45,7 +46,7 @@
 <div class="shell">
 <aside class="rail"><a class="brand" href="Voyager_Command_Center.html"><img class="logo-voyager" src="brand-assets/voyager.png" alt="Voyager membership program" width="68" height="68"><span>VOYAGER<small>MDA009 · MISSION CONTROL</small></span></a></aside>
 <main>
-<header class="top"><div><span class="eyebrow">SETUP</span><h1>Streamer.bot actions</h1></div><div class="toolbar"><span class="st-pill" id="conn-pill" data-state="wait">Checking…</span><button type="button" id="refresh">Refresh list</button></div></header>
+<header class="top"><div><span class="eyebrow">SETUP</span><h1>Streamer.bot</h1></div><div class="toolbar"><span class="st-pill" id="conn-pill" data-state="wait">Checking…</span><button type="button" id="refresh">Refresh list</button></div></header>
 <p class="st-notice" id="notice" hidden></p>
 <p class="st-notice" id="not-hosted" hidden>Open this page from the Voyager app (or START-VOYAGER-CONTROL.bat).</p>
 <div class="sb-grid">
@@ -54,6 +55,12 @@
 <span class="eyebrow">STATUS</span>
 <ul class="sb-check" id="checklist"></ul>
 <p class="st-hint">Runs go through Voyager's own connection to Streamer.bot, the same way chat replies do. A run here is the same as pressing <b>Run</b> on the action in Streamer.bot (no test flag), so chat messages, OBS media and ledger changes are real.</p>
+</section>
+
+<section class="card sb-card sb-wide">
+<div class="card-heading"><div><span class="eyebrow">INSTALL HUB</span><h2>Voyager's actions in Streamer.bot</h2></div><span class="st-pill" id="install-pill" data-state="wait">Checking…</span></div>
+<p class="st-hint">Every C# action Voyager relies on, once, instead of a set-up card on each page. <b>Found</b> = Streamer.bot has one enabled action with that exact name. The version is what this Voyager ships; Streamer.bot cannot report which version you pasted, so after a Voyager update that mentions an action, paste it again: <b>Copy C#</b> → in Streamer.bot open the action's Execute C# Code sub-action → select all, paste → <b>Find Refs</b> → <b>Compile</b> → <b>Save</b>.</p>
+<ul class="sb-list sb-install" id="install"></ul>
 </section>
 
 <section class="card sb-card">
@@ -88,8 +95,8 @@
 </div>
 </main>
 </div>
-<script src="streamerbot-control.js?v=2.20.42"></script>
-<script src="voyager-shell.js?v=2.21.0"></script>
+<script src="streamerbot-control.js?v=2.21.1"></script>
+<script src="voyager-shell.js?v=2.21.1"></script>
 <script src="voyager-navigation.js"></script>
 </body>
 </html>

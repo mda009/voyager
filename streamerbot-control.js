@@ -52,7 +52,7 @@ function renderAll(){
     const act=el('div','act');act.append(b);li.append(text,act);box.append(li);}
   if(!list.length)box.append(el('li','',view.connected?'No actions match.':'Connect Voyager to Streamer.bot (Settings) to list its actions.'));
 }
-function render(){
+function render(){renderInstall();
   if(!view)return;
   const pill=$('conn-pill');pill.dataset.state=view.connected?'ok':'error';pill.textContent=view.connected?'Connected to Streamer.bot':'Streamer.bot offline';
   const cl=$('checklist');cl.textContent='';
@@ -74,4 +74,20 @@ $('goal-rearm').onclick=async()=>{try{view={...view,...await api('/api/goalfx/co
 $('refresh').onclick=()=>load(true);
 $('filter').oninput=()=>{filter=$('filter').value;renderAll();};
 if(!hosted){$('not-hosted').hidden=false;}else{load(true);setInterval(()=>load(false),15000);}
+
+// 2.21.1 install hub: every Voyager C# action, found / missing / disabled, shipped version, copy the file.
+const INSTALL_STATE={found:'Found',missing:'Not in Streamer.bot',disabled:'Disabled',duplicate:'More than one copy',offline:'Streamer.bot offline'};
+function renderInstall(){
+  const box=$('install');if(!box||!view)return;box.textContent='';const rows=view.install||[];
+  for(const r of rows){
+    const li=el('li');li.dataset.state=r.state;const text=el('div');const b=el('b','',r.action);if(r.version){const v=el('span','v','v'+r.version);b.append(v);}text.append(b,el('small','',r.purpose+' · '+INSTALL_STATE[r.state]));
+    const act=el('div','act');
+    const copy=el('button','','Copy C#');copy.type='button';copy.onclick=async()=>{copy.disabled=true;try{const t=await(await fetch(r.file,{cache:'no-store'})).text();await navigator.clipboard.writeText(t);copy.textContent='Copied';setTimeout(()=>{copy.textContent='Copy C#';},1500);}catch(e){notice('Copy failed: '+e.message+' — open the file and copy it from there.',true);}finally{copy.disabled=false;}};
+    const open=el('a','button','Open .cs ↗');open.href=r.file;open.target='_blank';open.rel='noopener';
+    const guide=el('a','button','Guide ↗');guide.href=r.guide;guide.target='_blank';guide.rel='noopener';
+    act.append(copy,open,guide);li.append(el('i'),text,act);box.append(li);
+  }
+  const pill=$('install-pill'),found=rows.filter(r=>r.state==='found').length,bad=rows.filter(r=>['missing','disabled','duplicate'].includes(r.state)).length;
+  if(pill){pill.dataset.state=!rows.length||rows[0]?.state==='offline'?'wait':bad?'warn':'ok';pill.textContent=rows[0]?.state==='offline'?'Connect Streamer.bot to check':found+' of '+rows.length+' found'+(bad?' · '+bad+' to install':'');}
+}
 })();

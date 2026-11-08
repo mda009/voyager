@@ -41,6 +41,10 @@
 .dn-check{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;font-size:13px;color:#c9d7e4}
 .dn-check li::before{content:'○ ';color:#8ea6bd}.dn-check li.info::before{content:'• ';color:#8ea6bd}.dn-check li.ok::before{content:'✓ ';color:#7ce1cb}
 @media(max-width:1100px){.dn-layout{grid-template-columns:1fr}.dn-status,.dn-cmds{grid-template-columns:1fr 1fr}}
+.dn-layout[data-tab=stage]{grid-template-columns:1fr}.dn-layout[data-tab=stage] .dn-main{display:none}.dn-layout[data-tab=stage] #stage-card{max-width:1100px}.dn-layout[data-tab=stage] .dn-stage-pic{max-width:720px}
+.dn-tabs{display:flex;gap:6px;flex-wrap:wrap;width:fit-content;max-width:100%;margin:0 0 18px;padding:5px;border-radius:999px;border:1px solid rgba(151,223,255,.16);background:rgba(8,15,24,.5)}
+.dn-tabs button{min-height:36px;padding:0 16px;border-radius:999px;border:1px solid transparent;background:transparent;color:#a7bccf;font:700 14px/1 Rajdhani,'Segoe UI',sans-serif;letter-spacing:.4px;cursor:pointer}.dn-tabs button:hover{color:#fff;background:rgba(255,255,255,.05)}.dn-tabs button[aria-selected=true]{color:#fff;background:linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,0)),rgba(65,105,225,.3);border-color:rgba(151,223,255,.4)}
+.dn-presets{display:grid;grid-template-columns:1fr 1fr;gap:8px}.dn-presets button{min-height:56px;padding:8px 12px;text-align:left;display:flex;flex-direction:column;gap:3px;font:700 14px/1.15 Rajdhani,'Segoe UI',sans-serif;letter-spacing:.6px}.dn-presets button small{font:600 11px/1.2 'Segoe UI',sans-serif;letter-spacing:0;color:#9ab0c5;text-transform:none}.dn-presets button[aria-pressed=true]{border-color:rgba(151,223,255,.6);background:rgba(65,105,225,.25)}
 .dn-form select{height:38px;padding:0 10px;border:1px solid rgba(151,223,255,.18);background:rgba(8,15,24,.55);color:#e6eef7;font:14px 'Segoe UI',sans-serif;min-width:0}
 .dn-form .group{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;font-size:12px;color:#9ab0c5}.dn-form .group b{flex:0 0 100%;font-weight:600;color:#c9d7e4}.dn-form .group label{flex-direction:row;align-items:center;gap:6px;grid-column:auto}
 .dn-stage-pic{display:grid;grid-template-columns:18% 1fr 18%;grid-template-rows:62% 1fr;gap:3px;aspect-ratio:16/9;border-radius:6px;overflow:hidden;background:#07111f;border:1px solid rgba(151,223,255,.18);font:700 9px Rajdhani,'Segoe UI',sans-serif;letter-spacing:.08em;color:#a7d8ff;text-transform:uppercase}.dn-stage-pic div{display:flex;align-items:center;justify-content:center;text-align:center;padding:3px;background:rgba(151,223,255,.08);border:1px solid rgba(151,223,255,.14);border-radius:3px}.dn-stage-pic .m{background:rgba(255,77,94,.12);border-color:rgba(255,120,130,.35);color:#ff9aa6}.dn-stage-pic .g{background:rgba(127,240,181,.1);border-color:rgba(127,240,181,.35);color:#7ff0b5}
@@ -50,17 +54,18 @@
 <div class="shell">
 <aside class="rail"><a class="brand" href="Voyager_Command_Center.html"><img class="logo-voyager" src="brand-assets/voyager.png" alt="Voyager membership program" width="68" height="68"><span>VOYAGER<small>MDA009 · MISSION CONTROL</small></span></a></aside>
 <main>
-<header class="top"><div><span class="eyebrow">CHAT CO-OP BOSS FIGHT</span><h1>Voyager Dreadnought</h1></div><div class="toolbar"><span class="st-note" id="phase-note"></span><button type="button" id="demo">Preview (simulated chat)</button><button type="button" id="cancel" hidden>End fight</button><button type="button" id="start" hidden>Start now</button><button type="button" class="primary" id="call">Call the Dreadnought</button></div></header>
+<header class="top"><div><span class="eyebrow">GAMES &amp; EVENTS · CHAT CO-OP BOSS FIGHT</span><h1>Dreadnought</h1></div><div class="toolbar"><span class="st-note" id="phase-note"></span><button type="button" id="demo">Preview (simulated chat)</button><button type="button" id="cancel" hidden>End fight</button><button type="button" id="start" hidden>Start now</button><button type="button" class="primary" id="call">Call the Dreadnought</button></div></header>
 <p class="st-notice" id="notice" hidden></p>
 <p class="st-notice" id="not-hosted" hidden>Open this page from the Voyager app (or START-VOYAGER-CONTROL.bat). The fight runs in the Voyager host.</p>
-<div class="dn-layout">
+<div class="dn-tabs" role="tablist" aria-label="Dreadnought"><button type="button" role="tab" data-tab="live" aria-selected="true">Live</button><button type="button" role="tab" data-tab="settings">The fight</button><button type="button" role="tab" data-tab="stage">Stage takeover</button></div>
+<div class="dn-layout" data-tab="live">
 <div class="dn-main">
-<section class="card dn-card">
+<section class="card dn-card" data-tab="live">
 <div class="card-heading"><div><span class="eyebrow">ON STREAM</span><h2>Live view</h2></div><span class="st-pill" id="live-pill" data-state="wait">Standing by</span></div>
 <div class="dn-preview"><iframe id="preview" title="Dreadnought overlay preview" src="/dreadnought.html?res=0.5&amp;quality=low"></iframe><div class="idle" id="idle"><b>STANDING BY</b><span>Call the Dreadnought, or run a preview with simulated chat. This is exactly what the OBS source shows.</span></div></div>
 <div class="dn-status"><div><small>Pilots</small><b id="s-pilots">0</b></div><div><small>Hull</small><b id="s-hull">—</b></div><div><small>Time</small><b id="s-time">—</b></div><div><small>Gifted subs</small><b id="s-gifts">0</b></div></div>
 </section>
-<section class="card dn-card">
+<section class="card dn-card" data-tab="live">
 <span class="eyebrow">HOW CHAT PLAYS</span>
 <div class="dn-cmds">
 <div><code>!join</code> then <code>!fire</code><p>Free for everyone. Lasers deal <span id="c-fire">12–22</span> damage, once every <span id="c-cd">4</span> seconds. 1 in 16 shots is a critical hit (×3).</p></div>
@@ -71,7 +76,7 @@
 </section>
 </div>
 <div class="dn-side">
-<section class="card dn-card">
+<section class="card dn-card" data-tab="settings">
 <div class="card-heading"><div><span class="eyebrow">SETTINGS</span><h2>The fight</h2></div></div>
 <form id="settings" class="dn-form" autocomplete="off">
 <label class="wide">Boss name<input name="name" maxlength="40"></label>
@@ -95,12 +100,17 @@
 <div class="st-actions wide"><button type="submit" class="primary">Save settings</button></div>
 </form>
 </section>
-<section class="card dn-card">
+<section class="card dn-card" data-tab="settings">
+<div class="card-heading"><div><span class="eyebrow">DIFFICULTY</span><h2>Presets</h2></div></div>
+<div class="dn-presets"><button type="button" data-preset="easier">Easier<small>Smaller hull, harder-hitting lasers, longer battle</small></button><button type="button" data-preset="balanced">Balanced<small>Voyager's defaults</small></button><button type="button" data-preset="brutal">Brutal<small>Big hull, weaker lasers, short clock</small></button><button type="button" data-preset="custom" disabled>Custom<small>Your own numbers (edit the form)</small></button></div>
+<p class="st-hint">A preset fills the fight fields; press <b>Save settings</b> to keep it. Boss name, rewards, chat call and announcements are left as they are.</p>
+</section>
+<section class="card dn-card" data-tab="settings">
 <span class="eyebrow">OBS</span>
 <p class="st-hint">Add a <b>Browser</b> source, 1920 × 1080, with this address (leave "Local file" unticked). It is invisible until a fight starts. Tick <b>Use custom frame rate: 60</b>. Add <code>?backdrop=0</code> for a transparent background, <code>?quality=balanced</code> for 2K textures, or set the source to 3840 × 2160 and add <code>?res=2</code> for 4K.</p>
 <div class="cs-url"><code id="obs-url"></code><button type="button" id="obs-copy">Copy</button></div>
 </section>
-<section class="card dn-card" id="stage-card">
+<section class="card dn-card" id="stage-card" data-tab="stage">
 <div class="card-heading"><div><span class="eyebrow">SCREEN TAKEOVER</span><h2>Dreadnought &amp; Versus stage</h2></div><span class="st-pill" id="stage-pill" data-state="wait">Off</span></div>
 <p class="st-hint">When the Dreadnought is called — or a Voyager Versus challenge — one browser source takes over the screen: the fight in the middle, your panels in the slots around it, a chat window, and your own scene shrunk into a corner (Streamer.bot moves it). It is invisible otherwise. Add a <b>Browser</b> source, 1920 × 1080, <b>above every other source</b> in your live scene, with this address:</p>
 <div class="cs-url"><code id="stage-url"></code><button type="button" id="stage-copy">Copy</button></div>
@@ -129,19 +139,19 @@
 <ul class="dn-check" id="stage-checks"></ul>
 <p class="st-hint">Streamer.bot: import <code>Voyager_Dreadnought_Stage.cs</code> (v1.3 or later for hiding sources) as an action named exactly <b>Voyager - Dreadnought Stage</b> (no triggers; Voyager runs it). Put your game capture and camera in one nested scene or group inside your live scene and name both above. Without the action the stage still shows; your scene just stays where it is behind the frame.</p>
 </section>
-<section class="card dn-card">
+<section class="card dn-card" data-tab="settings">
 <span class="eyebrow">STREAMER.BOT</span>
 <ul class="dn-check" id="checklist"></ul>
 <div class="st-actions"><button type="button" id="test">Send test message</button></div>
 <p class="st-hint"><a href="DREADNOUGHT_SETUP.html">Setup guide ↗</a></p>
 </section>
-<section class="card dn-card" id="pay-card">
+<section class="card dn-card" id="pay-card" data-tab="live">
 <div class="card-heading"><div><span class="eyebrow">VICTORY REWARDS</span><h2>Pay the pilots</h2></div><span class="st-pill" id="points-status" data-state="wait">Points Ledger…</span></div>
 <p class="st-hint">When the fleet destroys the Dreadnought, every pilot who fought (fired, cheered or gifted) is owed the victory points. Paying uses your Points Ledger's audited adjustment, one pilot at a time; each payment shows in Points history and Missions › Points owed.</p>
 <div class="st-actions"><button type="button" class="primary" id="pay-all" disabled>Pay victory points</button><span class="st-note" id="pay-summary">Nothing owed</span></div>
 <ul class="dn-history" id="owed"></ul>
 </section>
-<section class="card dn-card"><span class="eyebrow">RECENT FIGHTS</span><ul class="dn-history" id="history"></ul></section>
+<section class="card dn-card" data-tab="live"><span class="eyebrow">RECENT FIGHTS</span><ul class="dn-history" id="history"></ul></section>
 </div>
 </div>
 </main>
@@ -150,8 +160,8 @@
 <script src="giveaway-connection.js"></script>
 <script src="points-model.js?v=4.4"></script>
 <script src="points-connection.js?v=4.4"></script>
-<script src="dreadnought.js?v=2.20.92"></script>
-<script src="voyager-shell.js?v=2.21.0"></script>
+<script src="dreadnought.js?v=2.21.1"></script>
+<script src="voyager-shell.js?v=2.21.1"></script>
 <script src="voyager-navigation.js"></script>
 </body>
 </html>

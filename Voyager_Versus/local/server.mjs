@@ -18,7 +18,7 @@ import {readConnection,updateConnection,savedConnection} from './connection-conf
 import {Community} from './community.mjs';
 import {BossFight} from './boss.mjs';
 import {Medals,MEDAL_ICONS} from './medals.mjs';
-import {Actions} from './actions.mjs';
+import {Actions,INSTALL,csVersion} from './actions.mjs';
 import {Cards} from './cards.mjs';
 import {FleetCamera} from './fleet-camera.mjs';
 import {Moments} from './moments.mjs';
@@ -206,9 +206,11 @@ const allowedHosts=new Set([`127.0.0.1:${port}`,`localhost:${port}`]);
 function response(res,status,data){res.writeHead(status,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(JSON.stringify(data));}
 function validToken(req){const token=req.headers['x-voyager-token'];return typeof token==='string'&&token.length===adminToken.length&&timingSafeEqual(Buffer.from(token),Buffer.from(adminToken));}
 async function body(req,limit=8192){let size=0,parts=[];for await(const chunk of req){size+=chunk.length;if(size>limit)throw new Error('Request too large.');parts.push(chunk);}return JSON.parse(Buffer.concat(parts).toString());}
-const mime={'.wav':'audio/wav','.mp3':'audio/mpeg','.html':'text/html; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.js':'text/javascript; charset=utf-8','.sb':'application/octet-stream','.csv':'text/csv; charset=utf-8','.css':'text/css; charset=utf-8','.svg':'image/svg+xml','.png':'image/png','.webp':'image/webp','.ctm':'application/octet-stream','.woff2':'font/woff2','.ttf':'font/ttf','.txt':'text/plain; charset=utf-8','.md':'text/plain; charset=utf-8','.zip':'application/zip','.cs':'text/plain; charset=utf-8','.json':'application/json; charset=utf-8'};
+const mime={'.cs':'text/plain; charset=utf-8','.wav':'audio/wav','.mp3':'audio/mpeg','.html':'text/html; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.js':'text/javascript; charset=utf-8','.sb':'application/octet-stream','.csv':'text/csv; charset=utf-8','.css':'text/css; charset=utf-8','.svg':'image/svg+xml','.png':'image/png','.webp':'image/webp','.ctm':'application/octet-stream','.woff2':'font/woff2','.ttf':'font/ttf','.txt':'text/plain; charset=utf-8','.md':'text/plain; charset=utf-8','.zip':'application/zip','.cs':'text/plain; charset=utf-8','.json':'application/json; charset=utf-8'};
 // Streamer.bot actions page (2.20.41): run any action, the Voyager presets and Goal FX plays from Voyager Control.
-const actions=new Actions({bot,medalsSince:()=>medals.exportSince(),version:VERSION});
+// 2.21.1: the version each shipped C# file declares, for the install hub.
+const csVersions={};for(const i of INSTALL){try{csVersions[i.file]=csVersion(await readFile(resolve(controlRoot,i.file),'utf8'));}catch{}}
+const actions=new Actions({bot,medalsSince:()=>medals.exportSince(),version:VERSION,versions:csVersions});
 const server=http.createServer(async(req,res)=>{
   if(!allowedHosts.has(req.headers.host)){response(res,403,{message:'Invalid host.'});return;}
   const origin=req.headers.origin,goalPoll=req.method==='GET'&&(req.url.startsWith('/api/goalfx/overlay')||req.url.startsWith('/api/fleet/overlay')||req.url.startsWith('/api/cards/ranks/overlay')||req.url.startsWith('/api/moments/overlay'));if(origin&&!goalPoll&&!['http://127.0.0.1:'+port,'http://localhost:'+port].includes(origin)){response(res,403,{message:'Cross-origin requests are not allowed.'});return;}

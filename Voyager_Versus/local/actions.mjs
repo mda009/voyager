@@ -10,6 +10,29 @@ const platform=v=>PLATFORMS.includes(String(v||'').toLowerCase())?String(v).toLo
 
 // Presets: the runs that mean something when started by hand. `args` builds the Streamer.bot arguments from the
 // page input; `ctx` gives the host's own state (medal export cursor). Names must match the actions exactly.
+// 2.21.1: every Voyager C# action, its file in the Voyager folder and what it is for — the install hub on Settings & Streamer.bot.
+export const INSTALL=[
+  {action:'Voyager - Points Ledger',file:'Voyager_Points_Engine.cs',purpose:'Points ledger: tier groups, and paying points for missions, goals, the Dreadnought and Versus',guide:'POINTS_SETUP.html'},
+  {action:'Voyager - Medals',file:'Voyager_Medals.cs',purpose:'Medal unlocks, and every chat reply Voyager posts (Twitch · YouTube · Kick)',guide:'MEDALS_SETUP.html'},
+  {action:'Voyager - Membership Card',file:'Voyager_Membership_Card.cs',purpose:'Membership cards, promotions and !voyager',guide:'MEMBERSHIP_CARD_SETUP.html'},
+  {action:'Voyager - Fleet Alerts',file:'Voyager_Fleet_Alerts.cs',purpose:'Follows, subs, gifts, bits and raids into alerts and the camera spotlight',guide:'FLEET_ALERTS_SETUP.html'},
+  {action:'Voyager - Community Tracker',file:'Voyager_Community_Tracker.cs',purpose:'Per-day sub and gift counts for community goals',guide:'NATIVE_COMMUNITY_SETUP.html'},
+  {action:'Voyager - Stream Stats',file:'Voyager_Stream_Stats.cs',purpose:'Supporters, streaks and history for the dashboard and the website',guide:'COMMAND_CENTER_SETUP.html'},
+  {action:'Voyager - Dreadnought',file:'Voyager_Dreadnought.cs',purpose:'Dreadnought fight updates in chat',guide:'DREADNOUGHT_SETUP.html'},
+  {action:'Voyager - Dreadnought Stage',file:'Voyager_Dreadnought_Stage.cs',purpose:'Moves your scene into the corner and hides sources while the stage is up',guide:'DREADNOUGHT_SETUP.html'},
+  {action:'Voyager Versus Rewards v2.5',file:'Voyager_Versus_Rewards.cs',purpose:'Versus winner points',guide:'VERSUS_SETUP.html'},
+  {action:'Voyager - Giveaway Engine',file:'Voyager_Giveaway_Engine.cs',purpose:'!enter and !ticket entries, draws and the giveaway overlays',guide:'START_HERE.html'},
+  {action:'Voyager - Ticket Giveaway',file:'Voyager_Ticket_Giveaway.cs',purpose:'The ticketed grand draw',guide:'TICKET_GIVEAWAY_SETUP.html'},
+  {action:'Voyager - Broadcast Members',file:'Voyager_Broadcast_Members.cs',purpose:'Member groups to the entrant panels',guide:'START_HERE.html'},
+  {action:'Voyager - Command Manager',file:'Voyager_Command_Manager.cs',purpose:'Chat command cooldowns and duplicate handling',guide:'Voyager_Guide.html'},
+  {action:'Voyager - Leaderboard Panel',file:'Voyager_Leaderboard_Panel.cs',purpose:'Leaderboard OBS panel choices',guide:'LEADERBOARD_PANEL_SETUP.html'},
+  {action:'Voyager - Banner',file:'Voyager_Banner.cs',purpose:'Stream banner messages',guide:'BANNER_SETUP.html'},
+  {action:'Voyager - Security Monitor',file:'Voyager_Security_Monitor.cs',purpose:'Security signals for the review queue',guide:'SECURITY_SETUP.html'},
+  {action:'Voyager - Twitch Analytics',file:'Voyager_Twitch_Analytics.cs',purpose:'Chat message counts for Reporting',guide:'TWITCH_ANALYTICS_SETUP.html'},
+  {action:'Voyager - External Analytics',file:'Voyager_External_Analytics.cs',purpose:'Public platform data for Reporting',guide:'EXTERNAL_ANALYTICS_SETUP.html'}
+];
+// The version a C# file declares in its header comment ("Voyager Fleet Alerts v1.8", "v1.3.1").
+export function csVersion(text){const m=String(text).slice(0,600).match(/\bv(\d+(?:\.\d+)*)/);return m?m[1]:'';}
 export const PRESETS={
   'goals.read':{action:'Voyager - Read OBS Percentages',group:'Giveaway goals',label:'Read the goal percentages now',note:'Reads the Silver, Gold and Platinum text sources from OBS and sends a fresh reading to the goals strip and Goal FX.'},
   'goals.check':{action:'THRESHOLD POINT CHECK',group:'Giveaway goals',label:'Run the giveaway threshold check',note:'Your existing threshold action: giveaway chat announcements and the Silver/Gold upgrade media groups when a goal is met (those groups live inside this action, so this is how to play them).'},
@@ -25,7 +48,7 @@ export const PRESETS={
 export const GOAL_TIERS=['silver','gold','platinum'];
 
 export class Actions{
-  constructor({bot,medalsSince=()=>0,now=()=>Date.now(),version=''}={}){this.version=String(version);
+  constructor({bot,medalsSince=()=>0,now=()=>Date.now(),version='',versions={}}={}){this.version=String(version);this.versions=versions;
     this.bot=bot;this.ctx={medalsSince};this.now=now;this.history=[];this.list=[];this.listAt=0;this.goalCommands=[];this.goalSeq=0;this.epoch=now();
   }
   // Every action in Streamer.bot (cached 20 s): the page lists them all with a Run button.
@@ -41,6 +64,12 @@ export class Actions{
     const byName=new Map(this.list.map(a=>[a.name,a]));
     return Object.entries(PRESETS).map(([key,p])=>{const all=this.list.filter(a=>a.name===p.action),on=all.filter(a=>a.enabled);
       return {key,action:p.action,group:p.group,label:p.label,note:p.note,input:p.input||[],state:!this.bot?.status?.connected?'offline':on.length===1?'found':on.length>1?'duplicate':all.length?'disabled':'missing',id:on.length===1?on[0].id:byName.get(p.action)?.id||null};});
+  }
+  // Install hub rows: each Voyager action, whether Streamer.bot has it (enabled, once), and the shipped file's version.
+  install(){
+    const connected=!!this.bot?.status?.connected;
+    return INSTALL.map(i=>{const all=this.list.filter(a=>a.name===i.action),on=all.filter(a=>a.enabled);
+      return {...i,version:this.versions[i.file]||'',state:!connected?'offline':on.length===1?'found':on.length>1?'duplicate':all.length?'disabled':'missing'};});
   }
   record(entry){this.history.unshift({at:this.now(),...entry});this.history.length=Math.min(this.history.length,40);return entry;}
   // Run a preset by key, or any listed action by id (no arguments: the same as "Run" in Streamer.bot without a test flag).
@@ -77,5 +106,5 @@ export class Actions{
     return {ok:true,message:'Queued for the Goal FX overlay.',command:cmd};
   }
   goalOverlay(since=0){const s=Number(since)||0;this.goalPollAt=this.now();return {serverAt:this.now(),epoch:this.epoch,version:this.version,commands:this.goalCommands.filter(c=>c.id>s&&this.now()-c.at<60000)};}
-  view(){return {history:this.history.slice(0,40),presets:this.presets(),goalFx:{pollAt:this.goalPollAt||0,polling:!!this.goalPollAt&&this.now()-this.goalPollAt<6000}};}
+  view(){return {history:this.history.slice(0,40),presets:this.presets(),install:this.install(),goalFx:{pollAt:this.goalPollAt||0,polling:!!this.goalPollAt&&this.now()-this.goalPollAt<6000}};}
 }

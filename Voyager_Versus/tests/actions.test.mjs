@@ -74,3 +74,16 @@ test('Goal FX commands queue for the overlay, expire after 60 s and restart numb
   t=70000;assert.deepEqual(a.goalOverlay(0).commands,[]);
   assert.equal(a.view().history[0].label,'Re-arm the goal celebrations');assert.match(a.view().history[1].label,/Gold goal celebration/);
 });
+
+test('Install hub (2.21.1): every shipped C# action with found / missing / disabled / duplicate and the version its file declares',async()=>{
+  const {INSTALL,csVersion}=await import('../local/actions.mjs');
+  assert.equal(csVersion('// Voyager Fleet Alerts v1.8. Dedicated queue.'),'1.8');assert.equal(csVersion('// Voyager Dreadnought Stage v1.3.1 for Streamer.bot'),'1.3.1');assert.equal(csVersion('using System;'),'');
+  const bot=fakeBot(LIST.concat([{id:'a8',name:'Voyager - Banner',group:'Voyager',enabled:false,subaction_count:1}])),a=new Actions({bot,versions:{'Voyager_Fleet_Alerts.cs':'1.8','Voyager_Medals.cs':'1.2'}});
+  await a.actions();const rows=a.install(),by=n=>rows.find(r=>r.action===n);
+  assert.equal(rows.length,INSTALL.length);
+  assert.equal(by('Voyager - Medals').state,'found');assert.equal(by('Voyager - Medals').version,'1.2');assert.equal(by('Voyager - Medals').file,'Voyager_Medals.cs');
+  assert.equal(by('Voyager - Fleet Alerts').state,'duplicate');assert.equal(by('Voyager - Banner').state,'disabled');assert.equal(by('Voyager - Dreadnought Stage').state,'missing');assert.equal(by('Voyager - Dreadnought Stage').version,'');
+  assert.ok(a.view().install.length===INSTALL.length,'the page gets the rows with the rest of the view');
+  const off=new Actions({bot:fakeBot([],{connected:false})});assert.ok(off.install().every(r=>r.state==='offline'));
+  for(const i of INSTALL)assert.match(i.file,/^Voyager_[A-Za-z_]+\.cs$/);
+});

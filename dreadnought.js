@@ -1,4 +1,4 @@
-/* Voyager Control > Voyager Dreadnought (2.17). Calls the chat boss fight, edits its settings and shows the live overlay. */
+/* Voyager Control > Dreadnought (2.17; tabs and presets 2.21.1). Calls the chat boss fight, edits its settings and shows the live overlay. */
 (()=>{'use strict';
 const clock=ms=>{const t=Math.max(0,Math.round((ms||0)/1000));return Math.floor(t/60)+':'+String(t%60).padStart(2,'0');};
 const $=id=>document.getElementById(id),hosted=location.protocol==='http:'&&/^(127\.0\.0\.1|localhost)$/.test(location.hostname);
@@ -14,7 +14,7 @@ const FIELDS=['name','lobbySeconds','battleSeconds','baseHp','hpPerPilot','fireM
 const time=ms=>{const s=Math.max(0,Math.ceil(ms/1000));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');};
 function render(){
   if(!view)return;const s=view.settings,l=view.live,f=$('settings').elements,phase=l.phase;
-  if(!editing){for(const k of FIELDS)f[k].value=s[k];f.chatCall.checked=s.chatCall;f.announce.checked=s.announce;}
+  if(!editing){for(const k of FIELDS)f[k].value=s[k];f.chatCall.checked=s.chatCall;f.announce.checked=s.announce;if(typeof markPreset==='function')markPreset();}
   $('c-fire').textContent=s.fireMin+'–'+s.fireMax;$('c-cd').textContent=s.fireCooldown;$('c-bits').textContent=s.bitDamage;$('c-gift').textContent=s.giftDamage.toLocaleString();
   const active=phase==='lobby'||phase==='battle';
   $('call').hidden=active;$('demo').hidden=active;$('start').hidden=phase!=='lobby';$('cancel').hidden=!active&&phase!=='result';
@@ -128,4 +128,24 @@ $('stage-cue').onclick=async()=>{try{const r=await api('/api/stage/cue',{});st={
 $('stage-hide').onclick=async()=>{try{st={...st,...(await api('/api/stage/force',{seconds:0}))};notice('Stage hidden.');renderStage();setTimeout(loadStage,1500);}catch(e){notice(e.message,true);}};
 loadStage();setInterval(loadStage,5000);
 }}
+
+// 2.21.1: Live / The fight / Stage takeover tabs, and difficulty presets that fill the fight fields (Save keeps them).
+const layout=document.querySelector('.dn-layout'),tabs=document.querySelectorAll('.dn-tabs [data-tab]');
+function showTab(name){if(!['live','settings','stage'].includes(name))name='live';layout.dataset.tab=name;
+  for(const sec of document.querySelectorAll('section[data-tab]'))sec.hidden=sec.dataset.tab!==name;
+  for(const b of tabs)b.setAttribute('aria-selected',String(b.dataset.tab===name));
+  try{sessionStorage.setItem('dnTab',name);}catch{}}
+for(const b of tabs)b.onclick=()=>showTab(b.dataset.tab);
+{const q=new URLSearchParams(location.search).get('tab'),h=location.hash.replace('#','');let saved='';try{saved=sessionStorage.getItem('dnTab')||'';}catch{}
+ showTab(q||(h==='stage'||h==='stage-card'?'stage':h==='settings'||h==='fight'?'settings':saved||'live'));
+ if(h==='stage'||h==='stage-card')setTimeout(()=>document.getElementById('stage-card')?.scrollIntoView({block:'start'}),50);}
+addEventListener('hashchange',()=>{const h=location.hash.replace('#','');if(h==='stage'||h==='stage-card')showTab('stage');});
+const PRESETS={
+  balanced:{lobbySeconds:60,battleSeconds:240,baseHp:1000,hpPerPilot:150,fireMin:15,fireMax:30,fireCooldown:3,bitDamage:2.5,giftDamage:600,legendarySeconds:60,heroSeconds:120},
+  easier:{lobbySeconds:60,battleSeconds:300,baseHp:700,hpPerPilot:100,fireMin:20,fireMax:40,fireCooldown:2,bitDamage:3,giftDamage:800,legendarySeconds:90,heroSeconds:180},
+  brutal:{lobbySeconds:45,battleSeconds:210,baseHp:1600,hpPerPilot:220,fireMin:12,fireMax:24,fireCooldown:4,bitDamage:2,giftDamage:450,legendarySeconds:45,heroSeconds:90}};
+function markPreset(){const f=$('settings').elements;let hit='custom';for(const [k,p] of Object.entries(PRESETS))if(Object.entries(p).every(([n,v])=>Number(f[n].value)===v))hit=k;
+  for(const b of document.querySelectorAll('.dn-presets [data-preset]'))b.setAttribute('aria-pressed',String(b.dataset.preset===hit));}
+for(const b of document.querySelectorAll('.dn-presets [data-preset]'))if(PRESETS[b.dataset.preset])b.onclick=()=>{editing=true;const f=$('settings').elements;for(const [k,v] of Object.entries(PRESETS[b.dataset.preset]))f[k].value=v;markPreset();notice(b.firstChild.textContent.trim()+' preset filled in — press Save settings to keep it.');};
+$('settings').addEventListener('input',markPreset);
 })();
