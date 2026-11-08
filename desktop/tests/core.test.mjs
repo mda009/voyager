@@ -45,7 +45,7 @@ test('Only local Voyager pages stay in the app window',()=>{
   assert.equal(linkPolicy('file:///C:/Windows/system32/calc.exe'),'block');
   assert.equal(linkPolicy('javascript:alert(1)'),'block');
   assert.equal(pageUrl(8740,'check'),'http://127.0.0.1:8740/control/Voyager_System_Check.html');
-  assert.equal(pageUrl(8740,'nope'),'http://127.0.0.1:8740/control/Voyager_Command_Center.html');
+  assert.equal(pageUrl(8740,'nope'),'http://127.0.0.1:8740/control/Voyager_Stream_Deck.html');
 });
 
 test('Settings survive a corrupt file',async()=>{

@@ -1,7 +1,7 @@
 {
   "name": "voyager-desktop",
   "productName": "Voyager",
-  "version": "2.20.94",
+  "version": "2.21.0",
   "description": "Voyager Control desktop app for the MDA009 Voyager program",
   "private": true,
   "main": "main.cjs",

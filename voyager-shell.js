@@ -1,5 +1,6 @@
-/* Voyager shell (2.11): one grouped sidebar on every control page with a live status card,
-   "Jump anywhere" (Ctrl K), a help panel for each page, and giveaway tabs.
+/* Voyager shell (2.21.0): thirteen destinations in one sidebar on every control page, the destination's pages as tabs under
+   the title, a shared status bar (Streamer.bot · Voyager · OBS sources · website · points owed), "Jump anywhere" (Ctrl K),
+   a help panel for each page, and the duplicate OBS / Streamer.bot set-up cards folded to one line.
    Load it before voyager-navigation.js. It only changes navigation; page tools stay where they are. */
 (()=>{'use strict';
 const params=new URLSearchParams(location.search);
@@ -11,37 +12,40 @@ const hosted=location.protocol==='http:'&&/^(127\.0\.0\.1|localhost)$/.test(loca
 const console_=document.body.classList.contains('voyager-console');
 const BRAND_KEY='VoyagerBrandingV1';
 
-// Canonical page list (2.20.50 regroup). group: null = top, then Stream (what you use while live), Community (the programme), Setup. side:false = Ctrl K only.
+// 2.21.0: thirteen destinations (was 27 pages). Each destination is one sidebar entry; the pages inside it read as tabs under the
+// page title, so nothing moved on disk and every old link still works. group: Operate, Games & events, On screen, Community, Setup.
 const GIVEAWAY_FILES=['Giveaway_Control.html','Voyager_Ticket_Giveaway.html','Voyager_Entrant_Board.html'];
-const PAGES=[
- {file:'Voyager_Command_Center.html',label:'Home',ico:'◈',group:null,keys:'home mission control dashboard command center',help:'COMMAND_CENTER_SETUP.html'},
- {file:'Voyager_Stream_Deck.html',label:'Stream deck',ico:'▶',group:'Stream',live:true,keys:'stream deck live operate connect chat dreadnought versus panels goal fx tests new stream publish',help:'Voyager_Guide.html'},
- {file:'Voyager_Command_Center.html',page:'live',label:'Live dashboard',ico:'◉',group:'Stream',keys:'live dashboard audiences viewers obs strip',help:'DASHBOARD_PAGES_SETUP.html'},
- {file:'Giveaway_Control.html',label:'Giveaways',ico:'✦',group:'Stream',keys:'giveaway draw winner pool chat members',help:'START_HERE.html',also:GIVEAWAY_FILES},
- {file:'Voyager_Ticket_Giveaway.html',label:'Ticketed giveaway',ico:'◇',group:'Stream',side:false,keys:'ticket tickets watchtime weighted giveaway',help:'TICKET_GIVEAWAY_SETUP.html'},
- {file:'Voyager_Entrant_Board.html',label:'Entrant board',ico:'☷',group:'Stream',side:false,keys:'entrants board list giveaway'},
- {file:'Voyager_Dreadnought.html',label:'Voyager Dreadnought',ico:'☄',group:'Stream',live:true,keys:'dreadnought boss fight raid co-op chat game fire join',help:'DREADNOUGHT_SETUP.html'},
- {file:'Voyager_Versus.html',label:'Voyager Versus',ico:'⚔',group:'Stream',keys:'versus battle pilots fleet game',help:'VERSUS_SETUP.html'},
- {file:'Voyager_Fleet_Control.html',label:'Support alerts',ico:'✧',group:'Stream',keys:'support alerts fleet follow subscription raid bits',help:'FLEET_ALERTS_SETUP.html'},
- {file:'Voyager_Engage.html',label:'Chat engagement',ico:'✺',group:'Stream',live:true,keys:'chat engagement report muster quiz trivia squadron squadrons team relay comms arrival log captain recap',help:'Voyager_Guide.html'},
- {file:'Voyager_Banner_Control.html',label:'Stream banner',ico:'▰',group:'Stream',keys:'banner message ticker',help:'BANNER_SETUP.html'},
- {file:'Voyager_Screen_Layout.html',label:'Screen layout',ico:'▦',group:'Stream',live:true,keys:'screen layout positions overlays canvas drag arrange overlap obs sources where on screen',help:'MOMENTS_SETUP.html'},
- {file:'Voyager_Moments_Control.html',label:'On-screen moments',ico:'✺',group:'Stream',live:true,keys:'moments overlay ticker right now crew surge command hints promotion ceremony dreadnought hud next celebration chip medal toast on screen',help:'MOMENTS_SETUP.html'},
- {file:'Voyager_Streamerbot.html',label:'Streamer.bot actions',ico:'⚡',group:'Stream',live:true,keys:'streamer.bot streamerbot actions run trigger test goal fx celebration upgrade animation ledger scan medals export fleet alert',help:'Voyager_Guide.html'},
- {file:'Voyager_Points.html',label:'Points & members',ico:'★',group:'Community',keys:'points members membership tiers silver gold platinum ledger',help:'POINTS_SETUP.html'},
- {file:'Voyager_Membership_Cards.html',label:'Membership cards',ico:'▣',group:'Community',live:true,keys:'membership card voyager tier blue silver gold platinum upgrade badges',help:'MEMBERSHIP_CARD_SETUP.html'},
- {file:'Voyager_Ranks.html',label:'Ranks',ico:'⚓',group:'Community',live:true,keys:'ranks naval navy officer rank promotion admiral captain commander lieutenant midshipman lifetime points roster',help:'MEMBERSHIP_CARD_SETUP.html'},
- {file:'Voyager_Medals.html',label:'Medals',ico:'⬢',group:'Community',live:true,keys:'medals badges honour hall of honour loyalty watch time subs gifts achievements',help:'MEDALS_SETUP.html'},
- {file:'Voyager_Missions.html',label:'Missions',ico:'◆',group:'Community',live:true,keys:'missions weekly rewards badges streak',help:'Voyager_Guide.html'},
- {file:'Voyager_Seasons.html',label:'Community goals',ico:'⟳',group:'Community',live:true,keys:'community goals goal season seasons campaign christmas standings hall of fame champion due date',help:'Voyager_Guide.html'},
- {file:'Voyager_Public_Site.html',label:'Public website',ico:'◎',group:'Community',keys:'public website site viewers voyagercommand fourthwall',live:true,help:'Voyager_Guide.html'},
- {file:'Voyager_Security.html',label:'Security',ico:'⛨',group:'Community',keys:'security reports signals accounts',help:'SECURITY_SETUP.html'},
- {file:'Voyager_Command_Center.html',page:'reporting',label:'Reporting',ico:'▥',group:'Community',keys:'reporting reports twitch statistics analytics',help:'TWITCH_ANALYTICS_SETUP.html'},
- {file:'Voyager_Commands.html',label:'Chat commands',ico:'⌘',group:'Setup',keys:'chat commands command ticket enter versus duplicates cooldown',help:'Voyager_Guide.html'},
- {file:'Voyager_System_Check.html',label:'System check',ico:'✓',group:'Setup',keys:'system check health streamer.bot connection data folder',live:true,help:'Voyager_Guide.html'},
- {file:'Voyager_Settings.html',label:'Settings',ico:'⚙',group:'Setup',side:false,live:true,keys:'settings connection streamer.bot password address port logos branding',help:'Voyager_Guide.html'},
- {file:'Voyager_Guide.html',label:'Help',ico:'?',group:'Setup',keys:'help guide setup instructions updates'}
-].filter(p=>!(demo&&p.live));
+const DESTINATIONS=[
+ {id:'live',label:'Live',ico:'▶',group:'Operate',live:true,help:'Voyager_Guide.html',keys:'live stream deck operate connect chat dreadnought versus panels goal fx tests new stream publish cockpit',
+  tabs:[['Voyager_Stream_Deck.html','Live'],['Voyager_Command_Center.html?page=live','Dashboard']]},
+ {id:'dread',label:'Dreadnought',ico:'☄',group:'Games & events',help:'DREADNOUGHT_SETUP.html',keys:'dreadnought boss fight raid co-op chat game fire join stage mvp',
+  tabs:[['Voyager_Dreadnought.html','Dreadnought']]},
+ {id:'versus',label:'Versus',ico:'⚔',group:'Games & events',help:'VERSUS_SETUP.html',keys:'versus battle pilots fleet game arena hangar',
+  tabs:[['Voyager_Versus.html','Versus']]},
+ {id:'give',label:'Giveaways',ico:'✦',group:'Games & events',help:'START_HERE.html',keys:'giveaway draw winner pool chat members ticket tickets watchtime weighted entrants board',
+  tabs:[['Giveaway_Control.html','Chat & members'],['Voyager_Ticket_Giveaway.html','Ticketed'],['Voyager_Entrant_Board.html','Entrant board ↗',{blank:true}]]},
+ {id:'engage',label:'Chat engagement',ico:'✺',group:'Games & events',live:true,help:'Voyager_Guide.html',keys:'chat engagement report muster quiz trivia squadron squadrons team relay comms arrival log captain recap commands command cooldown duplicates',
+  tabs:[['Voyager_Engage.html','Chat engagement'],['Voyager_Commands.html','Chat commands']]},
+ {id:'screen',label:'Screen & overlays',ico:'▦',group:'On screen',live:true,help:'MOMENTS_SETUP.html',keys:'screen overlays obs sources browser source layout positions canvas drag arrange moments ticker hints surge banner support alerts fleet camera stage',
+  tabs:[['Voyager_Screen.html','Sources'],['Voyager_Screen_Layout.html','Layout'],['Voyager_Moments_Control.html','Moments'],['Voyager_Banner_Control.html','Stream banner'],['Voyager_Fleet_Control.html','Support alerts & camera'],['Voyager_Dreadnought.html#stage-card','Stage takeover ↗',{link:true}]]},
+ {id:'members',label:'Members & points',ico:'★',group:'Community',help:'POINTS_SETUP.html',keys:'points members membership tiers silver gold platinum ledger security reports signals accounts review',
+  tabs:[['Voyager_Points.html','Points & members'],['Voyager_Security.html','Security review']]},
+ {id:'prog',label:'Membership programme',ico:'▣',group:'Community',live:true,help:'MEMBERSHIP_CARD_SETUP.html',keys:'membership card voyager tier blue silver gold platinum upgrade badges ranks naval navy officer promotion admiral captain commander medals honour hall of honour loyalty achievements',
+  tabs:[['Voyager_Membership_Cards.html','Cards'],['Voyager_Ranks.html','Ranks'],['Voyager_Medals.html','Medals']]},
+ {id:'goals',label:'Missions & goals',ico:'◎',group:'Community',live:true,help:'Voyager_Guide.html',keys:'missions weekly rewards badges streak community goals goal season seasons campaign christmas standings hall of fame champion due date points owed pay',
+  tabs:[['Voyager_Seasons.html','Community goals'],['Voyager_Missions.html','Missions & points owed']]},
+ {id:'site',label:'Public website',ico:'⌂',group:'Community',live:true,help:'Voyager_Guide.html',keys:'public website site viewers voyagercommand fourthwall publish',
+  tabs:[['Voyager_Public_Site.html','Public website']]},
+ {id:'report',label:'Reporting',ico:'▥',group:'Community',help:'TWITCH_ANALYTICS_SETUP.html',keys:'reporting reports twitch statistics analytics home overview dashboard command center',
+  tabs:[['Voyager_Command_Center.html?page=reporting','Reporting'],['Voyager_Command_Center.html','Overview']]},
+ {id:'setup',label:'Settings & Streamer.bot',ico:'⚙',group:'Setup',live:true,help:'Voyager_Guide.html',keys:'settings connection streamer.bot streamerbot password address port logos branding actions run trigger test goal fx ledger scan medals export system check health data folder',
+  tabs:[['Voyager_Settings.html','Connection & branding'],['Voyager_Streamerbot.html','Streamer.bot actions'],['Voyager_System_Check.html','System check']]},
+ {id:'help',label:'Help',ico:'?',group:'Setup',keys:'help guide setup instructions updates',
+  tabs:[['Voyager_Guide.html','Help']]}
+].filter(d=>!(demo&&d.live));
+// Flat page list (one entry per tab) for matching the current page and for Ctrl K.
+const PAGES=[];
+for(const d of DESTINATIONS)for(const [href,label,opt={}] of d.tabs){if(opt.link)continue;const [file,query='']=href.split('?');const page=new URLSearchParams(query).get('page')||'';PAGES.push({file,page,href,label:d.tabs.length>1?d.label+' · '+label:d.label,tab:label,ico:d.ico,group:d.group,keys:d.keys,help:d.help,dest:d});}
 const GUIDES=[
  ['START_HERE.html','Getting started'],['TICKET_GIVEAWAY_SETUP.html','Ticket giveaway setup'],['POINTS_SETUP.html','Points setup & history'],
  ['POINTS_ADMIN_SETUP.html','Points member controls'],['WATCHTIME_SETUP.html','Watchtime points'],['VERSUS_SETUP.html','Voyager Versus setup'],
@@ -51,9 +55,10 @@ const GUIDES=[
  ['BRAND_REFRESH_SETUP.html','Stream branding & preview'],['DREADNOUGHT_SETUP.html','Voyager Dreadnought setup'],['MEDALS_SETUP.html','Voyager Medals setup'],['MEMBERSHIP_CARD_SETUP.html','Membership card setup'],['STINGERS_SETUP.html','Scene transitions (stingers)'],['MOMENTS_SETUP.html','On-screen moments'],['UPDATE_2.20_SETUP.html','Updating to 2.20']
 ];
 const canonical=new Set([...PAGES.map(p=>p.file),'START_HERE.html','COMMAND_CENTER_SETUP.html','Voyager_Settings.html']);
-const hrefOf=p=>{let h=p.file+(p.page?'?page='+p.page:'');if(demo&&!/SETUP|START_HERE|Guide|Settings/.test(p.file))h+=(h.includes('?')?'&':'?')+'demo=1';return h;};
-const matches=p=>(p.also||[p.file]).includes(here)&&(p.file!=='Voyager_Command_Center.html'||(p.page||'home')===subpage);
-const current=PAGES.find(p=>p.file===here&&(p.file!=='Voyager_Command_Center.html'||(p.page||'home')===subpage));
+const hrefOf=p=>{let h=p.href||p.file;if(demo&&!/SETUP|START_HERE|Guide|Settings/.test(p.file))h+=(h.includes('?')?'&':'?')+'demo=1';return h;};
+const matches=p=>p.file===here&&(p.file!=='Voyager_Command_Center.html'||(p.page||'home')===subpage);
+const current=PAGES.find(matches);
+const destination=current?.dest||DESTINATIONS.find(d=>d.tabs.some(([h])=>h.split('?')[0]===here));
 const el=(tag,attrs={},...kids)=>{const n=document.createElement(tag);for(const [k,v] of Object.entries(attrs)){if(k==='class')n.className=v;else if(k==='text')n.textContent=v;else n.setAttribute(k,v);}n.append(...kids);return n;};
 const fileOf=a=>{try{return new URL(a.getAttribute('href'),location.href).pathname.split('/').pop();}catch{return '';}};
 
@@ -67,46 +72,69 @@ function applyBranding(){
  document.querySelectorAll('.vg-home-partners').forEach(n=>n.hidden=!b.partnersHome);
 }
 
-// Sidebar
+// Sidebar: the thirteen destinations
 const side=document.querySelector('aside.rail, aside.sidebar');
-let statusCard=null;
+let statusCard=null,bar=null;
 if(side&&console_){
  for(const nav of side.querySelectorAll('nav:not(#presets)'))nav.remove();
  for(const a of side.querySelectorAll('a.help-link, a.brand-update-link, #presets > a[href]'))if(canonical.has(fileOf(a))||/SETUP\.html$|START_HERE/.test(fileOf(a))||a.classList.contains('brand-update-link'))a.remove();
  const nav=el('nav',{class:'vg-nav','aria-label':'Voyager pages'});
  let group;
- for(const p of PAGES){
-  if(p.side===false)continue;
-  if(p.group!==group){group=p.group;if(group)nav.append(el('div',{class:'vg-group','aria-hidden':'true',text:group}));}
-  const a=el('a',{href:hrefOf(p)},el('span',{class:'vg-ico','aria-hidden':'true',text:p.ico}),el('span',{text:p.label}));
-  if(p.page)a.dataset.dashboardPage=p.page;
-  if(p.file==='Giveaway_Control.html')a.id='giveaway-link';
-  if(matches(p)){a.classList.add('active');a.setAttribute('aria-current','page');}
+ for(const d of DESTINATIONS){
+  if(d.group!==group){group=d.group;if(group)nav.append(el('div',{class:'vg-group','aria-hidden':'true',text:group}));}
+  const first=PAGES.find(p=>p.dest===d);
+  const a=el('a',{href:hrefOf(first)},el('span',{class:'vg-ico','aria-hidden':'true',text:d.ico}),el('span',{text:d.label}));
+  if(d.id==='give')a.id='giveaway-link';
+  if(d===destination){a.classList.add('active');a.setAttribute('aria-current','page');}
   nav.append(a);
  }
  const jump=el('button',{type:'button',class:'vg-jump','aria-label':'Jump anywhere (Ctrl K)'},el('span',{text:'Jump to…'}),el('kbd',{text:'Ctrl K'}));
  jump.addEventListener('click',()=>openPalette());
  const brand=side.querySelector(':scope > .brand');
- if(brand){const small=brand.querySelector('small');if(small)small.textContent='MDA009 · MISSION CONTROL';brand.after(jump,nav);}else side.prepend(jump,nav);
+ if(brand){const small=brand.querySelector('small');if(small)small.textContent='MDA009 · MISSION CONTROL';brand.setAttribute('href','Voyager_Stream_Deck.html'+(demo?'?demo=1':''));brand.after(jump,nav);}else side.prepend(jump,nav);
  const rest=nav.nextElementSibling;if(rest&&!rest.matches('.rail-bottom'))rest.classList.add('vg-page-tools');
- // Footer: live status, Settings, and a small "Presented by" row.
- const row=(key,label)=>el('li',{'data-key':key,'data-state':'wait'},el('span',{class:'vg-dot','aria-hidden':'true'}),el('span',{class:'vg-name',text:label}),el('span',{class:'vg-state',text:'Checking'}));
- statusCard=el('div',{class:'vg-foot'},
-  el('ul',{class:'vg-status','aria-label':'Connection status','aria-live':'polite'},row('sb','Streamer.bot'),row('host','Voyager'),row('site','Public site')),
-  el('div',{class:'vg-foot-links'},
-   el('a',{href:'Voyager_Settings.html',class:here==='Voyager_Settings.html'?'active':'', ...(here==='Voyager_Settings.html'?{'aria-current':'page'}:{})},'⚙ Settings'),
-   el('a',{href:'Voyager_System_Check.html'},'System check')));
- if(demo){statusCard.querySelector('.vg-status').replaceChildren(el('li',{'data-state':'demo'},el('span',{class:'vg-dot','aria-hidden':'true'}),el('span',{class:'vg-name',text:'Demo mode'}),el('span',{class:'vg-state',text:'Sample data'})));statusCard.querySelector('.vg-foot-links').remove();}
+ // Footer: version and the partner row. Live status moved to the bar under every page title (2.21.0).
+ statusCard=el('div',{class:'vg-foot'},el('div',{class:'vg-foot-links'},el('span',{class:'vg-version',text:demo?'Demo mode · sample data':'Voyager'}),el('a',{href:'Voyager_Guide.html'},'Help')));
  side.append(statusCard,partnerRow('vg-presented','PRESENTED BY'));
  if(side.querySelector('.rail-bottom'))side.querySelector('.rail-bottom').remove();
 }
 
-// Giveaway tabs: the three giveaway screens read as one place.
-if(console_&&GIVEAWAY_FILES.slice(0,2).includes(here)){
- const head=document.querySelector('main .page-head, main .top');
- const tab=(file,label,extra={})=>{const a=el('a',{href:file+(demo&&!extra.target?'?demo=1':''),...extra},label);if(file===here){a.classList.add('active');a.setAttribute('aria-current','page');}return a;};
- const tabs=el('nav',{class:'vg-subtabs','aria-label':'Giveaway types'},tab('Giveaway_Control.html','Chat & members'),tab('Voyager_Ticket_Giveaway.html','Ticketed'),tab('Voyager_Entrant_Board.html','Entrant board ↗',{target:'_blank',rel:'noopener'}));
- if(head)head.after(tabs);
+// Under the page title: the destination's tabs (when it has more than one page) and the shared status bar.
+const head=console_?document.querySelector('main .page-head, main .top'):null;
+if(head&&destination){
+ if(destination.tabs.length>1){
+  const tabs=el('nav',{class:'vg-subtabs','aria-label':destination.label+' pages'});
+  for(const [href,label,opt={}] of destination.tabs){
+   const a=el('a',{href:href+(demo&&!opt.blank&&!href.includes('?')?'?demo=1':'')},label);
+   if(opt.blank){a.target='_blank';a.rel='noopener';}
+   const p=PAGES.find(x=>x.href===href);if(p&&matches(p)){a.classList.add('active');a.setAttribute('aria-current','page');}
+   tabs.append(a);
+  }
+  head.after(tabs);
+ }
+ if(!demo){
+  const pill=(key,label)=>el('a',{class:'vg-pill','data-key':key,'data-state':'wait',href:'#'},el('i',{'aria-hidden':'true'}),el('span',{class:'vg-name',text:label}),el('span',{class:'vg-state',text:'…'}));
+  bar=el('div',{class:'vg-bar',role:'status','aria-label':'Voyager status'},pill('sb','Streamer.bot'),pill('host','Voyager'),pill('obs','OBS sources'),pill('site','Website'),pill('owed','Points owed'));
+  bar.querySelector('[data-key=sb]').href='Voyager_Settings.html';bar.querySelector('[data-key=host]').href='Voyager_System_Check.html';bar.querySelector('[data-key=obs]').href='Voyager_Screen.html';bar.querySelector('[data-key=site]').href='Voyager_Public_Site.html';bar.querySelector('[data-key=owed]').href='Voyager_Missions.html';
+  head.classList.add('vg-has-bar');head.append(bar);
+ }
+}
+
+// Duplicate set-up cards (2.21.0): the "OBS" and "Streamer.bot" install cards every page used to carry fold away to one line,
+// pointing at Screen & overlays and Settings & Streamer.bot where the same set-up lives once. The card is still there, opened on click.
+if(console_&&destination&&!['screen','setup'].includes(destination.id)){
+ for(const eb of document.querySelectorAll('main section .eyebrow, main .versus-obs .eyebrow')){
+  const t=eb.textContent.trim().toUpperCase(),card=eb.closest('section');if(!card||card.querySelector('.vg-fold'))continue;
+  const obs=/^OBS(\s*[\/·]|$| SOURCE)/.test(t)&&!/PANEL/.test(t),sb=/^STREAMER\.BOT$/.test(t);
+  if(!obs&&!sb)continue;
+  const body=el('div',{class:'vg-fold-body'});
+  for(const n of [...card.childNodes])if(n!==eb&&!(n.nodeType===1&&n.contains(eb)))body.append(n);
+  const link=obs?el('a',{href:'Voyager_Screen.html'},'all sources on Screen & overlays ↗'):el('a',{href:'Voyager_Settings.html'},'set up once on Settings & Streamer.bot ↗');
+  const sum=el('summary',{},el('span',{text:obs?'OBS source for this page':'Streamer.bot set-up for this page'}),el('small',{},'— ',link));
+  const fold=el('details',{class:'vg-fold'},sum,body);
+  if(location.hash&&card.querySelector(location.hash))fold.open=true;
+  card.append(fold);card.classList.add('vg-folded');
+ }
 }
 
 // Help panel for this page
@@ -140,8 +168,8 @@ if(console_&&here==='Voyager_Command_Center.html'&&subpage==='home'){
 }
 applyBranding();
 
-// Live status (sidebar footer)
-function setStatus(key,state,text,title){const li=statusCard?.querySelector(`[data-key="${key}"]`);if(!li)return;li.dataset.state=state;li.querySelector('.vg-state').textContent=text;if(title)li.title=title;else li.removeAttribute('title');}
+// Live status (the bar under the page title, 2.21.0). Streamer.bot from a WebSocket probe; the rest from the host.
+function setStatus(key,state,text,title){const li=bar?.querySelector(`[data-key="${key}"]`);if(!li)return;li.dataset.state=state;li.querySelector('.vg-state').textContent=text;if(title)li.title=title;else li.removeAttribute('title');}
 let token='';
 async function local(path,withToken){
  if(withToken&&!token)token=(await(await fetch('/api/admin',{cache:'no-store'})).json()).token;
@@ -158,17 +186,21 @@ function probe(cfg){
  });
 }
 async function refresh(){
- if(!statusCard||demo)return;
- config().then(probe).then(([s,t])=>setStatus('sb',s,t,s==='error'?'Streamer.bot is not answering. Check it is open and its WebSocket server is on (Settings).':''));
- if(!hosted){setStatus('host','off','Not running','Start Voyager to see live status.');setStatus('site','off','—');return;}
- try{const h=await local('/api/health');setStatus('host','ok','v'+h.version);}catch{setStatus('host','error','Stopped');setStatus('site','off','—');return;}
+ if(!bar||demo)return;
+ config().then(probe).then(([s,t])=>setStatus('sb',s,t,s==='error'?'Streamer.bot is not answering. Check it is open and its WebSocket server is on (Settings & Streamer.bot).':''));
+ if(!hosted){setStatus('host','off','Not running','Start Voyager to see live status.');for(const k of ['obs','site','owed'])setStatus(k,'off','—');return;}
+ let h;try{h=await local('/api/health');setStatus('host','ok','v'+h.version);const v=statusCard?.querySelector('.vg-version');if(v)v.textContent='Voyager '+h.version;}catch{setStatus('host','error','Stopped');for(const k of ['obs','site','owed'])setStatus(k,'off','—');return;}
+ if(h.sources){const {loaded,stale=0}=h.sources;setStatus('obs',stale?'warn':loaded?'ok':'wait',loaded+' loaded'+(stale?' · '+stale+' stopped':''),stale?'An overlay page that was loaded has stopped asking Voyager for data: hidden, or OBS has an old copy. Screen & overlays says which.':'Overlay pages OBS is asking Voyager for right now. Screen & overlays lists every source.');}else setStatus('obs','off','—');
  try{const v=await local('/api/public-site',true),u=v.upload||{};
   if(!u.enabled)setStatus('site','off','Off','Set up in Public website.');
   else if(u.lastError)setStatus('site','error','Problem',u.lastError);
-  else setStatus('site','ok','Live',v.siteUrl||'');
+  else setStatus('site','ok','Publishing',v.siteUrl||'');
  }catch{setStatus('site','off','—');}
+ try{const c=await local('/api/community',true),owed=(c.payables||[]).filter(p=>p.payable&&p.status==='owed'),total=owed.reduce((a,p)=>a+(p.reward||0),0);
+  setStatus('owed',owed.length?'warn':'ok',owed.length?total.toLocaleString('en')+' pts · '+owed.length+' to pay':'All paid',owed.length?'Pay from Missions & goals › Missions & points owed.':'');
+ }catch{setStatus('owed','off','—');}
 }
-if(statusCard&&!demo){refresh();setInterval(()=>{if(!document.hidden)refresh();},60000);}
+if(bar&&!demo){refresh();setInterval(()=>{if(!document.hidden)refresh();},30000);}
 
 // Jump anywhere
 let box,input,list,items=[],selected=0,lastFocus=null;

@@ -1,5 +1,5 @@
-/* Voyager Control > Stream deck (2.20.50). One page for everything pressed during a stream: chat connection, start-of-stream
-   resets, the Dreadnought, the Versus arena, on-stream panels, celebrations and tests, plus live status and links. */
+/* Voyager Control > Live (2.21.0, was Stream deck). The cockpit: big moments (Dreadnought, Versus, quiz, surge), chat connection,
+   start-of-stream resets, on-screen panels and moments, celebrations and tests, what is in play and the feed of what you pressed. */
 (()=>{'use strict';
 const $=id=>document.getElementById(id),hosted=location.protocol==='http:'&&/^(127\.0\.0\.1|localhost)$/.test(location.hostname);
 const el=(t,c,x)=>{const n=document.createElement(t);if(c)n.className=c;if(x!==undefined)n.textContent=x;return n;};
@@ -36,6 +36,7 @@ function render(){
   $('vs-text').textContent=(g.open===false?'Entries are closed. ':'Entries are open. ')+(g.queue?.length?g.queue.length+' waiting. ':'')+'Per stream: one initiator and one challenger each.';
   const p=s.community?.panel;if(p){$('panel-pill').dataset.state=p.visible?'ok':'wait';$('panel-pill').textContent=p.visible?'On stream · '+(p.config?.kind||''):'Hidden';if(document.activeElement!==$('panel-kind')&&p.config?.kind)$('panel-kind').value=p.config.kind;}
   $('lo-pill').dataset.state=lo.visible===false?'wait':'ok';$('lo-pill').textContent=lo.visible===false?'Hidden':'Shown';
+  const su=s.mo?.surge,surgeOn=su?.until>Date.now();$('surge-start').classList.toggle('danger',!!surgeOn);$('surge-start').querySelector('small').textContent=surgeOn?'Surge on · '+Math.max(0,Math.round((su.until-Date.now())/60000))+' min left · press to end':'Bonus window on gifts and bits';
   $('fx-pill').dataset.state=fx.polling?'ok':'wait';$('fx-pill').textContent=fx.polling?'Overlay open':'Overlay not polling';
 }
 async function refresh(){
@@ -75,12 +76,9 @@ $('lo-hide').onclick=()=>act($('lo-hide'),'Live stats strip',()=>api('/api/live-
 for(const t of ['silver','gold','platinum'])$('fx-'+t).onclick=()=>act($('fx-'+t),'Goal FX · '+t,()=>api('/api/goalfx/control',{kind:'play',tier:t}),'Queued for the overlay.');
 $('fx-rearm').onclick=()=>act($('fx-rearm'),'Goal FX re-arm',()=>api('/api/goalfx/control',{kind:'rearm'}),'Re-armed.');
 $('card-preview').onclick=()=>act($('card-preview'),'Card preview',()=>api('/api/cards/preview',{tier:'gold',side:'front',tierUp:true}),'Showing on the card overlay.');
+$('quiz-ask').onclick=()=>act($('quiz-ask'),'Quiz question',()=>api('/api/engage/quiz/ask',{}),r=>r?.quiz?.active?'Asked: '+(r.quiz.active.question||r.quiz.active.q||'a question'):'Asked.');
+$('surge-start').onclick=()=>{const on=s.mo?.surge?.until>Date.now();if(on){act($('surge-start'),'Crew surge',()=>api('/api/moments/surge',{action:'clear'}),'Surge ended.');return;}act($('surge-start'),'Crew surge',()=>api('/api/moments/test',{kind:'surge'}),'Surge started.');};
 $('fleet-test').onclick=()=>act($('fleet-test'),'Test support alert',()=>api('/api/streamerbot/run',{key:'fleet.test',stage:'1',name:'Nova Pilot',platform:'twitch'}));
-// ---- links ----
-const LINKS=[['Giveaway_Control.html','Giveaways','Draw winners, pools, ticketed giveaways'],['Voyager_Command_Center.html?page=live','Live dashboard','Audiences, live chat, leaderboards'],['Voyager_Dreadnought.html','Dreadnought settings','Hull, damage, speed goals, overlay'],['Voyager_Versus.html','Voyager Versus','Full arena controls and hangar'],
- ['Voyager_Fleet_Control.html','Support alerts','Fleet alerts, Lumia, tests'],['Voyager_Engage.html','Chat engagement','!report, quiz, squadrons, arrivals'],['Voyager_Seasons.html','Community goals','Start or end a campaign, Christmas panel'],['Voyager_Membership_Cards.html','Membership cards','Card settings and previews'],
- ['Voyager_Streamerbot.html','Streamer.bot actions','Run any action, Goal FX, tests'],['Voyager_Banner_Control.html','Stream banner','Ticker messages'],['Voyager_Missions.html','Missions & points owed','Pay mission and goal rewards'],['Voyager_Public_Site.html','Public website','Publishing and feed status']];
-for(const [href,label,sub] of LINKS){const a=el('a');a.href=href;a.append(el('b','',label),el('small','',sub));$('links').append(a);}
 $('refresh').onclick=refresh;
 if(!hosted){$('not-hosted').hidden=false;}else{refresh();setInterval(()=>{if(!document.hidden)refresh();},5000);}
 })();

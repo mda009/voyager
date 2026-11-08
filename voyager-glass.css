@@ -172,3 +172,25 @@ body.voyager-console nav.vg-subtabs{display:flex;flex-direction:row}
 body.voyager-console .shell>main{margin-top:0;margin-bottom:0}
 body.voyager-console :is(.top,.page-head).vg-has-help{padding-right:72px}
 body.voyager-console .vg-has-help>.vg-help-btn{position:absolute;right:16px;top:50%;transform:translateY(-50%);margin:0}
+
+/* 2.21.0: status bar under every page title, folded set-up cards, sidebar version */
+body.voyager-console :is(.top,.page-head).vg-has-bar{flex-wrap:wrap;row-gap:10px}
+body.voyager-console .vg-bar{flex:1 1 100%;display:flex;flex-wrap:wrap;gap:6px;padding-top:10px;border-top:1px solid rgba(151,223,255,.10)}
+body.voyager-console .vg-pill{display:inline-flex;align-items:center;gap:7px;min-height:28px;padding:0 11px;border-radius:999px;border:1px solid rgba(151,223,255,.14);background:rgba(8,15,24,.45);color:#9ab0c5;text-decoration:none;font:700 11.5px/1 var(--brand-display);letter-spacing:1.1px;text-transform:uppercase}
+body.voyager-console .vg-pill:hover{border-color:rgba(151,223,255,.4);color:#fff}
+body.voyager-console .vg-pill i{width:7px;height:7px;border-radius:50%;background:#6b7d90;flex:none}
+body.voyager-console .vg-pill .vg-state{color:#cfe0f2;letter-spacing:.4px;text-transform:none;font:600 12px/1 'Segoe UI',Arial,sans-serif}
+body.voyager-console .vg-pill[data-state=ok]{border-color:rgba(94,232,164,.3)}body.voyager-console .vg-pill[data-state=ok] i{background:#5ee8a4;box-shadow:0 0 8px #5ee8a4}body.voyager-console .vg-pill[data-state=ok] .vg-state{color:#7ff0b5}
+body.voyager-console .vg-pill[data-state=warn]{border-color:rgba(255,210,122,.35)}body.voyager-console .vg-pill[data-state=warn] i{background:#ffd27a;box-shadow:0 0 8px #ffd27a99}body.voyager-console .vg-pill[data-state=warn] .vg-state{color:#ffe1a6}
+body.voyager-console .vg-pill[data-state=error]{border-color:rgba(255,122,135,.4)}body.voyager-console .vg-pill[data-state=error] i{background:#ff7a87;box-shadow:0 0 8px #ff7a8799}body.voyager-console .vg-pill[data-state=error] .vg-state{color:#ff9aa6}
+body.voyager-console .vg-pill[data-state=wait] i{background:#ffd27a}
+body.voyager-console .vg-fold{margin-top:6px}
+body.voyager-console .vg-fold>summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:12px;border:1px dashed rgba(151,223,255,.22);color:#9ab0c5;font:700 13px/1.2 var(--brand-display);letter-spacing:.4px}
+body.voyager-console .vg-fold>summary::-webkit-details-marker{display:none}
+body.voyager-console .vg-fold>summary::before{content:'▸';color:#7fb6d9}
+body.voyager-console .vg-fold[open]>summary::before{content:'▾'}
+body.voyager-console .vg-fold>summary small{font:500 12px/1.2 'Segoe UI',Arial,sans-serif;color:#8ea6bd}
+body.voyager-console .vg-fold>summary a{color:#97dfff;text-decoration:none}
+body.voyager-console .vg-fold>summary:hover{border-color:rgba(151,223,255,.45);color:#fff}
+body.voyager-console .vg-fold-body{padding-top:12px;display:flex;flex-direction:column;gap:10px}
+body.voyager-console .vg-version{font:600 12px/1.2 'Segoe UI',Arial,sans-serif;color:#8ea6bd;flex:1}

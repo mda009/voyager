@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Voyager • Screen & overlays</title>
+<link rel="icon" href="brand-assets/voyager.png">
+<link rel="stylesheet" href="stream-command.css">
+<link rel="stylesheet" href="voyager-brand.css">
+<link rel="stylesheet" href="settings.css?v=2.18">
+<link rel="stylesheet" href="community.css?v=2.20.48">
+<link rel="stylesheet" href="voyager-glass.css?v=2.21.0">
+<style>
+/* Screen & overlays › Sources (2.21.0): every OBS browser source Voyager draws, in one list, with a health light each. */
+.sc-grid{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:16px;align-items:start}
+.sc-card{padding:16px 18px;display:flex;flex-direction:column;gap:12px}
+.sc-sum{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.sc-st{display:flex;flex-direction:column;gap:4px;padding:12px 14px;border:1px solid rgba(151,223,255,.14);background:rgba(8,15,24,.45);border-radius:12px}
+.sc-st small{font:700 11px/1 Rajdhani,'Segoe UI',sans-serif;letter-spacing:1.6px;color:#8ea6bd;text-transform:uppercase}
+.sc-st b{font:700 22px/1.1 Rajdhani,'Segoe UI',sans-serif;color:#e6eef7}
+.sc-group{margin:8px 0 0;font:700 12px/1 Rajdhani,'Segoe UI',sans-serif;letter-spacing:.16em;color:#97dfff;text-transform:uppercase}
+.sc-list{display:flex;flex-direction:column;gap:6px}
+.sc-item{display:grid;grid-template-columns:14px minmax(0,1fr) auto;gap:4px 12px;align-items:center;padding:10px 12px;border:1px solid rgba(151,223,255,.12);background:rgba(8,15,24,.35);border-radius:12px}
+.sc-item i{width:10px;height:10px;border-radius:50%;background:#55667a;justify-self:center}
+.sc-item[data-state=ok] i{background:#5ee8a4;box-shadow:0 0 8px #5ee8a4}.sc-item[data-state=stale] i{background:#ffd27a;box-shadow:0 0 8px #ffd27a99}.sc-item[data-state=sb] i{background:#7fb6d9}
+.sc-item .n{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline;min-width:0}
+.sc-item .n b{font:700 15px/1.2 Rajdhani,'Segoe UI',sans-serif;color:#e6eef7;letter-spacing:.3px}
+.sc-item .n code{font:12px ui-monospace,Consolas,monospace;color:#9fd4ff;background:rgba(151,223,255,.08);padding:1px 6px;border-radius:5px;word-break:break-all}
+.sc-item .n span.sz{font:600 11px/1 Rajdhani,'Segoe UI',sans-serif;letter-spacing:1px;color:#8ea6bd;text-transform:uppercase}
+.sc-item .m{font:600 12px/1.2 'Segoe UI',sans-serif;color:#9ab0c5;white-space:nowrap;text-align:right}
+.sc-item[data-state=ok] .m{color:#7ff0b5}.sc-item[data-state=stale] .m{color:#ffe1a6}
+.sc-item .note{grid-column:2/-1;font:500 12px/1.4 'Segoe UI',sans-serif;color:#8ea6bd}
+.sc-item .b{grid-column:2/-1;display:flex;gap:6px;flex-wrap:wrap}
+.sc-item .b button,.sc-item .b a.button{min-height:30px;padding:0 10px;font:700 12px/1 Rajdhani,'Segoe UI',sans-serif;letter-spacing:.8px}
+.sc-item.open .note,.sc-item.open .b{display:flex}.sc-item:not(.open) .note,.sc-item:not(.open) .b{display:none}
+.sc-item .n{cursor:pointer}
+.sc-steps{margin:0;padding-left:18px;color:#c9d7e4;font-size:13px;display:flex;flex-direction:column;gap:6px}
+.sc-steps b{color:#e6eef7}
+.sc-copyall{display:flex;gap:8px;flex-wrap:wrap}
+@media(max-width:1100px){.sc-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body class="voyager-console voyager-settings voyager-community">
+<div class="shell">
+<aside class="rail"><a class="brand" href="Voyager_Stream_Deck.html"><img class="logo-voyager" src="brand-assets/voyager.png" alt="Voyager membership program" width="68" height="68"><span>VOYAGER<small>MDA009 · MISSION CONTROL</small></span></a></aside>
+<main>
+<header class="top"><div><span class="eyebrow">ON SCREEN</span><h1>Screen &amp; overlays</h1></div><div class="toolbar"><span class="st-note">Every OBS source Voyager draws · refreshes every 5 s</span><button type="button" id="refresh">Refresh</button></div></header>
+<p class="st-notice" id="notice" hidden></p>
+<p class="st-notice" id="not-hosted" hidden>Open this page from the Voyager app (or START-VOYAGER-CONTROL.bat).</p>
+
+<div class="sc-sum" id="summary"></div>
+
+<div class="sc-grid">
+<section class="card sc-card">
+<div class="card-heading"><div><span class="eyebrow">OBS BROWSER SOURCES</span><h2>One list, one address each</h2></div><span class="st-pill" id="count-pill" data-state="wait">Checking…</span></div>
+<p class="st-hint">Green = OBS (or the stage) asked Voyager for this page in the last 30 seconds. Amber = it was loaded earlier but has stopped asking (the source is hidden, or OBS has an old copy — <b>Refresh cache</b> in OBS). Grey = Voyager has never heard from it, so it is either not in OBS yet or not needed. Blue = driven by Streamer.bot directly, which Voyager cannot see. Click a row for its address and buttons.</p>
+<div class="sc-list" id="list"></div>
+</section>
+
+<div style="display:flex;flex-direction:column;gap:16px">
+<section class="card sc-card">
+<div class="card-heading"><div><span class="eyebrow">ADDING A SOURCE</span><h2>Same three steps for every one</h2></div></div>
+<ol class="sc-steps">
+<li>In OBS: <b>Sources › + › Browser</b>, name it after the row.</li>
+<li>Untick <b>Local file</b>; paste the address from <b>Copy address</b>; set the width and height shown on the row.</li>
+<li>Tick <b>Shutdown source when not visible</b> off, <b>Refresh browser when scene becomes active</b> off. Click OK — the row turns green within a few seconds.</li>
+</ol>
+<p class="st-hint">The stage source goes above everything in every scene you stream from. Panels (leaderboard, community, goals strip) are shown and hidden from <a href="Voyager_Stream_Deck.html">Live</a>; where they sit is on <a href="Voyager_Screen_Layout.html">Layout</a>.</p>
+</section>
+<section class="card sc-card">
+<div class="card-heading"><div><span class="eyebrow">WHEN A ROW IS AMBER</span><h2>Fixes</h2></div></div>
+<ul class="sc-steps" style="list-style:disc">
+<li>Right-click the source in OBS › <b>Refresh cache of current page</b> — Voyager updates change these pages.</li>
+<li>Check the source is in the scene you are on and not hidden (eye icon).</li>
+<li>If the address starts with <code>file://</code>, replace it with the address here — the host must serve the page for it to update live.</li>
+</ul>
+</section>
+</div>
+</div>
+</main>
+</div>
+<script src="screen-sources.js?v=2.21.0"></script>
+<script src="voyager-shell.js?v=2.21.0"></script>
+<script src="voyager-navigation.js"></script>
+</body>
+</html>

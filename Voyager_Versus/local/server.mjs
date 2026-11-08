@@ -24,6 +24,7 @@ import {FleetCamera} from './fleet-camera.mjs';
 import {Moments} from './moments.mjs';
 import {Engage} from './engage.mjs';
 import {Stage} from './stage.mjs';
+import {Sources} from './sources.mjs';
 let VERSION='unknown';try{VERSION=JSON.parse(await readFile(new URL('../package.json',import.meta.url),'utf8')).version;}catch{}
 const major=Number(process.versions.node.split('.')[0]);
 if(major<22||typeof WebSocket==='undefined'){console.error('Voyager Versus requires Node.js 22.4 or newer. Install it from https://nodejs.org/');process.exit(1);}
@@ -126,6 +127,8 @@ let fleetState=null;
 const sourceSeen={community:0,engage:0};
 // Camera spotlight cues from the host (2.20.61), so the camera follows alerts even when the OBS overlay copy is old.
 // Dreadnought stage (2.20.84): the screen takeover while the Dreadnought is called; the shrink/restore cue goes to the "Voyager - Dreadnought Stage" action.
+// OBS sources (2.21.0): which overlay pages are loaded in OBS, for Screen & overlays and the status bar.
+const sources=new Sources();
 const stage=await new Stage({dataDir,version:VERSION,run:args=>actions.doAction('Voyager - Dreadnought Stage',args),log:m=>console.log('[stage] '+m)}).load();
 // What the stage decides from: the Dreadnought overlay and the Versus arena (phase, caller, players, result).
 const stageState=()=>[boss.overlay(),{phase:game.phase,matchId:game.matchId,caller:game.caller,players:game.players,result:game.result}];
@@ -210,11 +213,13 @@ const server=http.createServer(async(req,res)=>{
   if(!allowedHosts.has(req.headers.host)){response(res,403,{message:'Invalid host.'});return;}
   const origin=req.headers.origin,goalPoll=req.method==='GET'&&(req.url.startsWith('/api/goalfx/overlay')||req.url.startsWith('/api/fleet/overlay')||req.url.startsWith('/api/cards/ranks/overlay')||req.url.startsWith('/api/moments/overlay'));if(origin&&!goalPoll&&!['http://127.0.0.1:'+port,'http://localhost:'+port].includes(origin)){response(res,403,{message:'Cross-origin requests are not allowed.'});return;}
   if(req.headers['sec-fetch-site']==='cross-site'&&!goalPoll){response(res,403,{message:'Cross-site requests are not allowed.'});return;}
-  res.setHeader('X-Content-Type-Options','nosniff');res.setHeader('Referrer-Policy','no-referrer');
+  res.setHeader('X-Content-Type-Options','nosniff');res.setHeader('Referrer-Policy','same-origin');
   const url=new URL(req.url,'http://127.0.0.1:'+port);
+  if(url.pathname.startsWith('/api/'))sources.touch(req,url.pathname);
   try{
     if(url.pathname==='/api/admin'&&req.method==='GET'){response(res,200,{token:adminToken});return;}
-    if(url.pathname==='/api/health'&&req.method==='GET'){response(res,200,{ok:true,version:VERSION,voyagerControl:hasControl});return;}
+    if(url.pathname==='/api/health'&&req.method==='GET'){response(res,200,{ok:true,version:VERSION,voyagerControl:hasControl,sources:sources.summary()});return;}
+    if(url.pathname==='/api/sources'&&req.method==='GET'){if(!validToken(req)){response(res,403,{message:'Open the local control panel.'});return;}response(res,200,{origin:'http://127.0.0.1:'+port,sources:sources.list(),...sources.summary()});return;}
     if(url.pathname==='/api/shutdown'&&req.method==='POST'){if(!validToken(req)||!req.headers['content-type']?.startsWith('application/json')){response(res,403,{message:'Open the local control panel.'});return;}response(res,200,{ok:true,message:'Saving and stopping Voyager.'});setImmediate(()=>void stop());return;}
     if(url.pathname==='/api/system'&&req.method==='GET'){if(!validToken(req)){response(res,403,{message:'Open the local control panel.'});return;}let writable=true;try{const probe=join(dataDir,'.write-test');await writeFile(probe,'ok');await unlink(probe);}catch{writable=false;}response(res,200,{version:VERSION,node:process.versions.node,platform:process.platform,dataDir,dataWritable:writable,importedFrom,legacyDataPresent:await hasJson(legacyDataDir)&&legacyDataDir!==dataDir,controlBundled:hasControl});return;}
     if(url.pathname==='/api/stage/overlay'&&req.method==='GET'){res.setHeader('Cache-Control','no-store');response(res,200,stage.overlay(...stageState()));return;}
@@ -387,7 +392,7 @@ const server=http.createServer(async(req,res)=>{
     if(url.pathname==='/api/events'&&req.method==='GET'){
       if(clients.size>=20){response(res,429,{message:'Too many connected views.'});return;}
       res.writeHead(200,{'Content-Type':'text/event-stream','Cache-Control':'no-cache, no-transform','Connection':'keep-alive'});
-      res.write('data: '+JSON.stringify(packet())+'\n\n');clients.add(res);req.on('close',()=>clients.delete(res));return;
+      res.write('data: '+JSON.stringify(packet())+'\n\n');clients.add(res);sources.stream(req,res);req.on('close',()=>clients.delete(res));return;
     }
     if(url.pathname==='/api/state'&&req.method==='GET'){response(res,200,packet());return;}
     if(url.pathname==='/api/control'&&req.method==='POST'){
@@ -421,7 +426,7 @@ const server=http.createServer(async(req,res)=>{
     if(inControl&&!hasControl){response(res,404,{message:'Voyager Control is not bundled with this installation.'});return;}
     const staticRoot=inControl?controlRoot:dist;
     if(inControl)pathname=pathname.slice('/control'.length);
-    const filename=resolve(staticRoot,'.'+(pathname==='/'?(inControl?'/Voyager_Command_Center.html':'/index.html'):pathname));
+    const filename=resolve(staticRoot,'.'+(pathname==='/'?(inControl?'/Voyager_Stream_Deck.html':'/index.html'):pathname));
     if(!filename.startsWith(staticRoot+sep)||inControl&&filename.startsWith(resolve(controlRoot,'Voyager_Versus')+sep)||!Object.hasOwn(mime,extname(filename))){response(res,404,{message:'File not found.'});return;}
     let bytes;
     if(inControl&&userFilesDir&&userFiles.has(pathname.slice(1))){try{bytes=await readFile(join(userFilesDir,pathname.slice(1)));}catch{}}
@@ -461,12 +466,12 @@ let ticks=0;const timer=setInterval(()=>{
 server.on('error',err=>{console.error(err.code==='EADDRINUSE'?`Port ${port} is already in use. Voyager may already be running. Open http://127.0.0.1:${port}/`:'Could not start Voyager host: '+err.message);clearInterval(timer);process.exit(1);});
 server.listen(port,'127.0.0.1',()=>{
   if(process.argv.includes('--open')||process.argv.includes('--open-control')){
-    const address='http://127.0.0.1:'+port+(hasControl&&process.argv.includes('--open-control')?'/control/Voyager_Command_Center.html':'/');
+    const address='http://127.0.0.1:'+port+(hasControl&&process.argv.includes('--open-control')?'/control/Voyager_Stream_Deck.html':'/');
     const command=process.platform==='win32'?'cmd.exe':process.platform==='darwin'?'open':'xdg-open';
     const args=process.platform==='win32'?['/c','start','',address]:[address];
     const browser=spawn(command,args,{detached:true,stdio:'ignore'});browser.on('error',()=>{});browser.unref();
   }
-  if(hasControl)console.log(`Voyager Control: http://127.0.0.1:${port}/control/Voyager_Command_Center.html`);
+  if(hasControl)console.log(`Voyager Control: http://127.0.0.1:${port}/control/Voyager_Stream_Deck.html`);
   console.log(`\nVOYAGER VERSUS ${VERSION} — MDA009\n\nData folder:   ${dataDir}\nControl panel: http://127.0.0.1:${port}/\nOBS overlay:   http://127.0.0.1:${port}/?overlay=1&hideIdle=1\nCooldown:      http://127.0.0.1:${port}/cooldown.html\n\nKeep this window open while streaming. Press Ctrl+C to stop.\n`);});
 async function stop(){clearInterval(timer);await publicSite?.goOffline().catch(()=>{});await publicSite?.saving;await medals.flush();await cards.saving;bot.disconnect();for(const client of clients)client.end();server.close();await saving;await liveOverlay.saving.catch(()=>{});process.exit(0);}
 process.on('SIGINT',stop);process.on('SIGTERM',stop);

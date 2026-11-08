@@ -2,6 +2,18 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.21.0 (8 November 2026)
+
+**Voyager Control streamlined: 13 destinations instead of 27 pages.** The sidebar now reads the way a stream runs — *Operate* (Live), *Games & events* (Dreadnought, Versus, Giveaways, Chat engagement), *On screen* (Screen & overlays), *Community* (Members & points, Membership programme, Missions & goals, Public website, Reporting) and *Setup* (Settings & Streamer.bot, Help). Pages that belong together are tabs under one title: Cards · Ranks · Medals are the Membership programme; Community goals · Missions & points owed are Missions & goals; Points & members · Security review; Connection & branding · Streamer.bot actions · System check; Chat engagement · Chat commands; the three giveaway pages. Nothing moved on disk — every old link and bookmark still works.
+
+**Live (was Stream deck) is the cockpit and the start page.** Three columns: what you fire (Call the Dreadnought, Versus entries, Ask a quiz question, Start a crew surge, with the smaller controls under them), what is on screen (panels, on-screen moments, celebrations and tests), and what is in play plus the feed of what you pressed. The "everything else" link grid is gone — the sidebar is that. The desktop app and the host open on Live.
+
+**One status bar under every page title.** Streamer.bot · Voyager · OBS sources loaded · website publishing · points owed — the same five on every page, each a link to where it is fixed, instead of different pills on different pages. Points owed shows the total still to pay and jumps to the pay button.
+
+**Screen & overlays › Sources: every OBS browser source in one list.** Address, size, and a health light each — green while OBS (or the stage) is asking Voyager for that page, amber when a loaded page has stopped asking (hidden, or an old cached copy), grey when never seen, blue for the Streamer.bot-driven overlays Voyager cannot see. Copy the address, open the page, send a test to the ones that have one, jump to the settings. The host now serves its pages with `Referrer-Policy: same-origin` so it can tell which page is asking (nothing leaves the machine; before, it sent no referrer at all). New `GET /api/sources` (token) and a `sources` summary on `/api/health`.
+
+**Duplicate set-up cards folded.** The "OBS" and "Streamer.bot" install cards that ten pages carried are now one folded line each ("OBS source for this page — all sources on Screen & overlays"), still there when you click it, so the pages are about their own job. Settings & Streamer.bot and Screen & overlays keep theirs open.
+
 ## 2.20.94 (8 November 2026)
 
 **Bridge Quiz: Star Citizen trivia & general knowledge, 5 points a question.** The question set is now 63 questions — 30 on Star Citizen (studio, Squadron 42, Stanton and Pyro, the landing zones and moons, the UEE and the Vanduul, ship manufacturers and roles, quantum travel, CitizenCon, IAE, Big Benny's…) and 33 general knowledge (space, science, geography, a little Australia) — each with forgiving answer aliases. A correct answer pays **5 Voyager points** (was 25). Existing installs are migrated on start: the ten original starters are replaced, any questions you added yourself are kept, and the reward moves to 5 unless you had changed it by hand. Chat engagement › Questions has a new **Load the Star Citizen & general knowledge set** button to reload the shipped set at any time.
