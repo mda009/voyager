@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.92 (8 November 2026)
+
+**Versus win back to 50 points.** The champion bonus added in 2.20.91 is off by default again (set to 0; 2.20.91 installs are migrated and any bonus rows it created are dropped), so a Versus victory is the 50-point winner reward, and the champion celebration shows +50. The bonus field stays on the stage card for anyone who wants to add one.
+
 ## 2.20.91 (8 November 2026)
 
 **Voyager Versus takes the stage.** The screen takeover built for the Dreadnought now runs for Voyager Versus too: a `!versus` call slams the splash ("<caller> CALLS") and holds 6 s, your scene glides into the corner while the arena fills the middle with your panels, chat and the hide list applied, the countdown, battle and result play, and then the **champion** is celebrated for 10 s in gold — name, "defeated <opponent> · time", and the points: the 50-point winner reward plus a new **champion bonus** (25 by default), which is paid from Missions › Points owed as a Versus stage row. A cancelled call or a draw just brings the stage down. The Dreadnought wins if both happen at once. Settings (on/off, splash hold, celebration length, bonus) and a "Show the Versus stage for 60 s" test live on the Dreadnought page's stage card, which is now "Dreadnought & Versus stage". The standalone Versus arena overlay hides itself while the stage shows the arena.

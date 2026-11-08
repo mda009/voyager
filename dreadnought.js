@@ -105,7 +105,7 @@ function renderStage(){if(!st)return;const s=st.settings;
   if(!stEditing){f.enabled.checked=s.enabled;options(f.left,st.slotKinds,s.slots.left);options(f.right,st.slotKinds,s.slots.right);options(f.bottomLeft,st.slotKinds,s.slots.bottomLeft);f.pip.value=s.pip;
     for(const cb of form.querySelectorAll('input[name=stack]'))cb.checked=s.stack.includes(cb.value);for(const k of ['twitch','youtube','kick','commands','names'])f['chat.'+k].checked=!!s.chat[k];
     f.scene.value=s.scene;f.source.value=s.source;f.hide.value=(s.hide||[]).join(', ');f.resultSeconds.value=s.resultSeconds;f.splashSeconds.value=s.splashSeconds;f.mvpSeconds.value=s.mvpSeconds;f.animationMs.value=s.animationMs;
-    const v=s.versus||{};f['versus.enabled'].checked=v.enabled!==false;f['versus.splashSeconds'].value=v.splashSeconds??6;f['versus.winnerSeconds'].value=v.winnerSeconds??10;f['versus.winnerBonus'].value=v.winnerBonus??25;}
+    const v=s.versus||{};f['versus.enabled'].checked=v.enabled!==false;f['versus.splashSeconds'].value=v.splashSeconds??6;f['versus.winnerSeconds'].value=v.winnerSeconds??10;f['versus.winnerBonus'].value=v.winnerBonus??0;}
   pic();
   const pill=$('stage-pill');pill.dataset.state=st.forced?'ok':s.enabled?'wait':'';pill.textContent=st.forced?'Showing ('+(st.forcedMode==='versus'?'Versus':'Dreadnought')+' test)':s.enabled||s.versus?.enabled?'Armed':'Off';$('stage-hide').hidden=!st.forced;$('stage-show').hidden=!!st.forced;$('stage-show-versus').hidden=!!st.forced;
   const act=st.action?.state,cue=st.cue;

@@ -11,7 +11,7 @@ import {randomUUID} from 'node:crypto';
 export const SLOT_KINDS={none:'Nothing',leaderboard:'Leaderboard panel',standings:'Community goal standings',goals:'Community goals',helpers:'Community goal contributors',hall:'Hall of Fame',missions:"This week's missions",christmas:'Christmas goal panel',chat:'Chat (Twitch · YouTube · Kick)',squadron:'Squadron war panel',dread:'Dreadnought damage HUD',camera:'Camera window (transparent)'};
 export const STACK_KINDS={bucket:'Giveaway goals strip',ticker:'Right now ticker',moments:'Command hints & medal toasts',dread:'Dreadnought damage HUD'};
 export const SLOTS=['left','right','bottomLeft'];
-export const STAGE_DEFAULTS={enabled:true,slots:{left:'leaderboard',right:'helpers',bottomLeft:'chat'},stack:['bucket','ticker','moments'],pip:'br',scene:'',source:'',hide:[],resultSeconds:20,splashSeconds:6,mvpSeconds:10,animationMs:1200,chat:{twitch:true,youtube:true,kick:true,commands:false,names:true},versus:{enabled:true,splashSeconds:6,winnerSeconds:10,winnerBonus:25}};
+export const STAGE_DEFAULTS={enabled:true,slots:{left:'leaderboard',right:'helpers',bottomLeft:'chat'},stack:['bucket','ticker','moments'],pip:'br',scene:'',source:'',hide:[],resultSeconds:20,splashSeconds:6,mvpSeconds:10,animationMs:1200,chat:{twitch:true,youtube:true,kick:true,commands:false,names:true},versus:{enabled:true,splashSeconds:6,winnerSeconds:10,winnerBonus:0}}; // 2.20.92: a Versus win stays 50 points; the champion bonus is off unless set
 const CHAT_MAX=80,CHAT_SHOW=40;
 const clean=(v,n)=>String(v??'').replace(/[\u0000-\u001f\u007f]/g,'').trim().slice(0,n);
 export function normalizeSettings(raw={},prev=STAGE_DEFAULTS){
@@ -40,8 +40,10 @@ export class Stage{
     this.settings=normalizeSettings({});this.revision=0;this.messages=[];this.saving=Promise.resolve();
     this.cue={on:false,sending:false,last:null,battleId:0,dueAt:0};this.forcedUntil=0;this.forcedMode='dread';this.lastResult=null;this.lastVersus=null;this.versusRewards=[];
   }
-  async load(){try{const raw=JSON.parse(await readFile(this.file,'utf8'));this.settings=normalizeSettings(raw.settings||{});this.revision=Number(raw.revision)||0;this.versusRewards=Array.isArray(raw.versusRewards)?raw.versusRewards.slice(-20):[];}catch{}return this;}
-  persist(){const data=JSON.stringify({schema:1,settings:this.settings,revision:this.revision,versusRewards:this.versusRewards});this.saving=this.saving.then(async()=>{await mkdir(this.dataDir,{recursive:true});const tmp=this.file+'.tmp';await writeFile(tmp,data);await rename(tmp,this.file);}).catch(e=>this.log('stage save failed: '+e.message));return this.saving;}
+  async load(){try{const raw=JSON.parse(await readFile(this.file,'utf8'));this.settings=normalizeSettings(raw.settings||{});this.revision=Number(raw.revision)||0;this.versusRewards=Array.isArray(raw.versusRewards)?raw.versusRewards.slice(-20):[];
+    // 2.20.92: 2.20.91 shipped a 25-point champion bonus by default; a Versus win is back to 50 points, so clear that default and any rows it created.
+    if((Number(raw.schema)||1)<2){if(this.settings.versus.winnerBonus===25)this.settings.versus.winnerBonus=0;this.versusRewards=[];void this.persist();}}catch{}return this;}
+  persist(){const data=JSON.stringify({schema:2,settings:this.settings,revision:this.revision,versusRewards:this.versusRewards});this.saving=this.saving.then(async()=>{await mkdir(this.dataDir,{recursive:true});const tmp=this.file+'.tmp';await writeFile(tmp,data);await rename(tmp,this.file);}).catch(e=>this.log('stage save failed: '+e.message));return this.saving;}
   configure(raw){this.settings=normalizeSettings(raw,this.settings);this.revision++;void this.persist();return this.view();}
   // Chat feed for the chat slot: every platform the host already hears from Streamer.bot.
   chat({platform='twitch',userId='',login='',name='',text='',color='',role=0,sub=false,messageId=null}={}){
@@ -87,7 +89,7 @@ export class Stage{
       return {...common,phase,demo:!!(versus?.players?.some?.(p=>p.demo)||(w&&r?.demo)),splashMs:s.versus.splashSeconds*1000,splashOn:phase==='calling'||(this.forcedUntil>now&&phase==='idle'),
         main:{url:'/index.html?overlay=1&stage=1&hideIdle=0',label:'VOYAGER VERSUS · LIVE',accent:'#7de0ff'},
         splash:{eyebrow:'⚔ VERSUS CHALLENGE',title:caller?caller.toUpperCase()+' CALLS':players.length===2?players[0].toUpperCase()+' VS '+players[1].toUpperCase():'VERSUS CALLED',chips:['!VERSUS']},
-        celebrate:w==='winner'&&r?.winner?{eyebrow:'★ VERSUS CHAMPION ★',name:r.winner.name,line:(r.loser?'DEFEATED '+r.loser.toUpperCase():'VICTORY')+(r.duration?' · '+Math.floor(r.duration/60)+':'+String(r.duration%60).padStart(2,'0'):''),points:amount,pointsLabel:'VOYAGER POINTS',sub:(r.reason||'Hull destroyed')+(r.demo?' · training battle, no points':s.versus.winnerBonus&&r.rewardAmount?' · '+r.rewardAmount+' winner reward + '+s.versus.winnerBonus+' champion bonus':''),until:r.endedAt+8000+s.versus.winnerSeconds*1000}:null};}
+        celebrate:w==='winner'&&r?.winner?{eyebrow:'★ VERSUS CHAMPION ★',name:r.winner.name,line:(r.loser?'DEFEATED '+r.loser.toUpperCase():'VICTORY')+(r.duration?' · '+Math.floor(r.duration/60)+':'+String(r.duration%60).padStart(2,'0'):''),points:amount,pointsLabel:'VOYAGER POINTS',sub:(r.reason||'Hull destroyed')+(r.demo?' · training battle, no points':s.versus.winnerBonus&&r.rewardAmount?' · '+r.rewardAmount+' winner reward + '+s.versus.winnerBonus+' champion bonus':r.rewardAmount?' · Versus winner reward':''),until:r.endedAt+8000+s.versus.winnerSeconds*1000}:null};}
     const w=this.window(),r=this.lastResult,live=boss&&(boss.phase==='lobby'||boss.phase==='battle'),phase=mode?(live?boss.phase:w==='mvp'?'mvp':w==='result'?'result':boss?.phase||'idle'):(boss?.phase||'idle');
     return {...common,phase,demo:!!(boss?.demo||(w&&r?.demo)),splashMs:s.splashSeconds*1000,splashOn:phase==='lobby'||(this.forcedUntil>now&&phase==='idle'),mvpMs:s.mvpSeconds*1000,
       main:{url:'/dreadnought.html?stage=1',label:'VOYAGER DREADNOUGHT · LIVE',accent:'#ff7b8c'},

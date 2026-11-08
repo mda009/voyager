@@ -64,7 +64,7 @@ test('Move cue goes to Streamer.bot once when the stage comes up and once when i
 });
 
 test('Voyager Versus takeover (2.20.91): call, battle and result put the stage up, the champion is celebrated and earns the bonus payable; the Dreadnought wins when both are on',async()=>{
-  let now=50000;const st=await new Stage({dataDir:await dir(),now:()=>now}).load();
+  let now=50000;const st=await new Stage({dataDir:await dir(),now:()=>now}).load();st.configure({versus:{winnerBonus:25}}); // bonus is off by default (2.20.92): a win is the 50-point reward
   const idle={phase:'idle'};
   assert.equal(st.mode(idle,{phase:'lobby'}),'','nothing on');
   assert.equal(st.mode(idle,{phase:'calling',caller:{name:'StarNova'}}),'versus');
@@ -85,4 +85,6 @@ test('Voyager Versus takeover (2.20.91): call, battle and result put the stage u
   st.configure({versus:{enabled:false}});assert.equal(st.mode(idle,{phase:'battle'}),'');
   st.force(60,'versus');assert.equal(st.mode(idle,{phase:'lobby'}),'versus');assert.equal(st.overlay(idle,{phase:'lobby'}).splashOn,true);
   assert.throws(()=>normalizeSettings({versus:{winnerBonus:-1}}),/Versus winner bonus/);
+  assert.equal(STAGE_DEFAULTS.versus.winnerBonus,0,'no champion bonus unless the streamer sets one');
+  const plain=await new Stage({dataDir:await dir(),now:()=>now}).load();plain.observeVersus(result);now+=9000;const po=plain.overlay(idle,{phase:'lobby'});assert.equal(po.celebrate.points,50,'a Versus win shows the 50-point reward');assert.equal(plain.bonusPayables().length,0);
 });
