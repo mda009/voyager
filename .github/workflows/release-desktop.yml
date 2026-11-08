@@ -55,18 +55,34 @@ jobs:
       - name: Build folder release zip
         run: npm run release
 
+      # GitHub's release downloads (Electron, NSIS, winCodeSign) sometimes 504 for a while; retry, and after two
+      # failures fetch them from the npmmirror copies instead.
       - name: Install desktop build tools
         working-directory: desktop
-        run: npm install --no-audit --no-fund
+        shell: bash
+        run: |
+          for i in 1 2 3 4 5; do
+            npm install --no-audit --no-fund && exit 0
+            echo "attempt $i failed (download hiccup?) — retrying in 60 s"
+            if [ "$i" -ge 2 ]; then export ELECTRON_MIRROR=https://npmmirror.com/mirrors/electron/; fi
+            rm -rf node_modules/electron; sleep 60
+          done
+          exit 1
 
       - name: Build Windows installer
         working-directory: desktop
         shell: bash
-        run: >
-          npx electron-builder --win nsis --x64 --publish never
-          -c.publish.provider=github
-          -c.publish.owner=${{ github.repository_owner }}
-          -c.publish.repo=${{ github.event.repository.name }}
+        run: |
+          for i in 1 2 3 4 5; do
+            npx electron-builder --win nsis --x64 --publish never \
+              -c.publish.provider=github \
+              -c.publish.owner=${{ github.repository_owner }} \
+              -c.publish.repo=${{ github.event.repository.name }} && exit 0
+            echo "attempt $i failed (download hiccup?) — retrying in 60 s"
+            if [ "$i" -ge 2 ]; then export ELECTRON_MIRROR=https://npmmirror.com/mirrors/electron/ ELECTRON_BUILDER_BINARIES_MIRROR=https://npmmirror.com/mirrors/electron-builder-binaries/; fi
+            sleep 60
+          done
+          exit 1
 
       - name: Self-test the built app
         working-directory: desktop
