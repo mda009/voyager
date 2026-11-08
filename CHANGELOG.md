@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.90 (8 November 2026)
+
+**Dreadnought stage: splash hold and MVP celebration.** The "Dreadnought called" slam now holds over the full-screen game for 6 seconds (adjustable) before the takeover begins, and the Streamer.bot move cue waits the same time, so the scene shrinks as the panels arrive. After the battle report, the **MVP** (most damage, whatever the outcome) gets the screen for 10 seconds (adjustable): name in gold metal, damage dealt, expanding rings and confetti, and the **MVP bonus** — a new Dreadnought setting, 25 points by default — which is added to the Dreadnought rewards on Missions › Points owed. Then the stage comes down and your scene returns.
+
 ## 2.20.89 (8 November 2026)
 
 **Dreadnought stage: columns no longer clipped.** The side columns and the bottom corner kept their slide-in offset (40 px / 30 px) after the stage was up, because the rule that cancels it lost on CSS specificity, so the left column, the chat column and the corner panel ran into the canvas edges on every canvas size. They now settle exactly 20 px in from the edges, verified at 1920 × 1080 and 3840 × 2160.

@@ -38,11 +38,32 @@
 #alert b{font:700 86px/1 Rajdhani;letter-spacing:.14em;color:#fff;text-shadow:0 0 30px rgba(255,77,94,.9),0 4px 10px #000}
 #alert span{font:700 24px Rajdhani;letter-spacing:.4em;color:#ff9aa6;text-shadow:0 2px 8px #000}
 #alert em{display:flex;gap:14px;font:700 18px Rajdhani;letter-spacing:.22em;font-style:normal;color:#07101c}#alert em i{font-style:normal;background:#ffd56a;padding:8px 14px;border-radius:4px}
-.alert #alert{animation:alert 1.6s cubic-bezier(.2,.9,.3,1) forwards}
-@keyframes alert{0%{opacity:0;transform:translate(-50%,-50%) scale(.6)}12%{opacity:1;transform:translate(-50%,-50%) scale(1.04)}22%{transform:translate(-50%,-50%) scale(1)}70%{opacity:1}100%{opacity:0;transform:translate(-50%,-62%) scale(.96)}}
+/* 2.20.90: the splash holds for --splash (6 s by default) before the stage builds; the move cue waits the same time */
+.alert #alert{animation:alert var(--splash,6s) cubic-bezier(.2,.9,.3,1) forwards}
+@keyframes alert{0%{opacity:0;transform:translate(-50%,-50%) scale(.6)}5%{opacity:1;transform:translate(-50%,-50%) scale(1.04)}9%{transform:translate(-50%,-50%) scale(1)}90%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-62%) scale(.96)}}
+.alert #alert b{animation:alertpulse 1.2s ease-in-out infinite}@keyframes alertpulse{50%{text-shadow:0 0 50px rgba(255,77,94,1),0 4px 10px #000}}
 #flash{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 45%,rgba(255,90,110,.55),rgba(255,90,110,0) 60%);opacity:0}
 .alert #flash{animation:flash 1.2s ease-out forwards}@keyframes flash{0%{opacity:0}10%{opacity:1}100%{opacity:0}}
 /* leaving: everything fades together */
-.off #backdrop,.off #main,.off .slot,.off #stack .item,.off #pip,.off #main-tag{transition:opacity .6s ease,transform .6s ease;opacity:0}
+.off #backdrop,.off #main,.off .slot,.off #stack .item,.off #pip,.off #main-tag,.off #mvp{transition:opacity .6s ease,transform .6s ease;opacity:0}
 #debug{position:absolute;left:20px;top:20px;padding:8px 10px;border-radius:8px;background:rgba(5,9,16,.85);color:#e6eef7;font:600 13px/1.4 'Segoe UI',sans-serif;white-space:pre-wrap;max-width:700px;z-index:9}
 @media(prefers-reduced-motion:reduce){.tag i{animation:none}}
+
+/* ---- MVP celebration (2.20.90): after the battle report, the top-damage pilot gets the screen for --mvp seconds ---- */
+#mvp{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:5}#mvp[hidden]{display:none}
+.mvp #main,.mvp .slot,.mvp #stack{filter:brightness(.35) saturate(.6);transition:filter .8s ease}
+#mvp .rings{position:absolute;left:50%;top:46%;width:0;height:0}#mvp .rings i{position:absolute;left:0;top:0;width:200px;height:200px;margin:-100px 0 0 -100px;border-radius:50%;border:3px solid rgba(255,213,106,.9);box-shadow:0 0 40px rgba(255,213,106,.6),inset 0 0 40px rgba(255,213,106,.3);animation:ring 2.6s ease-out infinite}#mvp .rings i:nth-child(2){animation-delay:.85s}#mvp .rings i:nth-child(3){animation-delay:1.7s}
+@keyframes ring{0%{transform:scale(.2);opacity:0}10%{opacity:1}100%{transform:scale(7);opacity:0}}
+#mvp .confetti{position:absolute;inset:0;overflow:hidden;pointer-events:none}#mvp .confetti i{position:absolute;top:-20px;width:12px;height:18px;border-radius:2px;opacity:.95;animation:fall var(--t,4s) linear var(--d,0s) infinite;transform:translateX(0) rotate(0)}
+@keyframes fall{0%{transform:translate3d(0,-40px,0) rotate(0deg);opacity:0}6%{opacity:1}100%{transform:translate3d(var(--x,0px),1140px,0) rotate(var(--r,720deg));opacity:.9}}
+#mvp .mvpcard{position:relative;display:flex;flex-direction:column;align-items:center;gap:14px;padding:40px 70px 36px;border-radius:18px;text-align:center;
+  background:linear-gradient(135deg,rgba(9,17,31,.86),rgba(14,28,46,.80) 60%,rgba(10,20,36,.86));border:1px solid rgba(255,213,106,.5);border-top:3px solid #ffd56a;box-shadow:0 0 0 1px rgba(255,255,255,.06),0 0 80px rgba(255,213,106,.35),0 40px 100px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.18);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);animation:mvpin .9s cubic-bezier(.2,1.3,.3,1) both}
+@keyframes mvpin{0%{opacity:0;transform:scale(.6) translateY(40px)}100%{opacity:1;transform:none}}
+#mvp .eb{font:700 20px/1 Rajdhani;letter-spacing:.5em;color:#ffd56a;text-shadow:0 0 18px rgba(255,213,106,.7)}
+#mvp b{font:700 128px/1 Rajdhani;letter-spacing:.04em;max-width:1300px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:linear-gradient(180deg,#fffbe6 0%,#ffe48a 30%,#f2b52e 50%,#7a4d00 56%,#ffcf4a 80%,#fff3b8 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 4px 4px rgba(0,0,0,.9)) drop-shadow(0 0 30px rgba(255,213,106,.45));animation:mvpglow 1.6s ease-in-out infinite}
+@keyframes mvpglow{50%{filter:drop-shadow(0 4px 4px rgba(0,0,0,.9)) drop-shadow(0 0 54px rgba(255,213,106,.8))}}
+#mvp .line{font:700 26px/1.2 Rajdhani;letter-spacing:.14em;color:#fff;text-shadow:0 2px 6px #000}#mvp .line em{font-style:normal;color:#ff9aa6}
+#mvp .pts{display:flex;align-items:baseline;gap:12px;margin-top:6px;padding:12px 28px;border-radius:12px;background:rgba(127,240,181,.12);border:1px solid rgba(127,240,181,.5);box-shadow:0 0 30px rgba(127,240,181,.3);animation:ptsin .7s cubic-bezier(.2,1.4,.4,1) .9s both}
+#mvp .pts em{font:700 44px/1 Rajdhani;font-style:normal;color:#7ff0b5}#mvp .pts strong{font:700 64px/1 Rajdhani;color:#7ff0b5;text-shadow:0 0 20px rgba(127,240,181,.8)}#mvp .pts span{font:700 18px/1 Rajdhani;letter-spacing:.3em;color:#c9f7df}
+@keyframes ptsin{0%{opacity:0;transform:scale(.4)}100%{opacity:1;transform:none}}
+#mvp small{font:600 15px Inter,'Segoe UI',Arial,sans-serif;color:#c9d7e4;letter-spacing:.02em}

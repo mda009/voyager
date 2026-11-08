@@ -11,7 +11,7 @@ const FILE='dreadnought.json';
 // every 3 s (was 4), four minutes on the clock (was three), and the Dreadnought's return fire knocks pilots out for 6 s
 // (was 10) every 20 s (was 15). Cheers and gifted subs are unchanged.
 export const BOSS_DEFAULTS={name:'The Dreadnought',lobbySeconds:60,battleSeconds:240,baseHp:1000,hpPerPilot:150,lateJoinHp:75,
-  fireMin:15,fireMax:30,fireCooldown:3,bitDamage:2.5,giftDamage:600,victoryPoints:100,chatCall:true,announce:true,
+  fireMin:15,fireMax:30,fireCooldown:3,bitDamage:2.5,giftDamage:600,victoryPoints:100,mvpBonus:25,chatCall:true,announce:true,
   // 2.20.44 speed goals: destroyed within legendarySeconds of the battle starting → Legendary medal; within heroSeconds → Hero medal.
   // Either one adds speedBonusPct % to every fighting pilot's victory points.
   legendarySeconds:60,heroSeconds:120,speedBonusPct:10};
@@ -19,7 +19,7 @@ export const BOSS_DEFAULTS={name:'The Dreadnought',lobbySeconds:60,battleSeconds
 const OLD_BALANCE={battleSeconds:180,baseHp:4000,hpPerPilot:350,lateJoinHp:150,fireMin:12,fireMax:22,fireCooldown:4};
 const BALANCE=2,STUN_MS=6000,ATTACK_MS=20000,ENRAGED_ATTACK_MS=10000;
 const LIMITS={lobbySeconds:[10,300],battleSeconds:[60,900],baseHp:[500,1e6],hpPerPilot:[0,1e5],lateJoinHp:[0,1e5],fireMin:[1,1000],fireMax:[1,2000],
-  fireCooldown:[1,60],bitDamage:[0,100],giftDamage:[0,1e5],victoryPoints:[0,1e6],legendarySeconds:[0,900],heroSeconds:[0,900],speedBonusPct:[0,500]};
+  fireCooldown:[1,60],bitDamage:[0,100],giftDamage:[0,1e5],victoryPoints:[0,1e6],mvpBonus:[0,1e5],legendarySeconds:[0,900],heroSeconds:[0,900],speedBonusPct:[0,500]};
 const RESULT_MS=25000,FEED=12,EFFECTS=40;
 const clean=(v,max)=>String(v??'').replace(/[\u0000-\u001f\u007f]/g,' ').trim().slice(0,max);
 const PLATFORMS=['twitch','youtube','kick'];
@@ -163,7 +163,7 @@ export class BossFight{
     if(!b.demo){
       const rewarded=outcome==='victory'&&reward>0?pilots.filter(p=>p.fires>0||p.bits>0||p.gifts>0):[];
       this.history.unshift({id:b.id,name:s.name,outcome,startedAt:b.startedAt,endedAt:now,maxHp:b.maxHp,damage:total,pilots:pilots.length,
-        mvp:mvp?{name:mvp.name,platform:mvp.platform,damage:mvp.damage}:null,top:pilots.slice(0,5).map(p=>({name:p.name,platform:p.platform,damage:p.damage})),
+        mvp:mvp?{key:mvp.key,name:mvp.name,platform:mvp.platform,damage:mvp.damage}:null,mvpBonus:mvp?s.mvpBonus:0,top:pilots.slice(0,5).map(p=>({name:p.name,platform:p.platform,damage:p.damage})),
         reward,base:s.victoryPoints,bonus,speed,elapsed,rewarded:rewarded.map(p=>({key:p.key,name:p.name,platform:p.platform}))});
       this.history=this.history.slice(0,30);this.persist();
       // Voyager Medals (2.18): who fought, torpedoes fired, the MVP, the killing blow and (2.20.44) the speed goal.
@@ -198,14 +198,16 @@ export class BossFight{
     if(b.phase==='battle'){const r=this.random();if(r<.03)this.support('gift',key,names[i],'',platform,1+Math.floor(this.random()*3));else if(r<.08)this.support('bits',key,names[i],'',platform,100*(1+Math.floor(this.random()*5)));else{const p=b.pilots.get(key);if(p)p.lastFire=0;this.fire(key);}}
   }
   // Victory rewards for Missions › Points owed (same points for every pilot who fought).
-  rewardBatches(){return this.history.filter(h=>h.outcome==='victory'&&h.reward>0&&h.rewarded?.length).slice(0,10).map(h=>({id:h.id,title:h.name+' defeated'+(h.speed==='legendary'?' · Legendary kill in '+clock(h.elapsed)+' (+'+h.bonus+' bonus)':h.speed==='hero'?' · Heroic kill in '+clock(h.elapsed)+' (+'+h.bonus+' bonus)':''),reward:h.reward,pilots:h.rewarded}));}
+  rewardBatches(){return [...this.history.filter(h=>h.outcome==='victory'&&h.reward>0&&h.rewarded?.length).slice(0,10).map(h=>({id:h.id,title:h.name+' defeated'+(h.speed==='legendary'?' · Legendary kill in '+clock(h.elapsed)+' (+'+h.bonus+' bonus)':h.speed==='hero'?' · Heroic kill in '+clock(h.elapsed)+' (+'+h.bonus+' bonus)':''),reward:h.reward,pilots:h.rewarded})),
+    // 2.20.90: the MVP (most damage) earns a bonus whatever the outcome, celebrated on the Dreadnought stage.
+    ...this.history.filter(h=>h.mvp?.key&&h.mvpBonus>0).slice(0,10).map(h=>({id:h.id+'-mvp',title:h.name+' MVP · '+Number(h.mvp.damage).toLocaleString('en')+' damage',reward:h.mvpBonus,pilots:[{key:h.mvp.key,name:h.mvp.name,platform:h.mvp.platform}]}))];}
   overlay(){
     const b=this.battle,now=this.now(),s=this.settings;
     if(!b||b.phase==='done')return {serverAt:now,phase:'idle',name:s.name};
     const pilots=[...b.pilots.values()];
     return {serverAt:now,phase:b.phase,id:b.id,demo:b.demo,name:s.name,hp:b.hp,maxHp:b.maxHp,lobbyEndsAt:b.lobbyEndsAt,endsAt:b.endsAt,startedAt:b.startedAt,endedAt:b.endedAt,
       outcome:b.outcome,shield:b.shieldUntil>now,shieldUntil:b.shieldUntil,enraged:b.enraged,victoryPoints:b.phase==='result'&&b.reward!==undefined?b.reward:s.victoryPoints,
-      speed:b.speed||'',bonus:b.bonus||0,elapsed:b.phase==='result'?b.elapsed||0:0,goals:{legendary:s.legendarySeconds,hero:s.heroSeconds,bonusPct:s.speedBonusPct},
+      speed:b.speed||'',bonus:b.bonus||0,elapsed:b.phase==='result'?b.elapsed||0:0,mvpBonus:s.mvpBonus,goals:{legendary:s.legendarySeconds,hero:s.heroSeconds,bonusPct:s.speedBonusPct},
       pilots:pilots.length,fleet:pilots.slice(0,12).map(p=>({slot:p.slot,name:p.name,platform:p.platform,stunned:p.stunnedUntil>now})),
       leaders:pilots.filter(p=>p.damage>0).sort((a,c)=>c.damage-a.damage).slice(0,5).map(p=>({name:p.name,platform:p.platform,damage:p.damage})),
       feed:b.feed.slice(0,6),effects:b.effects.filter(e=>now-e.at<6000),

@@ -10,7 +10,7 @@ async function api(path,body){
   const r=await fetch(path,{method:body?'POST':'GET',headers:{'X-Voyager-Token':token,...(body?{'Content-Type':'application/json'}:{})},body:body?JSON.stringify(body):undefined});
   const d=await r.json().catch(()=>({}));if(!r.ok||d.ok===false)throw new Error(d.message||'Voyager answered '+r.status);return d;
 }
-const FIELDS=['name','lobbySeconds','battleSeconds','baseHp','hpPerPilot','fireMin','fireMax','fireCooldown','bitDamage','giftDamage','victoryPoints','legendarySeconds','heroSeconds','speedBonusPct'];
+const FIELDS=['name','lobbySeconds','battleSeconds','baseHp','hpPerPilot','fireMin','fireMax','fireCooldown','bitDamage','giftDamage','victoryPoints','mvpBonus','legendarySeconds','heroSeconds','speedBonusPct'];
 const time=ms=>{const s=Math.max(0,Math.ceil(ms/1000));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');};
 function render(){
   if(!view)return;const s=view.settings,l=view.live,f=$('settings').elements,phase=l.phase;
@@ -104,7 +104,7 @@ function pic(){const s=st.settings,short=k=>({none:'—',leaderboard:'Leaders',s
 function renderStage(){if(!st)return;const s=st.settings;
   if(!stEditing){f.enabled.checked=s.enabled;options(f.left,st.slotKinds,s.slots.left);options(f.right,st.slotKinds,s.slots.right);options(f.bottomLeft,st.slotKinds,s.slots.bottomLeft);f.pip.value=s.pip;
     for(const cb of form.querySelectorAll('input[name=stack]'))cb.checked=s.stack.includes(cb.value);for(const k of ['twitch','youtube','kick','commands','names'])f['chat.'+k].checked=!!s.chat[k];
-    f.scene.value=s.scene;f.source.value=s.source;f.hide.value=(s.hide||[]).join(', ');f.resultSeconds.value=s.resultSeconds;f.animationMs.value=s.animationMs;}
+    f.scene.value=s.scene;f.source.value=s.source;f.hide.value=(s.hide||[]).join(', ');f.resultSeconds.value=s.resultSeconds;f.splashSeconds.value=s.splashSeconds;f.mvpSeconds.value=s.mvpSeconds;f.animationMs.value=s.animationMs;}
   pic();
   const pill=$('stage-pill');pill.dataset.state=st.forced?'ok':s.enabled?'wait':'';pill.textContent=st.forced?'Showing (test)':s.enabled?'Armed':'Off';$('stage-hide').hidden=!st.forced;$('stage-show').hidden=!!st.forced;
   const act=st.action?.state,cue=st.cue;
@@ -117,7 +117,7 @@ function renderStage(){if(!st)return;const s=st.settings;
   const cl=$('stage-checks');cl.textContent='';for(const [ok,text] of checks){cl.append(el('li',ok===null?'info':ok?'ok':'',text));}}
 async function loadStage(){try{st=await api('/api/stage');renderStage();}catch(e){notice(e.message,true);}}
 form.addEventListener('focusin',()=>{stEditing=true;});form.addEventListener('change',()=>{if(st){st.settings={...st.settings,slots:{left:f.left.value,right:f.right.value,bottomLeft:f.bottomLeft.value},pip:f.pip.value,stack:[...form.querySelectorAll('input[name=stack]:checked')].map(c=>c.value)};pic();}});
-form.onsubmit=async e=>{e.preventDefault();const value={enabled:f.enabled.checked,slots:{left:f.left.value,right:f.right.value,bottomLeft:f.bottomLeft.value},pip:f.pip.value,stack:[...form.querySelectorAll('input[name=stack]:checked')].map(c=>c.value),scene:f.scene.value,source:f.source.value,hide:f.hide.value,resultSeconds:Number(f.resultSeconds.value),animationMs:Number(f.animationMs.value),chat:{}};
+form.onsubmit=async e=>{e.preventDefault();const value={enabled:f.enabled.checked,slots:{left:f.left.value,right:f.right.value,bottomLeft:f.bottomLeft.value},pip:f.pip.value,stack:[...form.querySelectorAll('input[name=stack]:checked')].map(c=>c.value),scene:f.scene.value,source:f.source.value,hide:f.hide.value,resultSeconds:Number(f.resultSeconds.value),splashSeconds:Number(f.splashSeconds.value),mvpSeconds:Number(f.mvpSeconds.value),animationMs:Number(f.animationMs.value),chat:{}};
   for(const k of ['twitch','youtube','kick','commands','names'])value.chat[k]=f['chat.'+k].checked;
   try{st={...st,...(await api('/api/stage/settings',value))};stEditing=false;notice('Stage saved. A stage source that is open picks the layout up within a second.');renderStage();}catch(e){notice(e.message,true);}};
 $('stage-show').onclick=async()=>{try{st={...st,...(await api('/api/stage/force',{seconds:60}))};notice('The stage is showing for 60 seconds (your Dreadnought source shows the standby scene).');renderStage();setTimeout(loadStage,1500);}catch(e){notice(e.message,true);}};

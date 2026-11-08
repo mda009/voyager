@@ -85,6 +85,7 @@
 <label>Damage per bit<input name="bitDamage" type="number" min="0" max="100" step="0.1"></label>
 <label>Damage per gifted sub<input name="giftDamage" type="number" min="0" max="100000"></label>
 <label>Victory points (each pilot)<input name="victoryPoints" type="number" min="0" max="1000000"></label>
+<label>MVP bonus (most damage, any outcome)<input name="mvpBonus" type="number" min="0" max="100000"></label>
 <label>Legendary kill: destroyed within (seconds)<input name="legendarySeconds" type="number" min="0" max="900"></label>
 <label>Hero kill: destroyed within (seconds)<input name="heroSeconds" type="number" min="0" max="900"></label>
 <label>Speed bonus on victory points (%)<input name="speedBonusPct" type="number" min="0" max="500"></label>
@@ -115,6 +116,8 @@
 <label>Your live OBS scene<input name="scene" maxlength="120" placeholder="e.g. Live"></label>
 <label>Game source in it (nested scene or group)<input name="source" maxlength="120" placeholder="e.g. Game"></label>
 <label style="grid-column:1/-1">Hide these sources while the stage is up (comma-separated, shown again afterwards)<input name="hide" maxlength="600" placeholder="e.g. Versus ready timer, SC referral"></label>
+<label>Splash holds before the takeover (seconds)<input name="splashSeconds" type="number" min="0" max="30"></label>
+<label>MVP celebration after the report (seconds)<input name="mvpSeconds" type="number" min="0" max="60"></label>
 <label>Battle report stays on (seconds)<input name="resultSeconds" type="number" min="5" max="60"></label>
 <label>Move animation (ms)<input name="animationMs" type="number" min="200" max="4000" step="100"></label>
 <div class="st-actions wide" style="grid-column:1/-1"><button type="submit" class="primary">Save stage</button><button type="button" id="stage-show">Show the stage for 60 s</button><button type="button" id="stage-hide" hidden>Hide now</button><button type="button" id="stage-cue">Move my scene again</button></div>
@@ -143,8 +146,8 @@
 <script src="giveaway-connection.js"></script>
 <script src="points-model.js?v=4.4"></script>
 <script src="points-connection.js?v=4.4"></script>
-<script src="dreadnought.js?v=2.20.88"></script>
-<script src="voyager-shell.js?v=2.20.89"></script>
+<script src="dreadnought.js?v=2.20.90"></script>
+<script src="voyager-shell.js?v=2.20.90"></script>
 <script src="voyager-navigation.js"></script>
 </body>
 </html>

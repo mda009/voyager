@@ -23,11 +23,14 @@ test('Stage is up for boarding, battle and the battle report hold, or when force
   let now=1000000;const st=await new Stage({dataDir:await dir(),now:()=>now}).load();
   assert.equal(st.active({phase:'idle'}),false);
   assert.equal(st.active({phase:'lobby'}),true);assert.equal(st.active({phase:'battle'}),true);
-  assert.equal(st.active({phase:'result',endedAt:now-5000}),true,'report shown for resultSeconds');
-  assert.equal(st.active({phase:'result',endedAt:now-25000}),false,'report hold over');
+  assert.equal(st.active({phase:'result',endedAt:now-5000,id:'b1',leaders:[{name:'StarNova',platform:'twitch',damage:900}],mvpBonus:25}),true,'report shown for resultSeconds');
+  now+=20000;assert.equal(st.active({phase:'idle'}),true,'MVP celebration keeps the stage up after the report, even once the boss is idle');
+  let o=st.overlay({phase:'idle'});assert.equal(o.phase,'mvp');assert.equal(o.mvp.name,'StarNova');assert.equal(o.mvp.bonus,25);
+  now+=10000;assert.equal(st.active({phase:'idle'}),false,'celebration over');
+  st.lastResult=null;assert.equal(st.active({phase:'result',endedAt:now-25000,id:'b2',leaders:[]}),false,'report hold over, nobody dealt damage: no MVP window');
   st.configure({enabled:false});assert.equal(st.active({phase:'battle'}),false,'switched off');
   st.configure({enabled:true});st.force(60);assert.equal(st.active({phase:'idle'}),true,'forced from the control page');now+=61000;assert.equal(st.active({phase:'idle'}),false);
-  let o=st.overlay({phase:'idle'});assert.equal(o.geometry.pip.x,GEOMETRY.pip.br.x);assert.equal(o.geometry.bottomLeft.x,GEOMETRY.bottomLeft.br.x);
+  o=st.overlay({phase:'idle'});assert.equal(o.geometry.pip.x,GEOMETRY.pip.br.x);assert.equal(o.geometry.bottomLeft.x,GEOMETRY.bottomLeft.br.x);
   st.configure({pip:'bl'});o=st.overlay({phase:'idle'});assert.equal(o.geometry.pip.x,GEOMETRY.pip.bl.x);assert.equal(o.geometry.bottomLeft.x,GEOMETRY.bottomLeft.bl.x,'the corner panel swaps sides with the game');
   await st.saving;const again=await new Stage({dataDir:st.dataDir,now:()=>now}).load();assert.equal(again.settings.pip,'bl','settings persist');
 });
@@ -52,6 +55,7 @@ test('Move cue goes to Streamer.bot once when the stage comes up and once when i
   let now=1000;const sent=[];const st=await new Stage({dataDir:await dir(),now:()=>now,run:async a=>{sent.push(a);return {ok:true};},uuid:()=>'r1'}).load();
   assert.equal(await st.tick({phase:'lobby'}),null,'no scene named: nothing sent');assert.equal(sent.length,0);
   st.cue.on=false;st.configure({scene:'Live',source:'Game',hide:['Versus ready timer']});
+  assert.equal(await st.tick({phase:'lobby'}),null,'the splash plays first');now+=6000;
   const r=await st.tick({phase:'lobby'});assert.equal(r.phase,'on');assert.equal(r.ok,true);assert.equal(sent.length,1);
   assert.equal(sent[0].stagePhase,'on');assert.equal(sent[0].stageScene,'Live');assert.equal(sent[0].stageSource,'Game');assert.equal(sent[0].stageX,GEOMETRY.pip.br.x);assert.equal(sent[0].stageW,640);assert.equal(sent[0].stageMs,1200);assert.deepEqual(JSON.parse(sent[0].stageHide),['Versus ready timer']);
   assert.equal(await st.tick({phase:'battle'}),null,'still up: no second cue');

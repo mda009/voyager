@@ -5,7 +5,7 @@
 (()=>{'use strict';
 const $=id=>document.getElementById(id),q=new URLSearchParams(location.search),debug=q.get('debug')==='1';
 const hosted=location.protocol==='http:'&&/^(127\.0\.0\.1|localhost)$/.test(location.hostname),base=hosted?'':'http://127.0.0.1:'+(Number(q.get('voyager'))||8740);
-const stage=$('stage');let data=null,readAt=0,lastErr='',on=false,layoutKey='',offTimer=0;
+const stage=$('stage');let data=null,readAt=0,lastErr='',on=false,layoutKey='',offTimer=0,splashTimer=0,mvpKey='';
 function fit(){const s=Math.min(innerWidth/1920,innerHeight/1080);stage.style.transform='translate('+((innerWidth-1920*s)/2)+'px,'+((innerHeight-1080*s)/2)+'px) scale('+s+')';}
 addEventListener('resize',fit);fit();
 const frame=(src,w,h,scale,left=0,top=0)=>{const f=document.createElement('iframe');f.src=base+src;f.width=w;f.height=h;f.style.width=w+'px';f.style.height=h+'px';f.style.transform='scale('+scale+')';f.style.left=left+'px';f.style.top=top+'px';f.setAttribute('title','panel');f.setAttribute('scrolling','no');return f;};
@@ -36,15 +36,28 @@ function build(d){
   $('main').style.left=g.main.x+'px';$('main').style.top=g.main.y+'px';$('main').style.width=g.main.w+'px';$('main').style.height=g.main.h+'px';$('main').querySelector('iframe').style.transform='scale('+(g.main.w/1920)+')';$('main-tag').style.left=g.main.x+'px';$('main-tag').style.top=(g.main.y+g.main.h+10)+'px';
   fill($('slot-left'),d.slots.left,g.left);fill($('slot-right'),d.slots.right,g.right);fill($('slot-bottomLeft'),d.slots.bottomLeft,g.bottomLeft);fillStack(d.stack||[],g.stack);
 }
-function clear(){layoutKey='';for(const id of ['slot-left','slot-right','slot-bottomLeft','stack'])$(id).replaceChildren();$('dread').removeAttribute('src');}
+function clear(){layoutKey='';for(const id of ['slot-left','slot-right','slot-bottomLeft','stack'])$(id).replaceChildren();$('dread').removeAttribute('src');mvp(null);}
+// MVP celebration after the battle report: name, damage, bonus points, confetti.
+const CONF=['#ffd56a','#fff3b8','#a7d8ff','#7ff0b5','#ff9aa6','#c9a6ff','#ffffff'];
+function mvp(m){const box=$('mvp'),key=m?m.name+'|'+m.until:'';if(key===mvpKey)return;mvpKey=key;stage.classList.toggle('mvp',!!m);
+  if(!m){box.hidden=true;$('confetti').replaceChildren();return;}
+  $('mvp-name').textContent=m.name;$('mvp-line').innerHTML='';const line=$('mvp-line');line.append(document.createTextNode(Number(m.damage).toLocaleString('en')+' DAMAGE · MOST OF THE FLEET'));
+  $('mvp-pts').textContent=Number(m.bonus||0).toLocaleString('en');$('mvp').querySelector('.pts').hidden=!(m.bonus>0);
+  $('mvp-sub').textContent=(m.outcome==='victory'?m.boss+' destroyed':m.boss+' escaped')+' · '+m.pilots+' pilot'+(m.pilots===1?'':'s')+' · '+Number(m.damageTotal).toLocaleString('en')+' damage dealt';
+  const c=$('confetti');c.replaceChildren();for(let i=0;i<90;i++){const p=document.createElement('i');p.style.left=(Math.random()*100)+'%';p.style.background=CONF[i%CONF.length];p.style.setProperty('--t',(3.5+Math.random()*3)+'s');p.style.setProperty('--d',(Math.random()*4)+'s');p.style.setProperty('--x',((Math.random()-.5)*300)+'px');p.style.setProperty('--r',(Math.random()*1440-720)+'deg');p.style.width=(8+Math.random()*8)+'px';p.style.height=(12+Math.random()*10)+'px';c.append(p);}
+  box.hidden=false;}
 function render(){
   const d=data,fresh=d&&Date.now()-readAt<15000,want=!!(fresh&&d.active);
   if(debug){$('debug').hidden=false;$('debug').textContent=['Stage · '+(base||location.origin)+'/api/stage/overlay',lastErr?'✗ '+lastErr:'✓ Voyager answered '+(readAt?Math.round((Date.now()-readAt)/1000)+' s ago':''),d?'Active: '+d.active+' · phase '+d.phase+(d.forced?' · forced from Voyager Control':'')+(d.demo?' · demo':''):'',d?'Slots: '+JSON.stringify(d.slots)+' · stack '+(d.stack||[]).join(', ')+' · PiP '+d.pip:'',d?.cue?'Cue: '+d.cue.phase+' '+(d.cue.ok?'sent':'failed: '+d.cue.message)+' · '+new Date(d.cue.at).toLocaleTimeString():'Cue: none sent yet (name the scene and game source on the Dreadnought page)'].filter(Boolean).join('\n');}
-  if(want&&!on){on=true;clearTimeout(offTimer);stage.classList.remove('off');build(d);$('dread').src=base+'/dreadnought.html?stage=1&quality='+(['ultra','balanced','low'].includes(q.get('quality'))?q.get('quality'):'balanced')+(q.get('res')?'&res='+encodeURIComponent(q.get('res')):'');stage.classList.add('on');if(d.phase==='lobby'||d.phase==='battle'){stage.classList.remove('alert');void stage.offsetWidth;stage.classList.add('alert');}}
-  else if(!want&&on){on=false;stage.classList.add('off');stage.classList.remove('alert');offTimer=setTimeout(()=>{stage.classList.remove('on','off');clear();},700);}
+  if(want&&!on){on=true;clearTimeout(offTimer);clearTimeout(splashTimer);stage.classList.remove('off');build(d);$('dread').src=base+'/dreadnought.html?stage=1&quality='+(['ultra','balanced','low'].includes(q.get('quality'))?q.get('quality'):'balanced')+(q.get('res')?'&res='+encodeURIComponent(q.get('res')):'');
+    // Splash first (boarding, or a test showing), then the stage builds; mid-battle or report, straight in.
+    const splash=d.phase==='lobby'||d.forced&&d.phase==='idle'?Number(d.splashMs)||0:0;stage.style.setProperty('--splash',Math.max(1.6,splash/1000)+'s');
+    if(splash>0){stage.classList.remove('alert');void stage.offsetWidth;stage.classList.add('alert');splashTimer=setTimeout(()=>{if(on)stage.classList.add('on');},splash);}else stage.classList.add('on');}
+  else if(!want&&on){on=false;clearTimeout(splashTimer);stage.classList.add('off');stage.classList.remove('alert');offTimer=setTimeout(()=>{stage.classList.remove('on','off');clear();},700);}
   else if(want&&on)build(d);
+  if(on)mvp(d.mvp||null);
 }
-async function poll(){try{const r=await fetch(base+'/api/stage/overlay',{cache:'no-store'});if(!r.ok)throw new Error('Voyager answered '+r.status+(r.status===404?' (update Voyager to 2.20.84 or later)':''));data=await r.json();readAt=Date.now();lastErr='';}
+async function poll(){try{const r=await fetch(base+'/api/stage/overlay',{cache:'no-store'});if(!r.ok)throw new Error('Voyager answered '+r.status+(r.status===404?' (update Voyager to 2.20.84 or later)':''));data=await r.json();readAt=Date.now();lastErr='';if(debug)window.__stage=data;}
   catch(e){lastErr=e.message&&e.message!=='Failed to fetch'?e.message:'Voyager is not reachable at '+(base||location.origin)+' (is Voyager running? add ?voyager=port if not on 8740)';}render();}
 poll();setInterval(poll,1000);
 })();
