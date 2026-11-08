@@ -100,7 +100,7 @@ function theme(name){const t=q.get('theme');if(t==='glass')return 'glass';if(t==
 function render(data){
  const s=data?.season;const active=!!s&&s.active!==false&&!!s.name;
  // 2.20.75: step aside while the Community panel (goals, standings, contributors) is on stream, so the two never overlap.
- const other=!preview&&!!data?.panel?.visible&&['goals','season','helpers'].includes(data.panel.config?.kind)&&q.get('always')!=='1';
+ const other=!preview&&q.get('stage')!=='1'&&((!!data?.panel?.visible&&['goals','season','helpers'].includes(data.panel.config?.kind)&&q.get('always')!=='1')||!!data?.stage); // 2.20.84: also steps aside while the Dreadnought stage is up
  panel.classList.toggle('on',(active||preview)&&!other);if(!active&&!preview)return;
  const name=s?.name||'Community goal',th=theme(name);panel.classList.toggle('glass',th==='glass');
  const m=name.match(/^(.*?)(\s+\d{4})?$/);$('title').innerHTML=m&&m[2]?esc(m[1].toUpperCase())+' <b>'+esc(m[2].trim())+'</b>':esc(name.toUpperCase());

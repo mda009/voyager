@@ -31,7 +31,8 @@ export function parseChat(payload){
   const name=user?.name||m?.displayName||d.displayName||login;
   const text=d.text??m?.message??(typeof d.message==='string'?d.message:null);
   if(!login||typeof text!=='string')return null;
-  return {userId:String(user?.id||user?.userId||m?.userId||d.userId||''),login:String(login).toLowerCase(),name:String(name),text,messageId:d.messageId||m?.msgId||m?.messageId||null,demo:false};
+  // 2.20.84: colour, role (1 viewer · 2 VIP · 3 moderator · 4 broadcaster) and subscriber flag for the stage chat window.
+  return {userId:String(user?.id||user?.userId||m?.userId||d.userId||''),login:String(login).toLowerCase(),name:String(name),text,messageId:d.messageId||m?.msgId||m?.messageId||null,demo:false,color:String(user?.color||m?.color||''),role:Number(user?.role??m?.role??0)||0,sub:!!(user?.subscribed||m?.subscriber||m?.subscribed)};
 }
 // Kick and YouTube chat (2.20.8): read straight from Streamer.bot so !join, !fire, !voyager and !medals work there even
 // when a Streamer.bot command trigger is missing. Field names differ between Streamer.bot builds, so read them defensively.
@@ -45,7 +46,7 @@ export function parseOtherChat(payload){
   const id=String(u.id??u.userId??d.userId??m?.userId??''),login=String(u.login??u.username??u.slug??u.userName??d.userName??d.username??u.name??'').replace(/^@/,'').toLowerCase();
   const name=String(u.name??u.displayName??u.display_name??u.username??d.displayName??login);
   if(typeof text!=='string'||(!id&&!login))return null;
-  return {platform,userId:id,login,name,text,messageId:d.messageId||m?.id||d.id||null,demo:false};
+  return {platform,userId:id,login,name,text,messageId:d.messageId||m?.id||d.id||null,demo:false,color:String(u.color||u.identity?.color||''),role:Number(u.role??0)||0,sub:!!(u.subscribed||u.isSubscriber||u.isMember)};
 }
 export class StreamerBot {
   constructor({onOtherChat=()=>{},onChat=()=>{},onStatus=()=>{},onStreamOnline=()=>{},onBoss=()=>{},onMedals=()=>{},onCards=()=>{},onFleet=()=>{},onGoals=()=>{},onWatchStreak=()=>{},WebSocketImpl=globalThis.WebSocket,retryMs=3000}={}){

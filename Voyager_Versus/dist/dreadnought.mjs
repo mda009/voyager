@@ -6,6 +6,7 @@ import {createShip,animateShip,shipMeshesReady,materialsReady} from './ship-mode
 import {buildDreadnought} from './dreadnought-model.mjs?v=2.20.3';
 
 const $=id=>document.getElementById(id),params=new URLSearchParams(location.search);
+const stageIn=params.get('stage')==='1'; // 2.20.84: opened inside the Dreadnought stage page
 if(params.get('backdrop')==='0')document.body.classList.add('backdrop-off');
 const W=1920,H=1080,KEYS=['interceptor','sentinel','phantom'];
 const stage=$('stage');
@@ -245,7 +246,7 @@ const fmtTime=ms=>{const s=Math.max(0,Math.ceil(ms/1000));return Math.floor(s/60
 let data=null,offset=0,seen=new Set(),lastId=null,outcomeShown=null,hpShown=1;
 const setText=(id,text)=>{const n=$(id);if(n.textContent!==text)n.textContent=text;};
 function hud(now){
-  const d=data,live=d&&d.phase!=='idle';stage.classList.toggle('on',!!live);if(!live)return;
+  const d=data,live=d&&d.phase!=='idle'&&!(d.stage&&!stageIn);stage.classList.toggle('on',!!live);if(!live)return; // 2.20.84: the standalone source steps aside while the Dreadnought stage shows the scene
   const t=now+offset;$('preview-tag').hidden=!d.demo;
   $('bossbar').hidden=d.phase==='lobby';$('clock').hidden=d.phase!=='battle';$('fleet').hidden=false;$('legend').hidden=d.phase!=='battle'&&d.phase!=='lobby';
   $('bossname').textContent=d.name;const frac=Math.max(0,d.hp/d.maxHp);

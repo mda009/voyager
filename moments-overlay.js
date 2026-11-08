@@ -2,7 +2,7 @@
    every 2 s (same-origin when opened from the host, otherwise http://127.0.0.1:8740 or ?voyager=port). Each element is switched on
    Voyager Control › On-screen moments or the Stream deck. ?preview=1 shows sample data; ?debug=1 shows what the host answered. */
 (()=>{'use strict';
-const $=id=>document.getElementById(id),q=new URLSearchParams(location.search),preview=q.get('preview')==='1',debug=q.get('debug')==='1';
+const $=id=>document.getElementById(id),q=new URLSearchParams(location.search),preview=q.get('preview')==='1',debug=q.get('debug')==='1',stageMode=['ticker','moments'].includes(q.get('stage'))?q.get('stage'):'',stageW=Math.max(300,Number(q.get('w'))||892);
 const hosted=location.protocol==='http:'&&/^(127\.0\.0\.1|localhost)$/.test(location.hostname),base=hosted?'':'http://127.0.0.1:'+(Number(q.get('voyager'))||8740);
 const RANKS=['Midshipman','Acting Sub-Lieutenant','Sub-Lieutenant','Lieutenant','Lieutenant Commander','Commander','Captain','Commodore','Rear Admiral','Vice Admiral','Admiral','Admiral of the Fleet'],ABBR=['MIDN','ASLT','SBLT','LEUT','LCDR','CMDR','CAPT','CDRE','RADM','VADM','ADML','AF'];
 const METAL=[['linear-gradient(180deg,#ffe6cc,#f0a868 30%,#a5582a 52%,#6e3510 60%,#d68a4c 84%,#ffd9b0)','#f0b07a','BRONZE'],['linear-gradient(180deg,#ffffff,#d9e2ec 30%,#8d9bab 52%,#5b6774 60%,#c3cfdb 84%,#f4f8fb)','#e3ebf3','SILVER'],['linear-gradient(180deg,#fff6d6,#ffd56a 30%,#b8860b 52%,#7a5600 60%,#e6b83a 84%,#fff1c2)','#ffd56a','GOLD'],['linear-gradient(180deg,#eafcff,#bfe9ff 30%,#5fb0ff 52%,#1d4f8a 60%,#9ad6ff 84%,#f0fbff)','#bfe9ff','LEGEND']];
@@ -29,9 +29,12 @@ else{poll();setInterval(poll,2000);}
 let layoutKey='';
 function applyLayout(){const L=data?.layout;if(!L)return;const key=JSON.stringify(L);if(key===layoutKey)return;layoutKey=key;
   for(const [k,b] of Object.entries(L)){const el=$(k);if(!el||!b)continue;el.style.left=b.x+'px';el.style.top=b.y+'px';if(k==='ticker')el.style.width=b.w+'px';}
+  // 2.20.84: inside the Dreadnought stage the page shows one part at the top-left of its frame (?stage=ticker|moments&w=).
+  if(stageMode==='ticker'){$('ticker').style.left='0px';$('ticker').style.top='0px';$('ticker').style.width=stageW+'px';}
+  if(stageMode==='moments'){$('hints').style.left='0px';$('hints').style.top='0px';$('toast').style.left=(stageW>=880?448:0)+'px';$('toast').style.top=(stageW>=880?0:70)+'px';}
   tickerKey='';}
 function render(){
-  const d=data,ok=preview||(d&&Date.now()-readAt<15000);const on=k=>!!(ok&&d.elements?.[k]);applyLayout();
+  const d=data,ok=preview||(d&&Date.now()-readAt<15000);const stageHide=!!d?.stage&&!stageMode&&!preview,allowed=stageMode==='ticker'?['ticker']:stageMode==='moments'?['hints','toast']:null;const on=k=>!!(ok&&d.elements?.[k])&&!stageHide&&(!allowed||allowed.includes(k));applyLayout();
   if(debug){$('debug').hidden=false;$('debug').textContent=['Moments · '+(base||location.origin)+'/api/moments/overlay',lastErr?'✗ '+lastErr:'✓ Voyager answered '+(readAt?Math.round((Date.now()-readAt)/1000)+' s ago':''),d?'Elements on: '+Object.entries(d.elements||{}).filter(([,v])=>v).map(([k])=>k).join(', '):'',d?'Events: '+(d.events||[]).length+' · surge '+(d.surge?.active?'ACTIVE':'off')+' · dread '+(d.dread?.phase||'idle')+' · next '+(d.next?d.next.label+' '+d.next.remaining:'no goal reading yet'):''].filter(Boolean).join('\n');}
   renderHints(on('hints'));renderSurge(on('surge'));renderDread(on('dread'));renderPromo(on('promo'));renderNext(on('next'));renderTicker(on('ticker'));renderToast(on('toast'));renderPoints(on('points'));renderStreak(on('streak'));
 }

@@ -9,7 +9,7 @@ const strip=$('goal-strip'),status=$('feed-status'),rows=new Map(M.tiers.map(key
 let data=null,receivedAt=null,connected=false,failed=false,connectionState='connecting',client=null;
 // 2.20.31: shown on a cycle. ?every=300&show=30 (seconds) are the defaults; ?always=1 keeps the strip on screen as before.
 const num=(k,d,min,max)=>{const n=Number(params.get(k));return Number.isFinite(n)&&params.has(k)?Math.max(min,Math.min(max,n)):d;};
-const always=params.get('always')==='1'||(preview&&params.get('cycle')!=='1'),everyMs=num('every',300,45,86400)*1000,showMs=num('show',30,8,600)*1000;
+const stagePage=params.get('stage')==='1',always=params.get('always')==='1'||(preview&&params.get('cycle')!=='1'),everyMs=num('every',300,45,86400)*1000,showMs=num('show',30,8,600)*1000;
 // 2.20.69: no timer by default. The strip is shown and hidden from Voyager (Stream deck › On-screen moments › Giveaway goals strip,
 // or Voyager Control › On-screen moments): it reads that switch from the Voyager host every 2 s. ?every=&show= keep the old timed
 // cycle, ?always=1 keeps it on screen; while Voyager cannot be reached the strip stays as it was (shown if it never got an answer).
@@ -22,7 +22,7 @@ function show(){if(visible||always)return;showNow();hideAt=Date.now()+showMs;hid
 function startCycle(){if(controlled){apply();return;}if(always||cycleTimer)return;show();cycleTimer=setInterval(show,everyMs);}
 const loadedAt=Date.now();
 function apply(){if(!controlled||!data)return;const want=wanted===null?Date.now()-loadedAt>20000:wanted;if(want&&!visible)showNow();else if(wanted===false&&visible)hideNow();}
-async function pollHost(){try{const r=await fetch(base+'/api/moments/overlay',{cache:'no-store'});if(!r.ok)throw new Error(String(r.status));const d=await r.json();hostOk=Date.now();wanted=d?.elements?.goals!==false;}catch{}apply();}
+async function pollHost(){try{const r=await fetch(base+'/api/moments/overlay',{cache:'no-store'});if(!r.ok)throw new Error(String(r.status));const d=await r.json();hostOk=Date.now();wanted=d?.elements?.goals!==false&&!(d?.stage&&!stagePage);}catch{}apply();}
 if(controlled){pollHost();setInterval(pollHost,2000);}
 function render(){
  const fresh=!!data&&connected&&!failed&&M.freshness(data,receivedAt);

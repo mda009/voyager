@@ -1,0 +1,47 @@
+/* Voyager Dreadnought stage (2.20.84). Polls /api/stage/overlay every second: when the host says the stage is up, the page
+   fills with the Dreadnought scene, the chosen panels and the picture-in-picture frame, and animates in; when it is down,
+   everything fades and the embedded pages are dropped. The panels are the ordinary overlay pages opened with ?stage=1, so
+   they show the same live data as their own OBS sources (which hide themselves while the stage is up). */
+(()=>{'use strict';
+const $=id=>document.getElementById(id),q=new URLSearchParams(location.search),debug=q.get('debug')==='1';
+const hosted=location.protocol==='http:'&&/^(127\.0\.0\.1|localhost)$/.test(location.hostname),base=hosted?'':'http://127.0.0.1:'+(Number(q.get('voyager'))||8740);
+const stage=$('stage');let data=null,readAt=0,lastErr='',on=false,layoutKey='',offTimer=0;
+function fit(){const s=Math.min(innerWidth/1920,innerHeight/1080);stage.style.transform='translate('+((innerWidth-1920*s)/2)+'px,'+((innerHeight-1080*s)/2)+'px) scale('+s+')';}
+addEventListener('resize',fit);fit();
+const frame=(src,w,h,scale,left=0,top=0)=>{const f=document.createElement('iframe');f.src=base+src;f.width=w;f.height=h;f.style.width=w+'px';f.style.height=h+'px';f.style.transform='scale('+scale+')';f.style.left=left+'px';f.style.top=top+'px';f.setAttribute('title','panel');f.setAttribute('scrolling','no');return f;};
+// A slot's content for a kind, sized to the slot rectangle.
+function fill(el,kind,rect){
+  el.replaceChildren();el.style.left=rect.x+'px';el.style.top=rect.y+'px';el.style.width=rect.w+'px';el.style.height=rect.h+'px';
+  if(kind==='leaderboard'){const s=rect.w/388;el.append(frame('/control/Voyager_Leaderboard_Panel.html?stage=1&compact=1',388,520,s));return;}
+  if(['standings','goals','helpers','hall','missions'].includes(kind)){const s=rect.w/388;el.append(frame('/control/Voyager_Community_Panel.html?stage=1&compact=1&kind='+(kind==='standings'?'season':kind),388,520,s));return;}
+  if(kind==='christmas'){const s=Math.min(rect.w/440,rect.h/560);el.append(frame('/control/Voyager_Christmas_Goal.html?stage=1&always=1',1920,1080,s,-1440*s+(rect.w-440*s)/2,-110*s));return;}
+  if(kind==='chat'){el.append(frame('/control/chat.html?stage=1&w='+rect.w+'&h='+rect.h,rect.w,rect.h,1));return;}
+  if(kind==='camera'){const d=document.createElement('div');d.className='camera';const s=document.createElement('span');s.textContent='CAMERA · PLACE YOUR SOURCE HERE';d.append(s);el.append(d);return;}
+}
+function fillStack(items,rect){
+  const box=$('stack');box.replaceChildren();box.style.left=rect.x+'px';box.style.top=rect.y+'px';box.style.width=rect.w+'px';box.style.height=rect.h+'px';
+  const heights={bucket:Math.round(rect.w/3840*480),ticker:56},gap=14;let y=0;const fixed=items.filter(k=>heights[k]).reduce((a,k)=>a+heights[k]+gap,0),free=Math.max(120,rect.h-fixed);
+  items.forEach((k,i)=>{const h=heights[k]||free,item=document.createElement('div');item.className='item';item.style.top=y+'px';item.style.height=h+'px';item.style.setProperty('--d',(2.45+i*.15)+'s');
+    if(k==='bucket')item.append(frame('/control/Voyager_Bucket_Overlay.html?stage=1&always=1',3840,480,rect.w/3840));
+    else if(k==='ticker')item.append(frame('/control/Voyager_Moments.html?stage=ticker&w='+rect.w,1920,1080,1));
+    else if(k==='moments')item.append(frame('/control/Voyager_Moments.html?stage=moments&w='+rect.w+'&h='+h,1920,1080,1));
+    box.append(item);y+=h+gap;});
+}
+function build(d){
+  const g=d.geometry,key=JSON.stringify([d.slots,d.stack,d.pip,g]);if(key===layoutKey)return;layoutKey=key;
+  stage.style.setProperty('--px',g.pip.x+'px');stage.style.setProperty('--py',g.pip.y+'px');stage.style.setProperty('--pw',g.pip.w+'px');stage.style.setProperty('--ph',g.pip.h+'px');stage.style.setProperty('--anim',(d.animationMs||1200)/1000+'s');
+  $('main').style.left=g.main.x+'px';$('main').style.top=g.main.y+'px';$('main').style.width=g.main.w+'px';$('main').style.height=g.main.h+'px';$('main').querySelector('iframe').style.transform='scale('+(g.main.w/1920)+')';$('main-tag').style.left=g.main.x+'px';$('main-tag').style.top=(g.main.y+g.main.h+10)+'px';
+  fill($('slot-left'),d.slots.left,g.left);fill($('slot-right'),d.slots.right,g.right);fill($('slot-bottomLeft'),d.slots.bottomLeft,g.bottomLeft);fillStack(d.stack||[],g.stack);
+}
+function clear(){layoutKey='';for(const id of ['slot-left','slot-right','slot-bottomLeft','stack'])$(id).replaceChildren();$('dread').removeAttribute('src');}
+function render(){
+  const d=data,fresh=d&&Date.now()-readAt<15000,want=!!(fresh&&d.active);
+  if(debug){$('debug').hidden=false;$('debug').textContent=['Stage · '+(base||location.origin)+'/api/stage/overlay',lastErr?'✗ '+lastErr:'✓ Voyager answered '+(readAt?Math.round((Date.now()-readAt)/1000)+' s ago':''),d?'Active: '+d.active+' · phase '+d.phase+(d.forced?' · forced from Voyager Control':'')+(d.demo?' · demo':''):'',d?'Slots: '+JSON.stringify(d.slots)+' · stack '+(d.stack||[]).join(', ')+' · PiP '+d.pip:'',d?.cue?'Cue: '+d.cue.phase+' '+(d.cue.ok?'sent':'failed: '+d.cue.message)+' · '+new Date(d.cue.at).toLocaleTimeString():'Cue: none sent yet (name the scene and game source on the Dreadnought page)'].filter(Boolean).join('\n');}
+  if(want&&!on){on=true;clearTimeout(offTimer);stage.classList.remove('off');build(d);$('dread').src=base+'/dreadnought.html?stage=1&quality='+(['ultra','balanced','low'].includes(q.get('quality'))?q.get('quality'):'balanced')+(q.get('res')?'&res='+encodeURIComponent(q.get('res')):'');stage.classList.add('on');if(d.phase==='lobby'||d.phase==='battle'){stage.classList.remove('alert');void stage.offsetWidth;stage.classList.add('alert');}}
+  else if(!want&&on){on=false;stage.classList.add('off');stage.classList.remove('alert');offTimer=setTimeout(()=>{stage.classList.remove('on','off');clear();},700);}
+  else if(want&&on)build(d);
+}
+async function poll(){try{const r=await fetch(base+'/api/stage/overlay',{cache:'no-store'});if(!r.ok)throw new Error('Voyager answered '+r.status+(r.status===404?' (update Voyager to 2.20.84 or later)':''));data=await r.json();readAt=Date.now();lastErr='';}
+  catch(e){lastErr=e.message&&e.message!=='Failed to fetch'?e.message:'Voyager is not reachable at '+(base||location.origin)+' (is Voyager running? add ?voyager=port if not on 8740)';}render();}
+poll();setInterval(poll,1000);
+})();

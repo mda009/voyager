@@ -41,6 +41,9 @@
 .dn-check{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;font-size:13px;color:#c9d7e4}
 .dn-check li::before{content:'○ ';color:#8ea6bd}.dn-check li.info::before{content:'• ';color:#8ea6bd}.dn-check li.ok::before{content:'✓ ';color:#7ce1cb}
 @media(max-width:1100px){.dn-layout{grid-template-columns:1fr}.dn-status,.dn-cmds{grid-template-columns:1fr 1fr}}
+.dn-form select{height:38px;padding:0 10px;border:1px solid rgba(151,223,255,.18);background:rgba(8,15,24,.55);color:#e6eef7;font:14px 'Segoe UI',sans-serif;min-width:0}
+.dn-form .group{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;font-size:12px;color:#9ab0c5}.dn-form .group b{flex:0 0 100%;font-weight:600;color:#c9d7e4}.dn-form .group label{flex-direction:row;align-items:center;gap:6px;grid-column:auto}
+.dn-stage-pic{display:grid;grid-template-columns:18% 1fr 18%;grid-template-rows:62% 1fr;gap:3px;aspect-ratio:16/9;border-radius:6px;overflow:hidden;background:#07111f;border:1px solid rgba(151,223,255,.18);font:700 9px Rajdhani,'Segoe UI',sans-serif;letter-spacing:.08em;color:#a7d8ff;text-transform:uppercase}.dn-stage-pic div{display:flex;align-items:center;justify-content:center;text-align:center;padding:3px;background:rgba(151,223,255,.08);border:1px solid rgba(151,223,255,.14);border-radius:3px}.dn-stage-pic .m{background:rgba(255,77,94,.12);border-color:rgba(255,120,130,.35);color:#ff9aa6}.dn-stage-pic .g{background:rgba(127,240,181,.1);border-color:rgba(127,240,181,.35);color:#7ff0b5}
 </style>
 </head>
 <body class="voyager-console voyager-settings voyager-community">
@@ -96,6 +99,28 @@
 <p class="st-hint">Add a <b>Browser</b> source, 1920 × 1080, with this address (leave "Local file" unticked). It is invisible until a fight starts. Tick <b>Use custom frame rate: 60</b>. Add <code>?backdrop=0</code> for a transparent background, <code>?quality=balanced</code> for 2K textures, or set the source to 3840 × 2160 and add <code>?res=2</code> for 4K.</p>
 <div class="cs-url"><code id="obs-url"></code><button type="button" id="obs-copy">Copy</button></div>
 </section>
+<section class="card dn-card" id="stage-card">
+<div class="card-heading"><div><span class="eyebrow">SCREEN TAKEOVER</span><h2>Dreadnought stage</h2></div><span class="st-pill" id="stage-pill" data-state="wait">Off</span></div>
+<p class="st-hint">When the Dreadnought is called, one browser source takes over the screen: the fight in the middle, your panels in the slots around it, a chat window, and your own scene shrunk into a corner (Streamer.bot moves it). It is invisible otherwise. Add a <b>Browser</b> source, 1920 × 1080, <b>above every other source</b> in your live scene, with this address:</p>
+<div class="cs-url"><code id="stage-url"></code><button type="button" id="stage-copy">Copy</button></div>
+<div class="dn-stage-pic" id="stage-pic"><div id="pic-left">Left</div><div class="m">Dreadnought</div><div id="pic-right">Right</div><div id="pic-bl">Corner</div><div id="pic-stack">Stack</div><div class="g" id="pic-pip">Your scene</div></div>
+<form id="stage-form" class="dn-form" autocomplete="off">
+<label class="check"><input type="checkbox" name="enabled"> Take over the screen while the Dreadnought is called</label>
+<label>Left column<select name="left"></select></label>
+<label>Right column<select name="right"></select></label>
+<label>Bottom corner<select name="bottomLeft"></select></label>
+<label>Your scene goes to<select name="pip"><option value="br">Bottom right</option><option value="bl">Bottom left</option></select></label>
+<div class="group"><b>Bottom middle, top to bottom</b><label><input type="checkbox" name="stack" value="bucket"> Giveaway goals strip</label><label><input type="checkbox" name="stack" value="ticker"> Right now ticker</label><label><input type="checkbox" name="stack" value="moments"> Command hints &amp; medal toasts</label></div>
+<div class="group"><b>Chat window</b><label><input type="checkbox" name="chat.twitch"> Twitch</label><label><input type="checkbox" name="chat.youtube"> YouTube</label><label><input type="checkbox" name="chat.kick"> Kick</label><label><input type="checkbox" name="chat.commands"> Show !commands</label><label><input type="checkbox" name="chat.names"> Show names</label></div>
+<label>Your live OBS scene<input name="scene" maxlength="120" placeholder="e.g. Live"></label>
+<label>Game source in it (nested scene or group)<input name="source" maxlength="120" placeholder="e.g. Game"></label>
+<label>Battle report stays on (seconds)<input name="resultSeconds" type="number" min="5" max="60"></label>
+<label>Move animation (ms)<input name="animationMs" type="number" min="200" max="4000" step="100"></label>
+<div class="st-actions wide" style="grid-column:1/-1"><button type="submit" class="primary">Save stage</button><button type="button" id="stage-show">Show the stage for 60 s</button><button type="button" id="stage-hide" hidden>Hide now</button></div>
+</form>
+<ul class="dn-check" id="stage-checks"></ul>
+<p class="st-hint">Streamer.bot: import <code>Voyager_Dreadnought_Stage.cs</code> as an action named exactly <b>Voyager - Dreadnought Stage</b> (no triggers; Voyager runs it). Put your game capture and camera in one nested scene or group inside your live scene and name both above. Without the action the stage still shows; your scene just stays where it is behind the frame.</p>
+</section>
 <section class="card dn-card">
 <span class="eyebrow">STREAMER.BOT</span>
 <ul class="dn-check" id="checklist"></ul>
@@ -117,8 +142,8 @@
 <script src="giveaway-connection.js"></script>
 <script src="points-model.js?v=4.4"></script>
 <script src="points-connection.js?v=4.4"></script>
-<script src="dreadnought.js?v=2.20.44"></script>
-<script src="voyager-shell.js?v=2.20.83"></script>
+<script src="dreadnought.js?v=2.20.84"></script>
+<script src="voyager-shell.js?v=2.20.84"></script>
 <script src="voyager-navigation.js"></script>
 </body>
 </html>

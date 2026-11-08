@@ -91,4 +91,36 @@ if(window.VoyagerPointsConnection&&hosted){
   points.connect();
 }
 if(!hosted)$('not-hosted').hidden=false;else{load();loadOwed();setInterval(()=>{if(!document.hidden)load();},1000);setInterval(()=>{if(!document.hidden&&!paying)loadOwed();},5000);}
+
+// ---------- Dreadnought stage (2.20.84): screen takeover layout, chat window and the Streamer.bot move cue ----------
+{
+const form=$('stage-form');if(form){let st=null,stEditing=false;const f=form.elements;
+$('stage-url').textContent=location.origin+'/control/stage.html';
+$('stage-copy').onclick=async()=>{try{await navigator.clipboard.writeText($('stage-url').textContent);$('stage-copy').textContent='Copied';setTimeout(()=>$('stage-copy').textContent='Copy',1500);}catch{}};
+function options(sel,kinds,value){if(!sel.options.length)for(const [k,label] of Object.entries(kinds)){const o=document.createElement('option');o.value=k;o.textContent=label;sel.append(o);}sel.value=value;}
+function pic(){const s=st.settings,short=k=>({none:'—',leaderboard:'Leaders',standings:'Standings',goals:'Goals',helpers:'Contributors',hall:'Hall of Fame',missions:'Missions',christmas:'Christmas',chat:'Chat',camera:'Camera'})[k]||k;
+  $('pic-left').textContent=short(s.slots.left);$('pic-right').textContent=short(s.slots.right);$('pic-bl').textContent=short(s.slots.bottomLeft);$('pic-stack').textContent=s.stack.map(k=>({bucket:'Goals strip',ticker:'Ticker',moments:'Hints · medals'})[k]).join(' · ')||'—';
+  const pipRight=s.pip==='br';$('pic-bl').style.order=pipRight?0:2;$('pic-pip').style.order=pipRight?2:0;$('pic-stack').style.order=1;}
+function renderStage(){if(!st)return;const s=st.settings;
+  if(!stEditing){f.enabled.checked=s.enabled;options(f.left,st.slotKinds,s.slots.left);options(f.right,st.slotKinds,s.slots.right);options(f.bottomLeft,st.slotKinds,s.slots.bottomLeft);f.pip.value=s.pip;
+    for(const cb of form.querySelectorAll('input[name=stack]'))cb.checked=s.stack.includes(cb.value);for(const k of ['twitch','youtube','kick','commands','names'])f['chat.'+k].checked=!!s.chat[k];
+    f.scene.value=s.scene;f.source.value=s.source;f.resultSeconds.value=s.resultSeconds;f.animationMs.value=s.animationMs;}
+  pic();
+  const pill=$('stage-pill');pill.dataset.state=st.forced?'ok':s.enabled?'wait':'';pill.textContent=st.forced?'Showing (test)':s.enabled?'Armed':'Off';$('stage-hide').hidden=!st.forced;$('stage-show').hidden=!!st.forced;
+  const act=st.action?.state,cue=st.cue;
+  const checks=[[s.enabled,s.enabled?'The stage takes over when the Dreadnought is called (and for the battle report)':'The stage is off: the Dreadnought shows on its own source as before'],
+    [act==='found',act==='found'?'Found the "Voyager - Dreadnought Stage" action: your scene will be moved into the corner':act==='disabled'?'"Voyager - Dreadnought Stage" is disabled in Streamer.bot: tick Enabled':act==='duplicate'?'Two enabled "Voyager - Dreadnought Stage" actions: keep one':act==='offline'?'Waiting for Streamer.bot':'No action named exactly "Voyager - Dreadnought Stage": import Voyager_Dreadnought_Stage.cs (the stage still shows without it; your scene just stays put)'],
+    [s.scene&&s.source?true:null,s.scene&&s.source?'Moving "'+s.source+'" inside the scene "'+s.scene+'"':'Name your live scene and the nested scene / group that holds your game to have it moved into the corner'],
+    [cue?cue.ok:null,cue?'Last cue: '+cue.phase+' · '+(cue.ok?'sent to Streamer.bot':'failed: '+cue.message)+' · '+new Date(cue.at).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'}):'No move cue sent yet (use "Show the stage for 60 s" to test)'],
+    [null,'Chat window: '+(st.chatCount||0)+' messages heard this session · platforms '+['twitch','youtube','kick'].filter(k=>s.chat[k]).join(', ')]];
+  const cl=$('stage-checks');cl.textContent='';for(const [ok,text] of checks){cl.append(el('li',ok===null?'info':ok?'ok':'',text));}}
+async function loadStage(){try{st=await api('/api/stage');renderStage();}catch(e){notice(e.message,true);}}
+form.addEventListener('focusin',()=>{stEditing=true;});form.addEventListener('change',()=>{if(st){st.settings={...st.settings,slots:{left:f.left.value,right:f.right.value,bottomLeft:f.bottomLeft.value},pip:f.pip.value,stack:[...form.querySelectorAll('input[name=stack]:checked')].map(c=>c.value)};pic();}});
+form.onsubmit=async e=>{e.preventDefault();const value={enabled:f.enabled.checked,slots:{left:f.left.value,right:f.right.value,bottomLeft:f.bottomLeft.value},pip:f.pip.value,stack:[...form.querySelectorAll('input[name=stack]:checked')].map(c=>c.value),scene:f.scene.value,source:f.source.value,resultSeconds:Number(f.resultSeconds.value),animationMs:Number(f.animationMs.value),chat:{}};
+  for(const k of ['twitch','youtube','kick','commands','names'])value.chat[k]=f['chat.'+k].checked;
+  try{st={...st,...(await api('/api/stage/settings',value))};stEditing=false;notice('Stage saved. A stage source that is open picks the layout up within a second.');renderStage();}catch(e){notice(e.message,true);}};
+$('stage-show').onclick=async()=>{try{st={...st,...(await api('/api/stage/force',{seconds:60}))};notice('The stage is showing for 60 seconds (your Dreadnought source shows the standby scene).');renderStage();setTimeout(loadStage,1500);}catch(e){notice(e.message,true);}};
+$('stage-hide').onclick=async()=>{try{st={...st,...(await api('/api/stage/force',{seconds:0}))};notice('Stage hidden.');renderStage();setTimeout(loadStage,1500);}catch(e){notice(e.message,true);}};
+loadStage();setInterval(loadStage,5000);
+}}
 })();
