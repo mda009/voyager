@@ -350,6 +350,7 @@ const server=http.createServer(async(req,res)=>{
         if(url.pathname==='/api/engage/quiz/ask'){engage.ask(input.id||'');response(res,200,{ok:true,...engage.view()});return;}
         if(url.pathname==='/api/engage/quiz/cancel'){engage.cancelQuiz();response(res,200,{ok:true,...engage.view()});return;}
         if(url.pathname==='/api/engage/quiz/bank'){engage.setBank(input.bank);response(res,200,{ok:true,...engage.view()});return;}
+        if(url.pathname==='/api/engage/quiz/starters'){engage.loadStarters();response(res,200,{ok:true,...engage.view()});return;}
         if(url.pathname==='/api/engage/log'){engage.moderateLog(String(input.id||''),input);response(res,200,{ok:true,...engage.view()});return;}
         if(url.pathname==='/api/engage/panel'){engage.showPanel(Number(input.seconds)||0);response(res,200,{ok:true,...engage.view()});return;}
         // 2.20.35: start a new stream by hand. Everyone can !report again, squadron chat caps, arrival cards and

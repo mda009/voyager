@@ -71,6 +71,7 @@ $('save').onclick=async()=>{try{const sq=read('sq-form');
 $('quiz-ask').onclick=async()=>{try{view={...view,...await api('/api/engage/quiz/ask',{})};notice('Question asked in chat and on stream.');render();}catch(e){notice(e.message,true);}};
 $('quiz-cancel').onclick=async()=>{try{view={...view,...await api('/api/engage/quiz/cancel',{})};notice('Question cancelled.');render();}catch(e){notice(e.message,true);}};
 $('bank-add').onclick=()=>{bank.push({id:'',q:'',a:[]});renderBank();};
+$('bank-starters').onclick=async()=>{if(!confirm('Replace every question with the shipped Star Citizen & general knowledge set? Your own questions will be removed.'))return;try{view={...view,...await api('/api/engage/quiz/starters',{})};bank=structuredClone(view.quiz.bank);renderBank();notice('Loaded '+bank.length+' questions.');}catch(e){notice(e.message,true);}};
 $('bank-save').onclick=async()=>{try{view={...view,...await api('/api/engage/quiz/bank',{bank:bank.filter(q=>q.q.trim())})};bank=structuredClone(view.quiz.bank);renderBank();notice('Questions saved.');}catch(e){notice(e.message,true);}};
 for(const [id,seconds] of [['panel-show',60],['panel-stay',3600],['panel-hide',0]])$(id).onclick=async()=>{try{view={...view,...await api('/api/engage/panel',{seconds})};notice(seconds?'Squadron panel is on stream.':'Squadron panel hidden.');render();}catch(e){notice(e.message,true);}};
 $('obs-url').textContent=location.origin+'/engage.html';

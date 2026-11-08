@@ -16,24 +16,83 @@ export const REPORT_MAX=2;
 export const ENGAGE_DEFAULTS={
   relay:{enabled:true,threshold:50,damagePct:2,perUserSeconds:5},
   report:{enabled:true,reward:2},
-  quiz:{enabled:true,reward:25,seconds:60,autoMinutes:0},
+  quiz:{enabled:true,reward:5,seconds:60,autoMinutes:0}, // 2.20.94: 5 points a correct answer
   squadrons:{enabled:true,names:{red:'Red Wing',gold:'Gold Wing',blue:'Blue Wing'},chat:1,chatCap:60,mission:25,damageDiv:10,versusWin:50},
   arrivals:{enabled:true,minTier:'silver',ranks:true},
   log:{enabled:true,perStream:3}
 };
-// Starter questions: all facts or Voyager commands. Edit them in Voyager Control › Chat engagement.
+// Starter questions (2.20.94): Star Citizen trivia and general knowledge, all with unambiguous answers. Edit them in
+// Voyager Control › Chat engagement, or reload this set with "Load the Star Citizen & general knowledge set".
+export const QUIZ_BANK_VERSION=2;
 export const QUIZ_STARTERS=[
+  // Star Citizen
+  {q:'Which studio develops Star Citizen?',a:['cloud imperium games','cloud imperium','cig']},
+  {q:'Who is the creator and director of Star Citizen?',a:['chris roberts','roberts']},
+  {q:'In what year did Star Citizen first go up on Kickstarter?',a:['2012']},
+  {q:'What is the name of Star Citizen\'s single-player campaign?',a:['squadron 42','squadron forty two','sq42','sq 42']},
+  {q:'Which star system was the first one playable in Star Citizen?',a:['stanton']},
+  {q:'Which lawless star system connects to Stanton through a jump point?',a:['pyro']},
+  {q:'What is the name of the human government in Star Citizen?',a:['united empire of earth','uee']},
+  {q:'What does UEC stand for?',a:['united earth credits','united earth credit']},
+  {q:'Which alien race is the UEE\'s main hostile enemy in Star Citizen?',a:['vanduul','the vanduul']},
+  {q:'Which Stanton planet has the landing zone Lorville?',a:['hurston']},
+  {q:'Which Stanton planet has the landing zone New Babbage?',a:['microtech','micro tech']},
+  {q:'Which Stanton planet has the landing zone Area18?',a:['arccorp','arc corp']},
+  {q:'Which Stanton planet is a gas giant with the floating city Orison?',a:['crusader']},
+  {q:'Name one of Crusader\'s three moons.',a:['cellin','daymar','yela']},
+  {q:'Which outlaw station is hidden inside an asteroid orbiting Yela?',a:['grimhex','grim hex','grim hex station']},
+  {q:'Which Stanton moon holds the Klescher prison?',a:['aberdeen']},
+  {q:'Which manufacturer builds the Cutlass, the Caterpillar and the Vulture?',a:['drake','drake interplanetary']},
+  {q:'Which manufacturer builds the Carrack, the Arrow and the Hornet?',a:['anvil','anvil aerospace']},
+  {q:'Which manufacturer builds the Gladius, the Avenger and the Idris?',a:['aegis','aegis dynamics']},
+  {q:'Which manufacturer builds the 300 series and the 890 Jump?',a:['origin','origin jumpworks']},
+  {q:'Which manufacturer builds the Aurora and the Constellation?',a:['rsi','roberts space industries']},
+  {q:'Which manufacturer builds the Prospector, the Freelancer and the Starfarer?',a:['misc','musashi industrial and starflight concern']},
+  {q:'What job is the Drake Vulture built for?',a:['salvage','salvaging']},
+  {q:'What job is the MISC Prospector built for?',a:['mining']},
+  {q:'What is the name of the faster-than-light travel mode used to cross a star system?',a:['quantum travel','quantum','quantum drive','quantum jump']},
+  {q:'What is the annual Star Citizen fan convention called?',a:['citizencon','citizen con']},
+  {q:'What does IAE stand for in Star Citizen?',a:['intergalactic aerospace expo','intergalactic aerospace exposition']},
+  {q:'Which noodle brand has vending machines all over Stanton?',a:['big bennys','big benny s','big benny','bennys','benny s','big bennys noodles']},
+  {q:'What is the name of the in-game currency you earn in the live alpha, with its first letter?',a:['auec','alpha uec']},
+  {q:'Which company is Hurston\'s planet named after and run by?',a:['hurston dynamics','hurston']},
+  // General knowledge
   {q:'Which planet has the Great Red Spot?',a:['jupiter']},
   {q:'What is the closest star to the Sun?',a:['proxima centauri','proxima']},
   {q:'Which planet is known as the Red Planet?',a:['mars']},
   {q:'What is the name of Saturn\'s largest moon?',a:['titan']},
   {q:'Which large galaxy is the Milky Way\'s nearest neighbour?',a:['andromeda','andromeda galaxy','m31']},
   {q:'What was the first artificial satellite put into orbit?',a:['sputnik','sputnik 1']},
-  {q:'What chat command shows your Voyager membership card?',a:['!voyager','voyager']},
-  {q:'What do you type to board the fleet when the Dreadnought appears?',a:['!join','join']},
-  {q:'How many naval ranks are there in the Voyager fleet?',a:['12','twelve']},
-  {q:'How many grades do most Voyager medals have?',a:['4','four']}
+  {q:'How many planets are in our Solar System?',a:['8','eight','8 planets','eight planets']},
+  {q:'Who was the first person to walk on the Moon?',a:['neil armstrong','armstrong']},
+  {q:'In which year did humans first land on the Moon?',a:['1969']},
+  {q:'Who was the first human in space?',a:['yuri gagarin','gagarin']},
+  {q:'Which is the hottest planet in the Solar System?',a:['venus']},
+  {q:'Which is the smallest planet in the Solar System?',a:['mercury']},
+  {q:'How many moons does Mars have?',a:['2','two','2 moons','two moons']},
+  {q:'What is the largest volcano in the Solar System, found on Mars?',a:['olympus mons','olympus']},
+  {q:'What does ISS stand for?',a:['international space station']},
+  {q:'Which space telescope launched in December 2021?',a:['james webb','james webb space telescope','jwst','webb']},
+  {q:'Roughly how fast does light travel, in kilometres per second?',a:['300000','300 000','299792','299 792','300k','three hundred thousand','300 000 km s','300000 km s']},
+  {q:'What is the chemical symbol for gold?',a:['au']},
+  {q:'What gas do plants absorb from the air?',a:['carbon dioxide','co2']},
+  {q:'What is the largest ocean on Earth?',a:['pacific','pacific ocean']},
+  {q:'What is the tallest mountain above sea level?',a:['everest','mount everest','mt everest']},
+  {q:'What is the capital city of Australia?',a:['canberra']},
+  {q:'The Great Barrier Reef lies off which Australian state?',a:['queensland','qld']},
+  {q:'What is the largest animal that has ever lived?',a:['blue whale','the blue whale']},
+  {q:'What is the fastest land animal?',a:['cheetah','the cheetah']},
+  {q:'How many bones are in the adult human body?',a:['206','206 bones']},
+  {q:'How many continents are there?',a:['7','seven','7 continents','seven continents']},
+  {q:'At what temperature does water boil at sea level, in Celsius?',a:['100','100 degrees','100c','100 c','100 degrees celsius']},
+  {q:'What is the hardest natural substance?',a:['diamond']},
+  {q:'Who wrote Romeo and Juliet?',a:['shakespeare','william shakespeare']},
+  {q:'What is the currency of Japan?',a:['yen','japanese yen']},
+  {q:'Which country launched the first satellite into orbit?',a:['soviet union','ussr','u s s r','russia','the soviet union']},
+  {q:'How many sides does a hexagon have?',a:['6','six','6 sides','six sides']}
 ];
+// The original ten starters (2.20.22), recognised so the 2.20.94 set can replace them without touching the streamer's own questions.
+const OLD_STARTERS=[{q:'Which planet has the Great Red Spot?'},{q:'What is the closest star to the Sun?'},{q:'Which planet is known as the Red Planet?'},{q:'What is the name of Saturn\'s largest moon?'},{q:'Which large galaxy is the Milky Way\'s nearest neighbour?'},{q:'What was the first artificial satellite put into orbit?'},{q:'What chat command shows your Voyager membership card?'},{q:'What do you type to board the fleet when the Dreadnought appears?'},{q:'How many naval ranks are there in the Voyager fleet?'},{q:'How many grades do most Voyager medals have?'}];
 const TIERS=['blue','silver','gold','platinum'];
 const clean=(v,max)=>String(v??'').replace(/[\u0000-\u001f\u007f]/g,' ').replace(/\s+/g,' ').trim().slice(0,max);
 const norm=v=>String(v??'').toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9! ]/g,' ').replace(/(?<=\S)!+/g,' ').replace(/\s+/g,' ').trim();
@@ -60,13 +119,18 @@ export class Engage{
     this.state=this.fresh();this.saving=Promise.resolve();this.savedAt=0;this.dirty=false;this.relayUsers=new Map();this.lastChatAt=0;this.pendingReports=[];this.reportSaidAt=0;this.seq=0;
   }
   fresh(){const now=this.now();return {schema:1,settings:structuredClone(ENGAGE_DEFAULTS),stream:{id:0,lastAt:0},relay:{count:0,crew:[],fired:0,battle:0},
-    reports:{},muster:[],quiz:{bank:QUIZ_STARTERS.map(x=>({id:randomUUID().slice(0,8),...x})),active:null,history:[],lastAutoAt:0},
+    reports:{},muster:[],quiz:{bank:QUIZ_STARTERS.map(x=>({id:randomUUID().slice(0,8),...x})),bankVersion:QUIZ_BANK_VERSION,active:null,history:[],lastAutoAt:0},
     squadrons:{members:{},week:{id:weekStart(now),chat:{},damage:{},versusBase:{},versus:{}},history:[]},
     arrivals:{stream:0,seen:{},ranks:{}},log:[],rewards:[],toasts:[]};}
   async load(){try{const raw=JSON.parse(await readFile(join(this.dataDir,FILE),'utf8'));if(raw?.schema===1){const f=this.fresh();this.state={...f,...raw,quiz:{...f.quiz,...raw.quiz},squadrons:{...f.squadrons,...raw.squadrons},arrivals:{...f.arrivals,...raw.arrivals}};
     // Settings saved before 2.20.24 may pay !report more than the new cap: bring them down rather than resetting everything.
     if(raw.settings?.report&&Number(raw.settings.report.reward)>REPORT_MAX)raw.settings.report.reward=REPORT_MAX;
-    try{this.state.settings=normalizeEngageSettings(raw.settings||{});}catch{this.state.settings=structuredClone(ENGAGE_DEFAULTS);}}}catch{}return this;}
+    try{this.state.settings=normalizeEngageSettings(raw.settings||{});}catch{this.state.settings=structuredClone(ENGAGE_DEFAULTS);}
+    // 2.20.94: the Star Citizen & general knowledge set replaces the original ten starters (questions the streamer added are kept), and a correct answer pays 5 points unless the reward was changed by hand.
+    if((Number(raw.quiz?.bankVersion)||1)<QUIZ_BANK_VERSION){const oldQ=new Set(OLD_STARTERS.map(x=>x.q)),starterQ=new Set(QUIZ_STARTERS.map(x=>x.q));const kept=(this.state.quiz.bank||[]).filter(x=>!oldQ.has(x.q)&&!starterQ.has(x.q));
+      this.state.quiz.bank=[...QUIZ_STARTERS.map(x=>({id:randomUUID().slice(0,8),...x})),...kept];this.state.quiz.bankVersion=QUIZ_BANK_VERSION;if(this.state.settings.quiz.reward===25)this.state.settings.quiz.reward=5;this.persist(true);}}}catch{}return this;}
+  // Replace the bank with the shipped set (Voyager Control › Chat engagement).
+  loadStarters(){this.state.quiz.bank=QUIZ_STARTERS.map(x=>({id:randomUUID().slice(0,8),...x}));this.state.quiz.bankVersion=QUIZ_BANK_VERSION;this.persist(true);return this.state.quiz.bank;}
   persist(force=false){if(!this.dataDir)return this.saving;if(!force&&this.now()-this.savedAt<15000){this.dirty=true;return this.saving;}
     this.savedAt=this.now();this.dirty=false;const data=JSON.stringify(this.state),tmp=join(this.dataDir,FILE+'.tmp');
     this.saving=this.saving.then(async()=>{await writeFile(tmp,data);await rename(tmp,join(this.dataDir,FILE));}).catch(()=>{});return this.saving;}

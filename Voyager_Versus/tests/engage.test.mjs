@@ -43,9 +43,9 @@ test('Bridge Quiz: first correct answer wins, answers are forgiving, time runs o
   const q=e.ask(e.state.quiz.bank[0].id);assert.match(said.at(-1),/BRIDGE QUIZ: Which planet/);assert.equal(said.to.at(-1),'','the quiz is for everyone: all platforms');assert.throws(()=>e.ask(),/already running/);
   e.chat(msg('Rook','saturn?'));assert.equal(e.state.quiz.active.winner,null);
   e.chat(msg('Nova','it is JUPITER!!'));assert.equal(e.state.quiz.active.winner.name,'Nova');e.chat(msg('Rook','jupiter'));assert.equal(e.state.quiz.active.winner.name,'Nova');
-  assert.equal(e.rewardBatches()[0].pilots[0].name,'Nova');assert.equal(e.rewardBatches()[0].reward,25);
+  assert.equal(e.rewardBatches()[0].pilots[0].name,'Nova');assert.equal(e.rewardBatches()[0].reward,5,'2.20.94: 5 points a correct answer');
   e.ask(e.state.quiz.bank[1].id);at(61000);e.tick();assert.match(said.at(-1),/Nobody got it\. The answer was Proxima Centauri/);
-  assert.equal(e.overlay().quiz?.answer,'Proxima Centauri');assert.equal(q.reward,25);
+  assert.equal(e.overlay().quiz?.answer,'Proxima Centauri');assert.equal(q.reward,5);
 });
 
 test('Squadrons: enlist, chat counts per stream up to the cap, missions, damage and Versus wins add up; switching waits 30 days',async()=>{
@@ -88,9 +88,9 @@ test('Muster and quiz rewards appear in Missions › Points owed',async()=>{
 test('!report: accounts are per platform, and a saved reward above the 2-point cap is brought down on load',async()=>{
   const dir=await mkdtemp(join(tmpdir(),'voyager-engage-cap-'));
   const {writeFile}=await import('node:fs/promises');
-  await writeFile(join(dir,'engage.json'),JSON.stringify({schema:1,settings:{report:{enabled:true,reward:5},quiz:{reward:25}}}));
+  await writeFile(join(dir,'engage.json'),JSON.stringify({schema:1,settings:{report:{enabled:true,reward:5},quiz:{reward:40}}}));
   const e=await new Engage({dataDir:dir,say:()=>{},boss:()=>null}).load();
-  assert.equal(e.state.settings.report.reward,2,'5 becomes 2');assert.equal(e.state.settings.quiz.reward,25,'other settings survive');
+  assert.equal(e.state.settings.report.reward,2,'5 becomes 2');assert.equal(e.state.settings.quiz.reward,40,'other settings survive (a hand-set quiz reward is kept by the 2.20.94 bank migration)');
   // The same person on Twitch and Kick is two accounts: two musters, 2 points each.
   assert.equal(e.chat(msg('Nova','!report','twitch')).ok,true);assert.equal(e.chat(msg('Nova','!report','kick')).ok,true);assert.equal(e.chat(msg('Nova','!report','twitch')).already,true);
   assert.deepEqual(e.rewardBatches()[0].pilots.map(p=>p.key),['twitch:id-Nova','kick:id-Nova']);assert.equal(e.rewardBatches()[0].reward,2);
@@ -101,4 +101,18 @@ test('Reset for a new stream (2.20.35): everyone can !report again; owed rewards
   assert.equal(e.chat(msg('Nova','!report')).ok,true);assert.equal(e.chat(msg('Nova','!report')).already,true);
   const owed=e.rewardBatches().length;e.newStream();
   assert.equal(e.chat(msg('Nova','!report')).ok,true,'reports again after the reset');assert.equal(e.rewardBatches().length,owed+1,'the earlier muster is still owed');
+});
+
+test('2.20.94 quiz bank: the Star Citizen & general knowledge set replaces the old starters, keeps the streamer\'s own questions and sets a 25-point default reward to 5',async()=>{
+  const {mkdtemp,writeFile}=await import('node:fs/promises');const {tmpdir}=await import('node:os');const {join}=await import('node:path');
+  const dir=await mkdtemp(join(tmpdir(),'voyager-quiz-'));
+  await writeFile(join(dir,'engage.json'),JSON.stringify({schema:1,settings:{quiz:{reward:25}},quiz:{bank:[{id:'a1',q:'Which planet has the Great Red Spot?',a:['jupiter']},{id:'a2',q:'What chat command shows your Voyager membership card?',a:['!voyager']},{id:'m1',q:'What is my cat called?',a:['nova']}],active:null,history:[],lastAutoAt:0}}));
+  const e=await new Engage({dataDir:dir,now:()=>1000,say:()=>{}}).load();
+  const qs=e.state.quiz.bank.map(x=>x.q);
+  assert.ok(qs.includes('Which studio develops Star Citizen?'),'new set loaded');assert.ok(qs.includes('What is my cat called?'),'own question kept');
+  assert.ok(!qs.includes('What chat command shows your Voyager membership card?'),'old Voyager-command starter replaced');
+  assert.equal(qs.filter(q=>q==='Which planet has the Great Red Spot?').length,1,'no duplicates');
+  assert.equal(e.state.settings.quiz.reward,5);assert.equal(e.state.quiz.bankVersion,2);
+  assert.ok(e.state.quiz.bank.length>=60);
+  e.loadStarters();assert.ok(!e.state.quiz.bank.some(x=>x.q==='What is my cat called?'),'reload replaces everything');
 });

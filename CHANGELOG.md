@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.94 (8 November 2026)
+
+**Bridge Quiz: Star Citizen trivia & general knowledge, 5 points a question.** The question set is now 63 questions — 30 on Star Citizen (studio, Squadron 42, Stanton and Pyro, the landing zones and moons, the UEE and the Vanduul, ship manufacturers and roles, quantum travel, CitizenCon, IAE, Big Benny's…) and 33 general knowledge (space, science, geography, a little Australia) — each with forgiving answer aliases. A correct answer pays **5 Voyager points** (was 25). Existing installs are migrated on start: the ten original starters are replaced, any questions you added yourself are kept, and the reward moves to 5 unless you had changed it by hand. Chat engagement › Questions has a new **Load the Star Citizen & general knowledge set** button to reload the shipped set at any time.
+
 ## 2.20.93 (8 November 2026)
 
 **Stage page keeps itself current.** The stage browser source now notices when Voyager has been updated and reloads itself under a new address, so OBS stops serving the cached old page (which is why, before this, a Versus test could still play as a Dreadnought until the cache was refreshed by hand). One manual cache refresh is needed to pick this version up; after that, none.
