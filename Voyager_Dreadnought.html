@@ -101,8 +101,8 @@
 <div class="cs-url"><code id="obs-url"></code><button type="button" id="obs-copy">Copy</button></div>
 </section>
 <section class="card dn-card" id="stage-card">
-<div class="card-heading"><div><span class="eyebrow">SCREEN TAKEOVER</span><h2>Dreadnought stage</h2></div><span class="st-pill" id="stage-pill" data-state="wait">Off</span></div>
-<p class="st-hint">When the Dreadnought is called, one browser source takes over the screen: the fight in the middle, your panels in the slots around it, a chat window, and your own scene shrunk into a corner (Streamer.bot moves it). It is invisible otherwise. Add a <b>Browser</b> source, 1920 × 1080, <b>above every other source</b> in your live scene, with this address:</p>
+<div class="card-heading"><div><span class="eyebrow">SCREEN TAKEOVER</span><h2>Dreadnought &amp; Versus stage</h2></div><span class="st-pill" id="stage-pill" data-state="wait">Off</span></div>
+<p class="st-hint">When the Dreadnought is called — or a Voyager Versus challenge — one browser source takes over the screen: the fight in the middle, your panels in the slots around it, a chat window, and your own scene shrunk into a corner (Streamer.bot moves it). It is invisible otherwise. Add a <b>Browser</b> source, 1920 × 1080, <b>above every other source</b> in your live scene, with this address:</p>
 <div class="cs-url"><code id="stage-url"></code><button type="button" id="stage-copy">Copy</button></div>
 <div class="dn-stage-pic" id="stage-pic"><div id="pic-left">Left</div><div class="m">Dreadnought</div><div id="pic-right">Right</div><div id="pic-bl">Corner</div><div id="pic-stack">Stack</div><div class="g" id="pic-pip">Your scene</div></div>
 <form id="stage-form" class="dn-form" autocomplete="off">
@@ -119,8 +119,12 @@
 <label>Splash holds before the takeover (seconds)<input name="splashSeconds" type="number" min="0" max="30"></label>
 <label>MVP celebration after the report (seconds)<input name="mvpSeconds" type="number" min="0" max="60"></label>
 <label>Battle report stays on (seconds)<input name="resultSeconds" type="number" min="5" max="60"></label>
+<div class="group"><b>Voyager Versus takeover</b><label><input type="checkbox" name="versus.enabled"> Take over the screen for Versus calls and battles</label></div>
+<label>Versus splash holds (seconds)<input name="versus.splashSeconds" type="number" min="0" max="30"></label>
+<label>Champion celebration after the result (seconds)<input name="versus.winnerSeconds" type="number" min="0" max="60"></label>
+<label>Champion bonus (points, on top of the winner reward)<input name="versus.winnerBonus" type="number" min="0" max="100000"></label>
 <label>Move animation (ms)<input name="animationMs" type="number" min="200" max="4000" step="100"></label>
-<div class="st-actions wide" style="grid-column:1/-1"><button type="submit" class="primary">Save stage</button><button type="button" id="stage-show">Show the stage for 60 s</button><button type="button" id="stage-hide" hidden>Hide now</button><button type="button" id="stage-cue">Move my scene again</button></div>
+<div class="st-actions wide" style="grid-column:1/-1"><button type="submit" class="primary">Save stage</button><button type="button" id="stage-show">Show the Dreadnought stage for 60 s</button><button type="button" id="stage-show-versus">Show the Versus stage for 60 s</button><button type="button" id="stage-hide" hidden>Hide now</button><button type="button" id="stage-cue">Move my scene again</button></div>
 </form>
 <ul class="dn-check" id="stage-checks"></ul>
 <p class="st-hint">Streamer.bot: import <code>Voyager_Dreadnought_Stage.cs</code> (v1.3 or later for hiding sources) as an action named exactly <b>Voyager - Dreadnought Stage</b> (no triggers; Voyager runs it). Put your game capture and camera in one nested scene or group inside your live scene and name both above. Without the action the stage still shows; your scene just stays where it is behind the frame.</p>
@@ -146,8 +150,8 @@
 <script src="giveaway-connection.js"></script>
 <script src="points-model.js?v=4.4"></script>
 <script src="points-connection.js?v=4.4"></script>
-<script src="dreadnought.js?v=2.20.90"></script>
-<script src="voyager-shell.js?v=2.20.90"></script>
+<script src="dreadnought.js?v=2.20.91"></script>
+<script src="voyager-shell.js?v=2.20.91"></script>
 <script src="voyager-navigation.js"></script>
 </body>
 </html>

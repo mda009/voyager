@@ -127,6 +127,8 @@ const sourceSeen={community:0,engage:0};
 // Camera spotlight cues from the host (2.20.61), so the camera follows alerts even when the OBS overlay copy is old.
 // Dreadnought stage (2.20.84): the screen takeover while the Dreadnought is called; the shrink/restore cue goes to the "Voyager - Dreadnought Stage" action.
 const stage=await new Stage({dataDir,run:args=>actions.doAction('Voyager - Dreadnought Stage',args),log:m=>console.log('[stage] '+m)}).load();
+// What the stage decides from: the Dreadnought overlay and the Versus arena (phase, caller, players, result).
+const stageState=()=>[boss.overlay(),{phase:game.phase,matchId:game.matchId,caller:game.caller,players:game.players,result:game.result}];
 const fleetCamera=new FleetCamera({run:args=>actions.doAction('Voyager - Fleet Alerts',args),log:m=>console.log('[fleet] '+m)});
 const bot=new StreamerBot({onOtherChat:chat=>{
   try{stage.chat(chat);}catch{}
@@ -193,9 +195,9 @@ const matchChat=new MatchChat({directory:dataDir,game,bot,action:()=>rewards.rea
 // On-screen moments (2.20.64): ticker, surge, hints, next-celebration chip, promotion ceremony, Dreadnought HUD.
 const moments=await new Moments({dataDir,boss:()=>boss.overlay(),medals:()=>medals.state.recent,promotions:()=>cards.state.promotions,medalToasts:()=>medals.state.toasts,medalIcon:id=>MEDAL_ICONS[id]||''}).load();
 game.onEvent=event=>{matchChat.capture(event);try{moments.versus(event);}catch{}};
-if(community)community.extraPayables=()=>moments.bonusPayables();
+if(community)community.extraPayables=()=>[...moments.bonusPayables(),...stage.bonusPayables()];
 if(community)community.onPoints=list=>{try{moments.points(list);}catch{}};medals.onStreak=list=>{try{moments.streaks(list);}catch{}};
-function packet(){const snapshot=game.snapshot();for(const r of snapshot.result?.rewards||[])r.status=economy.data.rewards.find(x=>x.id===r.id)?.status||r.status;return {serverTime:Date.now(),game:snapshot,connection:bot.status,rewards:rewards.snapshot(),announcements:announcements.snapshot(),matchChat:matchChat.snapshot(),entries:entries.snapshot(),pilotLeaderboard:pilots.snapshot()};}
+function packet(){const snapshot=game.snapshot();for(const r of snapshot.result?.rewards||[])r.status=economy.data.rewards.find(x=>x.id===r.id)?.status||r.status;return {serverTime:Date.now(),stage:stage.mode(...stageState())==='versus',game:snapshot,connection:bot.status,rewards:rewards.snapshot(),announcements:announcements.snapshot(),matchChat:matchChat.snapshot(),entries:entries.snapshot(),pilotLeaderboard:pilots.snapshot()};}
 const failures=new Map();
 const allowedHosts=new Set([`127.0.0.1:${port}`,`localhost:${port}`]);
 function response(res,status,data){res.writeHead(status,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(JSON.stringify(data));}
@@ -215,21 +217,21 @@ const server=http.createServer(async(req,res)=>{
     if(url.pathname==='/api/health'&&req.method==='GET'){response(res,200,{ok:true,version:VERSION,voyagerControl:hasControl});return;}
     if(url.pathname==='/api/shutdown'&&req.method==='POST'){if(!validToken(req)||!req.headers['content-type']?.startsWith('application/json')){response(res,403,{message:'Open the local control panel.'});return;}response(res,200,{ok:true,message:'Saving and stopping Voyager.'});setImmediate(()=>void stop());return;}
     if(url.pathname==='/api/system'&&req.method==='GET'){if(!validToken(req)){response(res,403,{message:'Open the local control panel.'});return;}let writable=true;try{const probe=join(dataDir,'.write-test');await writeFile(probe,'ok');await unlink(probe);}catch{writable=false;}response(res,200,{version:VERSION,node:process.versions.node,platform:process.platform,dataDir,dataWritable:writable,importedFrom,legacyDataPresent:await hasJson(legacyDataDir)&&legacyDataDir!==dataDir,controlBundled:hasControl});return;}
-    if(url.pathname==='/api/stage/overlay'&&req.method==='GET'){res.setHeader('Cache-Control','no-store');response(res,200,stage.overlay(boss.overlay()));return;}
+    if(url.pathname==='/api/stage/overlay'&&req.method==='GET'){res.setHeader('Cache-Control','no-store');response(res,200,stage.overlay(...stageState()));return;}
     if(url.pathname.startsWith('/api/stage')){
       if(!validToken(req)){response(res,403,{message:'Open Voyager Control › Voyager Dreadnought.'});return;}
       if(url.pathname==='/api/stage'&&req.method==='GET'){response(res,200,{...stage.view(),connected:bot.status.connected,action:await actionStatus('Voyager - Dreadnought Stage')});return;}
       if(req.method!=='POST'||!req.headers['content-type']?.startsWith('application/json')){response(res,405,{message:'Method not allowed.'});return;}
       try{const input=await body(req,65536);
         if(url.pathname==='/api/stage/settings'){response(res,200,{ok:true,...stage.configure(input||{})});return;}
-        if(url.pathname==='/api/stage/force'){response(res,200,{ok:true,...stage.force(input?.seconds),...stage.view()});return;}
-        if(url.pathname==='/api/stage/cue'){const r=await stage.resend(boss.overlay());response(res,200,{ok:true,cue:r||stage.cue.last,...stage.view()});return;}
+        if(url.pathname==='/api/stage/force'){response(res,200,{ok:true,...stage.force(input?.seconds,input?.mode),...stage.view()});return;}
+        if(url.pathname==='/api/stage/cue'){const r=await stage.resend(...stageState());response(res,200,{ok:true,cue:r||stage.cue.last,...stage.view()});return;}
       }catch(e){response(res,400,{message:e.message});return;}
       response(res,404,{message:'Not found.'});return;}
     if(url.pathname.startsWith('/api/community')){
       if(!community){response(res,404,{message:'Missions and seasons need the full Voyager Control package.'});return;}
       // The OBS panel reads this without the control token (local only, no member keys), like /api/live-overlay.
-      if(url.pathname==='/api/community/overlay'&&req.method==='GET'){res.setHeader('Cache-Control','no-store');sourceSeen.community=Date.now();response(res,200,{...community.overlay(),stage:stage.active(boss.overlay())});return;}
+      if(url.pathname==='/api/community/overlay'&&req.method==='GET'){res.setHeader('Cache-Control','no-store');sourceSeen.community=Date.now();response(res,200,{...community.overlay(),stage:stage.active(...stageState())});return;}
       if(!validToken(req)){response(res,403,{message:'Open the local Missions or Seasons page.'});return;}
       if(url.pathname==='/api/community'&&req.method==='GET'){community.roll(Date.now());response(res,200,{...community.view(),sourceAt:sourceSeen.community});return;}
       if(req.method!=='POST'||!req.headers['content-type']?.startsWith('application/json')){response(res,405,{message:'Method not allowed.'});return;}
@@ -279,7 +281,7 @@ const server=http.createServer(async(req,res)=>{
       if(url.pathname==='/api/public-site/publish-now'){await body(req);if(!publicSite.view().upload.enabled){response(res,400,{ok:false,message:'Turn on publishing and add the repository and token first.'});return;}publicSite.rebuild();await publicSite.push();const v=publicSite.view();response(res,200,{ok:!v.upload.lastError,message:v.upload.lastError||'Published. The public site shows it within about 5 minutes.',status:v});return;}
       response(res,404,{message:'Not found.'});return;
     }
-    if(url.pathname==='/api/cards/ranks/overlay'&&req.method==='GET'){res.setHeader('Access-Control-Allow-Origin','*');res.setHeader('Cache-Control','no-store');response(res,200,{...cards.rankOverlay(),stage:stage.active(boss.overlay())});return;}
+    if(url.pathname==='/api/cards/ranks/overlay'&&req.method==='GET'){res.setHeader('Access-Control-Allow-Origin','*');res.setHeader('Cache-Control','no-store');response(res,200,{...cards.rankOverlay(),stage:stage.active(...stageState())});return;}
     if(url.pathname==='/api/cards/overlay'&&req.method==='GET'){res.setHeader('Cache-Control','no-store');response(res,200,cards.overlay());return;}
     if(url.pathname.startsWith('/api/cards')){
       if(!validToken(req)){response(res,403,{message:'Open Voyager Control › Membership cards.'});return;}
@@ -294,7 +296,7 @@ const server=http.createServer(async(req,res)=>{
       }catch(e){response(res,400,{ok:false,message:e.message});}
       return;
     }
-    if(url.pathname==='/api/moments/overlay'&&req.method==='GET'){res.setHeader('Access-Control-Allow-Origin','*');res.setHeader('Cache-Control','no-store');response(res,200,{...moments.overlay(),stage:stage.active(boss.overlay())});return;}
+    if(url.pathname==='/api/moments/overlay'&&req.method==='GET'){res.setHeader('Access-Control-Allow-Origin','*');res.setHeader('Cache-Control','no-store');response(res,200,{...moments.overlay(),stage:stage.active(...stageState())});return;}
     if(url.pathname.startsWith('/api/moments')){
       if(!validToken(req)){response(res,403,{message:'Open Voyager Control › On-screen moments.'});return;}
       if(url.pathname==='/api/moments'&&req.method==='GET'){response(res,200,{...moments.view(),connected:bot.status.connected});return;}
@@ -337,7 +339,7 @@ const server=http.createServer(async(req,res)=>{
       response(res,404,{message:'Unknown Streamer.bot request.'});return;
     }
     if(url.pathname==='/api/boss/overlay'&&req.method==='GET'){res.setHeader('Cache-Control','no-store');{const b=boss.overlay();response(res,200,{...b,relay:engage.relayView(),stage:stage.active(b)});}return;}
-    if(url.pathname==='/api/engage/overlay'&&req.method==='GET'){res.setHeader('Cache-Control','no-store');const inStage=url.searchParams.get('stage')==='1';if(!inStage)sourceSeen.engage=Date.now();response(res,200,{...engage.overlay({always:inStage}),stage:stage.active(boss.overlay())});return;}
+    if(url.pathname==='/api/engage/overlay'&&req.method==='GET'){res.setHeader('Cache-Control','no-store');const inStage=url.searchParams.get('stage')==='1';if(!inStage)sourceSeen.engage=Date.now();response(res,200,{...engage.overlay({always:inStage}),stage:stage.active(...stageState())});return;}
     if(url.pathname.startsWith('/api/engage')){
       if(!validToken(req)){response(res,403,{message:'Open Voyager Control › Chat engagement.'});return;}
       if(url.pathname==='/api/engage'&&req.method==='GET'){response(res,200,{...engage.view(),sourceAt:sourceSeen.engage,connected:bot.status.connected,medalsAction:await actionStatus('Voyager - Medals'),lastChatAt,otherChat:bot.otherChat});return;}
@@ -441,7 +443,7 @@ const server=http.createServer(async(req,res)=>{
 let ticks=0;const timer=setInterval(()=>{
   try{boss.tick();}catch{}
   if(ticks%5===0)void fleetCamera.tick();
-  if(ticks%2===0)void stage.tick(boss.overlay()).catch(()=>{});
+  if(ticks%2===0)void stage.tick(...stageState()).catch(()=>{});
   if(ticks%20===0)try{moments.tick();}catch{}
   try{game.tick(.1);}catch{game.paused=true;game.note('Host storage error. Check the game folder before restarting.');}ticks++;
   if(ticks%10===0){try{engage.tick();engage.observePilots();}catch{}community?.roll(Date.now());void publicSite?.tick();void pilots.tick();void rewards.tick();void announcements.tick();void matchChat.tick();}

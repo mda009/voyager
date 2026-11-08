@@ -62,3 +62,27 @@ test('Move cue goes to Streamer.bot once when the stage comes up and once when i
   now+=30000;const off=await st.tick({phase:'result',endedAt:now-25000});assert.equal(off.phase,'off');assert.equal(sent.length,2);
   assert.equal(st.overlay({phase:'idle'}).cue.phase,'off');
 });
+
+test('Voyager Versus takeover (2.20.91): call, battle and result put the stage up, the champion is celebrated and earns the bonus payable; the Dreadnought wins when both are on',async()=>{
+  let now=50000;const st=await new Stage({dataDir:await dir(),now:()=>now}).load();
+  const idle={phase:'idle'};
+  assert.equal(st.mode(idle,{phase:'lobby'}),'','nothing on');
+  assert.equal(st.mode(idle,{phase:'calling',caller:{name:'StarNova'}}),'versus');
+  let o=st.overlay(idle,{phase:'calling',caller:{name:'StarNova'}});assert.equal(o.mode,'versus');assert.equal(o.splashOn,true);assert.match(o.splash.title,/STARNOVA CALLS/);assert.match(o.main.url,/index\.html\?overlay=1&stage=1/);
+  o=st.overlay(idle,{phase:'battle',players:[{name:'StarNova'},{name:'Quillon'}]});assert.equal(o.splashOn,false);assert.equal(o.phase,'battle');
+  const result={phase:'result',matchId:'m1',players:[{name:'StarNova',login:'starnova',userId:'123'},{name:'Quillon',login:'quillon',userId:'456'}],result:{winner:0,reason:'Hull destroyed',cancelled:false,demo:false,duration:42,rewards:[{role:'winner',amount:50},{role:'runnerUp',amount:0}]}};
+  assert.equal(st.mode(idle,result),'versus');assert.equal(st.overlay(idle,result).phase,'result');
+  now+=9000;o=st.overlay(idle,{phase:'lobby'});assert.equal(o.mode,'versus','arena back in the lobby, the champion celebration keeps the stage up');assert.equal(o.phase,'winner');
+  assert.equal(o.celebrate.name,'StarNova');assert.equal(o.celebrate.points,75,'winner reward 50 + champion bonus 25');assert.match(o.celebrate.line,/DEFEATED QUILLON · 0:42/);
+  now+=10000;assert.equal(st.mode(idle,{phase:'lobby'}),'','celebration over');
+  const pay=st.bonusPayables();assert.equal(pay.length,1);assert.equal(pay[0].key,'twitch:123');assert.equal(pay[0].reward,25);assert.equal(pay[0].scope,'versus');assert.match(pay[0].title,/beat Quillon/);
+  await st.saving;const again=await new Stage({dataDir:st.dataDir,now:()=>now}).load();assert.equal(again.bonusPayables().length,1,'payables persist');
+  // a training (demo) win is celebrated but never paid; a cancelled call puts nothing on screen
+  st.observeVersus({phase:'result',matchId:'m2',players:[{name:'Bot A',demo:true},{name:'Bot B',demo:true}],result:{winner:1,demo:true,duration:10}});assert.equal(st.bonusPayables().length,1);assert.equal(st.lastVersus.winner.name,'Bot B');
+  st.observeVersus({phase:'result',matchId:'m3',players:[{name:'A'},{name:'B'}],result:{winner:null,cancelled:true}});assert.equal(st.lastVersus.winner,null);now+=9000;assert.equal(st.mode(idle,{phase:'lobby'}),'');
+  // Dreadnought outranks Versus; Versus can be switched off; forced Versus preview
+  assert.equal(st.mode({phase:'battle'},{phase:'battle'}),'dread');
+  st.configure({versus:{enabled:false}});assert.equal(st.mode(idle,{phase:'battle'}),'');
+  st.force(60,'versus');assert.equal(st.mode(idle,{phase:'lobby'}),'versus');assert.equal(st.overlay(idle,{phase:'lobby'}).splashOn,true);
+  assert.throws(()=>normalizeSettings({versus:{winnerBonus:-1}}),/Versus winner bonus/);
+});

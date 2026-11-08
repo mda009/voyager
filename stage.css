@@ -14,10 +14,11 @@
 .tag{position:absolute;display:flex;align-items:center;gap:8px;font:700 13px Rajdhani;letter-spacing:.24em;color:#a7d8ff;white-space:nowrap;text-shadow:0 1px 3px #000}
 .tag i{width:8px;height:8px;border-radius:50%;background:#ff5a6e;box-shadow:0 0 10px #ff5a6e;animation:live 1.4s ease-in-out infinite}@keyframes live{50%{opacity:.35}}
 #pip-tag{left:0;top:-22px}
-#main-tag{left:384px;top:678px;color:#ff9aa6;opacity:0;transition:opacity .5s 2s}.on #main-tag{opacity:1}
+#main-tag{left:384px;top:678px;color:var(--accent,#ff9aa6);opacity:0;transition:opacity .5s 2s}.on #main-tag{opacity:1}
+/* 2.20.91: --accent follows the takeover (red Dreadnought, cyan Versus) */
 /* main feature */
 #main{position:absolute;left:384px;top:20px;width:1152px;height:648px;border-radius:12px;overflow:hidden;opacity:0;transform:scale(1.06);transform-origin:50% 50%;background:#05080f;
-  box-shadow:0 0 0 1px rgba(255,120,130,.45),0 0 0 2px rgba(255,255,255,.06),0 30px 80px rgba(0,0,0,.7),0 0 60px rgba(255,77,94,.25);transition:opacity .9s ease 1.3s,transform 1.1s cubic-bezier(.2,.8,.2,1) 1.3s}
+  box-shadow:0 0 0 1px var(--accent,rgba(255,120,130,.45)),0 0 0 2px rgba(255,255,255,.06),0 30px 80px rgba(0,0,0,.7),0 0 60px var(--accent-glow,rgba(255,77,94,.25));transition:opacity .9s ease 1.3s,transform 1.1s cubic-bezier(.2,.8,.2,1) 1.3s}
 #main iframe{border:0;width:1920px;height:1080px;transform:scale(.6);transform-origin:0 0;display:block}
 .on #main{opacity:1;transform:none}
 #main::after{content:'';position:absolute;inset:0;border-radius:12px;box-shadow:inset 0 1px 0 rgba(255,255,255,.18);pointer-events:none}
@@ -35,14 +36,14 @@
 #stack iframe{border:0;position:absolute;left:0;top:0;transform-origin:0 0;display:block}
 /* alert */
 #alert{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%) scale(.6);display:flex;flex-direction:column;align-items:center;gap:14px;opacity:0}
-#alert b{font:700 86px/1 Rajdhani;letter-spacing:.14em;color:#fff;text-shadow:0 0 30px rgba(255,77,94,.9),0 4px 10px #000}
-#alert span{font:700 24px Rajdhani;letter-spacing:.4em;color:#ff9aa6;text-shadow:0 2px 8px #000}
+#alert b{font:700 86px/1 Rajdhani;letter-spacing:.14em;color:#fff;text-shadow:0 0 30px var(--accent-glow,rgba(255,77,94,.9)),0 4px 10px #000;max-width:1700px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#alert span{font:700 24px Rajdhani;letter-spacing:.4em;color:var(--accent,#ff9aa6);text-shadow:0 2px 8px #000}
 #alert em{display:flex;gap:14px;font:700 18px Rajdhani;letter-spacing:.22em;font-style:normal;color:#07101c}#alert em i{font-style:normal;background:#ffd56a;padding:8px 14px;border-radius:4px}
 /* 2.20.90: the splash holds for --splash (6 s by default) before the stage builds; the move cue waits the same time */
 .alert #alert{animation:alert var(--splash,6s) cubic-bezier(.2,.9,.3,1) forwards}
 @keyframes alert{0%{opacity:0;transform:translate(-50%,-50%) scale(.6)}5%{opacity:1;transform:translate(-50%,-50%) scale(1.04)}9%{transform:translate(-50%,-50%) scale(1)}90%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-62%) scale(.96)}}
-.alert #alert b{animation:alertpulse 1.2s ease-in-out infinite}@keyframes alertpulse{50%{text-shadow:0 0 50px rgba(255,77,94,1),0 4px 10px #000}}
-#flash{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 45%,rgba(255,90,110,.55),rgba(255,90,110,0) 60%);opacity:0}
+.alert #alert b{animation:alertpulse 1.2s ease-in-out infinite}@keyframes alertpulse{50%{text-shadow:0 0 50px var(--accent,rgba(255,77,94,1)),0 4px 10px #000}}
+#flash{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 45%,var(--accent-flash,rgba(255,90,110,.55)),transparent 60%);opacity:0}
 .alert #flash{animation:flash 1.2s ease-out forwards}@keyframes flash{0%{opacity:0}10%{opacity:1}100%{opacity:0}}
 /* leaving: everything fades together */
 .off #backdrop,.off #main,.off .slot,.off #stack .item,.off #pip,.off #main-tag,.off #mvp{transition:opacity .6s ease,transform .6s ease;opacity:0}

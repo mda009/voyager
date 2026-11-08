@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.91 (8 November 2026)
+
+**Voyager Versus takes the stage.** The screen takeover built for the Dreadnought now runs for Voyager Versus too: a `!versus` call slams the splash ("<caller> CALLS") and holds 6 s, your scene glides into the corner while the arena fills the middle with your panels, chat and the hide list applied, the countdown, battle and result play, and then the **champion** is celebrated for 10 s in gold — name, "defeated <opponent> · time", and the points: the 50-point winner reward plus a new **champion bonus** (25 by default), which is paid from Missions › Points owed as a Versus stage row. A cancelled call or a draw just brings the stage down. The Dreadnought wins if both happen at once. Settings (on/off, splash hold, celebration length, bonus) and a "Show the Versus stage for 60 s" test live on the Dreadnought page's stage card, which is now "Dreadnought & Versus stage". The standalone Versus arena overlay hides itself while the stage shows the arena.
+
 ## 2.20.90 (8 November 2026)
 
 **Dreadnought stage: splash hold and MVP celebration.** The "Dreadnought called" slam now holds over the full-screen game for 6 seconds (adjustable) before the takeover begins, and the Streamer.bot move cue waits the same time, so the scene shrinks as the panels arrive. After the battle report, the **MVP** (most damage, whatever the outcome) gets the screen for 10 seconds (adjustable): name in gold metal, damage dealt, expanding rings and confetti, and, on a victory, the **MVP bonus** — a new Dreadnought setting, 25 points by default — which is added to the Dreadnought rewards on Missions › Points owed (an escape still pays nothing). Then the stage comes down and your scene returns.

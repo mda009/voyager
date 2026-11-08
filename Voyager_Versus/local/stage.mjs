@@ -1,4 +1,4 @@
-// Voyager Dreadnought stage (2.20.84). When the Dreadnought is called, one full-screen OBS browser source (stage.html) takes
+// Voyager stage (2.20.84 Dreadnought; 2.20.91 Voyager Versus too). When the Dreadnought is called, one full-screen OBS browser source (stage.html) takes
 // over the screen: the Dreadnought scene in the middle, stream panels in the slots around it, the streamer's own scene shrunk
 // to a corner. The host decides when the stage is up (boarding, battle and the battle report), keeps the slot layout the
 // streamer chose, keeps a short multichat feed for the chat slot, and sends the shrink / restore cue to the
@@ -11,7 +11,7 @@ import {randomUUID} from 'node:crypto';
 export const SLOT_KINDS={none:'Nothing',leaderboard:'Leaderboard panel',standings:'Community goal standings',goals:'Community goals',helpers:'Community goal contributors',hall:'Hall of Fame',missions:"This week's missions",christmas:'Christmas goal panel',chat:'Chat (Twitch · YouTube · Kick)',squadron:'Squadron war panel',dread:'Dreadnought damage HUD',camera:'Camera window (transparent)'};
 export const STACK_KINDS={bucket:'Giveaway goals strip',ticker:'Right now ticker',moments:'Command hints & medal toasts',dread:'Dreadnought damage HUD'};
 export const SLOTS=['left','right','bottomLeft'];
-export const STAGE_DEFAULTS={enabled:true,slots:{left:'leaderboard',right:'helpers',bottomLeft:'chat'},stack:['bucket','ticker','moments'],pip:'br',scene:'',source:'',hide:[],resultSeconds:20,splashSeconds:6,mvpSeconds:10,animationMs:1200,chat:{twitch:true,youtube:true,kick:true,commands:false,names:true}};
+export const STAGE_DEFAULTS={enabled:true,slots:{left:'leaderboard',right:'helpers',bottomLeft:'chat'},stack:['bucket','ticker','moments'],pip:'br',scene:'',source:'',hide:[],resultSeconds:20,splashSeconds:6,mvpSeconds:10,animationMs:1200,chat:{twitch:true,youtube:true,kick:true,commands:false,names:true},versus:{enabled:true,splashSeconds:6,winnerSeconds:10,winnerBonus:25}};
 const CHAT_MAX=80,CHAT_SHOW=40;
 const clean=(v,n)=>String(v??'').replace(/[\u0000-\u001f\u007f]/g,'').trim().slice(0,n);
 export function normalizeSettings(raw={},prev=STAGE_DEFAULTS){
@@ -28,6 +28,8 @@ export function normalizeSettings(raw={},prev=STAGE_DEFAULTS){
   if(r.mvpSeconds!==undefined){const n=Number(r.mvpSeconds);if(!Number.isFinite(n)||n<0||n>60)throw new Error('MVP celebration must be 0 to 60 seconds.');s.mvpSeconds=Math.round(n);}
   if(r.animationMs!==undefined){const n=Number(r.animationMs);if(!Number.isFinite(n)||n<200||n>4000)throw new Error('Animation must be 200 to 4000 ms.');s.animationMs=Math.round(n);}
   if(r.chat&&typeof r.chat==='object')for(const k of ['twitch','youtube','kick','commands','names'])if(r.chat[k]!==undefined)s.chat[k]=!!r.chat[k];
+  if(r.versus&&typeof r.versus==='object'){const v=r.versus;if(v.enabled!==undefined)s.versus.enabled=!!v.enabled;
+    for(const [k,min,max,label] of [['splashSeconds',0,30,'Versus splash hold'],['winnerSeconds',0,60,'Versus winner celebration'],['winnerBonus',0,100000,'Versus winner bonus']])if(v[k]!==undefined){const n=Number(v[k]);if(!Number.isFinite(n)||n<min||n>max)throw new Error(label+' must be '+min+' to '+max+'.');s.versus[k]=Math.round(n);}}
   return s;
 }
 // The picture-in-picture window and the main feature on the 1920 x 1080 canvas; stage.html and the OBS cue share these numbers.
@@ -36,10 +38,10 @@ export class Stage{
   constructor({dataDir='.',now=()=>Date.now(),run=null,uuid=randomUUID,log=()=>{}}={}){
     this.dataDir=dataDir;this.file=join(dataDir,'stage.json');this.now=now;this.run=run;this.uuid=uuid;this.log=log;
     this.settings=normalizeSettings({});this.revision=0;this.messages=[];this.saving=Promise.resolve();
-    this.cue={on:false,sending:false,last:null,battleId:0,dueAt:0};this.forcedUntil=0;this.lastResult=null;
+    this.cue={on:false,sending:false,last:null,battleId:0,dueAt:0};this.forcedUntil=0;this.forcedMode='dread';this.lastResult=null;this.lastVersus=null;this.versusRewards=[];
   }
-  async load(){try{const raw=JSON.parse(await readFile(this.file,'utf8'));this.settings=normalizeSettings(raw.settings||{});this.revision=Number(raw.revision)||0;}catch{}return this;}
-  persist(){const data=JSON.stringify({schema:1,settings:this.settings,revision:this.revision});this.saving=this.saving.then(async()=>{await mkdir(this.dataDir,{recursive:true});const tmp=this.file+'.tmp';await writeFile(tmp,data);await rename(tmp,this.file);}).catch(e=>this.log('stage save failed: '+e.message));return this.saving;}
+  async load(){try{const raw=JSON.parse(await readFile(this.file,'utf8'));this.settings=normalizeSettings(raw.settings||{});this.revision=Number(raw.revision)||0;this.versusRewards=Array.isArray(raw.versusRewards)?raw.versusRewards.slice(-20):[];}catch{}return this;}
+  persist(){const data=JSON.stringify({schema:1,settings:this.settings,revision:this.revision,versusRewards:this.versusRewards});this.saving=this.saving.then(async()=>{await mkdir(this.dataDir,{recursive:true});const tmp=this.file+'.tmp';await writeFile(tmp,data);await rename(tmp,this.file);}).catch(e=>this.log('stage save failed: '+e.message));return this.saving;}
   configure(raw){this.settings=normalizeSettings(raw,this.settings);this.revision++;void this.persist();return this.view();}
   // Chat feed for the chat slot: every platform the host already hears from Streamer.bot.
   chat({platform='twitch',userId='',login='',name='',text='',color='',role=0,sub=false,messageId=null}={}){
@@ -56,29 +58,54 @@ export class Stage{
   // Battle report for resultSeconds, then the MVP celebration for mvpSeconds (when someone dealt damage).
   window(){const r=this.lastResult;if(!r)return null;const now=this.now(),since=now-r.endedAt,report=this.settings.resultSeconds*1000,mvp=r.mvp?this.settings.mvpSeconds*1000:0;
     if(since<report)return 'result';if(since<report+mvp)return 'mvp';return null;}
-  active(boss){
-    this.observe(boss);if(!this.settings.enabled)return false;const now=this.now();if(this.forcedUntil>now)return true;
-    if(boss&&(boss.phase==='lobby'||boss.phase==='battle'))return true;
-    return !!this.window();
+  // Voyager Versus (2.20.91): remember the result (the arena returns to the lobby 8 s later); a real win earns the winner bonus.
+  observeVersus(v){if(!v||v.phase!=='result'||!v.result)return;const id=String(v.matchId||('m'+(v.result.at||0)));if(this.lastVersus&&this.lastVersus.id===id)return;
+    const r=v.result,players=Array.isArray(v.players)?v.players:[],win=r.winner===0||r.winner===1?players[r.winner]:null,lose=win?players[1-r.winner]:null;
+    this.lastVersus={id,endedAt:this.now(),cancelled:!!r.cancelled,demo:!!r.demo,duration:Number(r.duration)||0,reason:String(r.reason||''),rewardAmount:Number(r.rewards?.find?.(x=>x.role==='winner')?.amount)||0,
+      winner:win&&!r.cancelled?{name:String(win.name||win.login||'Pilot'),login:String(win.login||'').toLowerCase(),userId:String(win.userId||''),platform:'twitch'}:null,loser:lose?String(lose.name||lose.login||''):''};
+    const bonus=this.settings.versus.winnerBonus;if(this.lastVersus.winner&&!r.demo&&bonus>0&&!this.versusRewards.some(x=>x.id===id)){const w=this.lastVersus.winner;
+      this.versusRewards.push({id,at:this.now(),bonus,winner:{...w,key:/^\d{1,25}$/.test(w.userId)?'twitch:'+w.userId:''},loser:this.lastVersus.loser,duration:this.lastVersus.duration});this.versusRewards=this.versusRewards.slice(-20);void this.persist();}}
+  versusWindow(){const r=this.lastVersus;if(!r)return null;const since=this.now()-r.endedAt,report=8000,win=r.winner?this.settings.versus.winnerSeconds*1000:0;if(since<report)return 'result';if(since<report+win)return 'winner';return null;}
+  // Which takeover is on: the Dreadnought first, then a Versus call / battle / result / winner, then a forced showing.
+  mode(boss,versus){
+    this.observe(boss);this.observeVersus(versus);const s=this.settings,now=this.now();
+    if(s.enabled&&((boss&&(boss.phase==='lobby'||boss.phase==='battle'))||this.window()))return 'dread';
+    if(s.versus.enabled&&versus&&(['calling','countdown','battle'].includes(versus.phase)||this.versusWindow()))return 'versus';
+    if(this.forcedUntil>now)return this.forcedMode;
+    return '';
   }
-  force(seconds){const n=Math.max(0,Math.min(600,Number(seconds)||0));this.forcedUntil=n?this.now()+n*1000:0;if(n&&!this.messages.length)this.sampleChat();return {ok:true,until:this.forcedUntil};}
+  active(boss,versus){return !!this.mode(boss,versus);}
+  // Winner bonuses as payables (Missions › Points owed), like the crew surge and Dreadnought rewards.
+  bonusPayables(){return this.versusRewards.map(r=>({missionId:'versus-stage-'+r.id,title:'Versus champion'+(r.loser?' · beat '+r.loser:'')+(r.duration?' in '+Math.floor(r.duration/60)+':'+String(r.duration%60).padStart(2,'0'):''),reward:r.bonus,key:r.winner.key,name:r.winner.name,platform:'twitch',week:r.at,scope:'versus',label:'Versus stage',...(r.winner.key?{}:{account:false})}));}
+  force(seconds,mode='dread'){const n=Math.max(0,Math.min(600,Number(seconds)||0));this.forcedUntil=n?this.now()+n*1000:0;this.forcedMode=mode==='versus'?'versus':'dread';if(n&&!this.messages.length)this.sampleChat();return {ok:true,until:this.forcedUntil,mode:this.forcedMode};}
   // Fictional sample lines for a test showing, so the chat window is not empty before anyone has typed.
   sampleChat(){const now=this.now();[['twitch','StarNova','#9fd4ff','o7 fleet, boarding now',0,true],['youtube','Quillon','','!join',2,false],['kick','PixelDrift','','that hull bar is huge',0,false],['twitch','Ashgrove','#ffd56a','!fire !fire !fire',3,true],['twitch','Lumen_7','#7ff0b5','gifted 5 subs, torpedoes away 🚀',0,true],['youtube','Tamsin','','gg pilots',0,false]].forEach(([platform,name,color,text,role,sub],i)=>this.chat({platform,name,login:name.toLowerCase(),text,color,role,sub,messageId:'sample'+i}));}
   layout(){const s=this.settings,g=GEOMETRY;return {slots:s.slots,stack:s.stack,pip:s.pip,geometry:{main:g.main,pip:{x:g.pip[s.pip].x,y:g.pip.y,w:g.pip.w,h:g.pip.h},left:{x:g.columns.left,y:g.columns.y,w:g.columns.w,h:g.columns.h},right:{x:g.columns.right,y:g.columns.y,w:g.columns.w,h:g.columns.h},bottomLeft:{x:g.bottomLeft[s.pip].x,y:g.bottomLeft.y,w:g.bottomLeft.w,h:g.bottomLeft.h},stack:g.stack}};}
-  overlay(boss){const now=this.now(),active=this.active(boss),w=this.window(),live=boss&&(boss.phase==='lobby'||boss.phase==='battle'),phase=live?boss.phase:w==='mvp'?'mvp':w==='result'?'result':boss?.phase||'idle',r=this.lastResult;
-    return {serverAt:now,active,phase,demo:!!(boss?.demo||(w&&r?.demo)),forced:this.forcedUntil>now,...this.layout(),chat:this.chatFeed(),chatNames:this.settings.chat.names,animationMs:this.settings.animationMs,splashMs:this.settings.splashSeconds*1000,mvpMs:this.settings.mvpSeconds*1000,
-      mvp:w==='mvp'&&r?.mvp?{...r.mvp,bonus:r.bonus,outcome:r.outcome,boss:r.name,damageTotal:r.damage,pilots:r.pilots,until:r.endedAt+(this.settings.resultSeconds+this.settings.mvpSeconds)*1000}:null,cue:this.cue.last};}
+  overlay(boss,versus){const now=this.now(),mode=this.mode(boss,versus),s=this.settings,common={serverAt:now,active:!!mode,mode,forced:this.forcedUntil>now,...this.layout(),chat:this.chatFeed(),chatNames:s.chat.names,animationMs:s.animationMs,cue:this.cue.last};
+    if(mode==='versus'){const w=this.versusWindow(),r=this.lastVersus,live=versus&&['calling','countdown','battle'].includes(versus.phase),phase=live?versus.phase:w==='winner'?'winner':w==='result'?'result':'idle',caller=versus?.caller?.name||'',players=(versus?.players||[]).map(p=>p.name||p.login).filter(Boolean);
+      const amount=(r?.rewardAmount||0)+(r&&!r.demo?s.versus.winnerBonus:0);
+      return {...common,phase,demo:!!(versus?.players?.some?.(p=>p.demo)||(w&&r?.demo)),splashMs:s.versus.splashSeconds*1000,splashOn:phase==='calling'||(this.forcedUntil>now&&phase==='idle'),
+        main:{url:'/index.html?overlay=1&stage=1&hideIdle=0',label:'VOYAGER VERSUS · LIVE',accent:'#7de0ff'},
+        splash:{eyebrow:'⚔ VERSUS CHALLENGE',title:caller?caller.toUpperCase()+' CALLS':players.length===2?players[0].toUpperCase()+' VS '+players[1].toUpperCase():'VERSUS CALLED',chips:['!VERSUS']},
+        celebrate:w==='winner'&&r?.winner?{eyebrow:'★ VERSUS CHAMPION ★',name:r.winner.name,line:(r.loser?'DEFEATED '+r.loser.toUpperCase():'VICTORY')+(r.duration?' · '+Math.floor(r.duration/60)+':'+String(r.duration%60).padStart(2,'0'):''),points:amount,pointsLabel:'VOYAGER POINTS',sub:(r.reason||'Hull destroyed')+(r.demo?' · training battle, no points':s.versus.winnerBonus&&r.rewardAmount?' · '+r.rewardAmount+' winner reward + '+s.versus.winnerBonus+' champion bonus':''),until:r.endedAt+8000+s.versus.winnerSeconds*1000}:null};}
+    const w=this.window(),r=this.lastResult,live=boss&&(boss.phase==='lobby'||boss.phase==='battle'),phase=mode?(live?boss.phase:w==='mvp'?'mvp':w==='result'?'result':boss?.phase||'idle'):(boss?.phase||'idle');
+    return {...common,phase,demo:!!(boss?.demo||(w&&r?.demo)),splashMs:s.splashSeconds*1000,splashOn:phase==='lobby'||(this.forcedUntil>now&&phase==='idle'),mvpMs:s.mvpSeconds*1000,
+      main:{url:'/dreadnought.html?stage=1',label:'VOYAGER DREADNOUGHT · LIVE',accent:'#ff7b8c'},
+      splash:{eyebrow:'⚠ INCOMING CAPITAL SHIP',title:'DREADNOUGHT CALLED',chips:['!JOIN','!FIRE']},
+      celebrate:w==='mvp'&&r?.mvp?{eyebrow:'★ DREADNOUGHT MVP ★',name:r.mvp.name,line:Number(r.mvp.damage).toLocaleString('en')+' DAMAGE · MOST OF THE FLEET',points:r.bonus,pointsLabel:'VOYAGER POINTS',sub:(r.outcome==='victory'?r.name+' destroyed':r.name+' escaped')+' · '+r.pilots+' pilot'+(r.pilots===1?'':'s')+' · '+Number(r.damage).toLocaleString('en')+' damage dealt',until:r.endedAt+(s.resultSeconds+s.mvpSeconds)*1000}:null,
+      // kept for older stage pages
+      mvp:w==='mvp'&&r?.mvp?{...r.mvp,bonus:r.bonus,outcome:r.outcome,boss:r.name,damageTotal:r.damage,pilots:r.pilots,until:r.endedAt+(s.resultSeconds+s.mvpSeconds)*1000}:null};}
   // Send the cue for the current state again (the control page's "Move my scene again" after fixing the action or the names).
-  async resend(boss){this.cue.on=!this.active(boss);this.cue.dueAt=this.cue.on?0:1;return this.tick(boss);}
+  async resend(boss,versus){this.cue.on=!this.active(boss,versus);this.cue.dueAt=this.cue.on?0:1;return this.tick(boss,versus);}
   // What OBS did, reported by the Streamer.bot action.
   result(r){this.cue.obs={at:Number(r.at)||this.now(),phase:String(r.phase||''),ok:!!r.ok,message:String(r.message||'').slice(0,300),version:String(r.backendVersion||'')};return this.cue.obs;}
-  view(){return {settings:this.settings,defaults:STAGE_DEFAULTS,slotKinds:SLOT_KINDS,stackKinds:STACK_KINDS,geometry:GEOMETRY,cue:this.cue.last,obs:this.cue.obs||null,forced:this.forcedUntil>this.now(),chatCount:this.messages.length};}
+  view(){return {settings:this.settings,defaults:STAGE_DEFAULTS,slotKinds:SLOT_KINDS,stackKinds:STACK_KINDS,geometry:GEOMETRY,cue:this.cue.last,obs:this.cue.obs||null,forced:this.forcedUntil>this.now(),forcedMode:this.forcedMode,chatCount:this.messages.length,versusRewards:this.versusRewards.slice(-5)};}
   // Shrink / restore cue to Streamer.bot: once when the stage comes up, once when it goes down. Needs the scene and the
   // nested scene / group that holds the streamer's game, named on the Dreadnought page.
-  async tick(boss){
-    const want=this.active(boss),s=this.settings;if(want===this.cue.on||this.cue.sending)return null;
-    // Coming up: wait out the splash first, so the game shrinks when the panels arrive, not under the "Dreadnought called" slam.
-    if(want){if(!this.cue.dueAt)this.cue.dueAt=this.now()+s.splashSeconds*1000;if(this.now()<this.cue.dueAt)return null;}
+  async tick(boss,versus){
+    const mode=this.mode(boss,versus),want=!!mode,s=this.settings;if(want===this.cue.on||this.cue.sending)return null;
+    // Coming up: wait out the splash first, so the game shrinks when the panels arrive, not under the "called" slam.
+    if(want){if(!this.cue.dueAt)this.cue.dueAt=this.now()+(mode==='versus'?s.versus.splashSeconds:s.splashSeconds)*1000;if(this.now()<this.cue.dueAt)return null;}
     this.cue.dueAt=0;this.cue.on=want;if(!this.run||!s.scene||!s.source)return null;
     this.cue.sending=true;const g=GEOMETRY,pip=g.pip[s.pip];
     try{const args={stagePhase:want?'on':'off',stageScene:s.scene,stageSource:s.source,stageX:pip.x,stageY:g.pip.y,stageW:g.pip.w,stageH:g.pip.h,stageMs:s.animationMs,stageHide:JSON.stringify(s.hide),requestId:this.uuid()};

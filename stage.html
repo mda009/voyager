@@ -2,7 +2,7 @@
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Voyager • Dreadnought stage</title>
 <link rel="icon" href="brand-assets/voyager.png" type="image/png">
-<link rel="stylesheet" href="stage.css?v=2.20.90">
+<link rel="stylesheet" href="stage.css?v=2.20.91">
 </head>
 <!-- One full-screen OBS browser source (1920 x 1080) that is transparent until the Dreadnought is called. Then: the Dreadnought
      scene in the middle, the panels you chose in the slots around it, your own scene shrunk into the picture-in-picture window
@@ -16,11 +16,11 @@
 <div class="slot" id="slot-bottomLeft"></div>
 <div id="stack"></div>
 <div id="main"><iframe id="dread" title="Dreadnought" allow="autoplay"></iframe></div>
-<div class="tag" id="main-tag"><i></i>VOYAGER DREADNOUGHT · LIVE</div>
+<div class="tag" id="main-tag"><i></i><span id="main-label">VOYAGER DREADNOUGHT · LIVE</span></div>
 <div id="pip"><div class="tag" id="pip-tag"><i></i>LIVE · YOUR SCENE</div></div>
-<div id="alert"><span>⚠ INCOMING CAPITAL SHIP</span><b>DREADNOUGHT CALLED</b><em><i>!JOIN</i><i>!FIRE</i></em></div>
-<div id="mvp" hidden><div class="rings"><i></i><i></i><i></i></div><div class="confetti" id="confetti"></div><div class="mvpcard"><span class="eb">★ DREADNOUGHT MVP ★</span><b id="mvp-name">—</b><span class="line" id="mvp-line"></span><div class="pts"><em>+</em><strong id="mvp-pts">25</strong><span>VOYAGER POINTS</span></div><small id="mvp-sub"></small></div></div>
+<div id="alert"><span id="alert-eyebrow">⚠ INCOMING CAPITAL SHIP</span><b id="alert-title">DREADNOUGHT CALLED</b><em id="alert-chips"><i>!JOIN</i><i>!FIRE</i></em></div>
+<div id="mvp" hidden><div class="rings"><i></i><i></i><i></i></div><div class="confetti" id="confetti"></div><div class="mvpcard"><span class="eb" id="mvp-eb">★ DREADNOUGHT MVP ★</span><b id="mvp-name">—</b><span class="line" id="mvp-line"></span><div class="pts"><em>+</em><strong id="mvp-pts">25</strong><span id="mvp-ptslabel">VOYAGER POINTS</span></div><small id="mvp-sub"></small></div></div>
 <div id="debug" hidden></div>
 </div>
-<script src="stage.js?v=2.20.90"></script>
+<script src="stage.js?v=2.20.91"></script>
 </body></html>

@@ -3,7 +3,7 @@ import {fleet} from './ship-models.mjs?v=2.3.0';
 import {ArenaView,SoundFX} from './arena.mjs?v=2.17.3';
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const params=new URLSearchParams(location.search),overlay=params.get('overlay')==='1';
+const params=new URLSearchParams(location.search),overlay=params.get('overlay')==='1',stagePage=params.get('stage')==='1';let stageUp=false; // 2.20.91: the Voyager stage shows the arena itself while it is up
 const local=['127.0.0.1','localhost','[::1]'].includes(location.hostname)&&params.get('demo')!=='1';
 if(params.get('embedded')==='1'&&!overlay)document.body.classList.add('embedded');
 if(overlay){document.body.classList.add('overlay','transparent');document.documentElement.classList.add('overlay-transparent');if(params.get('hideIdle')!=='0')document.body.classList.add('idle-hidden');}
@@ -66,7 +66,7 @@ function render(s){
   $('entry-status').textContent=s.open?(s.cooldownRemaining>0?`NEXT CALL ${clock(s.cooldownRemaining)}`:'CALL READY'):'ENTRIES CLOSED';
   $('cooldown-status').textContent=s.cooldownRemaining>0?`Next live call in ${clock(s.cooldownRemaining)} · challengers can join an open call now.`:'Live battle call ready · 45-minute global cooldown.';$('toggle-queue').textContent=s.open?'Close entries':'Open entries';
   $('pause').textContent=s.paused?'▶ Resume arena':'Ⅱ Pause arena';$('cancel').disabled=!['calling','battle','countdown'].includes(s.phase);$('cancel').textContent=calling?'Cancel call':'End battle';
-  if(overlay&&params.get('hideIdle')!=='0')document.body.classList.toggle('idle-hidden',s.phase==='lobby');
+  if(overlay)document.body.classList.toggle('idle-hidden',(params.get('hideIdle')!=='0'&&s.phase==='lobby')||(stageUp&&!stagePage));
   const key=JSON.stringify([caller,s.queue,s.matches,s.invites.map(i=>[i.from.name,i.to]),s.events.at(-1)?.id,s.leaderboard]);
   if(key!==lastLists){lastLists=key;
     const queue=[...(caller?[{...caller,calling:true}]:[]),...s.matches.flat().map(p=>({...p,duel:true})),...s.queue];
@@ -83,7 +83,7 @@ async function initLocal(){
   try{
     if(!overlay){const r=await fetch('/api/admin');if(!r.ok)throw new Error('Local host unavailable.');token=(await r.json()).token;}
     source=new EventSource('/api/events');
-    source.onmessage=event=>{const msg=JSON.parse(event.data);streamConnected=true;chatConnected=!!msg.connection?.connected;$('connection-lost').hidden=true;render(msg.game);connectBadge(msg.connection);$('reward-status').textContent=`${msg.rewards.message} Pending: ${msg.rewards.pending} · Needs review: ${msg.rewards.review} · History awaiting repair: ${msg.rewards.awaitingRepair||0}`;
+    source.onmessage=event=>{const msg=JSON.parse(event.data);stageUp=!!msg.stage;streamConnected=true;chatConnected=!!msg.connection?.connected;$('connection-lost').hidden=true;render(msg.game);connectBadge(msg.connection);$('reward-status').textContent=`${msg.rewards.message} Pending: ${msg.rewards.pending} · Needs review: ${msg.rewards.review} · History awaiting repair: ${msg.rewards.awaitingRepair||0}`;
     $('announcement-status').textContent=(msg.announcements.overlayMessage?msg.announcements.overlayMessage+' ':'')+msg.announcements.message+' '+(msg.matchChat?.message||'')+(msg.matchChat?.review?' Unconfirmed match messages: '+msg.matchChat.review+'.':'');renderEntries(msg.entries);$('pilot-sync-status').textContent=(msg.pilotLeaderboard?.message||'Update the local host for pilot leaderboard sync.')+(msg.pilotLeaderboard?.lastSync?' Last sync: '+new Date(msg.pilotLeaderboard.lastSync).toLocaleString()+'.':'');
     $('rewards-preview').disabled=msg.rewards.busy||!streamConnected;
     if(msg.rewards.busy)$('repair-status').textContent=msg.rewards.message;
