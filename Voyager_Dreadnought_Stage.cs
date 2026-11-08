@@ -3,6 +3,7 @@
 // named on Voyager Control › Voyager Dreadnought › Stage) into the picture-in-picture window with a short animation, and
 // moves it back afterwards. The item's original transform is kept in a Streamer.bot global so a restart can still restore it.
 // Arguments from Voyager: stagePhase (on|off), stageScene, stageSource, stageX, stageY, stageW, stageH, stageMs.
+// If Compile reports CS0012 "The type 'Uri' is defined in an assembly that is not referenced": click Find Refs (or References › add System.dll), then Compile again.
 using System;using System.Globalization;using System.Threading;using Newtonsoft.Json;using Newtonsoft.Json.Linq;
 public class CPHInline {
  const string Store="VoyagerDreadnoughtStageV1";static readonly object Gate=new object();
