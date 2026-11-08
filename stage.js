@@ -5,6 +5,8 @@
 (()=>{'use strict';
 const $=id=>document.getElementById(id),q=new URLSearchParams(location.search),debug=q.get('debug')==='1';
 const hosted=location.protocol==='http:'&&/^(127\.0\.0\.1|localhost)$/.test(location.hostname),base=hosted?'':'http://127.0.0.1:'+(Number(q.get('voyager'))||8740);
+// 2.20.93: when Voyager is updated, the page reloads itself under a new address so OBS does not keep serving the cached copy.
+const BUILD='2.20.93';
 const stage=$('stage');let data=null,readAt=0,lastErr='',on=false,layoutKey='',offTimer=0,splashTimer=0,mvpKey='';
 function fit(){const s=Math.min(innerWidth/1920,innerHeight/1080);stage.style.transform='translate('+((innerWidth-1920*s)/2)+'px,'+((innerHeight-1080*s)/2)+'px) scale('+s+')';}
 addEventListener('resize',fit);fit();
@@ -59,7 +61,8 @@ function render(){
   else if(want&&on)build(d);
   if(on)mvp(d.celebrate||null);
 }
-async function poll(){try{const r=await fetch(base+'/api/stage/overlay',{cache:'no-store'});if(!r.ok)throw new Error('Voyager answered '+r.status+(r.status===404?' (update Voyager to 2.20.84 or later)':''));data=await r.json();readAt=Date.now();lastErr='';if(debug)window.__stage=data;}
+async function poll(){try{const r=await fetch(base+'/api/stage/overlay',{cache:'no-store'});if(!r.ok)throw new Error('Voyager answered '+r.status+(r.status===404?' (update Voyager to 2.20.84 or later)':''));data=await r.json();readAt=Date.now();lastErr='';if(debug)window.__stage=data;
+    if(data.version&&data.version!==BUILD&&q.get('v')!==data.version){const u=new URL(location.href);u.searchParams.set('v',data.version);location.replace(u.href);return;}}
   catch(e){lastErr=e.message&&e.message!=='Failed to fetch'?e.message:'Voyager is not reachable at '+(base||location.origin)+' (is Voyager running? add ?voyager=port if not on 8740)';}render();}
 poll();setInterval(poll,1000);
 })();

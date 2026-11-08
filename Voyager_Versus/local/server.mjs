@@ -126,7 +126,7 @@ let fleetState=null;
 const sourceSeen={community:0,engage:0};
 // Camera spotlight cues from the host (2.20.61), so the camera follows alerts even when the OBS overlay copy is old.
 // Dreadnought stage (2.20.84): the screen takeover while the Dreadnought is called; the shrink/restore cue goes to the "Voyager - Dreadnought Stage" action.
-const stage=await new Stage({dataDir,run:args=>actions.doAction('Voyager - Dreadnought Stage',args),log:m=>console.log('[stage] '+m)}).load();
+const stage=await new Stage({dataDir,version:VERSION,run:args=>actions.doAction('Voyager - Dreadnought Stage',args),log:m=>console.log('[stage] '+m)}).load();
 // What the stage decides from: the Dreadnought overlay and the Versus arena (phase, caller, players, result).
 const stageState=()=>[boss.overlay(),{phase:game.phase,matchId:game.matchId,caller:game.caller,players:game.players,result:game.result}];
 const fleetCamera=new FleetCamera({run:args=>actions.doAction('Voyager - Fleet Alerts',args),log:m=>console.log('[fleet] '+m)});

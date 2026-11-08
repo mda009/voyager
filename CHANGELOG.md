@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.93 (8 November 2026)
+
+**Stage page keeps itself current.** The stage browser source now notices when Voyager has been updated and reloads itself under a new address, so OBS stops serving the cached old page (which is why, before this, a Versus test could still play as a Dreadnought until the cache was refreshed by hand). One manual cache refresh is needed to pick this version up; after that, none.
+
 ## 2.20.92 (8 November 2026)
 
 **Versus win back to 50 points.** The champion bonus added in 2.20.91 is off by default again (set to 0; 2.20.91 installs are migrated and any bonus rows it created are dropped), so a Versus victory is the 50-point winner reward, and the champion celebration shows +50. The bonus field stays on the stage card for anyone who wants to add one.

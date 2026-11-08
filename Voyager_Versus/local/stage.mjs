@@ -35,7 +35,7 @@ export function normalizeSettings(raw={},prev=STAGE_DEFAULTS){
 // The picture-in-picture window and the main feature on the 1920 x 1080 canvas; stage.html and the OBS cue share these numbers.
 export const GEOMETRY={main:{x:384,y:20,w:1152,h:648},pip:{w:640,h:360,y:704,br:{x:1252},bl:{x:28}},columns:{w:346,h:648,y:20,left:20,right:1554},bottomLeft:{w:300,h:372,y:690,br:{x:20},bl:{x:1600}},stack:{x:340,y:690,w:892,h:372}};
 export class Stage{
-  constructor({dataDir='.',now=()=>Date.now(),run=null,uuid=randomUUID,log=()=>{}}={}){
+  constructor({dataDir='.',now=()=>Date.now(),run=null,uuid=randomUUID,log=()=>{},version=''}={}){this.version=String(version||'');
     this.dataDir=dataDir;this.file=join(dataDir,'stage.json');this.now=now;this.run=run;this.uuid=uuid;this.log=log;
     this.settings=normalizeSettings({});this.revision=0;this.messages=[];this.saving=Promise.resolve();
     this.cue={on:false,sending:false,last:null,battleId:0,dueAt:0};this.forcedUntil=0;this.forcedMode='dread';this.lastResult=null;this.lastVersus=null;this.versusRewards=[];
@@ -83,7 +83,7 @@ export class Stage{
   // Fictional sample lines for a test showing, so the chat window is not empty before anyone has typed.
   sampleChat(){const now=this.now();[['twitch','StarNova','#9fd4ff','o7 fleet, boarding now',0,true],['youtube','Quillon','','!join',2,false],['kick','PixelDrift','','that hull bar is huge',0,false],['twitch','Ashgrove','#ffd56a','!fire !fire !fire',3,true],['twitch','Lumen_7','#7ff0b5','gifted 5 subs, torpedoes away 🚀',0,true],['youtube','Tamsin','','gg pilots',0,false]].forEach(([platform,name,color,text,role,sub],i)=>this.chat({platform,name,login:name.toLowerCase(),text,color,role,sub,messageId:'sample'+i}));}
   layout(){const s=this.settings,g=GEOMETRY;return {slots:s.slots,stack:s.stack,pip:s.pip,geometry:{main:g.main,pip:{x:g.pip[s.pip].x,y:g.pip.y,w:g.pip.w,h:g.pip.h},left:{x:g.columns.left,y:g.columns.y,w:g.columns.w,h:g.columns.h},right:{x:g.columns.right,y:g.columns.y,w:g.columns.w,h:g.columns.h},bottomLeft:{x:g.bottomLeft[s.pip].x,y:g.bottomLeft.y,w:g.bottomLeft.w,h:g.bottomLeft.h},stack:g.stack}};}
-  overlay(boss,versus){const now=this.now(),mode=this.mode(boss,versus),s=this.settings,common={serverAt:now,active:!!mode,mode,forced:this.forcedUntil>now,...this.layout(),chat:this.chatFeed(),chatNames:s.chat.names,animationMs:s.animationMs,cue:this.cue.last};
+  overlay(boss,versus){const now=this.now(),mode=this.mode(boss,versus),s=this.settings,common={serverAt:now,version:this.version,active:!!mode,mode,forced:this.forcedUntil>now,...this.layout(),chat:this.chatFeed(),chatNames:s.chat.names,animationMs:s.animationMs,cue:this.cue.last};
     if(mode==='versus'){const w=this.versusWindow(),r=this.lastVersus,live=versus&&['calling','countdown','battle'].includes(versus.phase),phase=live?versus.phase:w==='winner'?'winner':w==='result'?'result':'idle',caller=versus?.caller?.name||'',players=(versus?.players||[]).map(p=>p.name||p.login).filter(Boolean);
       const amount=(r?.rewardAmount||0)+(r&&!r.demo?s.versus.winnerBonus:0);
       return {...common,phase,demo:!!(versus?.players?.some?.(p=>p.demo)||(w&&r?.demo)),splashMs:s.versus.splashSeconds*1000,splashOn:phase==='calling'||(this.forcedUntil>now&&phase==='idle'),
