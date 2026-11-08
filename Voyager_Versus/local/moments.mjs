@@ -118,7 +118,7 @@ export class Moments{
   // Test buttons on the control page push a sample event (marked test, shown like a real one).
   test(kind){const samples={support:()=>this.support('gift','Sample Gifter',{amount:3,test:true}),medal:()=>this.push({kind:'medal',name:'Sample Pilot',platform:'twitch',medal:'watch',title:'Night Watch',grade:0,gradeName:'Bronze',test:true}),
     promo:()=>this.push({kind:'promo',name:'Sample Pilot',platform:'twitch',from:7,to:8,place:4,test:true}),versus:()=>this.push({kind:'versus',winner:'Sample Pilot',loser:'Sample Rival',duration:38,test:true}),
-    dread:()=>this.push({kind:'dread',outcome:'victory',speed:'hero',elapsed:98,bonus:10,top:'Sample Pilot',pilots:7,test:true}),surge:()=>{const now=this.now();this.surgeStartedAt=now;this.surgeCount=this.settings.surge.count;this.surgeUntil=now+this.settings.surge.durationMinutes*60000;return {kind:'surge',test:true};},
+    dread:()=>this.push({kind:'dread',outcome:'victory',speed:'hero',elapsed:98000,bonus:10,top:'Sample Pilot',pilots:7,test:true}),surge:()=>{const now=this.now();this.surgeStartedAt=now;this.surgeCount=this.settings.surge.count;this.surgeUntil=now+this.settings.surge.durationMinutes*60000;return {kind:'surge',test:true};},
     points:()=>this.points([{name:'Sample Pilot',platform:'twitch',amount:150,total:12650},{name:'Sample Rival',platform:'kick',amount:40,total:3200},{name:'Sample Scout',platform:'youtube',amount:10,total:410}]),
     streak:()=>this.streaks([{name:'Sample Pilot',platform:'twitch',streak:5,best:5},{name:'Sample Rival',platform:'twitch',streak:2,best:9}]),
     goals:()=>{this.goalsReading({samples:{silver:{points:22,targetPoints:25},gold:{points:22,targetPoints:50},platinum:{points:22,targetPoints:100}}});return {kind:'goals',test:true};}};

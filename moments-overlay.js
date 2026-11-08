@@ -2,7 +2,7 @@
    every 2 s (same-origin when opened from the host, otherwise http://127.0.0.1:8740 or ?voyager=port). Each element is switched on
    Voyager Control › On-screen moments or the Stream deck. ?preview=1 shows sample data; ?debug=1 shows what the host answered. */
 (()=>{'use strict';
-const $=id=>document.getElementById(id),q=new URLSearchParams(location.search),preview=q.get('preview')==='1',debug=q.get('debug')==='1',stageMode=['ticker','moments'].includes(q.get('stage'))?q.get('stage'):'',stageW=Math.max(300,Number(q.get('w'))||892);
+const $=id=>document.getElementById(id),q=new URLSearchParams(location.search),preview=q.get('preview')==='1',debug=q.get('debug')==='1',stageMode=['ticker','moments','dread'].includes(q.get('stage'))?q.get('stage'):'',stageW=Math.max(300,Number(q.get('w'))||892);
 const hosted=location.protocol==='http:'&&/^(127\.0\.0\.1|localhost)$/.test(location.hostname),base=hosted?'':'http://127.0.0.1:'+(Number(q.get('voyager'))||8740);
 const RANKS=['Midshipman','Acting Sub-Lieutenant','Sub-Lieutenant','Lieutenant','Lieutenant Commander','Commander','Captain','Commodore','Rear Admiral','Vice Admiral','Admiral','Admiral of the Fleet'],ABBR=['MIDN','ASLT','SBLT','LEUT','LCDR','CMDR','CAPT','CDRE','RADM','VADM','ADML','AF'];
 const METAL=[['linear-gradient(180deg,#ffe6cc,#f0a868 30%,#a5582a 52%,#6e3510 60%,#d68a4c 84%,#ffd9b0)','#f0b07a','BRONZE'],['linear-gradient(180deg,#ffffff,#d9e2ec 30%,#8d9bab 52%,#5b6774 60%,#c3cfdb 84%,#f4f8fb)','#e3ebf3','SILVER'],['linear-gradient(180deg,#fff6d6,#ffd56a 30%,#b8860b 52%,#7a5600 60%,#e6b83a 84%,#fff1c2)','#ffd56a','GOLD'],['linear-gradient(180deg,#eafcff,#bfe9ff 30%,#5fb0ff 52%,#1d4f8a 60%,#9ad6ff 84%,#f0fbff)','#bfe9ff','LEGEND']];
@@ -31,10 +31,11 @@ function applyLayout(){const L=data?.layout;if(!L)return;const key=JSON.stringif
   for(const [k,b] of Object.entries(L)){const el=$(k);if(!el||!b)continue;el.style.left=b.x+'px';el.style.top=b.y+'px';if(k==='ticker')el.style.width=b.w+'px';}
   // 2.20.84: inside the Dreadnought stage the page shows one part at the top-left of its frame (?stage=ticker|moments&w=).
   if(stageMode==='ticker'){$('ticker').style.left='0px';$('ticker').style.top='0px';$('ticker').style.width=stageW+'px';}
+  if(stageMode==='dread'){$('dread').style.left='0px';$('dread').style.top='0px';$('dread').style.width=Math.min(stageW,520)+'px';}
   if(stageMode==='moments'){$('hints').style.left='0px';$('hints').style.top='0px';$('toast').style.left=(stageW>=880?448:0)+'px';$('toast').style.top=(stageW>=880?0:70)+'px';}
   tickerKey='';}
 function render(){
-  const d=data,ok=preview||(d&&Date.now()-readAt<15000);const stageHide=!!d?.stage&&!stageMode&&!preview,allowed=stageMode==='ticker'?['ticker']:stageMode==='moments'?['hints','toast']:null;const on=k=>!!(ok&&d.elements?.[k])&&!stageHide&&(!allowed||allowed.includes(k));applyLayout();
+  const d=data,ok=preview||(d&&Date.now()-readAt<15000);const stageHide=!!d?.stage&&!stageMode&&!preview,allowed=stageMode==='ticker'?['ticker']:stageMode==='moments'?['hints','toast']:stageMode==='dread'?['dread']:null;const on=k=>!!ok&&(allowed?allowed.includes(k):!!d.elements?.[k]&&!stageHide);applyLayout();
   if(debug){$('debug').hidden=false;$('debug').textContent=['Moments · '+(base||location.origin)+'/api/moments/overlay',lastErr?'✗ '+lastErr:'✓ Voyager answered '+(readAt?Math.round((Date.now()-readAt)/1000)+' s ago':''),d?'Elements on: '+Object.entries(d.elements||{}).filter(([,v])=>v).map(([k])=>k).join(', '):'',d?'Events: '+(d.events||[]).length+' · surge '+(d.surge?.active?'ACTIVE':'off')+' · dread '+(d.dread?.phase||'idle')+' · next '+(d.next?d.next.label+' '+d.next.remaining:'no goal reading yet'):''].filter(Boolean).join('\n');}
   renderHints(on('hints'));renderSurge(on('surge'));renderDread(on('dread'));renderPromo(on('promo'));renderNext(on('next'));renderTicker(on('ticker'));renderToast(on('toast'));renderPoints(on('points'));renderStreak(on('streak'));
 }
@@ -47,11 +48,11 @@ function renderSurge(on){const el=$('surge'),s=data?.surge;if(!on||!s?.active||n
 function renderDread(on){const el=$('dread'),b=data?.dread;if(!on||!b||b.phase==='idle'||b.phase==='done'||(b.phase==='result'&&now()-(b.endedAt||dreadSeenResultAt||now())>20000)){el.classList.remove('on');return;}
   if(b.phase==='result'&&!dreadSeenResultAt)dreadSeenResultAt=now();if(b.phase!=='result')dreadSeenResultAt=0;
   const pct=b.maxHp?Math.max(0,Math.min(100,Math.round(100*b.hp/b.maxHp))):100;el.classList.toggle('lobby',b.phase==='lobby');el.classList.toggle('shield',!!b.shield);
-  const elapsed=b.phase==='fight'?now()-(b.startedAt||now()):b.phase==='result'?(b.elapsed||0)*1000:0;
-  $('dread-eyebrow').textContent=(b.name||'DREADNOUGHT').toUpperCase()+' · '+(b.phase==='lobby'?'BOARDING':b.phase==='fight'?'LIVE':'RESULT');
-  $('dread-title').textContent=b.phase==='lobby'?'Boarding · '+mmss((b.lobbyEndsAt||now())-now())+' to launch':b.phase==='fight'?'Hull '+pct+'% · '+mmss(elapsed):b.outcome==='victory'?'Destroyed in '+mmss(elapsed)+(b.speed?' · '+b.speed.toUpperCase()+' +'+b.bonus+'%':''):'The Dreadnought escaped';
+  const live=b.phase==='battle'||b.phase==='fight',elapsed=live?now()-(b.startedAt||now()):b.phase==='result'?(b.elapsed||0):0; // 2.20.88: boss phase is 'battle'; elapsed arrives in ms
+  $('dread-eyebrow').textContent=(b.name||'DREADNOUGHT').toUpperCase()+' · '+(b.phase==='lobby'?'BOARDING':live?'LIVE':'RESULT');
+  $('dread-title').textContent=b.phase==='lobby'?'Boarding · '+mmss((b.lobbyEndsAt||now())-now())+' to launch':live?'Hull '+pct+'% · '+mmss(elapsed):b.outcome==='victory'?'Destroyed in '+mmss(elapsed)+(b.speed?' · '+b.speed.toUpperCase()+' +'+b.bonus+'%':''):'The Dreadnought escaped';
   $('dread-hull').style.width=pct+'%';$('dread-pct').textContent=pct+'%';
-  const g=b.goals||{},leg=(g.legendary||0)*1000,hero=(g.hero||0)*1000,fmt=(name,limit,cls)=>{const e=$(cls);if(!limit){e.hidden=true;return;}e.hidden=false;const left=limit-elapsed;e.classList.toggle('gone',left<=0&&b.phase!=='lobby');e.innerHTML=name+' <small>'+(b.phase==='lobby'?'UNDER '+mmss(limit):left>0?mmss(left)+' LEFT · +'+(g.bonusPct||10)+'%':'MISSED')+'</small>';};
+  const g=b.goals||{},leg=(g.legendary||0)*1000,hero=(g.hero||0)*1000,fmt=(name,limit,cls)=>{const e=$(cls);if(!limit){e.hidden=true;return;}e.hidden=false;const left=limit-elapsed;e.classList.toggle('gone',left<=0&&b.phase!=='lobby');e.innerHTML=name+' <small>'+(b.phase==='lobby'?'UNDER '+mmss(limit):b.phase==='result'?(b.outcome==='victory'&&elapsed<=limit?'MADE IT · +'+(g.bonusPct||10)+'%':'MISSED'):left>0?mmss(left)+' LEFT · +'+(g.bonusPct||10)+'%':'MISSED')+'</small>';};
   fmt('LEGENDARY',leg,'dread-leg');fmt('HERO',hero,'dread-hero');
   const rows=$('dread-rows'),leaders=(b.leaders||[]).slice(0,5),top=leaders[0]?.damage||1;rows.replaceChildren();
   if(!leaders.length){const tr=node('tr'),td=node('td',b.phase==='lobby'?(b.pilots||0)+' pilots boarding · type !board':'No damage yet · fire with !fire','empty');td.colSpan=3;tr.append(td);rows.append(tr);}
@@ -76,7 +77,7 @@ function tickerText(e){const b=(t,c)=>{const x=node('b',t);if(c)x.className=c;re
   if(e.kind==='medal')return add(b('◆','m'),' ',b(e.name),' earned ',b(e.title+(e.special?'':e.gradeName?' '+e.gradeName:''),'m'));
   if(e.kind==='versus')return e.draw?add(b('⚔','v'),' ',b(e.a),' and ',b(e.b),' drew in Versus'):add(b('⚔','v'),' ',b(e.winner),' won Versus vs ',b(e.loser,'v'));
   if(e.kind==='promo')return add(b('▲','c'),' ',b(e.name),' promoted to ',b(RANKS[e.to]||'','c'));
-  if(e.kind==='dread')return e.outcome==='victory'?add(b('●','r'),' Dreadnought destroyed in ',b(mmss((e.elapsed||0)*1000),'r'),e.speed?' · '+e.speed.toUpperCase()+' +'+e.bonus+'%':'',e.top?' · top gun '+b(e.top).textContent:''):add(b('●','r'),' The Dreadnought escaped');
+  if(e.kind==='dread')return e.outcome==='victory'?add(b('●','r'),' Dreadnought destroyed in ',b(mmss(e.elapsed||0),'r'),e.speed?' · '+e.speed.toUpperCase()+' +'+e.bonus+'%':'',e.top?' · top gun '+b(e.top).textContent:''):add(b('●','r'),' The Dreadnought escaped');
   if(e.kind==='points')return e.count===1?add(b('▲','c'),' ',b(e.top.name),' earned ',b('+'+e.top.amount.toLocaleString()+' points','c')):add(b('▲','c'),' ',b(e.count+' crew'),' earned points · top ',b(e.top.name),' ',b('+'+e.top.amount.toLocaleString(),'c'));
   if(e.kind==='streak')return e.count===1?add(b('✦','m'),' ',b(e.top.name),' kept a ',b('×'+e.top.streak+' stream streak','m')):add(b('✦','m'),' ',b(e.count+' crew'),' kept their stream streaks · longest ',b(e.top.name),' ',b('×'+e.top.streak,'m'));
   return add(String(e.text||''));}

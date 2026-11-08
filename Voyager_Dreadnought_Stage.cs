@@ -1,8 +1,9 @@
-// Voyager Dreadnought Stage v1.2. One action: Voyager - Dreadnought Stage. No triggers: Voyager runs it (DoAction) when the
+// Voyager Dreadnought Stage v1.3. One action: Voyager - Dreadnought Stage. No triggers: Voyager runs it (DoAction) when the
 // Dreadnought stage comes up and goes down. It moves the OBS scene item that holds your game (a nested scene or a group,
 // named on Voyager Control › Voyager Dreadnought › Stage) into the picture-in-picture window with a short animation, and
 // moves it back afterwards. The item's original transform is kept in a Streamer.bot global so a restart can still restore it.
-// Arguments from Voyager: stagePhase (on|off), stageScene, stageSource, stageX, stageY, stageW, stageH, stageMs.
+// Arguments from Voyager: stagePhase (on|off), stageScene, stageSource, stageX, stageY, stageW, stageH, stageMs, stageHide (JSON list of
+// source names to hide while the stage is up; they are shown again on off, only the ones that were visible before).
 // If Compile reports CS0012 "The type 'Uri' is defined in an assembly that is not referenced": click Find Refs (or References › add System.dll), then Compile again.
 using System;using System.Globalization;using System.Threading;using Newtonsoft.Json;using Newtonsoft.Json.Linq;
 public class CPHInline {
@@ -22,16 +23,18 @@ public class CPHInline {
     if(saved==null||(string)saved["scene"]!=scene||(long)saved["id"]!=id){saved=new JObject{["scene"]=scene,["id"]=id,["source"]=source,["t"]=cur,["at"]=DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()};CPH.SetGlobalVar(Store,saved.ToString(Formatting.None),true);}
     else from=Rect(cur);
     Animate(scene,id,from,new double[]{x,y,w,h},ms);
-    Report(requestId,phase,true,"'"+source+"' moved to the picture-in-picture window ("+Math.Round(w)+"x"+Math.Round(h)+" at "+Math.Round(x)+","+Math.Round(y)+" on a "+canvas[0]+"x"+canvas[1]+" canvas) in "+ms+" ms.");
+    string hid=Hide(scene,saved);
+    Report(requestId,phase,true,"'"+source+"' moved to the picture-in-picture window ("+Math.Round(w)+"x"+Math.Round(h)+" at "+Math.Round(x)+","+Math.Round(y)+" on a "+canvas[0]+"x"+canvas[1]+" canvas) in "+ms+" ms."+hid);
    }else{
     if(saved==null){Report(requestId,phase,true,"Nothing to restore (the game was never moved).");return true;}
     JObject t=(JObject)saved["t"];double[] to=Rect(t);
+    string shown=Unhide(saved);
     Animate(scene,id,from,to,ms);
     // Exact original transform back (scale or bounds mode, alignment, crop are untouched).
     JObject restore=new JObject{["positionX"]=t["positionX"],["positionY"]=t["positionY"],["scaleX"]=t["scaleX"],["scaleY"]=t["scaleY"],["alignment"]=t["alignment"],["boundsType"]=t["boundsType"],["boundsAlignment"]=t["boundsAlignment"]};
     if((string)t["boundsType"]!="OBS_BOUNDS_NONE"){restore["boundsWidth"]=t["boundsWidth"];restore["boundsHeight"]=t["boundsHeight"];}
     Set(scene,id,restore);CPH.SetGlobalVar(Store,"",true);
-    Report(requestId,phase,true,"'"+source+"' restored to its place.");
+    Report(requestId,phase,true,"'"+source+"' restored to its place."+shown);
    }
   }catch(Exception e){Report(requestId,phase,false,e.Message);}}
   return true;
@@ -57,7 +60,25 @@ public class CPHInline {
   var names=new System.Collections.Generic.List<string>();foreach(JObject it in items)names.Add((string)it["sourceName"]+((bool?)it["isGroup"]==true?" (group)":(string)it["sourceType"]=="OBS_SOURCE_TYPE_SCENE"?" (scene)":""));return names.Count==0?"(none)":String.Join(", ",names);}catch{return "(could not list)";}}
  // Tells Voyager what OBS did, so the Dreadnought page's checklist can show it (and logs the same line in Streamer.bot).
  void Report(string requestId,string phase,bool ok,string message){if(ok)CPH.LogInfo("[Voyager Stage] "+message);else CPH.LogWarn("[Voyager Stage] "+message);
-  try{CPH.WebsocketBroadcastJson(new JObject{["type"]="voyager.stage.result",["v"]=1,["requestId"]=requestId,["phase"]=phase,["ok"]=ok,["message"]=message,["backendVersion"]="1.2",["at"]=DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}.ToString(Formatting.None));}catch{}}
+  try{CPH.WebsocketBroadcastJson(new JObject{["type"]="voyager.stage.result",["v"]=1,["requestId"]=requestId,["phase"]=phase,["ok"]=ok,["message"]=message,["backendVersion"]="1.3",["at"]=DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}.ToString(Formatting.None));}catch{}}
+ // Hide the named sources (anywhere in the scene, including inside groups) that are visible now; remember them for Unhide.
+ string Hide(string scene,JObject saved){string raw=Read("stageHide");JArray names;try{names=String.IsNullOrWhiteSpace(raw)?new JArray():JArray.Parse(raw);}catch{names=new JArray();}
+  JArray hidden=saved["hidden"] as JArray??new JArray();var missing=new System.Collections.Generic.List<string>();
+  foreach(JToken n in names){string name=(string)n;if(String.IsNullOrWhiteSpace(name))continue;bool already=false;foreach(JObject h in hidden)if(String.Equals((string)h["name"],name,StringComparison.OrdinalIgnoreCase))already=true;if(already)continue;
+   JObject hit=Find(scene,name);if(hit==null){missing.Add(name);continue;}
+   if((bool?)hit["enabled"]!=true)continue;SetEnabled((string)hit["scene"],(long)hit["id"],false);hidden.Add(new JObject{["scene"]=hit["scene"],["id"]=hit["id"],["name"]=name});}
+  saved["hidden"]=hidden;CPH.SetGlobalVar(Store,saved.ToString(Formatting.None),true);
+  return (hidden.Count>0?" Hidden: "+String.Join(", ",System.Linq.Enumerable.Select(hidden,h=>(string)h["name"]))+".":"")+(missing.Count>0?" Not found in '"+scene+"': "+String.Join(", ",missing)+".":"");}
+ string Unhide(JObject saved){JArray hidden=saved["hidden"] as JArray;if(hidden==null||hidden.Count==0)return "";var names=new System.Collections.Generic.List<string>();
+  foreach(JObject h in hidden){try{SetEnabled((string)h["scene"],(long)h["id"],true);names.Add((string)h["name"]);}catch(Exception e){names.Add((string)h["name"]+" (failed: "+e.Message+")");}}
+  return " Shown again: "+String.Join(", ",names)+".";}
+ void SetEnabled(string scene,long id,bool on){CPH.ObsSendRaw("SetSceneItemEnabled","{\"sceneName\":"+JsonConvert.ToString(scene)+",\"sceneItemId\":"+id+",\"sceneItemEnabled\":"+(on?"true":"false")+"}");}
+ // A source by name in the scene, or inside one of its groups: {scene (scene or group name), id, enabled}.
+ JObject Find(string scene,string name){try{string raw=CPH.ObsSendRaw("GetSceneItemList","{\"sceneName\":"+JsonConvert.ToString(scene)+"}");JArray items=JObject.Parse(raw)["sceneItems"] as JArray;if(items==null)return null;
+   foreach(JObject it in items){if(String.Equals((string)it["sourceName"],name,StringComparison.OrdinalIgnoreCase))return new JObject{["scene"]=scene,["id"]=it["sceneItemId"],["enabled"]=it["sceneItemEnabled"]};}
+   foreach(JObject it in items){if((bool?)it["isGroup"]!=true)continue;string g=(string)it["sourceName"];string graw=CPH.ObsSendRaw("GetGroupSceneItemList","{\"sceneName\":"+JsonConvert.ToString(g)+"}");JArray gi=JObject.Parse(graw)["sceneItems"] as JArray;if(gi==null)continue;
+    foreach(JObject x in gi)if(String.Equals((string)x["sourceName"],name,StringComparison.OrdinalIgnoreCase))return new JObject{["scene"]=g,["id"]=x["sceneItemId"],["enabled"]=x["sceneItemEnabled"]};}
+  }catch{}return null;}
  // OBS canvas (base) size; 1920 x 1080 when OBS does not answer.
  double[] Canvas(){try{string raw=CPH.ObsSendRaw("GetVideoSettings","{}");JObject v=JObject.Parse(raw);double bw=D(v["baseWidth"]),bh=D(v["baseHeight"]);if(bw>=320&&bh>=180)return new double[]{bw,bh};}catch{}return new double[]{1920,1080};}
  JObject Saved(){string raw=CPH.GetGlobalVar<string>(Store,true);if(String.IsNullOrWhiteSpace(raw))return null;try{return JObject.Parse(raw);}catch{return null;}}

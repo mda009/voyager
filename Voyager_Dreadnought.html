@@ -110,16 +110,17 @@
 <label>Right column<select name="right"></select></label>
 <label>Bottom corner<select name="bottomLeft"></select></label>
 <label>Your scene goes to<select name="pip"><option value="br">Bottom right</option><option value="bl">Bottom left</option></select></label>
-<div class="group"><b>Bottom middle, top to bottom</b><label><input type="checkbox" name="stack" value="bucket"> Giveaway goals strip</label><label><input type="checkbox" name="stack" value="ticker"> Right now ticker</label><label><input type="checkbox" name="stack" value="moments"> Command hints &amp; medal toasts</label></div>
+<div class="group"><b>Bottom middle, top to bottom</b><label><input type="checkbox" name="stack" value="bucket"> Giveaway goals strip</label><label><input type="checkbox" name="stack" value="ticker"> Right now ticker</label><label><input type="checkbox" name="stack" value="moments"> Command hints &amp; medal toasts</label><label><input type="checkbox" name="stack" value="dread"> Dreadnought damage HUD</label></div>
 <div class="group"><b>Chat window</b><label><input type="checkbox" name="chat.twitch"> Twitch</label><label><input type="checkbox" name="chat.youtube"> YouTube</label><label><input type="checkbox" name="chat.kick"> Kick</label><label><input type="checkbox" name="chat.commands"> Show !commands</label><label><input type="checkbox" name="chat.names"> Show names</label></div>
 <label>Your live OBS scene<input name="scene" maxlength="120" placeholder="e.g. Live"></label>
 <label>Game source in it (nested scene or group)<input name="source" maxlength="120" placeholder="e.g. Game"></label>
+<label style="grid-column:1/-1">Hide these sources while the stage is up (comma-separated, shown again afterwards)<input name="hide" maxlength="600" placeholder="e.g. Versus ready timer, SC referral"></label>
 <label>Battle report stays on (seconds)<input name="resultSeconds" type="number" min="5" max="60"></label>
 <label>Move animation (ms)<input name="animationMs" type="number" min="200" max="4000" step="100"></label>
 <div class="st-actions wide" style="grid-column:1/-1"><button type="submit" class="primary">Save stage</button><button type="button" id="stage-show">Show the stage for 60 s</button><button type="button" id="stage-hide" hidden>Hide now</button><button type="button" id="stage-cue">Move my scene again</button></div>
 </form>
 <ul class="dn-check" id="stage-checks"></ul>
-<p class="st-hint">Streamer.bot: import <code>Voyager_Dreadnought_Stage.cs</code> as an action named exactly <b>Voyager - Dreadnought Stage</b> (no triggers; Voyager runs it). Put your game capture and camera in one nested scene or group inside your live scene and name both above. Without the action the stage still shows; your scene just stays where it is behind the frame.</p>
+<p class="st-hint">Streamer.bot: import <code>Voyager_Dreadnought_Stage.cs</code> (v1.3 or later for hiding sources) as an action named exactly <b>Voyager - Dreadnought Stage</b> (no triggers; Voyager runs it). Put your game capture and camera in one nested scene or group inside your live scene and name both above. Without the action the stage still shows; your scene just stays where it is behind the frame.</p>
 </section>
 <section class="card dn-card">
 <span class="eyebrow">STREAMER.BOT</span>
@@ -142,8 +143,8 @@
 <script src="giveaway-connection.js"></script>
 <script src="points-model.js?v=4.4"></script>
 <script src="points-connection.js?v=4.4"></script>
-<script src="dreadnought.js?v=2.20.86"></script>
-<script src="voyager-shell.js?v=2.20.87"></script>
+<script src="dreadnought.js?v=2.20.88"></script>
+<script src="voyager-shell.js?v=2.20.88"></script>
 <script src="voyager-navigation.js"></script>
 </body>
 </html>

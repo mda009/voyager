@@ -231,10 +231,10 @@ export class Engage{
   }
 
   // ---------- views ----------
-  overlay(){
+  overlay({always=false}={}){ // always: the Dreadnought stage's squadron slot shows the standings whether or not the timed panel is on
     const now=this.now(),a=this.state.quiz.active,showQuiz=a&&(now<a.endsAt+8000||(a.winner&&now-a.winner.at<8000));
     return {serverAt:now,toasts:this.state.toasts.filter(t=>now-t.at<60000),quiz:showQuiz?{id:a.id,q:a.q,endsAt:a.endsAt,duration:a.endsAt-a.startedAt,reward:a.reward,winner:a.winner?{name:a.winner.name,platform:a.winner.platform}:null,answer:a.winner||now>a.endsAt?a.a[0]:''}:null,
-      squadrons:this.state.panel&&!(this.state.panel.until&&now>this.state.panel.until)?{visible:true,until:this.state.panel.until,standings:this.standings().map(({top,...x})=>({...x,top:top.slice(0,3)}))}:null};
+      squadrons:always||(this.state.panel&&!(this.state.panel.until&&now>this.state.panel.until))?{visible:true,until:this.state.panel?.until||0,standings:this.standings().map(({top,...x})=>({...x,top:top.slice(0,3)}))}:null};
   }
   showPanel(seconds){this.state.panel=seconds>0?{until:this.now()+seconds*1000}:null;if(this.state.panel&&seconds>=3600)this.state.panel.until=0;this.persist(true);return this.state.panel;}
   view(){

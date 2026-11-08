@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.20.88 (8 November 2026)
+
+**Dreadnought stage: hide sources, squadrons, damage HUD, MVP.** The stage card takes a list of OBS sources to hide while the stage is up (e.g. the Versus ready timer and referral graphic); `Voyager_Dreadnought_Stage.cs` v1.3 hides them when the stage comes up — found directly in the scene or inside a group — and shows the ones that were visible again when it goes down. New slot choices: **Squadron war panel** (the engage.html panel, always on inside the stage) and **Dreadnought damage HUD** (hull, speed goals, top damage) — also available as a bottom-stack item. The Dreadnought scene's fleet panel (top-left) now shows **damage dealt** with the percentage and tags the **MVP** (top damage). Fixes: the moments Dreadnought HUD mistook the battle phase and showed elapsed times ×1000 ("Destroyed in 390:10"); it now reads the live battle correctly and marks speed goals MADE IT / MISSED on the result. The standalone squadron panel steps aside while the stage is up.
+
 ## 2.20.87 (8 November 2026)
 
 **Dreadnought stage on 1440p / 4K canvases.** `Voyager_Dreadnought_Stage.cs` v1.2 reads the OBS canvas size and scales the picture-in-picture move to it, so a 2560 × 1440 or 3840 × 2160 canvas puts the game in the same corner as the 1080p layout instead of a small box in the middle.

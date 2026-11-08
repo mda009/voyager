@@ -16,15 +16,18 @@ function fill(el,kind,rect){
   if(['standings','goals','helpers','hall','missions'].includes(kind)){const s=rect.w/388;el.append(frame('/control/Voyager_Community_Panel.html?stage=1&compact=1&kind='+(kind==='standings'?'season':kind),388,520,s));return;}
   if(kind==='christmas'){const s=Math.min(rect.w/440,rect.h/560);el.append(frame('/control/Voyager_Christmas_Goal.html?stage=1&always=1',1920,1080,s,-1440*s+(rect.w-440*s)/2,-110*s));return;}
   if(kind==='chat'){el.append(frame('/control/chat.html?stage=1&w='+rect.w+'&h='+rect.h,rect.w,rect.h,1));return;}
+  if(kind==='squadron'){const s=rect.w/568;el.append(frame('/engage.html?stage=squadron&w=568',568,Math.round(rect.h/s),s));return;}
+  if(kind==='dread'){const s=Math.min(1,rect.w/380);el.append(frame('/control/Voyager_Moments.html?stage=dread&w='+Math.round(rect.w/s),1920,1080,s));return;}
   if(kind==='camera'){const d=document.createElement('div');d.className='camera';const s=document.createElement('span');s.textContent='CAMERA · PLACE YOUR SOURCE HERE';d.append(s);el.append(d);return;}
 }
 function fillStack(items,rect){
   const box=$('stack');box.replaceChildren();box.style.left=rect.x+'px';box.style.top=rect.y+'px';box.style.width=rect.w+'px';box.style.height=rect.h+'px';
-  const heights={bucket:Math.round(rect.w/3840*480),ticker:56},gap=14;let y=0;const fixed=items.filter(k=>heights[k]).reduce((a,k)=>a+heights[k]+gap,0),free=Math.max(120,rect.h-fixed);
+  const heights={bucket:Math.round(rect.w/3840*480),ticker:56},gap=14;const frees=items.filter(k=>!heights[k]).length||1;let y=0;const fixed=items.filter(k=>heights[k]).reduce((a,k)=>a+heights[k]+gap,0),free=Math.max(120,Math.round((rect.h-fixed-gap*(frees-1))/frees));
   items.forEach((k,i)=>{const h=heights[k]||free,item=document.createElement('div');item.className='item';item.style.top=y+'px';item.style.height=h+'px';item.style.setProperty('--d',(2.45+i*.15)+'s');
     if(k==='bucket')item.append(frame('/control/Voyager_Bucket_Overlay.html?stage=1&always=1',3840,480,rect.w/3840));
     else if(k==='ticker')item.append(frame('/control/Voyager_Moments.html?stage=ticker&w='+rect.w,1920,1080,1));
     else if(k==='moments')item.append(frame('/control/Voyager_Moments.html?stage=moments&w='+rect.w+'&h='+h,1920,1080,1));
+    else if(k==='dread')item.append(frame('/control/Voyager_Moments.html?stage=dread&w='+rect.w,1920,1080,1));
     box.append(item);y+=h+gap;});
 }
 function build(d){

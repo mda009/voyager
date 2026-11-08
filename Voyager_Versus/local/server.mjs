@@ -337,7 +337,7 @@ const server=http.createServer(async(req,res)=>{
       response(res,404,{message:'Unknown Streamer.bot request.'});return;
     }
     if(url.pathname==='/api/boss/overlay'&&req.method==='GET'){res.setHeader('Cache-Control','no-store');{const b=boss.overlay();response(res,200,{...b,relay:engage.relayView(),stage:stage.active(b)});}return;}
-    if(url.pathname==='/api/engage/overlay'&&req.method==='GET'){res.setHeader('Cache-Control','no-store');sourceSeen.engage=Date.now();response(res,200,engage.overlay());return;}
+    if(url.pathname==='/api/engage/overlay'&&req.method==='GET'){res.setHeader('Cache-Control','no-store');const inStage=url.searchParams.get('stage')==='1';if(!inStage)sourceSeen.engage=Date.now();response(res,200,{...engage.overlay({always:inStage}),stage:stage.active(boss.overlay())});return;}
     if(url.pathname.startsWith('/api/engage')){
       if(!validToken(req)){response(res,403,{message:'Open Voyager Control › Chat engagement.'});return;}
       if(url.pathname==='/api/engage'&&req.method==='GET'){response(res,200,{...engage.view(),sourceAt:sourceSeen.engage,connected:bot.status.connected,medalsAction:await actionStatus('Voyager - Medals'),lastChatAt,otherChat:bot.otherChat});return;}

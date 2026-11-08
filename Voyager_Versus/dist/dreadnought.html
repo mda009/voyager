@@ -50,6 +50,9 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:transparent
 #fleet .head img{width:44px;height:44px}
 #fleet .head div{font:700 14px/1.1 var(--font);letter-spacing:4px;color:var(--muted)}
 #fleet .head b{display:block;font-size:34px;letter-spacing:1px;color:var(--text)}
+/* 2.20.88: damage dealt so far and the MVP (top damage) in the fleet panel */
+#dmgline{display:flex;align-items:baseline;gap:10px;margin:12px 0 0;padding-top:10px;border-top:1px solid rgba(114,216,255,.14);font:700 12px/1 var(--font);letter-spacing:3px;color:var(--muted)}#dmgline b{font-size:28px;letter-spacing:0;color:#ff9aa6;text-shadow:0 0 14px rgba(255,90,110,.6)}#dmgline i{font-style:normal;font-size:14px;color:var(--gold);margin-left:auto}#dmgline[hidden]{display:none}
+#leaders li.mvp .n{color:var(--gold)}#leaders li.mvp::after{content:'MVP';font:700 10px/1 var(--font);letter-spacing:2px;color:#07101c;background:var(--gold);padding:3px 6px;border-radius:3px;margin-left:6px}
 #leaders{list-style:none;margin:14px 0 0;padding:0}
 #leaders li{display:flex;align-items:center;gap:10px;padding:7px 0;border-top:1px solid rgba(114,216,255,.1);font:600 19px/1 var(--font)}
 #leaders .r{width:22px;color:var(--gold);font-weight:700}
@@ -101,7 +104,7 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:transparent
   <div id="labels"></div><div id="nums"></div>
   <div id="bossbar" hidden><div class="eyebrow">⚠ HOSTILE CAPITAL SHIP</div><div id="bossname">The Dreadnought</div><div id="hp"><b></b><i></i><u style="left:50%"></u><u style="left:20%"></u><span id="hptext"></span></div><div id="tags"></div><div id="relay" hidden><span class="rl">📡 COMMS RELAY · CHAT TO CHARGE</span><div class="rbar"><i></i></div><b id="relaynum"></b></div></div>
   <div id="clock" hidden><small>TIME LEFT</small><b id="clocktime">3:00</b><div id="goal" hidden><i></i><span id="goaltext"></span></div></div>
-  <div id="fleet" hidden><div class="head"><img src="brand/voyager.png" alt=""><div>VOYAGER FLEET<b id="pilotcount">0 pilots</b></div></div><ol id="leaders"></ol></div>
+  <div id="fleet" hidden><div class="head"><img src="brand/voyager.png" alt=""><div>VOYAGER FLEET<b id="pilotcount">0 pilots</b></div></div><div id="dmgline" hidden><span>DAMAGE DEALT</span><b id="dmgdealt">0</b><i id="dmgpct">0%</i></div><ol id="leaders"></ol></div>
   <div id="feed"></div>
   <div id="legend" hidden><div class="l1"><b>!fire</b><small>FREE · LASERS</small></div><div class="l2"><b>CHEERS</b><small>BITS · SUPER CHATS · MISSILES</small></div><div class="l3"><b>GIFT SUBS</b><small>TORPEDOES · MOST DAMAGE</small></div></div>
   <div id="lobby" class="card lobby" hidden><div class="eyebrow">⚠ INCOMING CAPITAL SHIP</div><h1 id="lobbytitle">The Dreadnought approaches</h1><p>Board the Voyager fleet before it arrives</p><div class="big" id="lobbytime">60</div><p><span class="cmd">!join</span> then <span class="cmd">!fire</span></p><p id="lobbycount">0 pilots boarded</p></div>
@@ -110,5 +113,5 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:transparent
   <div id="preview-tag" hidden>PREVIEW · SIMULATED CHAT</div>
  </div>
 </div>
-<script type="module" src="dreadnought.mjs?v=2.20.84"></script>
+<script type="module" src="dreadnought.mjs?v=2.20.88"></script>
 </body></html>

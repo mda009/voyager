@@ -261,10 +261,11 @@ function hud(now){
    if(show){const which=g.legendary>0&&lg>0?['LEGENDARY KILL',lg,'']:g.hero>0&&hr>0?['HERO KILL',hr,'hero']:null;
     goal.className=(which?which[2]:'missed')+(d.demo?' demo':'');setText('goaltext',which?which[0]+' '+fmtTime(which[1])+(g.bonusPct?' · +'+g.bonusPct+'% PTS':''):'SPEED GOALS MISSED');}}
   setText('pilotcount',d.pilots+' pilot'+(d.pilots===1?'':'s'));
+  const dealt=Math.max(0,(d.maxHp||0)-(d.hp||0)),dl=$('dmgline');dl.hidden=d.phase==='lobby'||!d.maxHp;if(!dl.hidden){setText('dmgdealt',dealt.toLocaleString('en'));setText('dmgpct',Math.round(dealt/d.maxHp*100)+'%');}
   const ol=$('leaders'),lk=JSON.stringify((d.leaders.length?d.leaders:d.fleet.slice(0,5)).map(p=>[p.name,p.platform,p.damage??null]));
   if(ol.dataset.k!==lk){ol.dataset.k=lk;ol.replaceChildren();
   (d.leaders.length?d.leaders:d.fleet.slice(0,5).map(p=>({...p,damage:null}))).forEach((p,i)=>{const li=document.createElement('li');const r=document.createElement('span');r.className='r';r.textContent=p.damage===null?'·':String(i+1);
-    const dot=document.createElement('span');dot.className='p '+p.platform;const n=document.createElement('span');n.className='n';n.textContent=p.name;const dm=document.createElement('span');dm.className='d';dm.textContent=p.damage===null?'READY':p.damage.toLocaleString('en');li.append(r,dot,n,dm);ol.append(li);});}
+    const dot=document.createElement('span');dot.className='p '+p.platform;const n=document.createElement('span');n.className='n';n.textContent=p.name;const dm=document.createElement('span');dm.className='d';dm.textContent=p.damage===null?'READY':p.damage.toLocaleString('en');if(i===0&&p.damage>0)li.className='mvp';li.append(r,dot,n,dm);ol.append(li);});}
   const feed=$('feed'),key=d.feed.map(f=>f.id).join(',');if(feed.dataset.key!==key){feed.dataset.key=key;feed.replaceChildren(...d.feed.slice(0,5).map(f=>{const x=document.createElement('div');x.className=f.kind;x.textContent=f.text;return x;}));}
   $('lobby').hidden=d.phase!=='lobby';
   if(d.phase==='lobby'){$('lobbytitle').textContent=d.name+' approaches';setText('lobbytime',String(Math.max(0,Math.ceil((d.lobbyEndsAt-t)/1000))));setText('lobbycount',d.pilots+' pilot'+(d.pilots===1?'':'s')+' boarded');}

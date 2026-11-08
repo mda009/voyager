@@ -98,13 +98,13 @@ const form=$('stage-form');if(form){let st=null,stEditing=false;const f=form.ele
 $('stage-url').textContent=location.origin+'/control/stage.html';
 $('stage-copy').onclick=async()=>{try{await navigator.clipboard.writeText($('stage-url').textContent);$('stage-copy').textContent='Copied';setTimeout(()=>$('stage-copy').textContent='Copy',1500);}catch{}};
 function options(sel,kinds,value){if(!sel.options.length)for(const [k,label] of Object.entries(kinds)){const o=document.createElement('option');o.value=k;o.textContent=label;sel.append(o);}sel.value=value;}
-function pic(){const s=st.settings,short=k=>({none:'—',leaderboard:'Leaders',standings:'Standings',goals:'Goals',helpers:'Contributors',hall:'Hall of Fame',missions:'Missions',christmas:'Christmas',chat:'Chat',camera:'Camera'})[k]||k;
-  $('pic-left').textContent=short(s.slots.left);$('pic-right').textContent=short(s.slots.right);$('pic-bl').textContent=short(s.slots.bottomLeft);$('pic-stack').textContent=s.stack.map(k=>({bucket:'Goals strip',ticker:'Ticker',moments:'Hints · medals'})[k]).join(' · ')||'—';
+function pic(){const s=st.settings,short=k=>({none:'—',leaderboard:'Leaders',standings:'Standings',goals:'Goals',helpers:'Contributors',hall:'Hall of Fame',missions:'Missions',christmas:'Christmas',chat:'Chat',squadron:'Squadrons',dread:'Damage HUD',camera:'Camera'})[k]||k;
+  $('pic-left').textContent=short(s.slots.left);$('pic-right').textContent=short(s.slots.right);$('pic-bl').textContent=short(s.slots.bottomLeft);$('pic-stack').textContent=s.stack.map(k=>({bucket:'Goals strip',ticker:'Ticker',moments:'Hints · medals',dread:'Damage HUD'})[k]).join(' · ')||'—';
   const pipRight=s.pip==='br';$('pic-bl').style.order=pipRight?0:2;$('pic-pip').style.order=pipRight?2:0;$('pic-stack').style.order=1;}
 function renderStage(){if(!st)return;const s=st.settings;
   if(!stEditing){f.enabled.checked=s.enabled;options(f.left,st.slotKinds,s.slots.left);options(f.right,st.slotKinds,s.slots.right);options(f.bottomLeft,st.slotKinds,s.slots.bottomLeft);f.pip.value=s.pip;
     for(const cb of form.querySelectorAll('input[name=stack]'))cb.checked=s.stack.includes(cb.value);for(const k of ['twitch','youtube','kick','commands','names'])f['chat.'+k].checked=!!s.chat[k];
-    f.scene.value=s.scene;f.source.value=s.source;f.resultSeconds.value=s.resultSeconds;f.animationMs.value=s.animationMs;}
+    f.scene.value=s.scene;f.source.value=s.source;f.hide.value=(s.hide||[]).join(', ');f.resultSeconds.value=s.resultSeconds;f.animationMs.value=s.animationMs;}
   pic();
   const pill=$('stage-pill');pill.dataset.state=st.forced?'ok':s.enabled?'wait':'';pill.textContent=st.forced?'Showing (test)':s.enabled?'Armed':'Off';$('stage-hide').hidden=!st.forced;$('stage-show').hidden=!!st.forced;
   const act=st.action?.state,cue=st.cue;
@@ -117,7 +117,7 @@ function renderStage(){if(!st)return;const s=st.settings;
   const cl=$('stage-checks');cl.textContent='';for(const [ok,text] of checks){cl.append(el('li',ok===null?'info':ok?'ok':'',text));}}
 async function loadStage(){try{st=await api('/api/stage');renderStage();}catch(e){notice(e.message,true);}}
 form.addEventListener('focusin',()=>{stEditing=true;});form.addEventListener('change',()=>{if(st){st.settings={...st.settings,slots:{left:f.left.value,right:f.right.value,bottomLeft:f.bottomLeft.value},pip:f.pip.value,stack:[...form.querySelectorAll('input[name=stack]:checked')].map(c=>c.value)};pic();}});
-form.onsubmit=async e=>{e.preventDefault();const value={enabled:f.enabled.checked,slots:{left:f.left.value,right:f.right.value,bottomLeft:f.bottomLeft.value},pip:f.pip.value,stack:[...form.querySelectorAll('input[name=stack]:checked')].map(c=>c.value),scene:f.scene.value,source:f.source.value,resultSeconds:Number(f.resultSeconds.value),animationMs:Number(f.animationMs.value),chat:{}};
+form.onsubmit=async e=>{e.preventDefault();const value={enabled:f.enabled.checked,slots:{left:f.left.value,right:f.right.value,bottomLeft:f.bottomLeft.value},pip:f.pip.value,stack:[...form.querySelectorAll('input[name=stack]:checked')].map(c=>c.value),scene:f.scene.value,source:f.source.value,hide:f.hide.value,resultSeconds:Number(f.resultSeconds.value),animationMs:Number(f.animationMs.value),chat:{}};
   for(const k of ['twitch','youtube','kick','commands','names'])value.chat[k]=f['chat.'+k].checked;
   try{st={...st,...(await api('/api/stage/settings',value))};stEditing=false;notice('Stage saved. A stage source that is open picks the layout up within a second.');renderStage();}catch(e){notice(e.message,true);}};
 $('stage-show').onclick=async()=>{try{st={...st,...(await api('/api/stage/force',{seconds:60}))};notice('The stage is showing for 60 seconds (your Dreadnought source shows the standby scene).');renderStage();setTimeout(loadStage,1500);}catch(e){notice(e.message,true);}};

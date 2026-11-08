@@ -8,20 +8,21 @@ import {readFile,writeFile,mkdir,rename} from 'node:fs/promises';
 import {join} from 'node:path';
 import {randomUUID} from 'node:crypto';
 
-export const SLOT_KINDS={none:'Nothing',leaderboard:'Leaderboard panel',standings:'Community goal standings',goals:'Community goals',helpers:'Community goal contributors',hall:'Hall of Fame',missions:"This week's missions",christmas:'Christmas goal panel',chat:'Chat (Twitch · YouTube · Kick)',camera:'Camera window (transparent)'};
-export const STACK_KINDS={bucket:'Giveaway goals strip',ticker:'Right now ticker',moments:'Command hints & medal toasts'};
+export const SLOT_KINDS={none:'Nothing',leaderboard:'Leaderboard panel',standings:'Community goal standings',goals:'Community goals',helpers:'Community goal contributors',hall:'Hall of Fame',missions:"This week's missions",christmas:'Christmas goal panel',chat:'Chat (Twitch · YouTube · Kick)',squadron:'Squadron war panel',dread:'Dreadnought damage HUD',camera:'Camera window (transparent)'};
+export const STACK_KINDS={bucket:'Giveaway goals strip',ticker:'Right now ticker',moments:'Command hints & medal toasts',dread:'Dreadnought damage HUD'};
 export const SLOTS=['left','right','bottomLeft'];
-export const STAGE_DEFAULTS={enabled:true,slots:{left:'leaderboard',right:'helpers',bottomLeft:'chat'},stack:['bucket','ticker','moments'],pip:'br',scene:'',source:'',resultSeconds:20,animationMs:1200,chat:{twitch:true,youtube:true,kick:true,commands:false,names:true}};
+export const STAGE_DEFAULTS={enabled:true,slots:{left:'leaderboard',right:'helpers',bottomLeft:'chat'},stack:['bucket','ticker','moments'],pip:'br',scene:'',source:'',hide:[],resultSeconds:20,animationMs:1200,chat:{twitch:true,youtube:true,kick:true,commands:false,names:true}};
 const CHAT_MAX=80,CHAT_SHOW=40;
 const clean=(v,n)=>String(v??'').replace(/[\u0000-\u001f\u007f]/g,'').trim().slice(0,n);
 export function normalizeSettings(raw={},prev=STAGE_DEFAULTS){
   const s=JSON.parse(JSON.stringify(prev)),r=raw&&typeof raw==='object'?raw:{};
   if(r.enabled!==undefined)s.enabled=!!r.enabled;
   if(r.slots&&typeof r.slots==='object')for(const k of SLOTS){if(r.slots[k]===undefined)continue;if(!Object.hasOwn(SLOT_KINDS,r.slots[k]))throw new Error('Unknown panel for the '+k+' slot.');s.slots[k]=r.slots[k];}
-  if(r.stack!==undefined){if(!Array.isArray(r.stack))throw new Error('Stack must be a list.');const out=[];for(const k of r.stack){if(!Object.hasOwn(STACK_KINDS,k))throw new Error('Unknown item in the bottom stack.');if(!out.includes(k))out.push(k);}s.stack=out.slice(0,3);}
+  if(r.stack!==undefined){if(!Array.isArray(r.stack))throw new Error('Stack must be a list.');const out=[];for(const k of r.stack){if(!Object.hasOwn(STACK_KINDS,k))throw new Error('Unknown item in the bottom stack.');if(!out.includes(k))out.push(k);}s.stack=out.slice(0,4);}
   if(r.pip!==undefined){if(!['br','bl'].includes(r.pip))throw new Error('Picture-in-picture corner must be bottom-right or bottom-left.');s.pip=r.pip;}
   if(r.scene!==undefined)s.scene=clean(r.scene,120);
   if(r.source!==undefined)s.source=clean(r.source,120);
+  if(r.hide!==undefined){const list=Array.isArray(r.hide)?r.hide:String(r.hide).split(/[,\n]/);s.hide=[...new Set(list.map(x=>clean(x,120)).filter(Boolean))].slice(0,12);}
   if(r.resultSeconds!==undefined){const n=Number(r.resultSeconds);if(!Number.isFinite(n)||n<5||n>60)throw new Error('Battle report hold must be 5 to 60 seconds.');s.resultSeconds=Math.round(n);}
   if(r.animationMs!==undefined){const n=Number(r.animationMs);if(!Number.isFinite(n)||n<200||n>4000)throw new Error('Animation must be 200 to 4000 ms.');s.animationMs=Math.round(n);}
   if(r.chat&&typeof r.chat==='object')for(const k of ['twitch','youtube','kick','commands','names'])if(r.chat[k]!==undefined)s.chat[k]=!!r.chat[k];
@@ -69,7 +70,7 @@ export class Stage{
     const want=this.active(boss),s=this.settings;if(want===this.cue.on||this.cue.sending)return null;
     this.cue.on=want;if(!this.run||!s.scene||!s.source)return null;
     this.cue.sending=true;const g=GEOMETRY,pip=g.pip[s.pip];
-    try{const args={stagePhase:want?'on':'off',stageScene:s.scene,stageSource:s.source,stageX:pip.x,stageY:g.pip.y,stageW:g.pip.w,stageH:g.pip.h,stageMs:s.animationMs,requestId:this.uuid()};
+    try{const args={stagePhase:want?'on':'off',stageScene:s.scene,stageSource:s.source,stageX:pip.x,stageY:g.pip.y,stageW:g.pip.w,stageH:g.pip.h,stageMs:s.animationMs,stageHide:JSON.stringify(s.hide),requestId:this.uuid()};
       let r;try{r=await this.run(args);}catch(e){r={ok:false,message:e.message};}
       this.cue.last={at:this.now(),phase:args.stagePhase,ok:!!r?.ok,message:String(r?.message||'')};this.log('stage '+args.stagePhase+' cue: '+(r?.ok?'sent':r?.message));return this.cue.last;}
     finally{this.cue.sending=false;}
