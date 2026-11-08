@@ -52,7 +52,7 @@ export class Stage{
   // Up while the fight is being boarded, fought and reported (the report for resultSeconds), or forced from the control page.
   // Remember the battle report (the boss overlay goes idle before the MVP celebration is over).
   observe(boss){if(boss&&boss.phase==='result'){const id=String(boss.id||('r'+(boss.endedAt||0)));if(this.lastResult&&this.lastResult.id===id)return;const top=boss.leaders?.[0]||null;
-    this.lastResult={id,endedAt:Number(boss.endedAt)||this.now(),outcome:boss.outcome||'',name:boss.name||'The Dreadnought',demo:!!boss.demo,damage:Math.max(0,(boss.maxHp||0)-(boss.hp||0)),pilots:boss.pilots||0,mvp:top&&top.damage>0?{name:top.name,platform:top.platform,damage:top.damage}:null,bonus:Number(boss.mvpBonus)||0};}}
+    this.lastResult={id,endedAt:Number(boss.endedAt)||this.now(),outcome:boss.outcome||'',name:boss.name||'The Dreadnought',demo:!!boss.demo,damage:Math.max(0,(boss.maxHp||0)-(boss.hp||0)),pilots:boss.pilots||0,mvp:top&&top.damage>0?{name:top.name,platform:top.platform,damage:top.damage}:null,bonus:boss.outcome==='victory'?Number(boss.mvpBonus)||0:0};}}
   // Battle report for resultSeconds, then the MVP celebration for mvpSeconds (when someone dealt damage).
   window(){const r=this.lastResult;if(!r)return null;const now=this.now(),since=now-r.endedAt,report=this.settings.resultSeconds*1000,mvp=r.mvp?this.settings.mvpSeconds*1000:0;
     if(since<report)return 'result';if(since<report+mvp)return 'mvp';return null;}

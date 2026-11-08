@@ -23,7 +23,7 @@ test('Stage is up for boarding, battle and the battle report hold, or when force
   let now=1000000;const st=await new Stage({dataDir:await dir(),now:()=>now}).load();
   assert.equal(st.active({phase:'idle'}),false);
   assert.equal(st.active({phase:'lobby'}),true);assert.equal(st.active({phase:'battle'}),true);
-  assert.equal(st.active({phase:'result',endedAt:now-5000,id:'b1',leaders:[{name:'StarNova',platform:'twitch',damage:900}],mvpBonus:25}),true,'report shown for resultSeconds');
+  assert.equal(st.active({phase:'result',endedAt:now-5000,id:'b1',outcome:'victory',leaders:[{name:'StarNova',platform:'twitch',damage:900}],mvpBonus:25}),true,'report shown for resultSeconds');
   now+=20000;assert.equal(st.active({phase:'idle'}),true,'MVP celebration keeps the stage up after the report, even once the boss is idle');
   let o=st.overlay({phase:'idle'});assert.equal(o.phase,'mvp');assert.equal(o.mvp.name,'StarNova');assert.equal(o.mvp.bonus,25);
   now+=10000;assert.equal(st.active({phase:'idle'}),false,'celebration over');

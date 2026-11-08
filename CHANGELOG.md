@@ -4,7 +4,7 @@ Older update notes are listed in `Voyager_Guide.html` (Update history) and kept 
 
 ## 2.20.90 (8 November 2026)
 
-**Dreadnought stage: splash hold and MVP celebration.** The "Dreadnought called" slam now holds over the full-screen game for 6 seconds (adjustable) before the takeover begins, and the Streamer.bot move cue waits the same time, so the scene shrinks as the panels arrive. After the battle report, the **MVP** (most damage, whatever the outcome) gets the screen for 10 seconds (adjustable): name in gold metal, damage dealt, expanding rings and confetti, and the **MVP bonus** — a new Dreadnought setting, 25 points by default — which is added to the Dreadnought rewards on Missions › Points owed. Then the stage comes down and your scene returns.
+**Dreadnought stage: splash hold and MVP celebration.** The "Dreadnought called" slam now holds over the full-screen game for 6 seconds (adjustable) before the takeover begins, and the Streamer.bot move cue waits the same time, so the scene shrinks as the panels arrive. After the battle report, the **MVP** (most damage, whatever the outcome) gets the screen for 10 seconds (adjustable): name in gold metal, damage dealt, expanding rings and confetti, and, on a victory, the **MVP bonus** — a new Dreadnought setting, 25 points by default — which is added to the Dreadnought rewards on Missions › Points owed (an escape still pays nothing). Then the stage comes down and your scene returns.
 
 ## 2.20.89 (8 November 2026)
 

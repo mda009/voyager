@@ -163,7 +163,7 @@ export class BossFight{
     if(!b.demo){
       const rewarded=outcome==='victory'&&reward>0?pilots.filter(p=>p.fires>0||p.bits>0||p.gifts>0):[];
       this.history.unshift({id:b.id,name:s.name,outcome,startedAt:b.startedAt,endedAt:now,maxHp:b.maxHp,damage:total,pilots:pilots.length,
-        mvp:mvp?{key:mvp.key,name:mvp.name,platform:mvp.platform,damage:mvp.damage}:null,mvpBonus:mvp?s.mvpBonus:0,top:pilots.slice(0,5).map(p=>({name:p.name,platform:p.platform,damage:p.damage})),
+        mvp:mvp?{key:mvp.key,name:mvp.name,platform:mvp.platform,damage:mvp.damage}:null,mvpBonus:mvp&&outcome==='victory'?s.mvpBonus:0,top:pilots.slice(0,5).map(p=>({name:p.name,platform:p.platform,damage:p.damage})),
         reward,base:s.victoryPoints,bonus,speed,elapsed,rewarded:rewarded.map(p=>({key:p.key,name:p.name,platform:p.platform}))});
       this.history=this.history.slice(0,30);this.persist();
       // Voyager Medals (2.18): who fought, torpedoes fired, the MVP, the killing blow and (2.20.44) the speed goal.
@@ -199,7 +199,7 @@ export class BossFight{
   }
   // Victory rewards for Missions › Points owed (same points for every pilot who fought).
   rewardBatches(){return [...this.history.filter(h=>h.outcome==='victory'&&h.reward>0&&h.rewarded?.length).slice(0,10).map(h=>({id:h.id,title:h.name+' defeated'+(h.speed==='legendary'?' · Legendary kill in '+clock(h.elapsed)+' (+'+h.bonus+' bonus)':h.speed==='hero'?' · Heroic kill in '+clock(h.elapsed)+' (+'+h.bonus+' bonus)':''),reward:h.reward,pilots:h.rewarded})),
-    // 2.20.90: the MVP (most damage) earns a bonus whatever the outcome, celebrated on the Dreadnought stage.
+    // 2.20.90: on a victory the MVP (most damage) earns a bonus on top, celebrated on the Dreadnought stage. An escape still pays nothing.
     ...this.history.filter(h=>h.mvp?.key&&h.mvpBonus>0).slice(0,10).map(h=>({id:h.id+'-mvp',title:h.name+' MVP · '+Number(h.mvp.damage).toLocaleString('en')+' damage',reward:h.mvpBonus,pilots:[{key:h.mvp.key,name:h.mvp.name,platform:h.mvp.platform}]}))];}
   overlay(){
     const b=this.battle,now=this.now(),s=this.settings;

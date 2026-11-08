@@ -41,11 +41,12 @@ test('Victory pays every pilot who fought the same points; the boss escapes when
   b.call();b.receive(ev('join','nova'));b.receive(ev('join','idle'));at(10000);
   b.receive(ev('fire','nova'));b.receive(ev('gift','orion',{amount:1}));
   assert.equal(b.overlay().phase,'result');assert.equal(b.overlay().outcome,'victory');
-  const [batch]=b.rewardBatches();assert.equal(batch.reward,100);assert.deepEqual(batch.pilots.map(p=>p.key).sort(),['twitch:nova','twitch:orion'],'pilots who never fired get nothing');
+  const [batch,mvpBatch]=b.rewardBatches();assert.equal(batch.reward,100);assert.deepEqual(batch.pilots.map(p=>p.key).sort(),['twitch:nova','twitch:orion'],'pilots who never fired get nothing');
+  assert.equal(mvpBatch.reward,25,'2.20.90: the MVP bonus is a second batch');assert.equal(mvpBatch.pilots.length,1);assert.equal(mvpBatch.pilots[0].key,b.history[0].mvp.key);assert.match(mvpBatch.title,/MVP/);
   assert.match(said.at(-1),/MVP: ORION/);
   b.tick();at(30000);assert.equal(b.overlay().phase,'idle');
   b.call();b.receive(ev('join','nova'));at(10000);at(61000);
-  assert.equal(b.history[0].outcome,'escaped');assert.equal(b.rewardBatches().length,1,'no reward for an escape');
+  assert.equal(b.history[0].outcome,'escaped');assert.equal(b.rewardBatches().length,2,'no reward for an escape (the two batches are the earlier victory and its MVP bonus)');
 });
 
 test('2.20.44 speed goals: a kill within the Legendary or Hero time adds a bonus to the victory points and is announced',async()=>{
@@ -65,7 +66,7 @@ test('2.20.44 speed goals: a kill within the Legendary or Hero time adds a bonus
   // Too slow: 150 s in, plain victory points, no bonus.
   b.call();b.receive(ev('join','nova'));at(10000);at(150000);b.receive(ev('gift','nova',{amount:1}));
   h=b.history[0];assert.equal(h.speed,'');assert.equal(h.bonus,0);assert.equal(h.reward,100);assert.match(said.at(-1),/earns 100 Voyager points\./);assert.doesNotMatch(said.at(-1),/medal/);
-  assert.equal(b.rewardBatches().length,3);
+  assert.equal(b.rewardBatches().length,6,'three victories, each with a victory batch and an MVP batch');
   // Goals off and limits.
   b.tick();at(30000);b.configure({legendarySeconds:0,heroSeconds:0});
   b.call();b.receive(ev('join','nova'));at(10000);at(5000);b.receive(ev('gift','nova',{amount:1}));assert.equal(b.history[0].speed,'');assert.equal(b.history[0].reward,100);
