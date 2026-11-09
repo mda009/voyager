@@ -117,7 +117,7 @@ test('Public crew rows carry the stream card front, built by the same code, with
   assert.equal(f.stats[0][0],'VOYAGER POINTS');assert.equal(f.stats[1][0],'LIFETIME POINTS');assert.equal(f.rank.name,'LIEUTENANT');
   // 2.20.47: the back (fleet record) and medal wall come from the same build; the stream streak is on it.
   const b=rows[0].back;assert.match(b.statsEyebrow,/^!voyager stats · NOVA/);assert.equal(b.dread[0][0],'Damage dealt');assert.equal(b.versus.length,5);assert.equal(b.missions.length,5);
-  const streak=b.community.find(x=>x[0]==='STREAM STREAK');assert.ok(streak);assert.match(streak[1],/in a row|Private/);assert.ok(b.badges.length>0);assert.equal(typeof b.badges[0][2],'number');assert.equal(f.vip,false);
+  const streak=b.community.find(x=>x[0]==='STREAM STREAK');assert.ok(streak);assert.match(streak[1],/in a row|Private|^—$/);assert.match(streak[2]||"",/Twitch watch streak|share your Twitch|^$/i);assert.ok(b.badges.length>0);assert.equal(typeof b.badges[0][2],'number');assert.equal(f.vip,false);
   assert.equal(Object.keys(cards.state.members).length,0,'building the public front never adds card members');
   assert.equal(cards.memo,null);
 });

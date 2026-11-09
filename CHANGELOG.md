@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.21.3 (9 November 2026)
+
+**Stream streaks are Twitch's watch streaks, full stop.** Voyager no longer keeps a stream-streak counter of its own. The only number it holds is the watch streak a viewer shares in Twitch chat (Streamer.bot's Twitch "Watch Streak" event, or the viewermilestone chat notice, both already read since 2.20.70) — so the card back, the Unbreakable medal, the Hold the Line mission and the on-screen streak comet show exactly what Twitch shows that viewer, never a Voyager-made number. Streaks Voyager had counted itself are cleared once on update; a viewer's streak comes back the next time they share it. Stream days attended are still counted (Regular Pilot). The card says "Twitch watch streak, shared 3 Nov"; a viewer who has never shared sees "Share your Twitch watch streak in chat to show it". Medals › checklist shows the last streak heard from Twitch, so you can see it is arriving. Twitch has no API to read a streak on demand — sharing in chat is the only source.
+
 ## 2.21.2 (9 November 2026)
 
 **Compact goal progress bar.** The Community panel has a new thing to show: **Goal progress bar (compact)** — one slim row per community goal (name, count / target, % or ✓ REACHED, a progress bar) under a small run-name header, about a quarter of the height of the full goals panel at the same width, so it can stay on screen all stream. Pick it on Live › Panels, on Missions & goals › Community goals › On stream (with a live preview), or as a Dreadnought / Versus stage slot. Same position, width and background settings as the panel; reached goals turn gold; Twitch-only or Kick-only goals carry a platform tag.

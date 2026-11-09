@@ -50,7 +50,8 @@ function render(){
     [a.found===true,a.found===true?'Found the "Voyager - Medals" action':a.found===false?'Import Voyager_Medals.cs as an action named exactly "Voyager - Medals"':'Looking for the "Voyager - Medals" action…'],
     [!!view.sources.exportAt,view.sources.exportAt?'Medal data read '+ago(view.sources.exportAt):'Waiting for the first medal data'],
     [view.sources.members>0,view.sources.members>0?view.sources.members.toLocaleString()+' Points Ledger members (points and stream days)':'Points data arrives while the Public website page or Voyager Control is open'],
-    [true,'Add the !medals command (Everyone; Twitch, YouTube, Kick) to the action']
+    [true,'Add the !medals command (Everyone; Twitch, YouTube, Kick) to the action'],
+    [!!view.lastTwitchStreak,view.lastTwitchStreak?'Stream streaks come from Twitch only: last shared '+view.lastTwitchStreak.name+' · '+view.lastTwitchStreak.streak+' in a row, '+ago(view.lastTwitchStreak.at)+' ('+view.twitchStreaks+' viewers have one)':'Stream streaks come from Twitch only — none shared in chat yet. When a viewer shares their watch streak in Twitch chat, Voyager takes that number (your Streamer.bot must have the Twitch “Watch Streak” event; Voyager also reads the chat notice itself).']
   ];
   for(const w of view.sources.warnings||[])checks.push([false,w]);
   const cl=$('checklist');cl.textContent='';for(const [ok,text] of checks)cl.append(el('li',ok?'ok':'',text));

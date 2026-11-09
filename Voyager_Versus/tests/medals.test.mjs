@@ -44,7 +44,7 @@ test('Loyalty, support and Hall of Honour medals count double for Honour; specia
   assert.equal(m.honour(v),STARS[2]*2+STARS[2]+4);
 });
 
-test('Stream streaks follow stream days, and nights after midnight count towards Night Watch',async()=>{
+test('Stream days are counted but never make a streak (Twitch only, 2.21.3); nights after midnight count towards Night Watch',async()=>{
   const {m,at}=await make();m.state.backfilled=true;const streaks=[];m.onStreak=l=>streaks.push(...l);
   const members={};for(const k of ['twitch:1','twitch:2','twitch:3','twitch:4'])members[k]={name:k,platform:'twitch',value:0};
   const c=fakeCommunity(members);m.observeCommunity(c);
@@ -52,11 +52,9 @@ test('Stream streaks follow stream days, and nights after midnight count towards
     for(const k of Object.keys(members)){if(d===3&&k==='twitch:3')continue;members[k].value+=10;}
     m.observeCommunity(c);at(DAY);
   }
-  assert.equal(m.state.viewers['twitch:1'].c.bestStreak,6);assert.equal(m.state.viewers['twitch:1'].c.days,6);
-  assert.equal(m.state.viewers['twitch:3'].c.streak,2,'missing a stream day resets the streak');
-  assert.equal(m.state.viewers['twitch:3'].c.bestStreak,3);
-  // 2.20.65: the on-screen animation hears every streak of 2+ kept (not first days)
-  assert.equal(streaks.filter(x=>x.name==='twitch:1').map(x=>x.streak).join(','),'2,3,4,5,6');assert.equal(streaks.filter(x=>x.name==='twitch:3').map(x=>x.streak).join(','),'2,3,2');
+  assert.equal(m.state.viewers['twitch:1'].c.days,6);assert.equal(m.state.viewers['twitch:3'].c.days,5);
+  assert.equal(m.state.viewers['twitch:1'].c.streak||0,0,'no Voyager-made streak');assert.equal(m.state.viewers['twitch:1'].c.bestStreak||0,0);
+  assert.equal(streaks.length,0,'the comet only plays for Twitch streaks');
 });
 
 test('Rank medals go to the biggest supporters and longest-serving viewers, and the best grade is kept',async()=>{
@@ -158,7 +156,17 @@ test('Twitch watch streaks: a shared streak becomes the viewer\'s stream streak,
   for(const k of Object.keys(members))members[k].value+=10;m.observeCommunity(c);
   assert.equal(m.state.viewers['twitch:1'].c.streak,7,'the day Voyager counts does not stack on the Twitch number');
   at(DAY);for(const k of Object.keys(members))members[k].value+=10;m.observeCommunity(c);
-  assert.equal(m.state.viewers['twitch:1'].c.streak,8,'the next stream day continues from the Twitch number');
+  assert.equal(m.state.viewers['twitch:1'].c.streak,7,'2.21.3: the next stream day does not advance it either — only Twitch does');assert.ok(m.state.viewers['twitch:1'].c.twitchStreakAt);
   assert.equal(m.syncStreak({userId:'',login:'Twitch_2',name:'Two',streak:3}).streak,3,'falls back to the login when there is no user id');
   assert.equal(m.syncStreak({userId:'9',login:'ghost',streak:0}),null);
+});
+
+test('Upgrading to 2.21.3 clears streaks Voyager counted itself; Twitch-shared ones stay',async()=>{
+  const {m}=await make();m.state.backfilled=true;
+  m.state.viewers['twitch:a']={key:'twitch:a',name:'A',platform:'twitch',first:1,c:{streak:9,bestStreak:12,days:30}};
+  m.state.viewers['twitch:b']={key:'twitch:b',name:'B',platform:'twitch',first:1,c:{streak:4,bestStreak:4,days:8,twitchStreakAt:5000}};
+  delete m.state.twitchStreaksOnly;await m.persist(true);
+  const again=await new (m.constructor)({dataDir:m.dataDir,now:m.now}).load();
+  assert.equal(again.state.viewers['twitch:a'].c.streak,0);assert.equal(again.state.viewers['twitch:a'].c.bestStreak,0);assert.equal(again.state.viewers['twitch:a'].c.days,30,'streams attended kept');
+  assert.equal(again.state.viewers['twitch:b'].c.streak,4,'a Twitch-shared streak is kept');assert.equal(again.state.twitchStreaksOnly,true);
 });

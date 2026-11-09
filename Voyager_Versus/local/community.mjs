@@ -18,7 +18,7 @@ export const TYPES={
   // 2.20.21 medal missions: each one counts this week's progress on the same counter a medal uses (Voyager Medals data).
   watchHours:{label:'Watch the stream live',unit:'hours',medal:'watch',counter:'watch',scale:3600,max:40},
   chatMessages:{label:'Chat on stream',unit:'messages',medal:'comms',counter:'msgs',max:2000},
-  streamStreak:{label:'Attend streams in a row',unit:'streams in a row',medal:'streak',streak:true,max:7},
+  streamStreak:{label:'Twitch watch streak (as shared in chat)',unit:'streams in a row',medal:'streak',streak:true,max:7},
   dreadFights:{label:'Fight the Dreadnought',unit:'fights',medal:'slayer',counter:'fights',max:20},
   dreadVictory:{label:'Win against the Dreadnought',unit:'victories',medal:'slayer',counter:'slayer',max:20},
   dreadDamage:{label:'Deal Dreadnought damage',unit:'damage',medal:'topgun',counter:'damage',max:100000},

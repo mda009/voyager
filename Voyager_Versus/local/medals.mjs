@@ -104,6 +104,9 @@ export class Medals{
   async load(){
     try{const raw=JSON.parse(await readFile(join(this.dataDir,FILE),'utf8'));if(raw?.schema===1){this.state={...this.fresh(),...raw};
       try{this.state.settings=normalizeMedalSettings(raw.settings||{});}catch{this.state.settings=structuredClone(MEDAL_DEFAULTS);}}}catch{}
+    // 2.21.3: stream streaks come from Twitch only. Numbers Voyager counted itself are cleared once; a viewer's streak returns
+    // the next time they share it in chat. Medals already awarded keep their grade (best grade is kept).
+    if(!this.state.twitchStreaksOnly){for(const v of Object.values(this.state.viewers||{})){if(!v.c)continue;if(!v.c.twitchStreakAt){v.c.streak=0;v.c.bestStreak=0;}}this.state.twitchStreaksOnly=true;this.dirty=true;}
     return this;
   }
   persist(force=false){
@@ -207,14 +210,15 @@ export class Medals{
     this.state.season={n,last:standings.slice(0,50).map(r=>({key:r.key,support:r.support||0}))};
     if(n>2)this.state.foundingOpen=false;
   }
-  // A viewer earned points today: one stream day. Streaks follow "stream days" (days at least 3 viewers earned points).
-  // 2.20.70: Twitch watch streaks. When a viewer shares their watch streak in chat (Streamer.bot's Twitch "Watch Streak" event),
-  // Voyager takes Twitch's number as the viewer's stream streak: the card, medals and the on-screen comet then match Twitch.
+  // Twitch watch streaks (2.20.70; the only source since 2.21.3). When a viewer shares their watch streak in chat (Streamer.bot's
+  // Twitch "Watch Streak" event, or the viewermilestone chat notice), Voyager takes Twitch's number as the viewer's stream streak:
+  // the card, the Unbreakable medal, the Hold the Line mission and the on-screen comet all show exactly what Twitch shows.
+  // Twitch offers no other way to read a streak, so a viewer who never shares has no stream streak in Voyager.
   syncStreak({userId,login,name,streak}){
     const n=Math.round(Number(streak));if(!Number.isFinite(n)||n<1||n>100000)return null;
     const key='twitch:'+String(userId||'').trim();const v=KEY.test(key)&&String(userId||'').trim()?this.viewer(key,{name,login,platform:'twitch'}):this.viewerByLogin('twitch',login);
     if(!v)return null;const now=this.now(),day=dayId(now),before=v.c.streak||0;
-    v.c.streak=n;v.c.bestStreak=Math.max(v.c.bestStreak||0,n);v.c.twitchDay=day;v.c.twitchStreakAt=now;
+    v.c.streak=n;v.c.bestStreak=Math.max(v.c.bestStreak||0,n);v.c.twitchDay=day;v.c.twitchStreakAt=now;this.state.lastTwitchStreak={name:v.name,streak:n,at:now};
     if(n>=2&&v.c.twitchShown!==day){v.c.twitchShown=day;this.streaks.push({name:v.name,platform:'twitch',streak:n,best:v.c.bestStreak,source:'twitch'});const list=this.streaks;this.streaks=[];try{this.onStreak(list);}catch{}}
     this.persist();return {key:v.key||key,name:v.name,streak:n,before};
   }
@@ -225,14 +229,10 @@ export class Medals{
     if(v.c.lastDay===day)return;
     days[day]=(days[day]||0)+1;
     const keys=Object.keys(days).sort();if(keys.length>400)for(const k of keys.slice(0,keys.length-400))delete days[k];
-    const prev=Object.keys(days).filter(k=>k<day&&days[k]>=3).sort().pop();
-    const recent=v.c.ad||[];
-    // 2.20.70: a Twitch watch streak the viewer shared today is the truth for today; Voyager's own count only fills the gaps.
-    if(v.c.twitchDay===day){v.c.bestStreak=Math.max(v.c.bestStreak||0,v.c.streak||0);}
-    else{v.c.streak=prev&&recent.includes(prev)?(v.c.streak||0)+1:1;
-    v.c.bestStreak=Math.max(v.c.bestStreak||0,v.c.streak);
-    if(v.c.streak>=2)this.streaks.push({name:v.name,platform:v.platform,streak:v.c.streak,best:v.c.bestStreak});} // 2.20.65: stream streak kept, for the on-screen animation
-    v.c.ad=[...recent,day].slice(-6);v.c.lastDay=day;this.inc(v,'days');
+    // 2.21.3: the stream streak is Twitch's watch streak and nothing else — set only by syncStreak() when the viewer shares it in
+    // chat. Voyager no longer keeps a counter of its own (it used to count stream days, which never matched Twitch's rule).
+    // Stream days attended (`days`) are still counted for Regular Pilot.
+    v.c.ad=[...(v.c.ad||[]),day].slice(-6);v.c.lastDay=day;this.inc(v,'days');
   }
   observePilots(rankings){
     for(const p of Array.isArray(rankings)?rankings:[]){
@@ -398,7 +398,7 @@ export class Medals{
   }
   view(){
     const st=this.state,viewers=Object.values(st.viewers);
-    return {settings:st.settings,catalogue:this.catalogue(),gradeNames:GRADE_NAMES,stars:STARS,categories:CATEGORIES,
+    return {settings:st.settings,catalogue:this.catalogue(),gradeNames:GRADE_NAMES,stars:STARS,categories:CATEGORIES,lastTwitchStreak:st.lastTwitchStreak||null,twitchStreaks:viewers.filter(v=>v.c?.twitchStreakAt).length,
       recent:st.recent.slice(0,30).map(a=>({...a,label:this.label(a)})),leaderboard:this.leaderboard(25),
       stats:{viewers:viewers.length,withMedals:viewers.filter(v=>Object.keys(v.m).length).length,medals:viewers.reduce((n,v)=>n+Object.keys(v.m).length,0)},
       sources:{exportAt:st.exportAt,warnings:st.exportWarnings,community:!!this.community,members:Object.keys(st.pv).length},backfilled:st.backfilled,foundingOpen:st.foundingOpen};

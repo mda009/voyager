@@ -250,7 +250,7 @@ export class Cards{
     const stats=[
       {label:'VOYAGER POINTS',value:balance>=0?fmt(balance):'—',sub:this.state.settings.ranks?'Balance for !upgrade':lifetime?fmt(lifetime)+' earned all-time':'Points balance'},
       this.state.settings.ranks?{label:'LIFETIME POINTS',value:fmt(lifetime),sub:rv.sub}:{label:'LEADERBOARD',value:who.rank?'#'+fmt(who.rank):'—',sub:who.members?'of '+fmt(who.members)+' members':'Points leaderboard'},
-      {label:'TIME WATCHED',value:hidden?'Private':fmt(watchH)+' h',sub:c.streak?fmt(c.streak)+'-stream streak · best '+fmt(c.bestStreak):fmt(c.days||0)+' streams attended'},
+      {label:'TIME WATCHED',value:hidden?'Private':fmt(watchH)+' h',sub:c.streak?fmt(c.streak)+'-stream Twitch streak · best '+fmt(c.bestStreak):fmt(c.days||0)+' streams attended'},
       {label:'VOYAGER VERSUS',value:battles?fmt(wins)+'–'+fmt(losses):'—',sub:battles?Math.round(wins/battles*100)+'% win rate'+(vRank?' · #'+vRank:''):'Type !versus to battle'}];
     const extras=[
       {label:seasonName.toUpperCase(),value:season?'#'+season.rank+' · '+fmt(season.score):seasonActive?'Unranked':'None running'},
@@ -272,8 +272,8 @@ export class Cards{
       versus:[{label:'Record',value:battles?fmt(wins)+'–'+fmt(losses)+(draws?'–'+fmt(draws):''):'—'},{label:'Win rate',value:battles?Math.round(wins/battles*100)+'%':'—'},{label:'Battles',value:fmt(battles)},{label:'Best win streak',value:fmt(vs?.best||0)},{label:'Versus rank',value:vRank?'#'+vRank:'—'}],
       missions:[{label:'Missions completed',value:fmt(c.missions||0)},{label:'Mission types',value:fmt(mtypes)},{label:seasonName+' rank',value:season?'#'+season.rank:'—'},{label:'Season points',value:season?fmt(season.score):'—'},{label:'Season podiums',value:fmt(c.podium||0)}],
       community:[
-        // 2.20.47: the stream streak, as asked for on the public card back: streams attended in a row on Twitch.
-        {label:'STREAM STREAK',value:hidden?'Private':fmt(c.streak||0)+' in a row',sub:hidden?'':'Best ever '+fmt(c.bestStreak||0)+' · '+fmt(c.days||0)+' streams attended'},
+        // 2.20.47: the stream streak on the public card back. 2.21.3: it is Twitch's watch streak, as the viewer last shared it in chat — nothing Voyager counts.
+        {label:'STREAM STREAK',value:hidden?'Private':c.streak?fmt(c.streak)+' in a row':'—',sub:hidden?'':c.streak?'Twitch watch streak'+(c.twitchStreakAt?', shared '+new Date(c.twitchStreakAt).toLocaleDateString('en-AU',{day:'numeric',month:'short'}):'')+' · best '+fmt(c.bestStreak||0):'Share your Twitch watch streak in chat to show it · '+fmt(c.days||0)+' streams attended'},
         {label:'COMMUNITY GOALS HELPED',value:fmt(c.goals||0),sub:'Goals reached with your help'},
         {label:'GIVEAWAYS WON',value:fmt(c.lucky||0),sub:'Wins only, never tickets'},
         {label:'SUBSCRIBED',value:hidden?'Private':fmt(c.months||0)+' months',sub:PLATFORM[who.platform]},
