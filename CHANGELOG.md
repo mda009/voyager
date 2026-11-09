@@ -2,6 +2,12 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.21.4 (9 November 2026)
+
+**Companion website and member manual updated.** voyagercommand.com: the stream streak on the card back is labelled as the Twitch watch streak (and shows "share your Twitch watch streak in chat" when there is none), the How-Voyager-works note says so, the !report, !quiz (5 points, Star Citizen trivia and general knowledge) and Dreadnought (MVP bonus, screen takeover) entries are current, and the "streams in a row" mission reads as a shared Twitch streak. Member manual revised 9 Nov: Twitch-only streaks on the card and medal pages, Bridge Quiz at 5 points, the Dreadnought and Versus screen takeover, the MVP bonus and champion celebration, "New in this edition" refreshed. In-app Help gains a "Finding your way around (2.21)" section and the update history row.
+
+**Bridge Quiz pays 5.** A saved quiz reward of 10 or 25 from an earlier version becomes 5 once on update (the 2.20.94 change only caught 25); a reward you set to anything else is left alone.
+
 ## 2.21.3 (9 November 2026)
 
 **Stream streaks are Twitch's watch streaks, full stop.** Voyager no longer keeps a stream-streak counter of its own. The only number it holds is the watch streak a viewer shares in Twitch chat (Streamer.bot's Twitch "Watch Streak" event, or the viewermilestone chat notice, both already read since 2.20.70) — so the card back, the Unbreakable medal, the Hold the Line mission and the on-screen streak comet show exactly what Twitch shows that viewer, never a Voyager-made number. Streaks Voyager had counted itself are cleared once on update; a viewer's streak comes back the next time they share it. Stream days attended are still counted (Regular Pilot). The card says "Twitch watch streak, shared 3 Nov"; a viewer who has never shared sees "Share your Twitch watch streak in chat to show it". Medals › checklist shows the last streak heard from Twitch, so you can see it is arriving. Twitch has no API to read a streak on demand — sharing in chat is the only source.

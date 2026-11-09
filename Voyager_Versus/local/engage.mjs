@@ -128,7 +128,9 @@ export class Engage{
     try{this.state.settings=normalizeEngageSettings(raw.settings||{});}catch{this.state.settings=structuredClone(ENGAGE_DEFAULTS);}
     // 2.20.94: the Star Citizen & general knowledge set replaces the original ten starters (questions the streamer added are kept), and a correct answer pays 5 points unless the reward was changed by hand.
     if((Number(raw.quiz?.bankVersion)||1)<QUIZ_BANK_VERSION){const oldQ=new Set(OLD_STARTERS.map(x=>x.q)),starterQ=new Set(QUIZ_STARTERS.map(x=>x.q));const kept=(this.state.quiz.bank||[]).filter(x=>!oldQ.has(x.q)&&!starterQ.has(x.q));
-      this.state.quiz.bank=[...QUIZ_STARTERS.map(x=>({id:randomUUID().slice(0,8),...x})),...kept];this.state.quiz.bankVersion=QUIZ_BANK_VERSION;if(this.state.settings.quiz.reward===25)this.state.settings.quiz.reward=5;this.persist(true);}}}catch{}return this;}
+      this.state.quiz.bank=[...QUIZ_STARTERS.map(x=>({id:randomUUID().slice(0,8),...x})),...kept];this.state.quiz.bankVersion=QUIZ_BANK_VERSION;if(this.state.settings.quiz.reward===25)this.state.settings.quiz.reward=5;this.persist(true);}
+    // 2.21.4: the quiz pays 5 points a correct answer (asked for in 2.20.94); a saved 10 or 25 from before becomes 5 once.
+    if(!this.state.quizReward5){if([10,25].includes(this.state.settings.quiz.reward))this.state.settings.quiz.reward=5;this.state.quizReward5=true;this.persist(true);}}}catch{}return this;}
   // Replace the bank with the shipped set (Voyager Control › Chat engagement).
   loadStarters(){this.state.quiz.bank=QUIZ_STARTERS.map(x=>({id:randomUUID().slice(0,8),...x}));this.state.quiz.bankVersion=QUIZ_BANK_VERSION;this.persist(true);return this.state.quiz.bank;}
   persist(force=false){if(!this.dataDir)return this.saving;if(!force&&this.now()-this.savedAt<15000){this.dirty=true;return this.saving;}

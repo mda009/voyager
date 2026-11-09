@@ -116,3 +116,13 @@ test('2.20.94 quiz bank: the Star Citizen & general knowledge set replaces the o
   assert.ok(e.state.quiz.bank.length>=60);
   e.loadStarters();assert.ok(!e.state.quiz.bank.some(x=>x.q==='What is my cat called?'),'reload replaces everything');
 });
+
+test('2.21.4: a saved quiz reward of 10 (the old manual figure) becomes 5 once; a hand-set 40 is kept',async()=>{
+  const {mkdtemp,writeFile}=await import('node:fs/promises'),{tmpdir}=await import('node:os'),{join}=await import('node:path');
+  const dir=await mkdtemp(join(tmpdir(),'voyager-quiz5-'));
+  await writeFile(join(dir,'engage.json'),JSON.stringify({schema:1,settings:{quiz:{reward:10}},quiz:{bank:[],bankVersion:2}}));
+  const e=await new Engage({dataDir:dir,now:()=>1000,say:()=>{}}).load();
+  assert.equal(e.state.settings.quiz.reward,5);assert.equal(e.state.quizReward5,true);
+  e.configure({quiz:{reward:40}});await e.persist(true);
+  const again=await new Engage({dataDir:dir,now:()=>2000,say:()=>{}}).load();assert.equal(again.state.settings.quiz.reward,40,'only once');
+});

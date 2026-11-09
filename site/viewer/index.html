@@ -464,7 +464,7 @@ ol.logrows .quote{font-size:16px;color:var(--text)}
   <div class="card" id="command-card" style="margin-top:14px"><table><tbody id="command-list"></tbody></table></div>
   <div class="card" style="margin-top:14px"><span class="kind">Good to know</span>
    <ul class="rows plain">
-    <li><b>Stream streaks follow Twitch.</b> Your streak on the card is your Twitch watch streak: share it in chat when Twitch offers (a few minutes into each stream) and Voyager takes that number. Between shares Voyager counts one per stream day you earn points on.</li>
+    <li><b>Stream streaks are your Twitch watch streak.</b> The streak on your card is exactly the number Twitch shows you, and nothing else: share it in chat when Twitch offers (a few minutes into each stream) and Voyager records it, with the date you shared. Voyager keeps no streak count of its own, so if you never share it, the card shows none.</li>
     <li><b>Community goals count from a date.</b> A community goal can count subs, renewals and gifted subs from the day it is announced (for example 1 November), not just from when it appears here. Your contribution shows on stream and in the goal's helper count above.</li>
     <li><b>Helper multipliers.</b> When a goal shows "×1.5 points for helpers", everyone who contributes earns half as much again on all the Voyager points they earn while the goal runs, paid when it ends.</li>
     <li><b>Medals, ranks and tiers on stream.</b> The on-stream leaderboards show each member's naval rank and tier, and the community panel lists who has helped each goal and by how much.</li>
@@ -479,7 +479,7 @@ ol.logrows .quote{font-size:16px;color:var(--text)}
  <footer><p id="updated">Updates every few minutes while the stream tools are running.</p><p><a href="manual.pdf" target="_blank" rel="noopener">Voyager member manual (PDF)</a></p><p>Voyager community site. Giveaway entry happens in stream chat only; this site never asks for passwords or payment.</p></footer>
 </div>
 <script src="fair-draw.js"></script>
-<script src="companion.js?v=2.20.78" defer></script>
+<script src="companion.js?v=2.21.4" defer></script>
 <script>
 (()=>{'use strict';
 // ?embed=1: shown inside another site. Report our height so the host page can size its frame.
@@ -513,15 +513,15 @@ const COMMANDS=[
   [['!upgrade'],'Buys the next membership tier with points: Silver 1,200, Gold 1,800 more, Platinum 17,000 more. Nothing upgrades on its own.','When your balance covers it and you want that tier\'s giveaway.',['One tier at a time']],
   [['!medals'],'Your medal count, your latest medal and the next one within reach.','To see what to chase next.',['All platforms']]]],
  ['Every stream','The daily habits that build points, streaks and squadron scores.',[
-  [['!report'],'Reports for duty: points for showing up and a stream day for your streak.','Once each stream, as early as you like.',['Once a stream']],
+  [['!report'],'Reports for duty: points for showing up; counts a stream attended.','Once each stream, as early as you like.',['Once a stream']],
   [['!squadron red','!squadron gold','!squadron blue'],'Joins a squadron for the weekly war. Your chat, missions, Dreadnought damage and Versus wins score for it.','Pick once; the war resets every Monday.',['Switch every 30 days']],
   [['!log <moment>'],'Logs a stream moment for the Captain\'s Log shown on stream and on this site.','When something worth remembering happens.',['3 per stream','1 minute between entries','No links']],
-  [['!quiz'],'Repeats the current Bridge Quiz question. Answer by typing the answer in chat; first correct answer wins the points.','While a quiz is up and you missed the question.',['While a quiz runs']]]],
+  [['!quiz'],'Repeats the current Bridge Quiz question (Star Citizen trivia and general knowledge). Answer by typing it in chat; the first correct answer wins 5 points.','While a quiz is up and you missed the question.',['While a quiz runs','5 points']]]],
  ['Giveaways','Entries happen in stream chat only. Ticket balances are never shown on this site.',[
   [['!enter','!ticket'],'Joins an open chat giveaway.','When MDA opens one on stream.',['Once per giveaway']],
   [['!entergiveaway','!entry'],'Registers you for a ticketed giveaway; you earn 1 ticket per 10 minutes watched live.','As soon as a ticketed giveaway is announced.',['Once per giveaway']],
   [['!tickets'],'Tells you how many tickets you hold in the current ticketed giveaway.','Before the draw.',['Ticketed giveaways only']]]],
- ['The Dreadnought','A co-op boss fight for the whole crew. A moderator calls it; every pilot who fights a winning battle earns points.',[
+ ['The Dreadnought','A co-op boss fight for the whole crew. A moderator calls it and the battle takes over the screen; every pilot who fights a winning battle earns points, and the MVP (most damage) earns a 25-point bonus.',[
   [['!join'],'Boards the fleet while the Dreadnought approaches.','In the 60 seconds after it is called (late joiners add less hull).',['60-second window']],
   [['!fire'],'Attacks the Dreadnought for 25–50 damage, 6% chance of a triple-damage critical.','Every 3 seconds during the fight. Cheers, gifted subs and chat charge the Comms Relay for extra damage.',['3 seconds','During the fight']]]],
  ['Voyager Versus','One-on-one fighter battles in the arena, Twitch chat only.',[
@@ -672,7 +672,7 @@ const ON={all:'',twitch:' on Twitch',youtube:' on YouTube',kick:' on Kick'};
 const MISSION_TEXT={streamDays:(n)=>'Earn points on '+n+' different stream day'+(n===1?'':'s')+' this week',earnPoints:(n)=>'Earn '+fmt(n)+' Voyager points this week',versusWins:(n)=>'Win '+(n===1?'a Voyager Versus battle':n+' Voyager Versus battles')+' this week',
  subscribe:(n,p)=>(p==='youtube'?'Join or renew your YouTube membership':p==='all'||!p?'Subscribe or renew (Twitch sub, YouTube membership or Kick sub)':'Subscribe or renew'+ON[p])+' this week',
  giftSubs:(n,p)=>'Gift '+(n===1?'a sub':fmt(n)+' subs')+(ON[p]||'')+' this week',loyalSub:(n,p)=>'Renew'+(ON[p]||'')+' this week with '+n+'+ months subscribed',
- watchHours:(n,p)=>'Watch '+n+' hour'+(n===1?'':'s')+' live'+(ON[p]||'')+' this week',chatMessages:(n,p)=>'Send '+fmt(n)+' chat messages'+(ON[p]||'')+' this week',streamStreak:(n)=>'Be at '+n+' streams in a row',
+ watchHours:(n,p)=>'Watch '+n+' hour'+(n===1?'':'s')+' live'+(ON[p]||'')+' this week',chatMessages:(n,p)=>'Send '+fmt(n)+' chat messages'+(ON[p]||'')+' this week',streamStreak:(n)=>'Share a Twitch watch streak of '+n+' streams in chat',
  dreadFights:(n)=>'Join '+(n===1?'a Dreadnought fight':n+' Dreadnought fights')+' this week (!join)',dreadVictory:(n)=>'Be in the fleet for '+(n===1?'a Dreadnought victory':n+' Dreadnought victories')+' this week',
  dreadDamage:(n)=>'Deal '+fmt(n)+' damage to the Dreadnought this week',dreadMvp:(n)=>'Finish '+(n===1?'a Dreadnought fight':n+' fights')+' as MVP this week',torpedo:(n)=>'Fire '+(n===1?'a torpedo':n+' torpedoes')+' (gift a sub during a Dreadnought fight)'};
 const GOAL_TEXT={support:'subs, renewals and gifted subs',subs:'subs and renewals',gifts:'gifted subs',points:'Voyager points earned by the crew',versus:'Voyager Versus wins'};

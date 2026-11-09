@@ -50,7 +50,7 @@ window.renderRightNow=function(){
  const open=(feed.giveaways||[]).filter(g=>g.status==='open');if(open.length&&fresh())tile('',open.length===1?'Giveaway open':open.length+' giveaways open',open[0].title+(open[0].eligibility?' · '+open[0].eligibility:''),'live','giveaways');
  const d=feed.dreadnought;if(d&&['lobby','battle'].includes(d.phase))tile('red',d.phase==='lobby'?'Dreadnought boarding':'Dreadnought fight',d.phase==='lobby'?'Type !join now':'Type !fire to attack','live','dread');
  const m=feed.missions;if(m&&(m.list||[]).length&&box.children.length<3)tile('',(m.list||[]).length+' missions this week','Finish one to earn Voyager points','live','missions');
- if(!box.children.length&&feed.sections?.crew!==false)tile('','Find your card','Your tier, rank, medals and stream streak','crew','find');
+ if(!box.children.length&&feed.sections?.crew!==false)tile('','Find your card','Your tier, rank, medals and Twitch watch streak','crew','find');
 };
 const st=document.createElement('style');st.textContent='section.off{display:none!important}'+(EMBED?' nav.tabbar{position:static!important;padding:0!important;background:none!important;border:0!important;margin-top:10px!important}.embed .wrap{padding-bottom:24px!important}':'');document.head.append(st);
 
@@ -279,7 +279,7 @@ function show(m,remember=true,side='front'){
  flipper.append(faces.front,faces.back,faces.medals);paint(current);
  const earned=new Set(m.medals.map(x=>x[0])),locked=[...catalogue.values()].filter(md=>!earned.has(md.id)&&md.kind!=='secret');
  const under=el('div','under-card');
- if(rec&&!m.back){const a=rec.activity,g=el('div','rgrid');g.append(tile('Dreadnought',plural(rec.victories,'victory','victories'),plural(rec.fights,'fight','fights')+' · MVP ×'+fmt(rec.mvp)),tile('Missions',fmt(rec.missions),'weekly missions completed'),tile('Giveaways won',fmt(rec.giveaways),'confirmed wins'));if(a)g.append(tile('Stream streak',a.private?'Private':plural(a.streak,'stream','streams')+' in a row','best ever '+fmt(a.bestStreak)));under.append(g);}
+ if(rec&&!m.back){const a=rec.activity,g=el('div','rgrid');g.append(tile('Dreadnought',plural(rec.victories,'victory','victories'),plural(rec.fights,'fight','fights')+' · MVP ×'+fmt(rec.mvp)),tile('Missions',fmt(rec.missions),'weekly missions completed'),tile('Giveaways won',fmt(rec.giveaways),'confirmed wins'));if(a)g.append(tile('Stream streak',a.private?'Private':a.streak?plural(a.streak,'stream','streams')+' in a row':'—',a.private?'':a.streak?'Twitch watch streak · best '+fmt(a.bestStreak):'share your Twitch watch streak in chat'));under.append(g);}
  under.append(el('h4','','Medals · '+m.medals.length+' of '+(total||'–')+' unlocked'));
  if(locked.length){const det=el('details','locked-list');det.append(el('summary','','Still to earn · '+locked.length));const lg=el('div','medal-grid');for(const md of locked)lg.append(medalTile(md,0,0,true));det.append(lg);under.append(det);}
  under.append(el('p','hint','Tap the card to turn it over ↻'));
