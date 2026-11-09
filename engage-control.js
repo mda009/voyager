@@ -33,6 +33,10 @@ function render(){
     [!!chat,chat?'Voyager can read Twitch chat':'No Twitch chat seen yet (type anything in chat)'],
     [other.length?true:null,other.length?'Also reading '+other.map(p=>PLAT[p]).join(' and ')+' chat':'No Kick or YouTube chat seen yet'],
     [act==='found',act==='found'?'Chat replies go out through "Voyager - Medals"':'Chat replies need the "Voyager - Medals" action (Medals setup); everything else still works']])cl.append(el('li',ok===null?'info':ok?'ok':'',t));
+  // chat replies (2.21.5)
+  const co=view.chatOut||[],cl2=$('chatout');if(cl2){cl2.textContent='';if(!co.length)cl2.append(el('li','muted','Nothing posted since Voyager started.'));
+    for(const x of co.slice(0,8)){const li=el('li',x.ok===false?'bad':x.ok?'ok':'');li.append(el('b','',ago(x.at)+' · '+(PLAT[x.platform]||'all platforms')+' · '),el('span','',x.text.slice(0,90)+(x.text.length>90?'…':'')),el('small','',' — '+(x.ok===false?'NOT POSTED: ':'')+x.message));cl2.append(li);}
+    const bad=co.filter(x=>x.ok===false).length,pill=$('chatout-pill');pill.dataset.state=bad?'error':co.length?'ok':'wait';pill.textContent=bad?bad+' failed':co.length?co.length+' sent':'—';}
   // relay
   const r=view.relay,rp=$('relay-pill');rp.dataset.state=r.count||r.fired?'ok':'wait';rp.textContent=r.enabled?(r.count||r.fired?r.count+' / '+r.threshold+' · fired '+r.fired+'×':'No fight running'):'Off';
   // muster

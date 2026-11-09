@@ -115,7 +115,14 @@ export function normalizeEngageSettings(raw={},base=ENGAGE_DEFAULTS){
 
 export class Engage{
   constructor({dataDir,now=Date.now,say=()=>{},boss=()=>null,cards=()=>null,community=()=>null,pilots=()=>[],random=Math.random}={}){
-    Object.assign(this,{dataDir,now,say,boss,cards,community,pilots,random});
+    Object.assign(this,{dataDir,now,boss,cards,community,pilots,random});
+    // 2.21.5: every chat line Voyager tries to post is remembered with whether Streamer.bot took it, so "!report did nothing"
+    // can be answered from the Chat engagement page instead of guessed.
+    this.chatOut=[];
+    this.say=(text,platform='')=>{const row={at:this.now(),text:String(text).slice(0,160),platform:platform||'all',ok:null,message:'sending…'};this.chatOut=[row,...this.chatOut].slice(0,12);
+      let r;try{r=say(text,platform);}catch(e){r={ok:false,message:e?.message||'failed'};}
+      const done=x=>{if(x&&typeof x==='object'){row.ok=!!x.ok;row.message=x.message||'';}else{row.ok=x!==false;row.message=row.ok?'sent':'not sent';}return x;};
+      return Promise.resolve(r).then(done).catch(e=>{row.ok=false;row.message=e?.message||'failed';return {ok:false,message:row.message};});};
     this.state=this.fresh();this.saving=Promise.resolve();this.savedAt=0;this.dirty=false;this.relayUsers=new Map();this.lastChatAt=0;this.pendingReports=[];this.reportSaidAt=0;this.seq=0;
   }
   fresh(){const now=this.now();return {schema:1,settings:structuredClone(ENGAGE_DEFAULTS),stream:{id:0,lastAt:0},relay:{count:0,crew:[],fired:0,battle:0},
@@ -178,7 +185,9 @@ export class Engage{
   // 2. Daily muster
   report(who,stream){
     const s=this.state.settings.report;if(!s.enabled)return null;
-    const r=this.state.reports[who.key]||(this.state.reports[who.key]={last:0,streak:0,best:0,total:0});if(r.last===stream)return {ok:false,already:true};
+    const r=this.state.reports[who.key]||(this.state.reports[who.key]={last:0,streak:0,best:0,total:0});
+    // 2.21.5: a second !report in the same stream gets one quiet answer instead of silence (viewers read silence as "broken").
+    if(r.last===stream){if(r.told!==stream){r.told=stream;this.say('🫡 '+who.name+', you already reported for duty this stream'+(r.streak>1?' ('+r.streak+' in a row)':'')+'. Once a stream is all it takes.',who.platform);}return {ok:false,already:true};}
     // A streak counts streams in a row where they reported (the previous stream anyone reported in).
     const prev=this.state.muster.find(m=>m.stream!==stream)?.stream;r.streak=r.last&&r.last===prev?r.streak+1:1;
     r.last=stream;r.best=Math.max(r.best,r.streak);r.total++;
@@ -290,7 +299,7 @@ export class Engage{
     const a=this.state.quiz.active;if(a&&!a.winner&&now>a.endsAt&&!a.closed){a.closed=true;this.say('🧠 Time! Nobody got it. The answer was '+a.a[0]+'.');this.state.quiz.history=[{id:a.id,qid:a.qid,q:a.q,answer:a.a[0],winner:null,at:now},...this.state.quiz.history].slice(0,50);this.toast('quizend',{answer:a.a[0],q:a.q});this.persist(true);}
     if(s.quiz.enabled&&s.quiz.autoMinutes>0&&now-this.lastChatAt<10*60000&&now-(this.state.quiz.lastAutoAt||0)>=s.quiz.autoMinutes*60000&&(!a||a.winner||now>a.endsAt)){this.state.quiz.lastAutoAt=now;try{this.ask();}catch{}}
     // The muster line goes to the platform the reports came from: Kick reports are announced on Kick only (2.20.25).
-    if(this.pendingReports.length&&now-this.reportSaidAt>20000){const list=this.pendingReports.splice(0,25);this.reportSaidAt=now;const r=s.report.reward;
+    if(this.pendingReports.length&&now-this.reportSaidAt>5000){const list=this.pendingReports.splice(0,25);this.reportSaidAt=now;const r=s.report.reward;
       for(const platform of [...new Set(list.map(x=>x.platform))]){const mine=list.filter(x=>x.platform===platform);
         this.say('🫡 Reporting for duty: '+mine.map(x=>x.name+(x.streak>1?' ('+x.streak+' in a row)':'')).join(', ')+(r?' · +'+r+' Voyager points each':'')+'. Type !report once a stream.',platform);}}
     if(this.dirty&&now-this.savedAt>=15000)this.persist(true);
@@ -306,7 +315,7 @@ export class Engage{
   view(){
     const st=this.state;if(st.panel?.until&&this.now()>st.panel.until)st.panel=null;
     const stream=st.stream.id,muster=st.muster.find(m=>m.stream===stream);
-    return {settings:st.settings,defaults:ENGAGE_DEFAULTS,stream:{id:stream,lastAt:st.stream.lastAt},relay:this.relayView(),
+    return {settings:st.settings,defaults:ENGAGE_DEFAULTS,stream:{id:stream,lastAt:st.stream.lastAt},relay:this.relayView(),chatOut:this.chatOut,
       muster:{count:muster?.crew.length||0,crew:(muster?.crew||[]).slice(-40).reverse()},
       quiz:{bank:st.quiz.bank,active:st.quiz.active,history:st.quiz.history.slice(0,15)},
       squadrons:{standings:this.standings(),members:Object.keys(st.squadrons.members).length,history:st.squadrons.history.slice(0,8),weekId:st.squadrons.week.id,panel:!!st.panel&&!(st.panel.until&&this.now()>st.panel.until),panelUntil:st.panel?.until||0},

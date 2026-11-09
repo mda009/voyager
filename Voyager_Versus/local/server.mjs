@@ -91,12 +91,16 @@ async function findAction(name){
 }
 async function actionStatus(name){if(!bot.status.connected)return {state:'offline'};try{const e=await findAction(name);return {state:e.state};}catch{return {state:'offline'};}}
 // Never throws: when Streamer.bot is offline a chat reply is simply skipped (an unhandled rejection would stop the host).
-async function runAction(name,args){
+async function runAction(name,args){return (await runActionResult(name,args)).ok;}
+// 2.21.5: says why a chat reply did not go out, so pages can show it (Streamer.bot offline, action missing/disabled/duplicate, refused).
+async function runActionResult(name,args){
+  if(!bot.status.connected)return {ok:false,message:'Voyager is not connected to Streamer.bot'};
   try{
     const e=await findAction(name);
-    if(!e.id)return false;
-    await bot.request('DoAction',{action:{id:e.id},args});return true;
-  }catch{return false;}
+    if(!e.id)return {ok:false,message:e.state==='duplicate'?'more than one enabled action called "'+name+'" in Streamer.bot — keep one':e.state==='disabled'?'"'+name+'" is disabled in Streamer.bot':'"'+name+'" is not in Streamer.bot (Settings & Streamer.bot › install hub)'};
+    const r=await bot.request('DoAction',{action:{id:e.id},args});
+    return r?.status==='error'?{ok:false,message:'Streamer.bot refused: '+(r.error||'unknown error')}:{ok:true,message:'sent to Streamer.bot · "'+name+'"'};
+  }catch(err){return {ok:false,message:err.message||'Streamer.bot did not answer'};}
 }
 const medals=await new Medals({dataDir,say:text=>{void runAction('Voyager - Medals',{medalSay:String(text).slice(0,450)}).catch(()=>{});}}).load();
 let medalsAction={found:null,at:0};
@@ -120,7 +124,7 @@ let engage=null;
 const boss=await new BossFight({dataDir,say:text=>{void bossSay(text);},onResult:r=>{medals.observeBoss(r);try{engage?.observeBoss(r);}catch{}}}).load();
 // 2.20.22 chat engagement: Comms Relay, !report, Bridge Quiz, Squadrons, arrival cards and the Captain's Log. Chat replies go out
 // through the Voyager - Medals action (it posts on Twitch, YouTube and Kick).
-engage=await new Engage({dataDir,say:(text,platform='')=>{void runAction('Voyager - Medals',{medalSay:String(text).slice(0,450),medalSayPlatform:['twitch','kick','youtube'].includes(platform)?platform:''});},boss:()=>boss,cards:()=>cards,community:()=>community,pilots:()=>savedRankings||[]}).load();
+engage=await new Engage({dataDir,say:(text,platform='')=>runActionResult('Voyager - Medals',{medalSay:String(text).slice(0,450),medalSayPlatform:['twitch','kick','youtube'].includes(platform)?platform:''}),boss:()=>boss,cards:()=>cards,community:()=>community,pilots:()=>savedRankings||[]}).load();
 // Fleet alert state as last broadcast by the Streamer.bot action (2.20.55): the camera frame overlay reads it from here.
 let fleetState=null;
 // 2.20.75: when each OBS overlay page last asked for its data, so the Stream deck can say whether a source is loaded in OBS.

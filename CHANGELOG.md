@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.21.5 (9 November 2026)
+
+**!report: you can now see whether the reply went out.** Looking into "!report is not working": the host *was* recording every report (tonight's muster has 23 names, fatdaddy200 among them), so what viewers were missing was the reply in chat — which Voyager hands to Streamer.bot's **Voyager - Medals** action and, until now, never checked. Chat engagement › Set up gains **Chat replies**: every line Voyager tried to post (muster roll-call, quiz, squadrons), on which platform, and whether Streamer.bot took it — "sent to Streamer.bot" or exactly why not (not connected, action missing / disabled / duplicated, refused). "Sent" with nothing in chat points at the action itself (bot account not connected; YouTube needs exactly one monitored broadcast). The muster roll-call now posts within 5 seconds instead of 20, and a second !report in the same stream gets one quiet answer ("you already reported for duty this stream") instead of silence.
+
 ## 2.21.4 (9 November 2026)
 
 **Companion website and member manual updated.** voyagercommand.com: the stream streak on the card back is labelled as the Twitch watch streak (and shows "share your Twitch watch streak in chat" when there is none), the How-Voyager-works note says so, the !report, !quiz (5 points, Star Citizen trivia and general knowledge) and Dreadnought (MVP bonus, screen takeover) entries are current, and the "streams in a row" mission reads as a shared Twitch streak. Member manual revised 9 Nov: Twitch-only streaks on the card and medal pages, Bridge Quiz at 5 points, the Dreadnought and Versus screen takeover, the MVP bonus and champion celebration, "New in this edition" refreshed. In-app Help gains a "Finding your way around (2.21)" section and the update history row.

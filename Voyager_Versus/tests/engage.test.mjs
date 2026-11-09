@@ -126,3 +126,15 @@ test('2.21.4: a saved quiz reward of 10 (the old manual figure) becomes 5 once; 
   e.configure({quiz:{reward:40}});await e.persist(true);
   const again=await new Engage({dataDir:dir,now:()=>2000,say:()=>{}}).load();assert.equal(again.state.settings.quiz.reward,40,'only once');
 });
+
+test('2.21.5: every chat line Voyager tries to post is remembered with whether Streamer.bot took it',async()=>{
+  const {mkdtemp}=await import('node:fs/promises'),{tmpdir}=await import('node:os'),{join}=await import('node:path');
+  let fail=false;const e=await new Engage({dataDir:await mkdtemp(join(tmpdir(),'voyager-out-')),now:()=>5000,say:async()=>fail?{ok:false,message:'"Voyager - Medals" is not in Streamer.bot'}:{ok:true,message:'sent to Streamer.bot'}}).load();
+  e.chat({platform:'twitch',userId:'1',login:'nova',name:'Nova',text:'!report'});e.now=()=>12000;e.tick();await new Promise(r=>setTimeout(r,5));
+  let v=e.view();assert.equal(v.chatOut.length,1);
+  e.chat({platform:'twitch',userId:'1',login:'nova',name:'Nova',text:'!report'});e.chat({platform:'twitch',userId:'1',login:'nova',name:'Nova',text:'!report'});await new Promise(r=>setTimeout(r,5));
+  v=e.view();assert.equal(v.chatOut.length,2,'a repeat !report is answered once');assert.match(v.chatOut[0].text,/already reported for duty/);
+  assert.equal(v.chatOut[1].ok,true);assert.match(v.chatOut[1].text,/Reporting for duty: Nova/);assert.equal(v.chatOut[1].platform,'twitch');
+  fail=true;e.chat({platform:'youtube',userId:'UC1',login:'',name:'Tube',text:'!report'});e.now=()=>20000;e.tick();await new Promise(r=>setTimeout(r,5));
+  v=e.view();assert.equal(v.chatOut[0].ok,false);assert.match(v.chatOut[0].message,/not in Streamer.bot/);assert.equal(v.chatOut[0].platform,'youtube');
+});

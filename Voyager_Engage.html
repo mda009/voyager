@@ -21,6 +21,7 @@
 .eg-list li{display:flex;gap:10px;align-items:center;padding:8px 10px;border:1px solid rgba(151,223,255,.1);background:rgba(8,15,24,.35);font-size:13px;color:#c9d7e4}
 .eg-list li b{color:#e6eef7}.eg-list .r{margin-left:auto;color:#8ea6bd;font-size:12px;white-space:nowrap;display:flex;gap:6px;align-items:center}
 .eg-list li.pin{border-color:rgba(255,211,107,.5)}
+.eg-list li.bad{border-color:rgba(255,122,135,.5)}.eg-list li.bad small{color:#ff9aa6}.eg-list li.ok small{color:#7ff0b5}.eg-list li small{color:#8ea6bd;font-size:12px}.eg-list li.muted{color:#8ea6bd}
 .eg-q{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr) auto;gap:6px;margin-bottom:6px}
 .eg-live{padding:12px 14px;border:1px solid rgba(151,223,255,.2);background:rgba(8,15,24,.5)}
 .eg-live b{display:block;font:700 20px/1.2 Rajdhani,'Segoe UI',sans-serif;color:#fff}
@@ -47,6 +48,9 @@
 <p class="st-hint">Add one <b>Browser</b> source to your main scene, 1920 × 1080, at this address. It's invisible until someone reports for duty, arrives, enlists, logs a moment, or a quiz runs.</p>
 <div class="cs-url"><code id="obs-url"></code><button type="button" id="obs-copy">Copy</button></div>
 <p class="st-hint">The Comms Relay shows inside the Dreadnought overlay. Muster and quiz points are listed in <a href="Voyager_Missions.html">Missions › Points owed</a> and paid from there (max 50 each).</p>
+<div class="card-heading" style="margin-top:6px"><div><span class="eyebrow">CHAT REPLIES</span><h2 style="font-size:16px">What Voyager tried to post</h2></div><span class="st-pill" id="chatout-pill" data-state="wait">—</span></div>
+<ul class="eg-list" id="chatout"></ul>
+<p class="st-hint">Every line Voyager hands to Streamer.bot to post (muster roll-call, quiz, squadrons), with whether Streamer.bot took it. “Sent to Streamer.bot” and still nothing in chat means the <b>Voyager - Medals</b> action has it but could not post: check that action’s log in Streamer.bot (bot account connected? YouTube: exactly one monitored broadcast).</p>
 </section>
 
 <section class="card eg-card">
@@ -69,7 +73,7 @@
 <ul class="eg-list" id="muster"></ul>
 <p class="eg-row"><button type="button" id="new-stream">Reset for a new stream</button><span class="st-hint" id="stream-since"></span></p>
 <p class="st-hint">Resets the per-stream counters right now: everyone can <b>!report</b> again, squadron chat points start counting again for this stream, arrival cards can play again and Captain's Log allowances return. Points already earned or owed are not touched. Voyager also does this on its own when Twitch goes live or after 4 hours without chat.</p>
-<p class="st-hint">Each account can report once a stream, and Twitch, Kick and YouTube accounts are separate, so the reward is capped at 2 points per platform. Names are grouped into one chat message every 20 seconds, posted on the platform the reports came from (needs the 2.20.25 <a href="MEDALS_SETUP.html">Voyager - Medals C#</a>); streaks count streams in a row. Rewards are paid from Missions › Points owed with Pay all.</p>
+<p class="st-hint">Each account can report once a stream, and Twitch, Kick and YouTube accounts are separate, so the reward is capped at 2 points per platform. Names are grouped into one chat message every 5 seconds, posted on the platform the reports came from (needs the 2.20.25 <a href="MEDALS_SETUP.html">Voyager - Medals C#</a>); streaks count streams in a row. Rewards are paid from Missions › Points owed with Pay all.</p>
 </section>
 
 <section class="card eg-card">
@@ -121,8 +125,8 @@
 </div>
 </main>
 </div>
-<script src="engage-control.js?v=2.20.94"></script>
-<script src="voyager-shell.js?v=2.21.4"></script>
+<script src="engage-control.js?v=2.21.5"></script>
+<script src="voyager-shell.js?v=2.21.5"></script>
 <script src="voyager-navigation.js"></script>
 </body>
 </html>
