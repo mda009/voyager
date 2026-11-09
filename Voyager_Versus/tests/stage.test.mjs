@@ -13,6 +13,7 @@ test('Stage settings: slots, stack, corner and chat options are validated; unkno
   assert.deepEqual(s.stack,['ticker','bucket']);assert.equal(s.pip,'bl');assert.equal(s.scene,'Live');assert.equal(s.resultSeconds,30);assert.equal(s.chat.kick,false);assert.equal(s.chat.commands,true);assert.equal(s.chat.twitch,true);
   const h=normalizeSettings({hide:'Versus ready timer, SC referral,, Versus ready timer\nCam'});assert.deepEqual(h.hide,['Versus ready timer','SC referral','Cam']);
   assert.equal(normalizeSettings({slots:{bottomLeft:'squadron',right:'dread'},stack:['dread','ticker']}).slots.bottomLeft,'squadron');
+  assert.equal(normalizeSettings({slots:{left:'bar'}}).slots.left,'bar','compact goal bar can fill a stage slot');
   assert.throws(()=>normalizeSettings({slots:{left:'nope'}}),/Unknown panel/);
   assert.throws(()=>normalizeSettings({stack:['x']}),/bottom stack/);
   assert.throws(()=>normalizeSettings({pip:'tl'}),/corner/);

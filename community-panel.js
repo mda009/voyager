@@ -1,7 +1,7 @@
-/* Voyager OBS Community goals & Missions panel (2.14; 2.15 adds goals; 2.20.48 community goals you run yourself). Same look and placement as the OBS leaderboard panel.
+/* Voyager OBS Community goals & Missions panel (2.14; 2.15 adds goals; 2.20.48 community goals you run yourself; 2.21.2 compact goal progress bar). Same look and placement as the OBS leaderboard panel.
    Reads /api/community/overlay from the local Voyager host; shown and hidden from Voyager Control > Community goals. */
 (()=>{'use strict';
-const $=id=>document.getElementById(id),params=new URLSearchParams(location.search),preview=params.get('preview')==='1',stagePage=params.get('stage')==='1',stageKind=stagePage&&['season','goals','helpers','hall','missions'].includes(params.get('kind'))?params.get('kind'):'',compact=(preview||stagePage)&&params.get('compact')==='1';
+const $=id=>document.getElementById(id),params=new URLSearchParams(location.search),preview=params.get('preview')==='1',stagePage=params.get('stage')==='1',stageKind=stagePage&&['season','goals','bar','helpers','hall','missions'].includes(params.get('kind'))?params.get('kind'):'',compact=(preview||stagePage)&&params.get('compact')==='1';
 const NAMES={twitch:'Twitch',youtube:'YouTube',kick:'Kick'};
 const TITLES={season:'Community goal standings',goals:'Community goals',helpers:'Community goal contributors',hall:'Hall of Fame',missions:"This week's missions"};
 const icons={twitch:'<path fill="currentColor" d="M4 2h18v13l-6 6h-5l-3 3v-3H4V2zm2 2v13h5v3l3-3h4l2-2V4H6zm5 3h2v6h-2V7zm5 0h2v6h-2V7z"/>',youtube:'<path fill="currentColor" d="M22 7c-.3-1.4-1.2-2.3-2.6-2.5C17.5 4.2 14 4 12 4s-5.5.2-7.4.5C3.2 4.7 2.3 5.6 2 7c-.3 1.4-.5 3.4-.5 5s.2 3.6.5 5c.3 1.4 1.2 2.3 2.6 2.5 1.9.3 5.4.5 7.4.5s5.5-.2 7.4-.5c1.4-.2 2.3-1.1 2.6-2.5.3-1.4.5-3.4.5-5s-.2-3.6-.5-5z"/><path fill="#171f2b" d="m10 8 6 4-6 4z"/>',kick:'<path fill="currentColor" d="M3 2h6v7h3V5h3V2h6v7h-3v3h-3v3h3v3h3v4h-6v-4h-3v-3H9v7H3z"/>'};
@@ -48,7 +48,9 @@ function renderRows(c){
 function render(){
   // 2.20.84: inside the Dreadnought stage (?stage=1&kind=) the panel is always shown with that kind; the standalone source hides while the stage is up.
   const p=stagePage?{config:{...(data?.panel?.config||{}),kind:stageKind||data?.panel?.config?.kind||'season',width:356,top:16,right:16,opacity:data?.panel?.config?.opacity??40,limit:data?.panel?.config?.limit||10,title:stageKind?'':data?.panel?.config?.title||''},visible:true,expiresAt:0}:data?.panel,visible=stagePage?!!data:(preview||(p&&p.visible&&(!p.expiresAt||Date.now()+(data.offset||0)<p.expiresAt)))&&!(data?.stage&&!preview);
-  $('panel').hidden=!visible||!p;if($('panel').hidden)return;
+  const bars=p?.config?.kind==='bar';$('panel').hidden=!visible||!p||bars;$('bars').hidden=!visible||!p||!bars;
+  if(bars&&visible&&p){renderBars(p.config);fit();return;}
+  if($('panel').hidden)return;
   const c=p.config,panel=$('panel');panel.dataset.kind='pilots';
   panel.style.setProperty('--panel-width',c.width+'px');panel.style.setProperty('--panel-top',(compact?16:c.top)+'px');panel.style.setProperty('--panel-right',(compact?16:c.right)+'px');panel.style.setProperty('--leader-opacity',String(c.opacity/100));
   rows=build(c);
@@ -64,6 +66,21 @@ function render(){
   $('empty-title').textContent=!data?'Waiting for Voyager':c.kind==='hall'?'No champions yet':c.kind==='missions'?'No missions this week':c.kind==='goals'||c.kind==='helpers'?'No community goals right now':data.season?.active===false?'No community goal running':'The community goal has just begun';
   $('empty-note').textContent=c.kind==='hall'?'Champions appear when a community goal ends.':c.kind==='missions'?'Turn missions on in Voyager Control.':c.kind==='goals'||c.kind==='helpers'?'Add goals in Voyager Control › Community goals.':data.season?.active===false?'Start one in Voyager Control › Community goals.':'Earn points to get on the board.';
   renderRows(c);fit();
+}
+// 2.21.2: compact progress bar — one slim row per community goal, in place of the full panel.
+function renderBars(c){
+  const box=$('bars');box.style.setProperty('--panel-width',c.width+'px');box.style.setProperty('--panel-top',(compact?16:c.top)+'px');box.style.setProperty('--panel-right',(compact?16:c.right)+'px');box.style.setProperty('--leader-opacity',String(c.opacity/100));
+  const stale=!preview&&(failed||Date.now()-readAt>30000);box.dataset.stale=String(stale);
+  const goals=(data?.season?.goals||[]).filter(g=>!g.missed).slice(0,c.limit);
+  $('bars-title').textContent=(c.title||data?.season?.name||'COMMUNITY GOAL').toUpperCase();
+  const endsAt=data?.season?.endsAt;$('bars-due').textContent=preview?'PREVIEW':stale?'LAST KNOWN':endsAt?'DUE '+new Date(endsAt).toLocaleDateString(undefined,{day:'numeric',month:'short'}).toUpperCase():'';
+  const key=JSON.stringify([c.width,goals.map(g=>[g.title,g.total,g.target,g.reached,g.platform])]);if(key===box.dataset.key)return;box.dataset.key=key;
+  const list=$('bars-list');list.replaceChildren();
+  if(!goals.length){list.append(node('div',!data?'Waiting for Voyager':data.season?.active===false?'No community goal running':'No community goals right now','none'));return;}
+  for(const g of goals){const pct=Math.max(0,Math.min(1,g.target?g.total/g.target:0)),row=node('div',undefined,'goal'+(g.reached?' reached':''));row.style.setProperty('--n',pct.toFixed(3));
+    const t=node('div',g.title,'t');if(g.platform&&g.platform!=='all')t.append(node('small',NAMES[g.platform]||g.platform));
+    const v=node('div',undefined,'v');v.append(node('span',short(Math.min(g.total,99999))+' / '+short(g.target)),node('small',UNIT[g.metric]||''));if(g.reached)v.append(node('em','✓ REACHED'));else v.append(node('em',Math.round(pct*100)+'%'));
+    const track=node('div',undefined,'track');track.append(node('i'));row.append(t,v,track);list.append(row);}
 }
 async function poll(){
   try{const t=Date.now(),r=await fetch('/api/community/overlay',{cache:'no-store'});if(!r.ok)throw new Error(String(r.status));const d=await r.json();d.offset=d.serverAt-(t+Date.now())/2;data=d;readAt=Date.now();failed=false;}

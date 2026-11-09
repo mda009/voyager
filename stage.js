@@ -6,7 +6,7 @@
 const $=id=>document.getElementById(id),q=new URLSearchParams(location.search),debug=q.get('debug')==='1';
 const hosted=location.protocol==='http:'&&/^(127\.0\.0\.1|localhost)$/.test(location.hostname),base=hosted?'':'http://127.0.0.1:'+(Number(q.get('voyager'))||8740);
 // 2.20.93: when Voyager is updated, the page reloads itself under a new address so OBS does not keep serving the cached copy.
-const BUILD='2.21.1';
+const BUILD='2.21.2';
 const stage=$('stage');let data=null,readAt=0,lastErr='',on=false,layoutKey='',offTimer=0,splashTimer=0,mvpKey='';
 function fit(){const s=Math.min(innerWidth/1920,innerHeight/1080);stage.style.transform='translate('+((innerWidth-1920*s)/2)+'px,'+((innerHeight-1080*s)/2)+'px) scale('+s+')';}
 addEventListener('resize',fit);fit();
@@ -15,7 +15,7 @@ const frame=(src,w,h,scale,left=0,top=0)=>{const f=document.createElement('ifram
 function fill(el,kind,rect){
   el.replaceChildren();el.style.left=rect.x+'px';el.style.top=rect.y+'px';el.style.width=rect.w+'px';el.style.height=rect.h+'px';
   if(kind==='leaderboard'){const s=rect.w/388;el.append(frame('/control/Voyager_Leaderboard_Panel.html?stage=1&compact=1',388,520,s));return;}
-  if(['standings','goals','helpers','hall','missions'].includes(kind)){const s=rect.w/388;el.append(frame('/control/Voyager_Community_Panel.html?stage=1&compact=1&kind='+(kind==='standings'?'season':kind),388,520,s));return;}
+  if(['standings','goals','bar','helpers','hall','missions'].includes(kind)){const s=rect.w/388;el.append(frame('/control/Voyager_Community_Panel.html?stage=1&compact=1&kind='+(kind==='standings'?'season':kind),388,520,s));return;}
   if(kind==='christmas'){const s=Math.min(rect.w/440,rect.h/560);el.append(frame('/control/Voyager_Christmas_Goal.html?stage=1&always=1',1920,1080,s,-1440*s+(rect.w-440*s)/2,-110*s));return;}
   if(kind==='chat'){el.append(frame('/control/chat.html?stage=1&w='+rect.w+'&h='+rect.h,rect.w,rect.h,1));return;}
   if(kind==='squadron'){const s=rect.w/568;el.append(frame('/engage.html?stage=squadron&w=568',568,Math.round(rect.h/s),s));return;}

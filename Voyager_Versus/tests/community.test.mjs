@@ -72,6 +72,7 @@ test('OBS panel: settings are validated, timed panels hide themselves, and the o
   set(monday+60000);c.receive([{key:'twitch:1',name:'Nova',login:'nova',capturedIn:500},{key:'twitch:2',name:'Orion',login:'orion',capturedIn:20}]);
   assert.throws(()=>c.setPanel({config:{kind:'nope'}}),/Choose/);
   assert.throws(()=>c.setPanel({config:{kind:'season',width:900}}),/width/);
+  assert.equal(c.setPanel({config:{kind:'bar'},visible:true}).config.kind,'bar','2.21.2 compact goal progress bar is a panel kind');
   const p=c.setPanel({config:{kind:'season',limit:5,duration:30},visible:true});
   assert.equal(p.visible,true);assert.equal(p.expiresAt,monday+60000+30000);
   const o=c.overlay();assert.equal(o.panel.config.kind,'season');assert.equal(o.season.standings[0].name,'Nova');

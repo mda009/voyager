@@ -98,7 +98,7 @@ const form=$('stage-form');if(form){let st=null,stEditing=false;const f=form.ele
 $('stage-url').textContent=location.origin+'/control/stage.html';
 $('stage-copy').onclick=async()=>{try{await navigator.clipboard.writeText($('stage-url').textContent);$('stage-copy').textContent='Copied';setTimeout(()=>$('stage-copy').textContent='Copy',1500);}catch{}};
 function options(sel,kinds,value){if(!sel.options.length)for(const [k,label] of Object.entries(kinds)){const o=document.createElement('option');o.value=k;o.textContent=label;sel.append(o);}sel.value=value;}
-function pic(){const s=st.settings,short=k=>({none:'—',leaderboard:'Leaders',standings:'Standings',goals:'Goals',helpers:'Contributors',hall:'Hall of Fame',missions:'Missions',christmas:'Christmas',chat:'Chat',squadron:'Squadrons',dread:'Damage HUD',camera:'Camera'})[k]||k;
+function pic(){const s=st.settings,short=k=>({none:'—',leaderboard:'Leaders',standings:'Standings',goals:'Goals',bar:'Goal bar',helpers:'Contributors',hall:'Hall of Fame',missions:'Missions',christmas:'Christmas',chat:'Chat',squadron:'Squadrons',dread:'Damage HUD',camera:'Camera'})[k]||k;
   $('pic-left').textContent=short(s.slots.left);$('pic-right').textContent=short(s.slots.right);$('pic-bl').textContent=short(s.slots.bottomLeft);$('pic-stack').textContent=s.stack.map(k=>({bucket:'Goals strip',ticker:'Ticker',moments:'Hints · medals',dread:'Damage HUD'})[k]).join(' · ')||'—';
   const pipRight=s.pip==='br';$('pic-bl').style.order=pipRight?0:2;$('pic-pip').style.order=pipRight?2:0;$('pic-stack').style.order=1;}
 function renderStage(){if(!st)return;const s=st.settings;

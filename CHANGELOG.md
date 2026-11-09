@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.21.2 (9 November 2026)
+
+**Compact goal progress bar.** The Community panel has a new thing to show: **Goal progress bar (compact)** — one slim row per community goal (name, count / target, % or ✓ REACHED, a progress bar) under a small run-name header, about a quarter of the height of the full goals panel at the same width, so it can stay on screen all stream. Pick it on Live › Panels, on Missions & goals › Community goals › On stream (with a live preview), or as a Dreadnought / Versus stage slot. Same position, width and background settings as the panel; reached goals turn gold; Twitch-only or Kick-only goals carry a platform tag.
+
 ## 2.21.1 (8 November 2026)
 
 **Dreadnought page in three tabs.** *Live* (the live view, how chat plays, paying the pilots, recent fights), *The fight* (the settings form, difficulty presets, and the folded OBS and Streamer.bot set-up) and *Stage takeover* (the stage card, full width). The tab you were on is remembered; `#stage-card` links open the stage tab.

@@ -75,7 +75,7 @@ export function weekStart(now){const d=new Date(now);d.setHours(0,0,0,0);d.setDa
 export function dayId(now){const d=new Date(now);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 
 // On-stream panel (2.14): same look and placement options as the OBS leaderboard panel.
-export const PANEL_KINDS={season:'Community goal standings',goals:'Community goals',helpers:'Community goal contributors',hall:'Hall of Fame',missions:"This week's missions"};
+export const PANEL_KINDS={season:'Community goal standings',goals:'Community goals',bar:'Goal progress bar (compact)',helpers:'Community goal contributors',hall:'Hall of Fame',missions:"This week's missions"};
 export const PANEL_DEFAULTS={kind:'season',limit:10,speed:14,width:356,top:132,right:16,opacity:40,duration:0,title:''};
 export function normalizePanel(raw){
   const r=raw&&typeof raw==='object'?raw:{},c={};

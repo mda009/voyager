@@ -8,7 +8,7 @@ import {readFile,writeFile,mkdir,rename} from 'node:fs/promises';
 import {join} from 'node:path';
 import {randomUUID} from 'node:crypto';
 
-export const SLOT_KINDS={none:'Nothing',leaderboard:'Leaderboard panel',standings:'Community goal standings',goals:'Community goals',helpers:'Community goal contributors',hall:'Hall of Fame',missions:"This week's missions",christmas:'Christmas goal panel',chat:'Chat (Twitch · YouTube · Kick)',squadron:'Squadron war panel',dread:'Dreadnought damage HUD',camera:'Camera window (transparent)'};
+export const SLOT_KINDS={none:'Nothing',leaderboard:'Leaderboard panel',standings:'Community goal standings',goals:'Community goals',bar:'Goal progress bar (compact)',helpers:'Community goal contributors',hall:'Hall of Fame',missions:"This week's missions",christmas:'Christmas goal panel',chat:'Chat (Twitch · YouTube · Kick)',squadron:'Squadron war panel',dread:'Dreadnought damage HUD',camera:'Camera window (transparent)'};
 export const STACK_KINDS={bucket:'Giveaway goals strip',ticker:'Right now ticker',moments:'Command hints & medal toasts',dread:'Dreadnought damage HUD'};
 export const SLOTS=['left','right','bottomLeft'];
 export const STAGE_DEFAULTS={enabled:true,slots:{left:'leaderboard',right:'helpers',bottomLeft:'chat'},stack:['bucket','ticker','moments'],pip:'br',scene:'',source:'',hide:[],resultSeconds:20,splashSeconds:6,mvpSeconds:10,animationMs:1200,chat:{twitch:true,youtube:true,kick:true,commands:false,names:true},versus:{enabled:true,splashSeconds:6,winnerSeconds:10,winnerBonus:0}}; // 2.20.92: a Versus win stays 50 points; the champion bonus is off unless set
