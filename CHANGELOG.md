@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.21.6 (9 November 2026)
+
+**Bridge Quiz finishes when it is answered.** A correct answer ends the question on screen: the winner and answer show for 10 seconds, then the card leaves — instead of staying up until the 60-second clock would have run out. No answer still shows "Time! The answer was…" for 8 seconds after the clock.
+
 ## 2.21.5 (9 November 2026)
 
 **!report: you can now see whether the reply went out.** Looking into "!report is not working": the host *was* recording every report (tonight's muster has 23 names, fatdaddy200 among them), so what viewers were missing was the reply in chat — which Voyager hands to Streamer.bot's **Voyager - Medals** action and, until now, never checked. Chat engagement › Set up gains **Chat replies**: every line Voyager tried to post (muster roll-call, quiz, squadrons), on which platform, and whether Streamer.bot took it — "sent to Streamer.bot" or exactly why not (not connected, action missing / disabled / duplicated, refused). "Sent" with nothing in chat points at the action itself (bot account not connected; YouTube needs exactly one monitored broadcast). The muster roll-call now posts within 5 seconds instead of 20, and a second !report in the same stream gets one quiet answer ("you already reported for duty this stream") instead of silence.

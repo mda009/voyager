@@ -307,7 +307,8 @@ export class Engage{
 
   // ---------- views ----------
   overlay({always=false}={}){ // always: the Dreadnought stage's squadron slot shows the standings whether or not the timed panel is on
-    const now=this.now(),a=this.state.quiz.active,showQuiz=a&&(now<a.endsAt+8000||(a.winner&&now-a.winner.at<8000));
+    // 2.21.6: once someone has the answer the question is finished — it shows the winner for 10 s and leaves, however long the clock had left.
+    const now=this.now(),a=this.state.quiz.active,showQuiz=a&&(a.winner?now-a.winner.at<10000:now<a.endsAt+8000);
     return {serverAt:now,toasts:this.state.toasts.filter(t=>now-t.at<60000),quiz:showQuiz?{id:a.id,q:a.q,endsAt:a.endsAt,duration:a.endsAt-a.startedAt,reward:a.reward,winner:a.winner?{name:a.winner.name,platform:a.winner.platform}:null,answer:a.winner||now>a.endsAt?a.a[0]:''}:null,
       squadrons:always||(this.state.panel&&!(this.state.panel.until&&now>this.state.panel.until))?{visible:true,until:this.state.panel?.until||0,standings:this.standings().map(({top,...x})=>({...x,top:top.slice(0,3)}))}:null};
   }

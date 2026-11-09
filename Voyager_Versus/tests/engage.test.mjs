@@ -43,6 +43,7 @@ test('Bridge Quiz: first correct answer wins, answers are forgiving, time runs o
   const q=e.ask(e.state.quiz.bank[0].id);assert.match(said.at(-1),/BRIDGE QUIZ: Which planet/);assert.equal(said.to.at(-1),'','the quiz is for everyone: all platforms');assert.throws(()=>e.ask(),/already running/);
   e.chat(msg('Rook','saturn?'));assert.equal(e.state.quiz.active.winner,null);
   e.chat(msg('Nova','it is JUPITER!!'));assert.equal(e.state.quiz.active.winner.name,'Nova');e.chat(msg('Rook','jupiter'));assert.equal(e.state.quiz.active.winner.name,'Nova');
+  assert.equal(e.overlay().quiz?.winner?.name,'Nova','the winner shows on screen');at(9000);assert.ok(e.overlay().quiz,'still showing the winner at 9 s');at(1500);assert.equal(e.overlay().quiz,null,'2.21.6: the question leaves 10 s after a correct answer, not at the end of the clock');
   assert.equal(e.rewardBatches()[0].pilots[0].name,'Nova');assert.equal(e.rewardBatches()[0].reward,5,'2.20.94: 5 points a correct answer');
   e.ask(e.state.quiz.bank[1].id);at(61000);e.tick();assert.match(said.at(-1),/Nobody got it\. The answer was Proxima Centauri/);
   assert.equal(e.overlay().quiz?.answer,'Proxima Centauri');assert.equal(q.reward,5);
