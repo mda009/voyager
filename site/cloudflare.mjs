@@ -33,6 +33,10 @@ export function headersFile(origins=DEFAULT_EMBED_ORIGINS){
   Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
 /assets/*
   Cache-Control: public, max-age=604800
+/*.js
+  Cache-Control: public, max-age=0, must-revalidate
+/index.html
+  Cache-Control: public, max-age=0, must-revalidate
 /manual.pdf
   Content-Disposition: inline; filename="Voyager-Member-Manual.pdf"
   Cache-Control: public, max-age=3600

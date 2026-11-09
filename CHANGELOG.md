@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.21.8 (9 November 2026)
+
+**VIP and Emerald ribbons stay current on the website.** The Ruby VIP and Emerald Elite ribbons on the website's membership cards come from the VIP GROUP / moderators' group in Streamer.bot, but until now those flags only reached the host while the Public website page was open in Voyager Control. The host now asks the Points Ledger for its member snapshot itself (every 10 minutes while connected), so tiers, VIP and Emerald ribbons and balances on cards and on voyagercommand.com follow the groups without any page open. The website build stamps the card template with the build version and serves scripts with revalidation, so a browser can never keep an old card design once a new one is published.
+
 ## 2.21.7 (9 November 2026)
 
 **Sub goal synced to Twitch's live subscriber count.** New community-goal metric **Twitch active subscribers (live count)**: the goal's progress *is* Twitch's own subscriber number — read through **Voyager - Stream Stats** (its Get Subscriber Count sub-action) within seconds of connecting and every 5 minutes after, and whenever a dashboard asks for stats — instead of a tally of sub events since the run started. Everyone who subscribed or renewed on Twitch during the run counts as a helper for the reward (Kick and YouTube renewals do not move a Twitch count). Your existing goal called **Sub Goal** is moved to this metric once on update; Community goals shows the last count heard and when. Panels, the compact goal bar, the Christmas panel and the website label it "Twitch subscribers".

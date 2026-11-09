@@ -146,7 +146,11 @@ const bot=new StreamerBot({onOtherChat:chat=>{
   if(word==='!voyager'){voyagerCommand(chat);return;}
   if(word==='!medals'){try{medals.command({kind:'medals',platform:chat.platform,userId:chat.userId,login:chat.login,name:chat.name});}catch{}return;}
   if(boss.active()&&(word==='!join'||word==='!fire')){try{boss.receive({kind:word.slice(1),platform:chat.platform,userId:chat.userId,login:chat.login,name:chat.name,direct:true});}catch{}}
-},onCards:ev=>{cards.receive(ev);},onFleet:ev=>{fleetState={at:Date.now(),serverAt:Number(ev.serverAt)||Date.now(),state:ev.state};cards.fromFleet(ev.state,ev.serverAt);fleetCamera.receive(ev);try{moments.fleet(ev);}catch{}},onGoals:packet=>{try{moments.goalsReading(packet);}catch{}},onStage:r=>{try{const x=stage.result(r);console.log('[stage] OBS: '+(x.ok?'':'FAILED: ')+x.message);}catch{}},onStats:p=>{try{const m=p?.metrics?.twitch?.subscriptions;if(p?.ok!==false&&m&&m.value!==null&&m.value!==undefined)community?.twitchSubs({value:m.value,at:Number(p.serverAt)||Date.now()});}catch{}},onWatchStreak:w=>{try{const r=medals.syncStreak(w);if(r)console.log('[streak] '+r.name+' shared a Twitch watch streak of '+r.streak+(r.before!==r.streak?' (Voyager had '+r.before+')':''));}catch{}},onMedals:ev=>{if(ev.type==='voyager.medals.data')medals.ingestExport(ev);else medals.command(ev);},onBoss:ev=>{
+},onCards:ev=>{cards.receive(ev);},onFleet:ev=>{fleetState={at:Date.now(),serverAt:Number(ev.serverAt)||Date.now(),state:ev.state};cards.fromFleet(ev.state,ev.serverAt);fleetCamera.receive(ev);try{moments.fleet(ev);}catch{}},onGoals:packet=>{try{moments.goalsReading(packet);}catch{}},onStage:r=>{try{const x=stage.result(r);console.log('[stage] OBS: '+(x.ok?'':'FAILED: ')+x.message);}catch{}},onPoints:p=>{try{if(p?.ok!==true||p.schema!==1||!Array.isArray(p.users))return;
+  // Same shape the Public website page sends to /api/community/members — now the host keeps itself current (VIP ribbons, tiers, balances).
+  const members=p.users.filter(u=>u&&u.key&&u.pointsFresh!==false).map(u=>({key:u.key,name:u.name||u.login||'',login:u.login||'',capturedIn:Number.isFinite(Number(u.capturedIn))?Number(u.capturedIn):null,points:Number.isFinite(Number(u.points))?Number(u.points):null,tier:typeof u.tier==='string'?u.tier:'',vip:Array.isArray(u.groups)&&u.groups.includes('vip'),emerald:Array.isArray(u.groups)&&u.groups.includes('emerald')}));
+  if(members.length)community.receive(members);}catch{}},
+onStats:p=>{try{const m=p?.metrics?.twitch?.subscriptions;if(p?.ok!==false&&m&&m.value!==null&&m.value!==undefined)community?.twitchSubs({value:m.value,at:Number(p.serverAt)||Date.now()});}catch{}},onWatchStreak:w=>{try{const r=medals.syncStreak(w);if(r)console.log('[streak] '+r.name+' shared a Twitch watch streak of '+r.streak+(r.before!==r.streak?' (Voyager had '+r.before+')':''));}catch{}},onMedals:ev=>{if(ev.type==='voyager.medals.data')medals.ingestExport(ev);else medals.command(ev);},onBoss:ev=>{
   if(ev.kind==='call'&&!['lobby','result'].includes(game.phase)){game.note('Finish the Versus battle before calling the Dreadnought.','system');return;}
   boss.receive(ev);
 },onChat:chat=>{
@@ -452,12 +456,15 @@ const server=http.createServer(async(req,res)=>{
     res.writeHead(200,headers);res.end(req.method==='HEAD'?undefined:bytes);
   }catch(e){response(res,e.code==='ENOENT'?404:400,{message:e.code==='ENOENT'?'File not found.':e.message==='Invalid URL'?'Invalid WebSocket address.':'Request could not be processed. Check your inputs.'});}
 });
-let ticks=0,lastStatsAsk=0;const timer=setInterval(()=>{
+let ticks=0,lastStatsAsk=0,lastPointsAsk=0;const timer=setInterval(()=>{
   try{boss.tick();}catch{}
   if(ticks%5===0)void fleetCamera.tick();
   if(ticks%2===0)void stage.tick(...stageState()).catch(()=>{});
   if(ticks%20===0)try{moments.tick();}catch{}
   try{game.tick(.1);}catch{game.paused=true;game.note('Host storage error. Check the game folder before restarting.');}ticks++;
+  // 2.21.8: the member snapshot from the Points Ledger (tiers, VIP / Emerald groups) every 10 minutes while connected, so cards and
+  // the website carry the right ribbons without the Public website page having to be open.
+  if(ticks%50===25&&bot.status.connected&&Date.now()-lastPointsAsk>600000){lastPointsAsk=Date.now();void runAction('Voyager - Points Ledger',{requestId:randomUUID(),pointsOperation:'snapshot'});}
   // 2.21.7: a live-subscriber goal needs Twitch's count: ask Stream Stats within seconds of connecting and every 5 minutes after (any dashboard's own request is heard too).
   if(ticks%50===0&&bot.status.connected&&Date.now()-lastStatsAsk>300000&&(community?.state.goals||[]).some(g=>g.metric==='activeSubs')){lastStatsAsk=Date.now();void runAction('Voyager - Stream Stats',{requestId:randomUUID(),includeSupport:'0'});}
   if(ticks%10===0){try{engage.tick();engage.observePilots();}catch{}community?.roll(Date.now());void publicSite?.tick();void pilots.tick();void rewards.tick();void announcements.tick();void matchChat.tick();}

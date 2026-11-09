@@ -19,7 +19,10 @@ export async function buildSite(repo,out){
   await writeFile(join(out,'index.html'),viewer);
   await copyFile(join(root,'site','viewer','fair-draw.js'),join(out,'fair-draw.js'));
   // 2.20.17 stream companion: tabs, Dreadnought, ranks, medals and find-your-card, installable as an app.
-  for(const f of ['companion.js','manifest.webmanifest','sw.js'])await copyFile(join(root,'site','viewer',f),join(out,f));
+  // 2.21.8: the card template import is stamped with this build's version, so a new template is never served from an old cached copy.
+  const version=JSON.parse(await readFile(join(root,'package.json'),'utf8')).version||'0';
+  await writeFile(join(out,'companion.js'),(await readFile(join(root,'site','viewer','companion.js'),'utf8')).replace(/card-template\.js\?v=[0-9.]+/,'card-template.js?v='+version));
+  for(const f of ['manifest.webmanifest','sw.js'])await copyFile(join(root,'site','viewer',f),join(out,f));
   // 2.20.20: the membership card template the stream overlay uses, so My card shows the very same front.
   await copyFile(join(root,'Voyager_Versus','dist','card-template.mjs'),join(out,'card-template.js'));
   // The member manual (PDF) at /manual.pdf, with its cover for the Guide tab.
