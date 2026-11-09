@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.21.7 (9 November 2026)
+
+**Sub goal synced to Twitch's live subscriber count.** New community-goal metric **Twitch active subscribers (live count)**: the goal's progress *is* Twitch's own subscriber number — read through **Voyager - Stream Stats** (its Get Subscriber Count sub-action) within seconds of connecting and every 5 minutes after, and whenever a dashboard asks for stats — instead of a tally of sub events since the run started. Everyone who subscribed or renewed on Twitch during the run counts as a helper for the reward (Kick and YouTube renewals do not move a Twitch count). Your existing goal called **Sub Goal** is moved to this metric once on update; Community goals shows the last count heard and when. Panels, the compact goal bar, the Christmas panel and the website label it "Twitch subscribers".
+
 ## 2.21.6 (9 November 2026)
 
 **Bridge Quiz finishes when it is answered.** A correct answer ends the question on screen: the winner and answer show for 10 seconds, then the card leaves — instead of staying up until the 60-second clock would have run out. No answer still shows "Time! The answer was…" for 8 seconds after the clock.

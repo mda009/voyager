@@ -675,7 +675,7 @@ const MISSION_TEXT={streamDays:(n)=>'Earn points on '+n+' different stream day'+
  watchHours:(n,p)=>'Watch '+n+' hour'+(n===1?'':'s')+' live'+(ON[p]||'')+' this week',chatMessages:(n,p)=>'Send '+fmt(n)+' chat messages'+(ON[p]||'')+' this week',streamStreak:(n)=>'Share a Twitch watch streak of '+n+' streams in chat',
  dreadFights:(n)=>'Join '+(n===1?'a Dreadnought fight':n+' Dreadnought fights')+' this week (!join)',dreadVictory:(n)=>'Be in the fleet for '+(n===1?'a Dreadnought victory':n+' Dreadnought victories')+' this week',
  dreadDamage:(n)=>'Deal '+fmt(n)+' damage to the Dreadnought this week',dreadMvp:(n)=>'Finish '+(n===1?'a Dreadnought fight':n+' fights')+' as MVP this week',torpedo:(n)=>'Fire '+(n===1?'a torpedo':n+' torpedoes')+' (gift a sub during a Dreadnought fight)'};
-const GOAL_TEXT={support:'subs, renewals and gifted subs',subs:'subs and renewals',gifts:'gifted subs',points:'Voyager points earned by the crew',versus:'Voyager Versus wins'};
+const GOAL_TEXT={support:'subs, renewals and gifted subs',subs:'subs and renewals',gifts:'gifted subs',activeSubs:'Twitch active subscribers',points:'Voyager points earned by the crew',versus:'Voyager Versus wins'};
 function renderMissions(){
  const m=feed.missions,box=$('mission-list');box.textContent='';$('missions').hidden=!m||!m.list?.length;if(!m)return;
  $('missions-lede').textContent='Finish a mission to earn Voyager points. New missions every Monday'+(m.endsAt?' · this week ends '+new Date(m.endsAt).toLocaleDateString(undefined,{weekday:'long'}):'')+'.';

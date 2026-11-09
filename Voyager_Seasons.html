@@ -30,7 +30,7 @@
 <label>Supporter bonus (score per sub, renewal or gifted sub)<input name="supportBonus" type="number" min="0" max="100000"></label>
 </form>
 <div class="card-heading" style="margin-top:14px"><div><span class="eyebrow">GOALS IN THIS RUN</span><h2 id="goals-h">Goals</h2></div><div class="st-actions"><button type="button" id="goal-add">+ Add goal</button></div></div>
-<p class="st-hint">Each goal has its own target, points reward and (optionally) its own due date. When a goal is reached, everyone who helped (at least the minimum) earns its reward — pay it from Missions › Points owed. Goals can count subs and gifts, Voyager points earned by the crew, or Voyager Versus wins.</p>
+<p class="st-hint">Each goal has its own target, points reward and (optionally) its own due date. When a goal is reached, everyone who helped (at least the minimum) earns its reward — pay it from Missions › Points owed. Goals can count subs and gifts, Voyager points earned by the crew, or Voyager Versus wins — or track <b>Twitch active subscribers (live count)</b>: the goal shows Twitch's own subscriber number (read through <b>Voyager - Stream Stats</b>' Get Subscriber Count every 5 minutes, and whenever a dashboard asks), so it moves with your real sub count rather than adding up events. Everyone who subscribed or renewed on Twitch this run counts as a helper for the reward. <span id="twitch-subs"></span></p>
 <div id="goals" class="cs-goal-list"></div>
 <div class="st-actions" style="margin-top:12px"><button type="button" class="primary" id="season-start">Start the run</button><button type="button" class="primary" id="season-save" hidden>Save changes</button><button type="button" id="end-season" hidden>End now…</button></div>
 <p class="st-hint" id="campaign-hint"></p>
@@ -82,8 +82,8 @@
 </div>
 </main>
 </div>
-<script src="seasons.js?v=2.20.72"></script>
-<script src="voyager-shell.js?v=2.21.6"></script>
+<script src="seasons.js?v=2.21.7"></script>
+<script src="voyager-shell.js?v=2.21.7"></script>
 <script src="voyager-navigation.js"></script>
 </body>
 </html>

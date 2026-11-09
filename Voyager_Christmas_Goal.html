@@ -90,7 +90,7 @@ const preview=q.get('preview')==='1',hosted=location.protocol==='http:'&&/^(127\
 function fit(){const s=Math.min(innerWidth/1920,innerHeight/1080);stage.style.transform='scale('+s+')';}addEventListener('resize',fit);fit();
 panel.style.top=num('top',110,0,1000)+'px';panel.style.width=num('width',440,320,720)+'px';if(q.get('pos')==='left')panel.classList.add('left');
 const fmt=n=>Math.round(n).toLocaleString('en');
-const METRIC={support:'subs, renewals & gifts',subs:'subs & renewals',gifts:'gifted subs',points:'Voyager points',versus:'Versus wins'};
+const METRIC={support:'subs, renewals & gifts',subs:'subs & renewals',gifts:'gifted subs',activeSubs:'Twitch subscribers',points:'Voyager points',versus:'Versus wins'};
 const SAMPLE={season:{name:'Christmas 2026',active:true,startedAt:Date.now()-5*864e5,endsAt:new Date(2026,11,25,23,59).getTime(),goals:[
  {title:'Christmas gift drive',description:'Gift subs and memberships to the crew',metric:'gifts',platform:'all',target:25,total:9,reward:200,reached:false,missed:false,helpers:4},
  {title:'Crew points',description:'Earn 50,000 Voyager points together',metric:'points',platform:'all',target:50000,total:18640,reward:100,reached:false,missed:false,helpers:31},

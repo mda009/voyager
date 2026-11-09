@@ -17,6 +17,7 @@ const fromLocal=v=>{if(!v)return 0;const t=new Date(v).getTime();return Number.i
 const defaultDue=()=>{const now=new Date();const y=now.getMonth()===11&&now.getDate()>25?now.getFullYear()+1:now.getFullYear();return new Date(y,11,25,23,59).getTime();};
 function render(){
   const s=view.season,now=Date.now(),active=!!s.active;
+  {const t=$('twitch-subs'),ts=view.twitchSubs;if(t)t.textContent=ts?'Twitch reports '+ts.value.toLocaleString()+' active subscribers (read '+Math.max(0,Math.round((now-ts.at)/60000))+' min ago).':(view.goals||[]).some(g=>g.metric==='activeSubs')?'No Twitch subscriber count heard yet — Voyager asks Voyager - Stream Stats for it within a minute of connecting; that action needs the Twitch › Get Subscriber Count sub-action above its C#.':'';}
   $('season-title').textContent=active?s.name:'Community goals';
   const st=$('season-state');st.dataset.state=active?'ok':'wait';st.textContent=active?'Running':'Nothing running';
   $('season-dates').textContent=active?date(s.startedAt)+' – '+when(s.endsAt):'';

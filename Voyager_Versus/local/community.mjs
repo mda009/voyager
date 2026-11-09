@@ -50,7 +50,7 @@ export const PLATFORM_OPTIONS={all:'All platforms',twitch:'Twitch',youtube:'YouT
 // Season goals (2.15): one shared target for the whole community; everyone who helped is rewarded once it's reached.
 // 2.20.48 "Community goals": seasons are now campaigns you start and end yourself (nothing runs on its own), every goal
 // has its own points reward and optional due date, and goals can also count Voyager points earned or Versus wins.
-export const GOAL_METRICS={support:'Subs, renewals and gifted subs',subs:'Subs and renewals',gifts:'Gifted subs',points:'Voyager points earned by the crew',versus:'Voyager Versus wins'};
+export const GOAL_METRICS={support:'Subs, renewals and gifted subs',subs:'Subs and renewals',gifts:'Gifted subs',activeSubs:'Twitch active subscribers (live count)',points:'Voyager points earned by the crew',versus:'Voyager Versus wins'};
 export const GOAL_LIMIT=8;
 export const DEFAULT_MISSIONS=[
   {id:'regular',title:'Regular Pilot',type:'streamDays',target:3,reward:35,enabled:true},
@@ -140,6 +140,8 @@ export class Community{
         const s=this.state={...this.fresh(),...raw};s.missions=normalizeMissions((Array.isArray(raw.missions)?raw.missions:[]).map(m=>m&&typeof m==='object'?{...m,reward:Math.min(MISSION_REWARD_MAX,Math.max(0,Math.round(Number(m.reward)||0)))}:m));
         // 2.15: add the subscriber missions once to an existing programme (room permitting; they can be switched off).
         if(!raw.subSeeded){for(const m of SUB_MISSIONS)if(s.missions.length<8&&!s.missions.some(x=>x.id===m.id||x.type===m.type))s.missions.push({...m});s.subSeeded=true;}
+        // 2.21.7: a goal called "Sub Goal" that counted sub events now tracks Twitch's live subscriber count (asked for 9 Nov 2026). Once.
+        if(!raw.subGoalLive2217){for(const g of s.goals||[])if(/\bsub\s*goal\b/i.test(g.title||'')&&['support','subs'].includes(g.metric))g.metric='activeSubs';s.subGoalLive2217=true;}
         try{s.goals=normalizeGoals(s.goals);}catch{s.goals=[];}
         // 2.20.48 (asked for): every goal off and no campaign running until one is started by hand. The previous season's
         // reached goals stay payable; its standings are archived to the Hall of Fame if anyone scored.
@@ -303,6 +305,8 @@ export class Community{
     }
     return rows;
   }
+  // 2.21.7: Twitch's live subscriber count, heard from the "Voyager - Stream Stats" broadcast (its Get Subscriber Count sub-action).
+  twitchSubs(input){const v=Number(input?.value);if(!Number.isFinite(v)||v<0)return false;const at=Number(input?.at)||this.now();const prev=this.state.twitchSubs;if(prev&&prev.at>at)return false;if(prev&&prev.value===Math.round(v)){prev.at=at;return true;}this.state.twitchSubs={value:Math.round(v),at};this.persist();return true;}
   // Season goals: community totals, and who helped.
   goalProgress(){
     const s=this.state,now=this.now(),active=!!s.season.active,rows=active&&(s.goals||[]).some(g=>g.metric==='points'||g.metric==='versus')?this.standings(100000):[];
@@ -310,7 +314,12 @@ export class Community{
       const helpers=[];let total=0,contributors=0;const minimum=g.minimum||1;
       const pts=new Map(rows.length?rows.map(r=>[r.key,r.points]):[]),bonusOf=key=>g.multiplier>1?Math.round((pts.size?pts.get(key)||0:this.seasonPointsOf(key))*(g.multiplier-1)):0;
       const add=(key,name,platform,n,account)=>{if(n<=0)return;total+=n;contributors++;if(n>=minimum)helpers.push({key,name,platform,count:n,account,bonus:bonusOf(key)});};
-      if(active&&(g.metric==='points'||g.metric==='versus')){
+      if(active&&g.metric==='activeSubs'){
+        // 2.21.7: the goal IS Twitch's current subscriber count (Get Subscriber Count via Voyager - Stream Stats), not a tally of
+        // events. Helpers are the Twitch accounts that subscribed or renewed this season; their counts do not add up to the total.
+        for(const [key,v] of Object.entries(s.support||{})){if(v.platform!=='twitch')continue;const u=this.seasonSupport(key);if(u.subs>0&&u.subs>=minimum)helpers.push({key,name:s.members[key]?.name||v.name,platform:'twitch',count:u.subs,account:!!s.members[key],bonus:bonusOf(key)});}
+        contributors=helpers.length;total=Math.max(0,Math.round(Number(s.twitchSubs?.value)||0));
+      }else if(active&&(g.metric==='points'||g.metric==='versus')){
         for(const r of rows){if(!onPlatform(g.platform,r.platform))continue;add(r.key,r.name,r.platform,g.metric==='points'?r.points:r.wins,!!s.members[r.key]);}
       }else if(active){
         const seen=new Set();
@@ -339,7 +348,7 @@ export class Community{
     const matches=[...keys].slice(0,5).map(key=>{const m=s.members[key],sup=s.support?.[key],u=this.seasonSupport(key),st=rows.find(r=>r.key===key);
       return {key,name:m?.name||sup?.name||key,platform:key.split(':')[0],member:!!m,points:m?{lifetime:m.value,baseline:s.season.baseline[key]??null,season:st?.points??0}:null,
         support:sup?{months:sup.months,monthsAt:sup.monthsAt,gifts:sup.gifts,giftsAt:sup.giftsAt,baseline:s.season.support?.[key]||null,season:u}:null,
-        goals:(s.goals||[]).map(g=>{const n=!active?0:g.metric==='points'?(st?.points||0):g.metric==='versus'?(st?.wins||0):g.metric==='subs'?u.subs:g.metric==='gifts'?u.gifts:u.subs+u.gifts;const on=onPlatform(g.platform,key.split(':')[0]);
+        goals:(s.goals||[]).map(g=>{const n=!active?0:g.metric==='points'?(st?.points||0):g.metric==='versus'?(st?.wins||0):g.metric==='subs'||g.metric==='activeSubs'?u.subs:g.metric==='gifts'?u.gifts:u.subs+u.gifts;const on=g.metric==='activeSubs'?key.startsWith('twitch:'):onPlatform(g.platform,key.split(':')[0]);
           return {id:g.id,title:g.title,metric:g.metric,count:on?n:0,minimum:g.minimum||1,counts:on&&n>0,earns:on&&n>=(g.minimum||1),why:!active?'No community goal is running.':!on?'Goal is for '+g.platform+' only.':n>0?'':g.metric==='points'?(m?'No Voyager points earned since the goal started (baseline '+(s.season.baseline[key]??'none')+').':'Not in the points ledger yet.'):g.metric==='versus'?'No Versus wins since the goal started.':sup?'No '+(g.metric==='gifts'?'gifts':g.metric==='subs'?'subs or renewals':'subs or gifts')+' recorded since the goal started (tracker total '+(g.metric==='gifts'?sup.gifts:sup.months)+', baseline '+(s.season.support?.[key]?(g.metric==='gifts'?s.season.support[key].gifts:s.season.support[key].months):'none')+').':'No support record from Voyager - Stream Stats for this viewer (the Community Tracker has not recorded a sub or gift for them, or the support feed has not arrived).'};})};});
     return {query:q,matches,feed:this.feed()};
   }
@@ -450,7 +459,7 @@ export class Community{
     const s=this.state,missions=s.missions.map(m=>{const p=this.progressFor(m);return {...m,typeLabel:TYPES[m.type].label,unit:TYPES[m.type].unit,started:p.length,completed:p.filter(x=>x.done).length,top:p.slice(0,8)};});
     return {missions,week:{id:s.week.id,endsAt:s.week.id+7*DAY},members:Object.keys(s.members).length,payables:this.payables(),
       season:{number:s.season.number,name:s.season.name,startedAt:s.season.startedAt,openedAt:s.season.openedAt||s.season.startedAt,endsAt:s.season.endsAt,weeks:s.season.weeks,active:!!s.season.active,manual:s.season.manual?{viewers:Object.keys(s.season.manual).length,subs:Object.values(s.season.manual).reduce((a,x)=>a+x.subs,0),gifts:Object.values(s.season.manual).reduce((a,x)=>a+x.gifts,0),until:s.season.manualUntil||0}:null},feed:this.feed(),standings:this.standings(),topPilot:this.topPilot(),hall:s.hall,types:TYPES,goalLimit:GOAL_LIMIT,missionMedals:MISSION_MEDALS,ideas:MISSION_IDEAS,rewardMax:MISSION_REWARD_MAX,panel:this.panelView(),panelKinds:PANEL_KINDS,
-      platforms:PLATFORM_OPTIONS,goalMetrics:GOAL_METRICS,goals:this.goalProgress().map(g=>({...g,helpers:g.helpers.slice(0,10),contributorsList:g.helpers.slice(0,500)})),supportBonus:s.supportBonus??DEFAULT_SUPPORT_BONUS,
+      platforms:PLATFORM_OPTIONS,goalMetrics:GOAL_METRICS,twitchSubs:s.twitchSubs||null,goals:this.goalProgress().map(g=>({...g,helpers:g.helpers.slice(0,10),contributorsList:g.helpers.slice(0,500)})),supportBonus:s.supportBonus??DEFAULT_SUPPORT_BONUS,
       support:{tracked:Object.keys(s.support||{}).length,updatedAt:s.supportAt||0}};
   }
   // What the public site may show (names are masked later if "Show viewer names" is off).

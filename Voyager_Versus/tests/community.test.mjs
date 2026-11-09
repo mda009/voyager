@@ -259,3 +259,23 @@ test('imported past subs and gifts credit the run and hand over to automatic cou
   g=c.goalProgress()[0];assert.equal(g.helpers.find(h=>h.name==='Nova').count,11+5+1);
   c.clearImport();assert.equal(c.goalProgress()[0].helpers.find(h=>h.name==='Nova').count,15+2,'without the import, the per-day counts since 1 Nov stand on their own');
 });
+
+test('Twitch active subscribers goal (2.21.7): the total is Twitch\'s live count, helpers are this run\'s Twitch subscribers, and an old "Sub Goal" is moved to it once',async()=>{
+  const monday=weekStart(Date.UTC(2026,10,2)),{c,set}=await make(monday);
+  c.receive([{key:'twitch:1',name:'Nova',login:'nova',capturedIn:100},{key:'twitch:2',name:'Rook',login:'rook',capturedIn:50}]);
+  c.receiveSupport([{key:'twitch:1',name:'Nova',months:3,monthsAt:monday-DAY},{key:'kick:9',name:'Bomber',months:2,monthsAt:monday-DAY}]);
+  c.startSeason({name:'Christmas 2026',endsAt:monday+50*DAY,goals:[{id:'s',title:'Sub Goal',metric:'activeSubs',platform:'all',target:100,reward:150,minimum:1}]});
+  set(monday+DAY);
+  let g=c.goalProgress()[0];assert.equal(g.total,0,'no count heard yet');assert.equal(g.label,'Twitch active subscribers (live count)');
+  assert.equal(c.twitchSubs({value:56,at:monday+DAY}),true);g=c.goalProgress()[0];assert.equal(g.total,56,'Twitch\'s number, not a tally');assert.equal(g.helpers.length,0,'nobody has subscribed or renewed in this run yet');
+  c.receiveSupport([{key:'twitch:1',name:'Nova',months:4,monthsAt:monday+DAY},{key:'kick:9',name:'Bomber',months:3,monthsAt:monday+DAY}]);
+  g=c.goalProgress()[0];assert.equal(g.total,56);assert.deepEqual(g.helpers.map(h=>h.name),['Nova'],'Kick renewals are not Twitch subscribers');
+  assert.equal(c.twitchSubs({value:40,at:monday}),false,'an older reading never overwrites a newer one');assert.equal(c.goalProgress()[0].total,56);
+  c.twitchSubs({value:100,at:monday+2*DAY});assert.equal(c.goalProgress()[0].reached,true);
+  assert.equal(c.explain('nova').matches[0].goals[0].counts,true);assert.equal(c.explain('bomber').matches[0].goals[0].counts,false,'a Kick renewal does not count towards a Twitch subscriber goal');
+  assert.equal(c.view().twitchSubs.value,100);assert.ok(c.publicView().season.goals[0].total===100);
+  // migration: a saved "Sub Goal" that counted events
+  await c.saving;const {readFile,writeFile}=await import('node:fs/promises');const {join}=await import('node:path');
+  const raw=JSON.parse(await readFile(join(c.dataDir,'community.json'),'utf8'));raw.goals[0].metric='support';delete raw.subGoalLive2217;await writeFile(join(c.dataDir,'community.json'),JSON.stringify(raw));
+  const again=await new (c.constructor)({dataDir:c.dataDir,now:c.now}).load();assert.equal(again.state.goals[0].metric,'activeSubs');assert.equal(again.state.subGoalLive2217,true);
+});

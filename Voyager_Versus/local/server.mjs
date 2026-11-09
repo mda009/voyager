@@ -4,7 +4,7 @@ import {readFile,writeFile,mkdir,rename,access,readdir,cp,stat,unlink} from 'nod
 import {homedir} from 'node:os';
 import {fileURLToPath,pathToFileURL} from 'node:url';
 import {dirname,resolve,extname,sep,join} from 'node:path';
-import {randomBytes,timingSafeEqual} from 'node:crypto';
+import {randomBytes,timingSafeEqual,randomUUID} from 'node:crypto';
 import {Arena,REWARDS} from '../dist/engine.mjs';
 import {StreamerBot} from './streamerbot.mjs';
 import {EconomyStore,RewardDispatcher} from './rewards.mjs';
@@ -146,7 +146,7 @@ const bot=new StreamerBot({onOtherChat:chat=>{
   if(word==='!voyager'){voyagerCommand(chat);return;}
   if(word==='!medals'){try{medals.command({kind:'medals',platform:chat.platform,userId:chat.userId,login:chat.login,name:chat.name});}catch{}return;}
   if(boss.active()&&(word==='!join'||word==='!fire')){try{boss.receive({kind:word.slice(1),platform:chat.platform,userId:chat.userId,login:chat.login,name:chat.name,direct:true});}catch{}}
-},onCards:ev=>{cards.receive(ev);},onFleet:ev=>{fleetState={at:Date.now(),serverAt:Number(ev.serverAt)||Date.now(),state:ev.state};cards.fromFleet(ev.state,ev.serverAt);fleetCamera.receive(ev);try{moments.fleet(ev);}catch{}},onGoals:packet=>{try{moments.goalsReading(packet);}catch{}},onStage:r=>{try{const x=stage.result(r);console.log('[stage] OBS: '+(x.ok?'':'FAILED: ')+x.message);}catch{}},onWatchStreak:w=>{try{const r=medals.syncStreak(w);if(r)console.log('[streak] '+r.name+' shared a Twitch watch streak of '+r.streak+(r.before!==r.streak?' (Voyager had '+r.before+')':''));}catch{}},onMedals:ev=>{if(ev.type==='voyager.medals.data')medals.ingestExport(ev);else medals.command(ev);},onBoss:ev=>{
+},onCards:ev=>{cards.receive(ev);},onFleet:ev=>{fleetState={at:Date.now(),serverAt:Number(ev.serverAt)||Date.now(),state:ev.state};cards.fromFleet(ev.state,ev.serverAt);fleetCamera.receive(ev);try{moments.fleet(ev);}catch{}},onGoals:packet=>{try{moments.goalsReading(packet);}catch{}},onStage:r=>{try{const x=stage.result(r);console.log('[stage] OBS: '+(x.ok?'':'FAILED: ')+x.message);}catch{}},onStats:p=>{try{const m=p?.metrics?.twitch?.subscriptions;if(p?.ok!==false&&m&&m.value!==null&&m.value!==undefined)community?.twitchSubs({value:m.value,at:Number(p.serverAt)||Date.now()});}catch{}},onWatchStreak:w=>{try{const r=medals.syncStreak(w);if(r)console.log('[streak] '+r.name+' shared a Twitch watch streak of '+r.streak+(r.before!==r.streak?' (Voyager had '+r.before+')':''));}catch{}},onMedals:ev=>{if(ev.type==='voyager.medals.data')medals.ingestExport(ev);else medals.command(ev);},onBoss:ev=>{
   if(ev.kind==='call'&&!['lobby','result'].includes(game.phase)){game.note('Finish the Versus battle before calling the Dreadnought.','system');return;}
   boss.receive(ev);
 },onChat:chat=>{
@@ -452,12 +452,14 @@ const server=http.createServer(async(req,res)=>{
     res.writeHead(200,headers);res.end(req.method==='HEAD'?undefined:bytes);
   }catch(e){response(res,e.code==='ENOENT'?404:400,{message:e.code==='ENOENT'?'File not found.':e.message==='Invalid URL'?'Invalid WebSocket address.':'Request could not be processed. Check your inputs.'});}
 });
-let ticks=0;const timer=setInterval(()=>{
+let ticks=0,lastStatsAsk=0;const timer=setInterval(()=>{
   try{boss.tick();}catch{}
   if(ticks%5===0)void fleetCamera.tick();
   if(ticks%2===0)void stage.tick(...stageState()).catch(()=>{});
   if(ticks%20===0)try{moments.tick();}catch{}
   try{game.tick(.1);}catch{game.paused=true;game.note('Host storage error. Check the game folder before restarting.');}ticks++;
+  // 2.21.7: a live-subscriber goal needs Twitch's count: ask Stream Stats within seconds of connecting and every 5 minutes after (any dashboard's own request is heard too).
+  if(ticks%50===0&&bot.status.connected&&Date.now()-lastStatsAsk>300000&&(community?.state.goals||[]).some(g=>g.metric==='activeSubs')){lastStatsAsk=Date.now();void runAction('Voyager - Stream Stats',{requestId:randomUUID(),includeSupport:'0'});}
   if(ticks%10===0){try{engage.tick();engage.observePilots();}catch{}community?.roll(Date.now());void publicSite?.tick();void pilots.tick();void rewards.tick();void announcements.tick();void matchChat.tick();}
   // Medals: read the action's export every minute, work out medals every 30 s, post grouped chat lines.
   if(ticks%600===50)void medalSync();

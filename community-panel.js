@@ -10,7 +10,7 @@ const MISSION={streamDays:n=>'Earn points on '+n+' stream day'+(n===1?'':'s'),ea
   subscribe:(n,p)=>'Subscribe or renew'+(ON[p]||''),giftSubs:(n,p)=>'Gift '+n+' sub'+(n===1?'':'s')+(ON[p]||''),loyalSub:(n,p)=>'Renew at '+n+'+ months'+(ON[p]||''),
   watchHours:(n,p)=>'Watch '+n+' h live'+(ON[p]||''),chatMessages:(n,p)=>'Send '+n+' chat messages'+(ON[p]||''),streamStreak:n=>n+' streams in a row',dreadFights:n=>'Join '+n+' Dreadnought fight'+(n===1?'':'s'),
   dreadVictory:n=>'Win '+n+' Dreadnought fight'+(n===1?'':'s'),dreadDamage:n=>'Deal '+n+' Dreadnought damage',dreadMvp:n=>'Be MVP in '+n+' fight'+(n===1?'':'s'),torpedo:n=>'Fire '+n+' torpedo'+(n===1?'':'es')};
-const METRIC={support:'subs & gifts',subs:'subs',gifts:'gifted subs',points:'points',versus:'Versus wins'},UNIT={support:'SUBS',subs:'SUBS',gifts:'GIFTS',points:'PTS',versus:'WINS'};
+const METRIC={support:'subs & gifts',subs:'subs',gifts:'gifted subs',activeSubs:'Twitch subs',points:'points',versus:'Versus wins'},UNIT={support:'SUBS',subs:'SUBS',gifts:'GIFTS',activeSubs:'SUBS',points:'PTS',versus:'WINS'};
 const short=n=>n>=10000?(Math.round(n/100)/10).toLocaleString()+'k':Number(n).toLocaleString();
 const each=(n,m)=>n.toLocaleString()+' '+(m==='points'?'pts':m==='versus'?(n===1?'Versus win':'Versus wins'):m==='gifts'?(n===1?'gifted sub':'gifted subs'):m==='subs'?(n===1?'sub':'subs'):(n===1?'sub or gift':'subs & gifts'));
 let data=null,readAt=0,failed=false,rows=[],rowKey='',orderKey='',position=0,lastFrame=0;
