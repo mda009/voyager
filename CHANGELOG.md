@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.21.9 (10 November 2026)
+
+**Top pilots top-left during Versus.** While the Versus stage is up (call, battle, result), the top-left column shows the **Voyager Versus top pilots** leaderboard — all-time wins, battles and win rate from the Leaderboard panel's Pilots board — instead of the Dreadnought stage's panel. The stage card gains three <i>During Versus</i> selectors (left column, right column, corner panel); blank means the same panel as the Dreadnought stage, and "Voyager Versus top pilots" is also available as an ordinary slot kind. The Leaderboard panel accepts `?kind=` on the stage so one source can show different boards in different slots.
+
 ## 2.21.8 (9 November 2026)
 
 **VIP and Emerald ribbons stay current on the website.** The Ruby VIP and Emerald Elite ribbons on the website's membership cards come from the VIP GROUP / moderators' group in Streamer.bot, but until now those flags only reached the host while the Public website page was open in Voyager Control. The host now asks the Points Ledger for its member snapshot itself (every 10 minutes while connected), so tiers, VIP and Emerald ribbons and balances on cards and on voyagercommand.com follow the groups without any page open. The website build stamps the card template with the build version and serves scripts with revalidation, so a browser can never keep an old card design once a new one is published.

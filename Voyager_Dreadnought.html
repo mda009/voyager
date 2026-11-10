@@ -133,6 +133,9 @@
 <label>Versus splash holds (seconds)<input name="versus.splashSeconds" type="number" min="0" max="30"></label>
 <label>Champion celebration after the result (seconds)<input name="versus.winnerSeconds" type="number" min="0" max="60"></label>
 <label>Champion bonus (points on top of the 50-point win; 0 = none)<input name="versus.winnerBonus" type="number" min="0" max="100000"></label>
+<label>During Versus · left column<select name="versus.left"></select></label>
+<label>During Versus · right column<select name="versus.right"></select></label>
+<label>During Versus · corner panel<select name="versus.bottomLeft"></select></label>
 <label>Move animation (ms)<input name="animationMs" type="number" min="200" max="4000" step="100"></label>
 <div class="st-actions wide" style="grid-column:1/-1"><button type="submit" class="primary">Save stage</button><button type="button" id="stage-show">Show the Dreadnought stage for 60 s</button><button type="button" id="stage-show-versus">Show the Versus stage for 60 s</button><button type="button" id="stage-hide" hidden>Hide now</button><button type="button" id="stage-cue">Move my scene again</button></div>
 </form>
@@ -160,8 +163,8 @@
 <script src="giveaway-connection.js"></script>
 <script src="points-model.js?v=4.4"></script>
 <script src="points-connection.js?v=4.4"></script>
-<script src="dreadnought.js?v=2.21.2"></script>
-<script src="voyager-shell.js?v=2.21.8"></script>
+<script src="dreadnought.js?v=2.21.9"></script>
+<script src="voyager-shell.js?v=2.21.9"></script>
 <script src="voyager-navigation.js"></script>
 </body>
 </html>

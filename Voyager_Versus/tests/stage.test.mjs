@@ -85,6 +85,12 @@ test('Voyager Versus takeover (2.20.91): call, battle and result put the stage u
   assert.equal(st.mode({phase:'battle'},{phase:'battle'}),'dread');
   st.configure({versus:{enabled:false}});assert.equal(st.mode(idle,{phase:'battle'}),'');
   st.force(60,'versus');assert.equal(st.mode(idle,{phase:'lobby'}),'versus');assert.equal(st.overlay(idle,{phase:'lobby'}).splashOn,true);
+  // 2.21.9: while Versus is on, the top-left column shows the Versus top pilots by default; the other slots follow the Dreadnought layout unless set
+  let vo=st.overlay(idle,{phase:'lobby'});assert.equal(vo.slots.left,'pilots');assert.equal(vo.slots.right,STAGE_DEFAULTS.slots.right);assert.equal(vo.slots.bottomLeft,STAGE_DEFAULTS.slots.bottomLeft);
+  st.configure({versus:{slots:{left:'',right:'standings'}}});vo=st.overlay(idle,{phase:'lobby'});assert.equal(vo.slots.left,STAGE_DEFAULTS.slots.left,'blank = same as the Dreadnought stage');assert.equal(vo.slots.right,'standings');
+  st.forcedUntil=0;st.configure({enabled:true});assert.equal(st.overlay({phase:'battle'},{phase:'battle'}).slots.left,STAGE_DEFAULTS.slots.left,'the Dreadnought stage keeps its own layout');
+  assert.throws(()=>normalizeSettings({versus:{slots:{left:'nope'}}}),/Unknown panel/);assert.equal(normalizeSettings({}).versus.slots.left,'pilots');assert.equal(normalizeSettings({slots:{left:'pilots'}}).slots.left,'pilots','top pilots can also fill a Dreadnought slot');
+  st.configure({versus:{enabled:false}});st.force(60,'versus');
   assert.throws(()=>normalizeSettings({versus:{winnerBonus:-1}}),/Versus winner bonus/);
   assert.equal(STAGE_DEFAULTS.versus.winnerBonus,0,'no champion bonus unless the streamer sets one');
   const plain=await new Stage({dataDir:await dir(),now:()=>now}).load();plain.observeVersus(result);now+=9000;const po=plain.overlay(idle,{phase:'lobby'});assert.equal(po.celebrate.points,50,'a Versus win shows the 50-point reward');assert.equal(plain.bonusPayables().length,0);
