@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.21.12 (12 November 2026)
+
+**Points are paid automatically.** Everything Voyager owes a viewer — muster (!report) and Bridge Quiz points, Dreadnought victory and MVP bonuses, Versus champion bonuses, mission rewards, community-goal payouts, crew-surge bonuses — is now paid by the host itself, through the Points Ledger's own audited adjustment (the same preview → apply the Pay button used), as soon as it is owed and Streamer.bot is connected. Nothing to review or press: a !report pays within seconds, a Dreadnought victory pays as the report lands. Missions & goals › Points owed shows **Pay automatically** (on by default) with a status pill — last paid, what is waiting, what failed and why; failed rows are retried every 10 minutes, rows for viewers without a points account still wait for you, and **Pay all owed now** remains for paying by hand. Versus wins (50 points) were already credited by the Versus Rewards action and are unchanged.
+
 ## 2.21.11 (12 November 2026)
 
 **!shoot — a second free Dreadnought attack.** Pilots now have two free commands: `!fire` (lasers) and `!shoot` (cannons). Each has its own cooldown (the same length), so a pilot can use both every window; `!shoot` deals half of what `!fire` would (crits and shields apply the same way). Cannon rounds show as short amber bolts in the arena; the lobby card, legend, splash chips, chat announcements, control page, guide, website and member manual all say `!fire` and `!shoot`. No Streamer.bot command is needed — the host reads both straight from chat on Twitch, YouTube and Kick.

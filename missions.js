@@ -63,6 +63,14 @@ function render(){
   const due=rows.filter(p=>p.status!=='paid'&&p.payable);
   $('pay-summary').textContent=due.length?due.length+' payments · '+due.reduce((a,p)=>a+p.reward,0).toLocaleString()+' points':'All paid';
   $('pay-all').disabled=paying||!due.length||!points?.transportReady;
+  // 2.21.12 auto-pay status
+  const ap=view.autoPay,cb=$('autopay'),pill=$('autopay-pill');if(ap&&cb){if(document.activeElement!==cb)cb.checked=!!ap.enabled;
+    const ago=at=>at?Math.max(0,Math.round((Date.now()-at)/60000))+' min ago':'';
+    if(!ap.enabled){pill.dataset.state='';pill.textContent='Off · pay by hand';}
+    else if(ap.busy){pill.dataset.state='wait';pill.textContent='Paying…';}
+    else if(ap.last?.failed){pill.dataset.state='warn';pill.textContent=ap.last.failed+' failed '+ago(ap.last.at)+(ap.last.message?' · '+ap.last.message.slice(0,80):'');}
+    else if(ap.pending){pill.dataset.state='wait';pill.textContent=ap.pending+' waiting · pays when Streamer.bot is connected';}
+    else{pill.dataset.state='ok';pill.textContent='On · '+(ap.last?.at?'last paid '+ago(ap.last.at):'nothing owed');}}
 }
 async function load(){try{view=await api('/api/community');if(!missions.length||!document.querySelector('.cm-missions input:focus'))missions=view.missions.map(({id,title,type,target,reward,platform,enabled})=>({id,title,type,target,reward,platform,enabled}));render();}catch(e){notice(e.message,true);}}
 $('show-missions').onclick=async()=>{try{const showing=view?.panel?.visible&&view.panel.config.kind==='missions';const r=await api('/api/community/panel',showing?{visible:false}:{config:{...(view?.panel?.config||{}),kind:'missions'},visible:true});view.panel=r.panel;notice(showing?'Missions panel hidden.':'Missions panel is on stream. Change its size and position in Seasons › Show on stream.');renderShow();}catch(e){notice(e.message,true);}};
@@ -82,6 +90,7 @@ function renderIdeas(){
 }
 (async()=>{try{if(!hosted)return;const r=await fetch('/api/admin');token=token||(await r.json()).token;const m=await(await fetch('/api/medals',{headers:{'X-Voyager-Token':token}})).json();medalNames=Object.fromEntries((m.catalogue||[]).map(x=>[x.id,x.name]));if(view)render();}catch{}})();
 $('save-missions').onclick=async()=>{try{view=await api('/api/community/missions',{missions});missions=view.missions.map(({id,title,type,target,reward,platform,enabled})=>({id,title,type,target,reward,platform,enabled}));notice('Missions saved.');render();}catch(e){notice(e.message,true);}};
+$('autopay').onchange=async()=>{try{const r=await api('/api/community/autopay',{enabled:$('autopay').checked});view.autoPay=r.autoPay;render();notice($('autopay').checked?'Auto-pay on: owed points are paid as they come.':'Auto-pay off: use Pay all owed now.');}catch(e){notice(e.message,true);}};
 $('pay-all').onclick=async()=>{
   const due=view.payables.filter(p=>p.status!=='paid'&&p.payable);if(!due.length)return;
   if(!confirm('Pay '+due.length+' mission rewards ('+due.reduce((a,p)=>a+p.reward,0).toLocaleString()+' points)?'))return;

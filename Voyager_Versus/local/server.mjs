@@ -26,6 +26,7 @@ import {Engage} from './engage.mjs';
 import {Stage} from './stage.mjs';
 import {Sources} from './sources.mjs';
 import {Rotation} from './rotation.mjs';
+import {Payer} from './payer.mjs';
 let VERSION='unknown';try{VERSION=JSON.parse(await readFile(new URL('../package.json',import.meta.url),'utf8')).version;}catch{}
 const major=Number(process.versions.node.split('.')[0]);
 if(major<22||typeof WebSocket==='undefined'){console.error('Voyager Versus requires Node.js 22.4 or newer. Install it from https://nodejs.org/');process.exit(1);}
@@ -150,7 +151,7 @@ const bot=new StreamerBot({onOtherChat:chat=>{
   if(word==='!voyager'){voyagerCommand(chat);return;}
   if(word==='!medals'){try{medals.command({kind:'medals',platform:chat.platform,userId:chat.userId,login:chat.login,name:chat.name});}catch{}return;}
   if(boss.active()&&(word==='!join'||word==='!fire'||word==='!shoot')){try{boss.receive({kind:word.slice(1),platform:chat.platform,userId:chat.userId,login:chat.login,name:chat.name,direct:true});}catch{}}
-},onCards:ev=>{cards.receive(ev);},onFleet:ev=>{fleetState={at:Date.now(),serverAt:Number(ev.serverAt)||Date.now(),state:ev.state};cards.fromFleet(ev.state,ev.serverAt);fleetCamera.receive(ev);try{moments.fleet(ev);}catch{}},onGoals:packet=>{try{moments.goalsReading(packet);}catch{}},onStage:r=>{try{if(r.phase==='show'||r.phase==='hide'){rotation.result(r);console.log('[timed] OBS: '+(r.ok?'':'FAILED: ')+r.message);return;}const x=stage.result(r);console.log('[stage] OBS: '+(x.ok?'':'FAILED: ')+x.message);}catch{}},onPoints:p=>{try{if(p?.ok!==true||p.schema!==1||!Array.isArray(p.users))return;
+},onCards:ev=>{cards.receive(ev);},onFleet:ev=>{fleetState={at:Date.now(),serverAt:Number(ev.serverAt)||Date.now(),state:ev.state};cards.fromFleet(ev.state,ev.serverAt);fleetCamera.receive(ev);try{moments.fleet(ev);}catch{}},onGoals:packet=>{try{moments.goalsReading(packet);}catch{}},onStage:r=>{try{if(r.phase==='show'||r.phase==='hide'){rotation.result(r);console.log('[timed] OBS: '+(r.ok?'':'FAILED: ')+r.message);return;}const x=stage.result(r);console.log('[stage] OBS: '+(x.ok?'':'FAILED: ')+x.message);}catch{}},onPoints:p=>{try{if(payer?.resolve(p))return;if(p?.operation!=='snapshot'||p?.ok!==true||p.schema!==1||!Array.isArray(p.users))return;
   // Same shape the Public website page sends to /api/community/members — now the host keeps itself current (VIP ribbons, tiers, balances).
   const members=p.users.filter(u=>u&&u.key&&u.pointsFresh!==false).map(u=>({key:u.key,name:u.name||u.login||'',login:u.login||'',capturedIn:Number.isFinite(Number(u.capturedIn))?Number(u.capturedIn):null,points:Number.isFinite(Number(u.points))?Number(u.points):null,tier:typeof u.tier==='string'?u.tier:'',vip:Array.isArray(u.groups)&&u.groups.includes('vip'),emerald:Array.isArray(u.groups)&&u.groups.includes('emerald')}));
   if(members.length)community.receive(members);}catch{}},
@@ -211,6 +212,8 @@ const matchChat=new MatchChat({directory:dataDir,game,bot,action:()=>rewards.rea
 const moments=await new Moments({dataDir,boss:()=>boss.overlay(),medals:()=>medals.state.recent,promotions:()=>cards.state.promotions,medalToasts:()=>medals.state.toasts,medalIcon:id=>MEDAL_ICONS[id]||''}).load();
 game.onEvent=event=>{matchChat.capture(event);try{moments.versus(event);}catch{}};
 if(community)community.extraPayables=()=>[...moments.bonusPayables(),...stage.bonusPayables()];
+// 2.21.12: points owed are paid by the host itself through the Points Ledger as soon as they are owed (Missions › Points owed can switch it off).
+const payer=community?await new Payer({dataDir,community,run:args=>actions.doAction('Voyager - Points Ledger',args),uuid:randomUUID,log:m=>console.log('[auto-pay] '+m)}).load():null;
 if(community)community.onPoints=list=>{try{moments.points(list);}catch{}};medals.onStreak=list=>{try{moments.streaks(list);}catch{}};
 function packet(){const snapshot=game.snapshot();for(const r of snapshot.result?.rewards||[])r.status=economy.data.rewards.find(x=>x.id===r.id)?.status||r.status;return {serverTime:Date.now(),stage:stage.mode(...stageState())==='versus',game:snapshot,connection:bot.status,rewards:rewards.snapshot(),announcements:announcements.snapshot(),matchChat:matchChat.snapshot(),entries:entries.snapshot(),pilotLeaderboard:pilots.snapshot()};}
 const failures=new Map();
@@ -255,7 +258,7 @@ const server=http.createServer(async(req,res)=>{
       // The OBS panel reads this without the control token (local only, no member keys), like /api/live-overlay.
       if(url.pathname==='/api/community/overlay'&&req.method==='GET'){res.setHeader('Cache-Control','no-store');sourceSeen.community=Date.now();response(res,200,{...community.overlay(),stage:stage.active(...stageState())});return;}
       if(!validToken(req)){response(res,403,{message:'Open the local Missions or Seasons page.'});return;}
-      if(url.pathname==='/api/community'&&req.method==='GET'){community.roll(Date.now());response(res,200,{...community.view(),sourceAt:sourceSeen.community});return;}
+      if(url.pathname==='/api/community'&&req.method==='GET'){community.roll(Date.now());response(res,200,{...community.view(),sourceAt:sourceSeen.community,autoPay:payer?.view()||null});return;}
       if(req.method!=='POST'||!req.headers['content-type']?.startsWith('application/json')){response(res,405,{message:'Method not allowed.'});return;}
       try{
         const input=await body(req,['/api/community/members','/api/community/support'].includes(url.pathname)?8*1024*1024:65536);
@@ -267,6 +270,7 @@ const server=http.createServer(async(req,res)=>{
         if(url.pathname==='/api/community/season'){try{response(res,200,{ok:true,...(input?.action==='end'?community.endSeason():input?.action==='start'?community.startSeason(input):community.configureSeason(input||{}))});}catch(e){response(res,400,{ok:false,message:e.message});}return;}
         if(url.pathname==='/api/community/panel'){response(res,200,{ok:true,panel:community.setPanel(input||{})});return;}
         if(url.pathname==='/api/community/payout'){response(res,200,community.recordPayout(input||{}));return;}
+        if(url.pathname==='/api/community/autopay'){response(res,200,{ok:true,autoPay:payer?payer.configure(input||{}):null});return;}
         response(res,404,{message:'Not found.'});
       }catch(e){response(res,400,{ok:false,message:e.message});}
       return;
@@ -467,6 +471,7 @@ let ticks=0,lastStatsAsk=0,lastPointsAsk=0;const timer=setInterval(()=>{
   try{boss.tick();}catch{}
   if(ticks%5===0)void fleetCamera.tick();
   if(ticks%2===0)void stage.tick(...stageState()).catch(()=>{});
+  if(ticks%50===40&&payer)void payer.tick({connected:bot.status.connected}).then(r=>{if(r&&(r.paid||r.failed))console.log('[auto-pay] '+r.paid+' paid, '+r.failed+' failed'+(r.message?' · '+r.message:''));}).catch(()=>{});
   if(ticks%10===5)void rotation.tick({stageUp:!!stage.mode(...stageState()),connected:bot.status.connected}).catch(()=>{});
   if(ticks%20===0)try{moments.tick();}catch{}
   try{game.tick(.1);}catch{game.paused=true;game.note('Host storage error. Check the game folder before restarting.');}ticks++;

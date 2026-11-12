@@ -109,7 +109,7 @@ export class StreamerBot {
       // Stream Stats (2.21.7): follower/subscriber counts from the "Voyager - Stream Stats" action, whoever asked for them.
       if(reply?.type==='voyager.stream.stats.v1'){try{this.onStats(reply);}catch{}return;}
       // Points Ledger (2.21.8): the member snapshot (tiers, VIP / Emerald groups, balances), whoever asked for it.
-      if(reply?.type==='voyager.points.v1'&&reply.operation==='snapshot'){try{this.onPoints(reply);}catch{}return;}
+      if(reply?.type==='voyager.points.v1'){try{this.onPoints(reply);}catch{}return;}
       // Voyager Medals (2.18): !medals and the medal data export from the "Voyager - Medals" action.
       // Membership cards (2.19): !voyager and tier-ups from the "Voyager - Membership Card" action.
       if(reply?.type==='voyager.card.event'&&reply.v===1){try{this.onCards(reply);}catch{}return;}
