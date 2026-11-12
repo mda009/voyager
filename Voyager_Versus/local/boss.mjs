@@ -66,7 +66,7 @@ export class BossFight{
     const b=this.battle,s=this.settings;b.phase='battle';b.startedAt=now;b.endsAt=now+s.battleSeconds*1000;
     b.maxHp=b.hp=s.baseHp+s.hpPerPilot*b.pilots.size;b.nextAttackAt=now+ATTACK_MS;
     this.note('Battle stations! '+b.pilots.size+' pilot'+(b.pilots.size===1?'':'s')+' engage '+s.name+'.','alert');
-    this.announce('🚀 '+b.pilots.size+' pilot'+(b.pilots.size===1?'':'s')+' engage '+s.name+'! Type !fire and !shoot to attack. '+Math.round(s.battleSeconds/60*10)/10+' minutes on the clock. Late pilots can still !join.');
+    this.announce('🚀 '+b.pilots.size+' pilot'+(b.pilots.size===1?'':'s')+' engage '+s.name+'! Type !fire and !shoot to attack — one of each every '+s.fireCooldown+' s counts, extra messages are ignored, so no need to spam (Twitch mutes spammers). '+Math.round(s.battleSeconds/60*10)/10+' minutes on the clock. Late pilots can still !join.');
   }
 
   // ---------- chat events (from the Streamer.bot action) ----------
@@ -212,7 +212,7 @@ export class BossFight{
     return {serverAt:now,phase:b.phase,id:b.id,demo:b.demo,name:s.name,hp:b.hp,maxHp:b.maxHp,lobbyEndsAt:b.lobbyEndsAt,endsAt:b.endsAt,startedAt:b.startedAt,endedAt:b.endedAt,
       outcome:b.outcome,shield:b.shieldUntil>now,shieldUntil:b.shieldUntil,enraged:b.enraged,victoryPoints:b.phase==='result'&&b.reward!==undefined?b.reward:s.victoryPoints,
       speed:b.speed||'',bonus:b.bonus||0,elapsed:b.phase==='result'?b.elapsed||0:0,mvpBonus:s.mvpBonus,goals:{legendary:s.legendarySeconds,hero:s.heroSeconds,bonusPct:s.speedBonusPct},
-      pilots:pilots.length,fleet:pilots.slice(0,12).map(p=>({slot:p.slot,name:p.name,platform:p.platform,stunned:p.stunnedUntil>now})),
+      pilots:pilots.length,cooldown:s.fireCooldown,fleet:pilots.slice(0,12).map(p=>({slot:p.slot,name:p.name,platform:p.platform,stunned:p.stunnedUntil>now,fireAt:(p.lastFire||0)+s.fireCooldown*1000,shootAt:(p.lastShoot||0)+s.fireCooldown*1000})), // 2.21.14: reload timers for the stage
       leaders:pilots.filter(p=>p.damage>0).sort((a,c)=>c.damage-a.damage).slice(0,5).map(p=>({name:p.name,platform:p.platform,damage:p.damage})),
       feed:b.feed.slice(0,6),effects:b.effects.filter(e=>now-e.at<6000),
       damage:{fire:pilots.reduce((a,p)=>a+p.fires,0),bits:pilots.reduce((a,p)=>a+p.bits,0)+b.anonymous.bits,gifts:pilots.reduce((a,p)=>a+p.gifts,0)+b.anonymous.gifts}};

@@ -44,7 +44,7 @@
 .dn-layout[data-tab=stage]{grid-template-columns:1fr}.dn-layout[data-tab=stage] .dn-main{display:none}.dn-layout[data-tab=stage] #stage-card{max-width:1100px}.dn-layout[data-tab=stage] .dn-stage-pic{max-width:720px}
 .dn-tabs{display:flex;gap:6px;flex-wrap:wrap;width:fit-content;max-width:100%;margin:0 0 18px;padding:5px;border-radius:999px;border:1px solid rgba(151,223,255,.16);background:rgba(8,15,24,.5)}
 .dn-tabs button{min-height:36px;padding:0 16px;border-radius:999px;border:1px solid transparent;background:transparent;color:#a7bccf;font:700 14px/1 Rajdhani,'Segoe UI',sans-serif;letter-spacing:.4px;cursor:pointer}.dn-tabs button:hover{color:#fff;background:rgba(255,255,255,.05)}.dn-tabs button[aria-selected=true]{color:#fff;background:linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,0)),rgba(65,105,225,.3);border-color:rgba(151,223,255,.4)}
-.dn-presets{display:grid;grid-template-columns:1fr 1fr;gap:8px}.dn-presets button{min-height:56px;padding:8px 12px;text-align:left;display:flex;flex-direction:column;gap:3px;font:700 14px/1.15 Rajdhani,'Segoe UI',sans-serif;letter-spacing:.6px}.dn-presets button small{font:600 11px/1.2 'Segoe UI',sans-serif;letter-spacing:0;color:#9ab0c5;text-transform:none}.dn-presets button[aria-pressed=true]{border-color:rgba(151,223,255,.6);background:rgba(65,105,225,.25)}
+.dn-presets{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px}.dn-presets button{min-height:56px;padding:8px 12px;text-align:left;display:flex;flex-direction:column;gap:3px;font:700 14px/1.15 Rajdhani,'Segoe UI',sans-serif;letter-spacing:.6px}.dn-presets button small{font:600 11px/1.2 'Segoe UI',sans-serif;letter-spacing:0;color:#9ab0c5;text-transform:none}.dn-presets button[aria-pressed=true]{border-color:rgba(151,223,255,.6);background:rgba(65,105,225,.25)}
 .dn-form select{height:38px;padding:0 10px;border:1px solid rgba(151,223,255,.18);background:rgba(8,15,24,.55);color:#e6eef7;font:14px 'Segoe UI',sans-serif;min-width:0}
 .dn-form .group{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;font-size:12px;color:#9ab0c5}.dn-form .group b{flex:0 0 100%;font-weight:600;color:#c9d7e4}.dn-form .group label{flex-direction:row;align-items:center;gap:6px;grid-column:auto}
 .dn-stage-pic{display:grid;grid-template-columns:18% 1fr 18%;grid-template-rows:62% 1fr;gap:3px;aspect-ratio:16/9;border-radius:6px;overflow:hidden;background:#07111f;border:1px solid rgba(151,223,255,.18);font:700 9px Rajdhani,'Segoe UI',sans-serif;letter-spacing:.08em;color:#a7d8ff;text-transform:uppercase}.dn-stage-pic div{display:flex;align-items:center;justify-content:center;text-align:center;padding:3px;background:rgba(151,223,255,.08);border:1px solid rgba(151,223,255,.14);border-radius:3px}.dn-stage-pic .m{background:rgba(255,77,94,.12);border-color:rgba(255,120,130,.35);color:#ff9aa6}.dn-stage-pic .g{background:rgba(127,240,181,.1);border-color:rgba(127,240,181,.35);color:#7ff0b5}
@@ -86,7 +86,7 @@
 <label>Extra hull per pilot<input name="hpPerPilot" type="number" min="0" max="100000"></label>
 <label>!fire damage, least<input name="fireMin" type="number" min="1" max="1000"></label>
 <label>!fire damage, most<input name="fireMax" type="number" min="1" max="2000"></label>
-<label>!fire cooldown (seconds)<input name="fireCooldown" type="number" min="1" max="60"></label>
+<label>!fire / !shoot cooldown (seconds)<input name="fireCooldown" type="number" min="1" max="60"><small class="st-hint" style="display:block;margin-top:4px">Each pilot gets one !fire and one !shoot per cooldown; extra messages are ignored. Twitch locks regular viewers out of chat for 30 s after 20 messages in 30 s, so at 3 s a pilot playing perfectly is already at that limit — 6 s (Twitch-safe) halves it.</small></label>
 <label>Damage per bit<input name="bitDamage" type="number" min="0" max="100" step="0.1"></label>
 <label>Damage per gifted sub<input name="giftDamage" type="number" min="0" max="100000"></label>
 <label>Victory points (each pilot)<input name="victoryPoints" type="number" min="0" max="1000000"></label>
@@ -102,7 +102,7 @@
 </section>
 <section class="card dn-card" data-tab="settings">
 <div class="card-heading"><div><span class="eyebrow">DIFFICULTY</span><h2>Presets</h2></div></div>
-<div class="dn-presets"><button type="button" data-preset="easier">Easier<small>Smaller hull, harder-hitting lasers, longer battle</small></button><button type="button" data-preset="balanced">Balanced<small>Voyager's defaults</small></button><button type="button" data-preset="brutal">Brutal<small>Big hull, weaker lasers, short clock</small></button><button type="button" data-preset="custom" disabled>Custom<small>Your own numbers (edit the form)</small></button></div>
+<div class="dn-presets"><button type="button" data-preset="easier">Easier<small>Smaller hull, harder-hitting lasers, longer battle</small></button><button type="button" data-preset="balanced">Balanced<small>Voyager's defaults</small></button><button type="button" data-preset="twitchsafe">Twitch-safe<small>Balanced, but shots every 6 s hitting twice as hard — keeps pilots under Twitch's 20-messages-per-30-s chat lockout</small></button><button type="button" data-preset="brutal">Brutal<small>Big hull, weaker lasers, short clock</small></button><button type="button" data-preset="custom" disabled>Custom<small>Your own numbers (edit the form)</small></button></div>
 <p class="st-hint">A preset fills the fight fields; press <b>Save settings</b> to keep it. Boss name, rewards, chat call and announcements are left as they are.</p>
 </section>
 <section class="card dn-card" data-tab="settings">
@@ -163,8 +163,8 @@
 <script src="giveaway-connection.js"></script>
 <script src="points-model.js?v=4.4"></script>
 <script src="points-connection.js?v=4.4"></script>
-<script src="dreadnought.js?v=2.21.9"></script>
-<script src="voyager-shell.js?v=2.21.13"></script>
+<script src="dreadnought.js?v=2.21.14"></script>
+<script src="voyager-shell.js?v=2.21.14"></script>
 <script src="voyager-navigation.js"></script>
 </body>
 </html>

@@ -91,6 +91,11 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:transparent
 @keyframes float{from{opacity:0;margin-top:10px;scale:.7}15%{opacity:1;scale:1.12}to{opacity:0;margin-top:-90px;scale:1}}
 .label{position:absolute;transition:opacity .4s;transform:translate(-50%,0);font:700 15px/1 var(--font);letter-spacing:1px;padding:3px 7px;background:rgba(5,10,18,.65);border:1px solid rgba(114,216,255,.25);white-space:nowrap}
 .label.down{color:var(--red);border-color:rgba(255,77,94,.6)}
+.label .rl{display:none;gap:4px;margin-top:4px;justify-content:center}.label.reloading .rl{display:flex}
+.label .rl i{display:block;width:40px;height:4px;background:rgba(255,255,255,.14);position:relative;overflow:hidden}
+.label .rl i::after{content:'';position:absolute;left:0;top:0;bottom:0;width:var(--p,0%);background:#72d8ff;box-shadow:0 0 6px #72d8ff}
+.label .rl i.cannon::after{background:#ffb060;box-shadow:0 0 6px #ffb060}
+.label.ready{color:#7ff0b5;border-color:rgba(94,232,164,.7);text-shadow:0 0 8px rgba(94,232,164,.6)}
 #banner{position:absolute;left:0;right:0;top:44%;text-align:center;font:700 64px/1 var(--font);letter-spacing:8px;color:var(--gold);text-shadow:0 0 30px rgba(242,205,115,.9),0 3px 6px #000;opacity:0}
 #banner.go{animation:banner 2.2s ease-out}
 @keyframes banner{0%{opacity:0;letter-spacing:30px}15%{opacity:1;letter-spacing:8px}75%{opacity:1}100%{opacity:0}}
@@ -113,5 +118,5 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:transparent
   <div id="preview-tag" hidden>PREVIEW · SIMULATED CHAT</div>
  </div>
 </div>
-<script type="module" src="dreadnought.mjs?v=2.21.11"></script>
+<script type="module" src="dreadnought.mjs?v=2.21.14"></script>
 </body></html>

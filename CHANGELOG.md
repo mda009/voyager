@@ -2,6 +2,11 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.21.14 (13 November 2026)
+
+- **Dreadnought: no more chat lockouts.** Twitch locks regular viewers out of chat for 30 s after 20 messages in 30 s, and a pilot sending one !fire and one !shoot every 3 s was already at that limit. Three things: a **Twitch-safe** preset on Dreadnought › The fight (shots every 6 s hitting twice as hard — same damage per minute, half the messages), a note under the cooldown field explaining the limit, and the battle call now says "one of each every N s counts, extra messages are ignored, so no need to spam".
+- **Reload bars on the stage.** Each pilot's name tag shows a laser (!fire) and a cannon (!shoot) bar filling over the cooldown, then flashes **READY** — viewers can see when their next shot counts instead of mashing chat.
+
 ## 2.21.13 (12 November 2026)
 
 - **Bridge Quiz, harder set.** The shipped question bank is replaced with 122 mid-range questions — Star Citizen lore (stations, moons, makers, alien races, ship classes, the UEE), space and general knowledge — pitched so a regular viewer gets most of them and a casual one about half. Updating swaps the old starter questions for the new ones and keeps any questions you added yourself; "Load the Star Citizen & general knowledge set" on Chat engagement reloads the full set.

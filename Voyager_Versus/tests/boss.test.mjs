@@ -139,3 +139,14 @@ test('2.20.12 balance: saved settings on the old defaults move to the easier one
   b.configure({baseHp:4000});await b.saving;
   assert.equal((await new BossFight({dataDir:dir}).load()).settings.baseHp,4000,'choosing the old value again after the update sticks');
 });
+
+test('2.21.14: the overlay carries each pilot\'s reload timers (fireAt / shootAt) and the cooldown, and the battle call says the cadence',async()=>{
+  const {b,at,said}=await make({lobbySeconds:10,fireCooldown:6,announce:true});
+  b.receive(ev('call','mod',{role:3}));b.receive(ev('join','a'));at(10000);
+  const t0=b.now();b.receive(ev('fire','a'));
+  const o=b.overlay();assert.equal(o.cooldown,6);const p=o.fleet.find(x=>x.name==='A');
+  assert.equal(p.fireAt,t0+6000,'laser reloads over the cooldown');assert.equal(p.shootAt,6000,'cannon never fired: ready at once');
+  assert.equal(b.receive(ev('fire','a')).ignored,true,'spam inside the cooldown is dropped');
+  b.receive(ev('shoot','a'));assert.equal(b.overlay().fleet[0].shootAt,b.now()+6000);
+  assert.ok(said.some(m=>/one of each every 6 s counts/.test(m)),'cadence in the battle call');
+});

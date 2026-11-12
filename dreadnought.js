@@ -143,6 +143,7 @@ addEventListener('hashchange',()=>{const h=location.hash.replace('#','');if(h===
 const PRESETS={
   balanced:{lobbySeconds:60,battleSeconds:240,baseHp:1000,hpPerPilot:150,fireMin:15,fireMax:30,fireCooldown:3,bitDamage:2.5,giftDamage:600,legendarySeconds:60,heroSeconds:120},
   easier:{lobbySeconds:60,battleSeconds:300,baseHp:700,hpPerPilot:100,fireMin:20,fireMax:40,fireCooldown:2,bitDamage:3,giftDamage:800,legendarySeconds:90,heroSeconds:180},
+  twitchsafe:{lobbySeconds:60,battleSeconds:240,baseHp:1000,hpPerPilot:150,fireMin:30,fireMax:60,fireCooldown:6,bitDamage:2.5,giftDamage:600,legendarySeconds:60,heroSeconds:120}, // 2.21.14: Balanced damage per minute at half the chat messages — perfect play is 10 messages per 30 s, half Twitch's 20-message lockout limit
   brutal:{lobbySeconds:45,battleSeconds:210,baseHp:1600,hpPerPilot:220,fireMin:12,fireMax:24,fireCooldown:4,bitDamage:2,giftDamage:450,legendarySeconds:45,heroSeconds:90}};
 function markPreset(){const f=$('settings').elements;let hit='custom';for(const [k,p] of Object.entries(PRESETS))if(Object.entries(p).every(([n,v])=>Number(f[n].value)===v))hit=k;
   for(const b of document.querySelectorAll('.dn-presets [data-preset]'))b.setAttribute('aria-pressed',String(b.dataset.preset===hit));}

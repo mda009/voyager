@@ -4,6 +4,7 @@ import * as T from './vendor/three.module.min.js';
 import {RoomEnvironment} from './vendor/RoomEnvironment.mjs';
 import {createShip,animateShip,shipMeshesReady,materialsReady} from './ship-models.mjs?v=2.3.0';
 import {buildDreadnought} from './dreadnought-model.mjs?v=2.20.3';
+import {reloadState} from './reload-state.mjs?v=2.21.14';
 
 const $=id=>document.getElementById(id),params=new URLSearchParams(location.search);
 const stageIn=params.get('stage')==='1'; // 2.20.84: opened inside the Dreadnought stage page
@@ -179,7 +180,8 @@ function shipFor(slot){
   let f=fleet.get(slot);if(f)return f;
   const ship=createShip(KEYS[slot%3]);ship.scale.setScalar(.78);ship.traverse(o=>{const mats=[].concat(o.material||[]);if(o.isMesh&&!mats.some(m=>m.transparent)){o.castShadow=true;o.receiveShadow=true;o.layers.enable(1);}});ship.position.copy(SLOTS[slot]).add(new T.Vector3(-900,0,0));ship.rotation.set(0,-.18,0);
   scene.add(ship);const warp=new T.Sprite(new T.SpriteMaterial({map:GLOW,color:0x9fe6ff,transparent:true,blending:T.AdditiveBlending,depthWrite:false}));warp.position.copy(SLOTS[slot]);scene.add(warp);
-  f={ship,born:performance.now(),warp,stunned:false,label:document.createElement('div')};f.label.className='label';$('labels').append(f.label);fleet.set(slot,f);return f;
+  f={ship,born:performance.now(),warp,stunned:false,label:document.createElement('div'),nm:document.createElement('span'),bars:[document.createElement('i'),document.createElement('i')],wasReloading:false,readyUntil:0};
+  f.label.className='label';const rl=document.createElement('div');rl.className='rl';f.bars[0].className='laser';f.bars[1].className='cannon';rl.append(...f.bars);f.label.append(f.nm,rl);$('labels').append(f.label);fleet.set(slot,f);return f;
 }
 function clearFleet(){for(const f of fleet.values()){scene.remove(f.ship);scene.remove(f.warp);f.label.remove();}fleet.clear();}
 
@@ -357,7 +359,12 @@ function frame(now){
     f.warp.material.opacity=Math.max(0,1-age*1.4);f.warp.material.color.setHex(0x9fe6ff).multiplyScalar(3);f.warp.scale.setScalar(200+age*800);
     if(p.stunned&&Math.random()<.25)burst(f.ship.position.clone().add(v((Math.random()-.5)*80,0,0)),0xff6040,50,.3,3);
     const sp=f.ship.position.clone().add(v(0,-80,0)).project(camera);f.label.style.left=((sp.x+1)/2*W)+'px';f.label.style.top=((1-sp.y)/2*H)+'px';
-    {const lt=p.stunned?p.name+' · SYSTEMS DOWN':p.name;if(f.label.textContent!==lt)f.label.textContent=lt;}f.label.classList.toggle('down',p.stunned);f.label.style.opacity=p.stunned||age<4||d.phase==='lobby'?1:0;
+    // 2.21.14 reload bars: laser (!fire) and cannon (!shoot) fill over the cooldown, then READY flashes — so pilots see when the next shot counts instead of spamming chat.
+    const rs=reloadState(p,d,f,Date.now()+offset),{reloading,ready}=rs;
+    f.bars[0].style.setProperty('--p',(100*rs.laser).toFixed(0)+'%');f.bars[1].style.setProperty('--p',(100*rs.cannon).toFixed(0)+'%');
+    if(f.nm.textContent!==rs.text)f.nm.textContent=rs.text;
+    f.label.classList.toggle('down',p.stunned);f.label.classList.toggle('reloading',reloading);f.label.classList.toggle('ready',ready);
+    f.label.style.opacity=p.stunned||reloading||ready||age<4||d.phase==='lobby'?1:0;
   }
   // New effects from the host.
   let played=0;for(const e of d.effects){if(seen.has(e.id))continue;seen.add(e.id);if(Date.now()+offset-e.at<2500&&((e.kind!=='laser'&&e.kind!=='cannon')||fx.length<140)&&played++<8)play(e);}
