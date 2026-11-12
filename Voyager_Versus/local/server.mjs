@@ -149,7 +149,7 @@ const bot=new StreamerBot({onOtherChat:chat=>{
   const word=chat.text.trim().toLowerCase().split(/\s+/)[0];
   if(word==='!voyager'){voyagerCommand(chat);return;}
   if(word==='!medals'){try{medals.command({kind:'medals',platform:chat.platform,userId:chat.userId,login:chat.login,name:chat.name});}catch{}return;}
-  if(boss.active()&&(word==='!join'||word==='!fire')){try{boss.receive({kind:word.slice(1),platform:chat.platform,userId:chat.userId,login:chat.login,name:chat.name,direct:true});}catch{}}
+  if(boss.active()&&(word==='!join'||word==='!fire'||word==='!shoot')){try{boss.receive({kind:word.slice(1),platform:chat.platform,userId:chat.userId,login:chat.login,name:chat.name,direct:true});}catch{}}
 },onCards:ev=>{cards.receive(ev);},onFleet:ev=>{fleetState={at:Date.now(),serverAt:Number(ev.serverAt)||Date.now(),state:ev.state};cards.fromFleet(ev.state,ev.serverAt);fleetCamera.receive(ev);try{moments.fleet(ev);}catch{}},onGoals:packet=>{try{moments.goalsReading(packet);}catch{}},onStage:r=>{try{if(r.phase==='show'||r.phase==='hide'){rotation.result(r);console.log('[timed] OBS: '+(r.ok?'':'FAILED: ')+r.message);return;}const x=stage.result(r);console.log('[stage] OBS: '+(x.ok?'':'FAILED: ')+x.message);}catch{}},onPoints:p=>{try{if(p?.ok!==true||p.schema!==1||!Array.isArray(p.users))return;
   // Same shape the Public website page sends to /api/community/members — now the host keeps itself current (VIP ribbons, tiers, balances).
   const members=p.users.filter(u=>u&&u.key&&u.pointsFresh!==false).map(u=>({key:u.key,name:u.name||u.login||'',login:u.login||'',capturedIn:Number.isFinite(Number(u.capturedIn))?Number(u.capturedIn):null,points:Number.isFinite(Number(u.points))?Number(u.points):null,tier:typeof u.tier==='string'?u.tier:'',vip:Array.isArray(u.groups)&&u.groups.includes('vip'),emerald:Array.isArray(u.groups)&&u.groups.includes('emerald')}));
@@ -168,7 +168,7 @@ onStats:p=>{try{const m=p?.metrics?.twitch?.subscriptions;if(p?.ok!==false&&m&&m
   // Membership card (2.20.4): Twitch !voyager also asks the "Voyager - Membership Card" action directly (it reads the tier
   // groups and points); if that action can't be reached, Voyager builds the card from the Points Ledger data it has.
   if(word==='!voyager'){voyagerCommand({...chat,platform:'twitch'});return;}
-  if(boss.active()&&(word==='!join'||word==='!fire')){try{boss.receive({kind:word.slice(1),platform:'twitch',userId:chat.userId,login:chat.login,name:chat.name,direct:true});}catch{}return;}
+  if(boss.active()&&(word==='!join'||word==='!fire'||word==='!shoot')){try{boss.receive({kind:word.slice(1),platform:'twitch',userId:chat.userId,login:chat.login,name:chat.name,direct:true});}catch{}return;}
   if(boss.busy()&&/^!versus\b/i.test(chat.text.trim())){const now=Date.now(),last=failures.get(chat.login)||0;if(now-last>4000){game.note(`${chat.name}: Voyager Versus is paused while the Dreadnought fight is on.`,'system');failures.set(chat.login,now);}return;}
   let result;try{result=game.command(chat);}catch{game.paused=true;game.note('Cannot save battle cooldown or stream entries. Check host storage and restart.');return;}
   // Accepted match transitions are announced by MatchChat; weapon feedback stays on-screen.

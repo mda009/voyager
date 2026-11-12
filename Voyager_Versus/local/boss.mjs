@@ -57,7 +57,7 @@ export class BossFight{
     this.battle={id:now,demo,phase:'lobby',calledBy:clean(by,60),calledAt:now,lobbyEndsAt:now+s.lobbySeconds*1000,startedAt:0,endsAt:0,
       hp:s.baseHp,maxHp:s.baseHp,pilots:new Map(),feed:[],effects:[],shieldUntil:0,shieldsUsed:0,enraged:false,nextAttackAt:0,outcome:null,endedAt:0,anonymous:{damage:0,bits:0,gifts:0},demoAt:0};
     this.note(s.name+' is approaching! Type !join to board the fleet.','alert');
-    this.announce('⚠ '+s.name+' is approaching! Type !join in the next '+s.lobbySeconds+' seconds to board the Voyager fleet, then !fire to attack. Cheers and gifted subs hit harder.');
+    this.announce('⚠ '+s.name+' is approaching! Type !join in the next '+s.lobbySeconds+' seconds to board the Voyager fleet, then !fire and !shoot to attack. Cheers and gifted subs hit harder.');
     return this.view();
   }
   start(){const b=this.battle;if(!b||b.phase!=='lobby')throw new Error('Call the boss first.');this.begin(this.now());return this.view();}
@@ -66,7 +66,7 @@ export class BossFight{
     const b=this.battle,s=this.settings;b.phase='battle';b.startedAt=now;b.endsAt=now+s.battleSeconds*1000;
     b.maxHp=b.hp=s.baseHp+s.hpPerPilot*b.pilots.size;b.nextAttackAt=now+ATTACK_MS;
     this.note('Battle stations! '+b.pilots.size+' pilot'+(b.pilots.size===1?'':'s')+' engage '+s.name+'.','alert');
-    this.announce('🚀 '+b.pilots.size+' pilot'+(b.pilots.size===1?'':'s')+' engage '+s.name+'! Type !fire to attack. '+Math.round(s.battleSeconds/60*10)/10+' minutes on the clock. Late pilots can still !join.');
+    this.announce('🚀 '+b.pilots.size+' pilot'+(b.pilots.size===1?'':'s')+' engage '+s.name+'! Type !fire and !shoot to attack. '+Math.round(s.battleSeconds/60*10)/10+' minutes on the clock. Late pilots can still !join.');
   }
 
   // ---------- chat events (from the Streamer.bot action) ----------
@@ -74,7 +74,7 @@ export class BossFight{
     if(!ev||typeof ev!=='object')return {ok:false,ignored:true};
     const kind=ev.kind,platform=String(ev.platform||'').toLowerCase();if(!PLATFORMS.includes(platform))return {ok:false,ignored:true};
     this.lastEvent={at:this.now(),kind:clean(kind,10),platform};
-    const userId=clean(ev.userId,128),name=clean(ev.name||ev.login,60)||'Anonymous',login=clean(ev.login,60).toLowerCase(),key=userId?platform+':'+userId:login&&(kind==='join'||kind==='fire')?platform+':@'+login:'';
+    const userId=clean(ev.userId,128),name=clean(ev.name||ev.login,60)||'Anonymous',login=clean(ev.login,60).toLowerCase(),key=userId?platform+':'+userId:login&&(kind==='join'||kind==='fire'||kind==='shoot')?platform+':@'+login:'';
     if(kind==='call'){
       if(!this.settings.chatCall||!(Number(ev.role)>=3||ev.broadcaster===true))return {ok:false,ignored:true};
       if(this.active())return {ok:false,message:'Already here.'};
@@ -83,6 +83,7 @@ export class BossFight{
     const b=this.battle;if(!b||!['lobby','battle'].includes(b.phase))return {ok:false,ignored:true};
     if(kind==='join')return this.join(key,name,login,platform);
     if(kind==='fire')return this.fire(key);
+    if(kind==='shoot')return this.fire(key,'shoot'); // 2.21.11: second free command, its own cooldown, half the damage
     if(kind==='bits'||kind==='gift'){
       let amount=Math.floor(Number(ev.amount));if(!Number.isFinite(amount)||amount<=0)return {ok:false,ignored:true};
       amount=Math.min(amount,kind==='gift'?1000:1e6);
@@ -104,15 +105,18 @@ export class BossFight{
     if(b.phase==='battle'&&this.settings.lateJoinHp){b.maxHp+=this.settings.lateJoinHp;b.hp+=this.settings.lateJoinHp;}
     this.note(name+' boarded the fleet.','join');return {ok:true};
   }
-  fire(key){
-    const b=this.battle,now=this.now(),s=this.settings,p=b.pilots.get(key);
+  // !fire (lasers) and, since 2.21.11, !shoot (cannons): two free commands with separate cooldowns, so a pilot can use both each
+  // cooldown window; !shoot deals half of what !fire would.
+  fire(key,kind='fire'){
+    const b=this.battle,now=this.now(),s=this.settings,p=b.pilots.get(key),last=kind==='shoot'?'lastShoot':'lastFire';
     if(b.phase!=='battle'||!p)return {ok:false,ignored:true};
-    if(now-p.lastFire<s.fireCooldown*1000)return {ok:false,ignored:true};
-    p.lastFire=now;
+    if(now-(p[last]||0)<s.fireCooldown*1000)return {ok:false,ignored:true};
+    p[last]=now;
     if(p.stunnedUntil>now)return {ok:false,ignored:true};
     let dmg=s.fireMin+Math.floor(this.random()*(s.fireMax-s.fireMin+1));const crit=this.random()<.06;if(crit)dmg*=3;
+    if(kind==='shoot')dmg=Math.max(1,Math.round(dmg/2));
     if(b.shieldUntil>now)dmg=Math.max(1,Math.round(dmg/2));
-    p.fires++;this.hit(p,dmg,'laser',crit);return {ok:true,damage:dmg};
+    p.fires++;if(kind==='shoot')p.shots=(p.shots||0)+1;this.hit(p,dmg,kind==='shoot'?'cannon':'laser',crit);return {ok:true,damage:dmg,kind};
   }
   support(kind,key,name,login,platform,amount){
     const b=this.battle,s=this.settings;let p=key?b.pilots.get(key):null;
@@ -140,7 +144,7 @@ export class BossFight{
     if(real>0&&b.hp<=0)b.lastHit={key:p?.key||'',at:now};
     b.effects.push({id:++this.seq,at:now,kind,damage:dmg,crit,slot:p?p.slot:-1,name:p?.name||anonName||'Anonymous'});if(b.effects.length>EFFECTS)b.effects.splice(0,b.effects.length-EFFECTS);
     const frac=b.hp/b.maxHp;
-    if(b.shieldsUsed===0&&frac<=.5&&b.hp>0){b.shieldsUsed=1;b.shieldUntil=now+8000;this.note('SHIELDS UP! !fire damage is halved for 8 seconds. Missiles and torpedoes punch through.','alert');}
+    if(b.shieldsUsed===0&&frac<=.5&&b.hp>0){b.shieldsUsed=1;b.shieldUntil=now+8000;this.note('SHIELDS UP! !fire and !shoot damage is halved for 8 seconds. Missiles and torpedoes punch through.','alert');}
     if(!b.enraged&&frac<=.2&&b.hp>0){b.enraged=true;b.nextAttackAt=Math.min(b.nextAttackAt,now+4000);this.note(this.settings.name+' is ENRAGED! It attacks faster.','alert');this.announce('🔥 '+this.settings.name+' is down to 20% and ENRAGED! Keep firing!');}
     if(b.hp<=0)this.finish('victory');
   }

@@ -6,7 +6,7 @@
 const $=id=>document.getElementById(id),q=new URLSearchParams(location.search),debug=q.get('debug')==='1';
 const hosted=location.protocol==='http:'&&/^(127\.0\.0\.1|localhost)$/.test(location.hostname),base=hosted?'':'http://127.0.0.1:'+(Number(q.get('voyager'))||8740);
 // 2.20.93: when Voyager is updated, the page reloads itself under a new address so OBS does not keep serving the cached copy.
-const BUILD='2.21.10';
+const BUILD='2.21.11';
 const stage=$('stage');let data=null,readAt=0,lastErr='',on=false,layoutKey='',offTimer=0,splashTimer=0,mvpKey='';
 function fit(){const s=Math.min(innerWidth/1920,innerHeight/1080);stage.style.transform='translate('+((innerWidth-1920*s)/2)+'px,'+((innerHeight-1080*s)/2)+'px) scale('+s+')';}
 addEventListener('resize',fit);fit();

@@ -23,6 +23,13 @@ test('Only joined pilots can fire, !fire is free and rate-limited, and the fight
   const first=b.receive(ev('fire','nova'));assert.ok(first.ok&&first.damage>=15&&first.damage<=30);
   assert.equal(b.receive(ev('fire','nova')).ignored,true,'cooldown');
   at(3000);assert.equal(b.receive(ev('fire','nova')).ok,true);
+  // 2.21.11 !shoot: a second free command on its own cooldown, half the damage, a cannon on screen
+  assert.equal(b.receive(ev('shoot','orion')).ignored,true,'must !join first');
+  const shot=b.receive(ev('shoot','nova'));assert.equal(shot.ok,true,'usable right after !fire: separate cooldown');assert.ok(shot.damage>=8&&shot.damage<=15,'half of 15–30: '+shot.damage);assert.equal(shot.kind,'shoot');
+  assert.equal(b.receive(ev('shoot','nova')).ignored,true,'its own cooldown');assert.equal(b.receive(ev('fire','nova')).ignored,true,'!fire still cooling');
+  at(3000);assert.equal(b.receive(ev('shoot','nova')).ok,true);
+  const fx=b.overlay().effects;assert.ok(fx.some(e=>e.kind==='cannon'),'cannon effect for the overlay');assert.ok(fx.some(e=>e.kind==='laser'));
+  assert.equal(b.battle.pilots.get('twitch:nova').shots,2);
   b.receive(ev('join','late'));assert.equal(b.overlay().maxHp,1275,'late pilots add hull');
 });
 

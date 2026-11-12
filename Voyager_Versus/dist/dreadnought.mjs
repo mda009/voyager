@@ -220,6 +220,10 @@ function play(e){
     const from=gunPoint(e.slot),to=bossPoint();beam(from,to,e.crit?0xffe56b:0x72d8ff,e.crit?4:2.4,.2,e.crit?6:4);burst(from,0x9fe6ff,60,.15,3);
     setTimeout(()=>{burst(to,shielded?0x72d8ff:0xffc08a,e.crit?280:170,.35,3);if(!shielded)sparks(to,0xffb070,e.crit?18:8,500);shieldHit(to);lightFlash(to,shielded?0x72d8ff:0xffa060,e.crit?6e5:2.5e5,160);},60);
     number(to,(e.crit?'CRIT ':'')+e.damage,e.crit?'crit':'');
+  }else if(e.kind==='cannon'){
+    // 2.21.11 !shoot: a cannon round — a short amber bolt, half a laser's damage.
+    const from=gunPoint(e.slot),to=bossPoint();projectile(from,to,e.crit?0xffe56b:0xffb070,22,.5,420,p=>{burst(p,shielded?0x72d8ff:0xffb070,e.crit?200:110,.28,3);if(!shielded)sparks(p,0xffc080,e.crit?10:5,420);shieldHit(p);lightFlash(p,shielded?0x72d8ff:0xff9a50,e.crit?4e5:1.6e5,140);number(p,(e.crit?'CRIT ':'')+e.damage,e.crit?'crit':'');});
+    burst(from,0xffd0a0,40,.12,3);
   }else if(e.kind==='missile'){
     const n=Math.min(8,2+Math.floor(e.damage/200));
     for(let i=0;i<n;i++)setTimeout(()=>{const to=bossPoint();projectile(e.slot>=0?gunPoint(e.slot):v(-1700,700,300),to,0xffa050,46,.95,300,p=>{burst(p,0xff8a3a,420,.7,3);burst(p,0xffe0b0,160,.25,4);ring(p,0xffb070,240,.6);sparks(p,0xffc080,14,700);lightFlash(p,0xff8040,1.2e6,300);shieldHit(p);});},i*95);
@@ -356,7 +360,7 @@ function frame(now){
     {const lt=p.stunned?p.name+' · SYSTEMS DOWN':p.name;if(f.label.textContent!==lt)f.label.textContent=lt;}f.label.classList.toggle('down',p.stunned);f.label.style.opacity=p.stunned||age<4||d.phase==='lobby'?1:0;
   }
   // New effects from the host.
-  let played=0;for(const e of d.effects){if(seen.has(e.id))continue;seen.add(e.id);if(Date.now()+offset-e.at<2500&&(e.kind!=='laser'||fx.length<140)&&played++<8)play(e);}
+  let played=0;for(const e of d.effects){if(seen.has(e.id))continue;seen.add(e.id);if(Date.now()+offset-e.at<2500&&((e.kind!=='laser'&&e.kind!=='cannon')||fx.length<140)&&played++<8)play(e);}
   if(seen.size>500)seen=new Set([...seen].slice(-200));
   for(let i=fx.length-1;i>=0;i--){const f=fx[i];f.age=(f.age||0)+dt;if(!f.update(dt,f.age))fx.splice(i,1);}
   dust.position.x=-((t*22)%600);

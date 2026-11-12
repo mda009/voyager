@@ -94,7 +94,7 @@ export class Stage{
     const w=this.window(),r=this.lastResult,live=boss&&(boss.phase==='lobby'||boss.phase==='battle'),phase=mode?(live?boss.phase:w==='mvp'?'mvp':w==='result'?'result':boss?.phase||'idle'):(boss?.phase||'idle');
     return {...common,phase,demo:!!(boss?.demo||(w&&r?.demo)),splashMs:s.splashSeconds*1000,splashOn:phase==='lobby'||(this.forcedUntil>now&&phase==='idle'),mvpMs:s.mvpSeconds*1000,
       main:{url:'/dreadnought.html?stage=1',label:'VOYAGER DREADNOUGHT · LIVE',accent:'#ff7b8c'},
-      splash:{eyebrow:'⚠ INCOMING CAPITAL SHIP',title:'DREADNOUGHT CALLED',chips:['!JOIN','!FIRE']},
+      splash:{eyebrow:'⚠ INCOMING CAPITAL SHIP',title:'DREADNOUGHT CALLED',chips:['!JOIN','!FIRE','!SHOOT']},
       celebrate:w==='mvp'&&r?.mvp?{eyebrow:'★ DREADNOUGHT MVP ★',name:r.mvp.name,line:Number(r.mvp.damage).toLocaleString('en')+' DAMAGE · MOST OF THE FLEET',points:r.bonus,pointsLabel:'VOYAGER POINTS',sub:(r.outcome==='victory'?r.name+' destroyed':r.name+' escaped')+' · '+r.pilots+' pilot'+(r.pilots===1?'':'s')+' · '+Number(r.damage).toLocaleString('en')+' damage dealt',until:r.endedAt+(s.resultSeconds+s.mvpSeconds)*1000}:null,
       // kept for older stage pages
       mvp:w==='mvp'&&r?.mvp?{...r.mvp,bonus:r.bonus,outcome:r.outcome,boss:r.name,damageTotal:r.damage,pilots:r.pilots,until:r.endedAt+(s.resultSeconds+s.mvpSeconds)*1000}:null};}

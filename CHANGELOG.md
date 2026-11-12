@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.21.11 (12 November 2026)
+
+**!shoot — a second free Dreadnought attack.** Pilots now have two free commands: `!fire` (lasers) and `!shoot` (cannons). Each has its own cooldown (the same length), so a pilot can use both every window; `!shoot` deals half of what `!fire` would (crits and shields apply the same way). Cannon rounds show as short amber bolts in the arena; the lobby card, legend, splash chips, chat announcements, control page, guide, website and member manual all say `!fire` and `!shoot`. No Streamer.bot command is needed — the host reads both straight from chat on Twitch, YouTube and Kick.
+
 ## 2.21.10 (12 November 2026)
 
 **Timed OBS sources.** Screen & overlays › Layout gains **Timed sources**: name an OBS source, how long it shows and how long it hides, and Voyager repeats that cycle all stream — the Star Citizen referral code (your `SC Ref` source) is set up on first run to show for 30 seconds every 10 minutes. The switching goes through the **Voyager - Dreadnought Stage** action, now **v1.4** with `stagePhase show|hide` + `stageSources`, which finds the source in whatever scene is live (groups included) and answers back, so each row shows "Showing · changes in 18 s", when the cue was sent and what OBS said ("Not found in 'MDA Solo'" if the name is off). Show now / Hide now buttons test a row. While the Dreadnought or Versus stage is up nothing is touched and the cycle resumes when it comes down; the cycle's clock survives a host restart. **Paste the v1.4 C# from the install hub** — an older copy answers "No stagePhase argument" to show/hide and the row says so.
