@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.21.13 (12 November 2026)
+
+- **Bridge Quiz, harder set.** The shipped question bank is replaced with 122 mid-range questions — Star Citizen lore (stations, moons, makers, alien races, ship classes, the UEE), space and general knowledge — pitched so a regular viewer gets most of them and a casual one about half. Updating swaps the old starter questions for the new ones and keeps any questions you added yourself; "Load the Star Citizen & general knowledge set" on Chat engagement reloads the full set.
+
 ## 2.21.12 (12 November 2026)
 
 **Points are paid automatically.** Everything Voyager owes a viewer — muster (!report) and Bridge Quiz points, Dreadnought victory and MVP bonuses, Versus champion bonuses, mission rewards, community-goal payouts, crew-surge bonuses — is now paid by the host itself, through the Points Ledger's own audited adjustment (the same preview → apply the Pay button used), as soon as it is owed and Streamer.bot is connected. Nothing to review or press: a !report pays within seconds, a Dreadnought victory pays as the report lands. Missions & goals › Points owed shows **Pay automatically** (on by default) with a status pill — last paid, what is waiting, what failed and why; failed rows are retried every 10 minutes, rows for viewers without a points account still wait for you, and **Pay all owed now** remains for paying by hand. Versus wins (50 points) were already credited by the Versus Rewards action and are unchanged.

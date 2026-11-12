@@ -104,17 +104,17 @@ test('Reset for a new stream (2.20.35): everyone can !report again; owed rewards
   assert.equal(e.chat(msg('Nova','!report')).ok,true,'reports again after the reset');assert.equal(e.rewardBatches().length,owed+1,'the earlier muster is still owed');
 });
 
-test('2.20.94 quiz bank: the Star Citizen & general knowledge set replaces the old starters, keeps the streamer\'s own questions and sets a 25-point default reward to 5',async()=>{
+test('2.21.13 quiz bank 3: the harder Star Citizen & general knowledge set replaces the 2.20.22 and 2.20.94 starters, keeps the streamer\'s own questions and sets a 25-point default reward to 5',async()=>{
   const {mkdtemp,writeFile}=await import('node:fs/promises');const {tmpdir}=await import('node:os');const {join}=await import('node:path');
   const dir=await mkdtemp(join(tmpdir(),'voyager-quiz-'));
-  await writeFile(join(dir,'engage.json'),JSON.stringify({schema:1,settings:{quiz:{reward:25}},quiz:{bank:[{id:'a1',q:'Which planet has the Great Red Spot?',a:['jupiter']},{id:'a2',q:'What chat command shows your Voyager membership card?',a:['!voyager']},{id:'m1',q:'What is my cat called?',a:['nova']}],active:null,history:[],lastAutoAt:0}}));
+  await writeFile(join(dir,'engage.json'),JSON.stringify({schema:1,settings:{quiz:{reward:25}},quiz:{bank:[{id:'a1',q:'Which planet has the Great Red Spot?',a:['jupiter']},{id:'a2',q:'What chat command shows your Voyager membership card?',a:['!voyager']},{id:'a3',q:'Which studio develops Star Citizen?',a:['cig']},{id:'m1',q:'What is my cat called?',a:['nova']}],active:null,history:[],lastAutoAt:0}}));
   const e=await new Engage({dataDir:dir,now:()=>1000,say:()=>{}}).load();
   const qs=e.state.quiz.bank.map(x=>x.q);
-  assert.ok(qs.includes('Which studio develops Star Citizen?'),'new set loaded');assert.ok(qs.includes('What is my cat called?'),'own question kept');
+  assert.ok(qs.includes('What does CIG call its fork of CryEngine that runs Star Citizen?'),'new set loaded');assert.ok(!qs.includes('Which studio develops Star Citizen?'),'2.20.94 starter replaced');assert.ok(qs.includes('What is my cat called?'),'own question kept');
   assert.ok(!qs.includes('What chat command shows your Voyager membership card?'),'old Voyager-command starter replaced');
-  assert.equal(qs.filter(q=>q==='Which planet has the Great Red Spot?').length,1,'no duplicates');
-  assert.equal(e.state.settings.quiz.reward,5);assert.equal(e.state.quiz.bankVersion,2);
-  assert.ok(e.state.quiz.bank.length>=60);
+  assert.ok(!qs.includes('Which planet has the Great Red Spot?'),'2.20.22 starter replaced');assert.equal(new Set(qs).size,qs.length,'no duplicates');
+  assert.equal(e.state.settings.quiz.reward,5);assert.equal(e.state.quiz.bankVersion,3);
+  assert.ok(e.state.quiz.bank.length>=120);
   e.loadStarters();assert.ok(!e.state.quiz.bank.some(x=>x.q==='What is my cat called?'),'reload replaces everything');
 });
 
