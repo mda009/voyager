@@ -1,9 +1,11 @@
-// Voyager Dreadnought Stage v1.3.1. One action: Voyager - Dreadnought Stage. No triggers: Voyager runs it (DoAction) when the
+// Voyager Dreadnought Stage v1.4. One action: Voyager - Dreadnought Stage. No triggers: Voyager runs it (DoAction) when the
 // Dreadnought stage comes up and goes down. It moves the OBS scene item that holds your game (a nested scene or a group,
 // named on Voyager Control › Voyager Dreadnought › Stage) into the picture-in-picture window with a short animation, and
 // moves it back afterwards. The item's original transform is kept in a Streamer.bot global so a restart can still restore it.
 // Arguments from Voyager: stagePhase (on|off), stageScene, stageSource, stageX, stageY, stageW, stageH, stageMs, stageHide (JSON list of
 // source names to hide while the stage is up; they are shown again on off, only the ones that were visible before).
+// v1.4: stagePhase show|hide with stageSources (JSON list) shows or hides those sources in the current scene (or stageScene when
+// named) — Voyager's timed sources (Screen & overlays › Layout), e.g. a referral code for 30 s every 10 minutes.
 // If Compile reports CS0012 "The type 'Uri' is defined in an assembly that is not referenced": click Find Refs (or References › add System.dll), then Compile again.
 using System;using System.Globalization;using System.Threading;using Newtonsoft.Json;using Newtonsoft.Json.Linq;
 public class CPHInline {
@@ -11,6 +13,7 @@ public class CPHInline {
  public bool Execute(){
   string phase=Read("stagePhase"),scene=Read("stageScene"),source=Read("stageSource");
   string requestId=Read("requestId");
+  if(phase=="show"||phase=="hide"){Toggle(phase=="show",scene,requestId);return true;}
   if(phase!="on"&&phase!="off"){Report(requestId,phase,false,"No stagePhase argument: this action is run by Voyager, it needs no triggers.");return true;}
   if(scene.Length==0||source.Length==0){Report(requestId,phase,false,"Scene or game source not named yet (Voyager Control › Voyager Dreadnought › Stage).");return true;}
   double x=Num("stageX",1252),y=Num("stageY",704),w=Num("stageW",640),h=Num("stageH",360);int ms=(int)Math.Max(200,Math.Min(4000,Num("stageMs",1200)));
@@ -59,8 +62,17 @@ public class CPHInline {
  string Items(string scene){try{string raw=CPH.ObsSendRaw("GetSceneItemList","{\"sceneName\":"+JsonConvert.ToString(scene)+"}");JArray items=JObject.Parse(raw)["sceneItems"] as JArray;if(items==null)return "(scene '"+scene+"' not found in OBS: check the scene name)";
   var names=new System.Collections.Generic.List<string>();foreach(JObject it in items)names.Add((string)it["sourceName"]+((bool?)it["isGroup"]==true?" (group)":(string)it["sourceType"]=="OBS_SOURCE_TYPE_SCENE"?" (scene)":""));return names.Count==0?"(none)":String.Join(", ",names);}catch{return "(could not list)";}}
  // Tells Voyager what OBS did, so the Dreadnought page's checklist can show it (and logs the same line in Streamer.bot).
- void Report(string requestId,string phase,bool ok,string message){if(ok)CPH.LogInfo("[Voyager Stage] "+message);else CPH.LogWarn("[Voyager Stage] "+message);
-  try{CPH.WebsocketBroadcastJson(new JObject{["type"]="voyager.stage.result",["v"]=1,["requestId"]=requestId,["phase"]=phase,["ok"]=ok,["message"]=message,["backendVersion"]="1.3.1",["at"]=DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}.ToString(Formatting.None));}catch{}}
+ void Report(string requestId,string phase,bool ok,string message){Report(requestId,phase,ok,message,"");}
+ void Report(string requestId,string phase,bool ok,string message,string sources){if(ok)CPH.LogInfo("[Voyager Stage] "+message);else CPH.LogWarn("[Voyager Stage] "+message);
+  try{CPH.WebsocketBroadcastJson(new JObject{["type"]="voyager.stage.result",["v"]=1,["requestId"]=requestId,["phase"]=phase,["ok"]=ok,["message"]=message,["sources"]=sources,["backendVersion"]="1.4",["at"]=DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}.ToString(Formatting.None));}catch{}}
+ // v1.4: show or hide the named sources (stageSources) in the current program scene, or in `scene` when Voyager names one. Nothing is remembered.
+ void Toggle(bool on,string scene,string requestId){string raw=Read("stageSources");JArray names;try{names=String.IsNullOrWhiteSpace(raw)?new JArray():JArray.Parse(raw);}catch{names=new JArray();}
+  if(names.Count==0){Report(requestId,on?"show":"hide",false,"No stageSources named.");return;}
+  if(scene.Length==0){try{scene=(string)JObject.Parse(CPH.ObsSendRaw("GetCurrentProgramScene","{}"))["currentProgramSceneName"];}catch(Exception e){Report(requestId,on?"show":"hide",false,"Could not read the current OBS scene: "+e.Message);return;}}
+  var done=new System.Collections.Generic.List<string>();var missing=new System.Collections.Generic.List<string>();
+  lock(Gate){foreach(JToken n in names){string name=(string)n;if(String.IsNullOrWhiteSpace(name))continue;JObject hit=Find(scene,name);if(hit==null){missing.Add(name);continue;}
+   if((bool?)hit["enabled"]==on){done.Add(name);continue;}try{SetEnabled((string)hit["scene"],(long)hit["id"],on);done.Add(name);}catch(Exception e){missing.Add(name+" (failed: "+e.Message+")");}}}
+  Report(requestId,on?"show":"hide",missing.Count==0,(done.Count>0?(on?"Shown: ":"Hidden: ")+String.Join(", ",done)+" in '"+scene+"'.":"")+(missing.Count>0?" Not found in '"+scene+"': "+String.Join(", ",missing)+".":""),raw);}
  // Hide the named sources (anywhere in the scene, including inside groups) that are visible now; remember them for Unhide.
  string Hide(string scene,JObject saved){string raw=Read("stageHide");JArray names;try{names=String.IsNullOrWhiteSpace(raw)?new JArray():JArray.Parse(raw);}catch{names=new JArray();}
   JArray hidden=saved["hidden"] as JArray??new JArray();var missing=new System.Collections.Generic.List<string>();

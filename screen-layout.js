@@ -49,3 +49,38 @@ $('reset').onclick=()=>{layout=structuredClone(view.layoutDefaults);dirty=true;r
 async function load(){try{view=await api('/api/moments');layout=structuredClone(view.settings.layout);markers=structuredClone(view.settings.markers);try{community=await api('/api/community');}catch{community=null;}fit();render();}catch(e){notice(e.message,true);}}
 if(!hosted){$('not-hosted').hidden=false;}else load();
 })();
+
+// 2.21.10: timed OBS sources (show N s, hide M s, repeat) through the Stage action.
+(()=>{
+const $=id=>document.getElementById(id),el=(t,c,x)=>{const n=document.createElement(t);if(c)n.className=c;if(x!==undefined)n.textContent=x;return n;};
+const hosted=location.protocol==='http:'&&/^(127\.0\.0\.1|localhost)$/.test(location.hostname);if(!hosted||!$('rot-rows'))return;
+let token='',rot=null,editing=false;
+async function api(path,body){if(!token)token=(await(await fetch('/api/admin')).json()).token;const r=await fetch(path,{method:body?'POST':'GET',cache:'no-store',headers:{'X-Voyager-Token':token,...(body?{'Content-Type':'application/json'}:{})},body:body?JSON.stringify(body):undefined});const d=await r.json().catch(()=>({}));if(!r.ok||d.ok===false)throw new Error(d.message||'Voyager answered '+r.status);return d;}
+const note=(t,bad)=>{const n=$('rot-note');n.textContent=t||'';n.style.color=bad?'#ff9aa6':'';};
+const ago=at=>{if(!at)return '';const s=Math.round((Date.now()-at)/1000);return s<60?s+' s ago':Math.round(s/60)+' min ago';};
+const fmt=s=>s>=60&&s%60===0?(s/60)+' min':s+' s';
+function row(it){const r=el('div','rot-row');r.dataset.name=it.name;
+  const name=el('input');name.type='text';name.placeholder='OBS source name, exactly';name.value=it.name||'';name.title='Source name';
+  const show=el('input');show.type='number';show.min=5;show.max=3600;show.value=it.showSeconds??30;show.title='Show for (seconds)';
+  const hide=el('input');hide.type='number';hide.min=5;hide.max=86400;hide.value=it.hideSeconds??600;hide.title='Hide for (seconds)';
+  const on=el('label');const cb=el('input');cb.type='checkbox';cb.checked=it.enabled!==false;on.append(cb,' On');
+  const btns=el('div','rot-btns');const t1=el('button','','Show now');t1.type='button';const t2=el('button','','Hide now');t2.type='button';const del=el('button','','Remove');del.type='button';
+  t1.onclick=()=>test(name.value,true);t2.onclick=()=>test(name.value,false);del.onclick=()=>{r.remove();editing=true;};
+  btns.append(t1,t2,del);
+  const st=el('div','rot-st');
+  if(it.name){let txt='',cls='';if(it.enabled===false)txt='Off';else if(rot?.stageUp)txt='Paused: the stage is up';else if(it.sent===null)txt='Waiting for Streamer.bot';else{txt=(it.showing?'Showing':'Hidden')+' · changes in '+fmt(Math.max(0,Math.round((it.nextChange-Date.now())/1000)));}
+    const o=it.obs;const sub=o?(o.ok?'OBS: ':'OBS FAILED: ')+o.message:it.ok===false?'NOT SENT: '+it.message:it.at?'Sent '+ago(it.at):'';cls=o?(o.ok?'ok':'bad'):it.ok===false?'bad':'';
+    st.className='rot-st '+cls;st.append(el('b','',txt),document.createElement('br'),document.createTextNode(sub));}
+  for(const i of [name,show,hide,cb])i.addEventListener('input',()=>{editing=true;});
+  r.append(name,show,hide,on,btns,st);return r;}
+function render(){if(!rot||editing)return;const box=$('rot-rows');box.replaceChildren();for(const it of rot.items)box.append(row(it));if(!rot.items.length)box.append(el('p','st-hint','No timed sources yet — Add a source.'));
+  const pill=$('rot-pill'),act=rot.action;const bad=rot.items.some(i=>i.enabled!==false&&(i.ok===false||i.obs?.ok===false));
+  pill.dataset.state=!rot.connected?'wait':act?.state!=='found'?'error':bad?'warn':rot.items.some(i=>i.enabled!==false)?'ok':'wait';
+  pill.textContent=!rot.connected?'Streamer.bot offline':act?.state!=='found'?'Stage action missing':rot.stageUp?'Paused · stage up':bad?'Check OBS':rot.items.filter(i=>i.enabled!==false).length+' on a clock';}
+function collect(){return {items:[...$('rot-rows').querySelectorAll('.rot-row')].map(r=>{const [name,show,hide]=r.querySelectorAll('input');return {name:name.value,showSeconds:Number(show.value),hideSeconds:Number(hide.value),enabled:r.querySelector('input[type=checkbox]').checked};}).filter(i=>i.name.trim())};}
+async function test(name,show){if(!name.trim()){note('Name the source first.',true);return;}try{const r=await api('/api/rotation/test',{name:name.trim(),show});note((show?'Show':'Hide')+' sent · '+(r.message||''));}catch(e){note(e.message,true);}}
+async function load(){try{rot=await api('/api/rotation');render();}catch(e){note(e.message,true);}}
+$('rot-add').onclick=()=>{editing=true;$('rot-rows').querySelector('p')?.remove();$('rot-rows').append(row({name:'',showSeconds:30,hideSeconds:600,enabled:true}));};
+$('rot-save').onclick=async()=>{try{rot={...rot,...(await api('/api/rotation/settings',collect()))};editing=false;note('Saved · the cycle starts now: showing first.');render();}catch(e){note(e.message,true);}};
+load();setInterval(()=>{if(!document.hidden)load();},5000);
+})();

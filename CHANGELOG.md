@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.21.10 (12 November 2026)
+
+**Timed OBS sources.** Screen & overlays › Layout gains **Timed sources**: name an OBS source, how long it shows and how long it hides, and Voyager repeats that cycle all stream — the Star Citizen referral code (your `SC Ref` source) is set up on first run to show for 30 seconds every 10 minutes. The switching goes through the **Voyager - Dreadnought Stage** action, now **v1.4** with `stagePhase show|hide` + `stageSources`, which finds the source in whatever scene is live (groups included) and answers back, so each row shows "Showing · changes in 18 s", when the cue was sent and what OBS said ("Not found in 'MDA Solo'" if the name is off). Show now / Hide now buttons test a row. While the Dreadnought or Versus stage is up nothing is touched and the cycle resumes when it comes down; the cycle's clock survives a host restart. **Paste the v1.4 C# from the install hub** — an older copy answers "No stagePhase argument" to show/hide and the row says so.
+
 ## 2.21.9 (10 November 2026)
 
 **Top pilots top-left during Versus.** While the Versus stage is up (call, battle, result), the top-left column shows the **Voyager Versus top pilots** leaderboard — all-time wins, battles and win rate from the Leaderboard panel's Pilots board — instead of the Dreadnought stage's panel. The stage card gains three <i>During Versus</i> selectors (left column, right column, corner panel); blank means the same panel as the Dreadnought stage, and "Voyager Versus top pilots" is also available as an ordinary slot kind. The Leaderboard panel accepts `?kind=` on the stage so one source can show different boards in different slots.

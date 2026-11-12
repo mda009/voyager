@@ -25,6 +25,7 @@ import {Moments} from './moments.mjs';
 import {Engage} from './engage.mjs';
 import {Stage} from './stage.mjs';
 import {Sources} from './sources.mjs';
+import {Rotation} from './rotation.mjs';
 let VERSION='unknown';try{VERSION=JSON.parse(await readFile(new URL('../package.json',import.meta.url),'utf8')).version;}catch{}
 const major=Number(process.versions.node.split('.')[0]);
 if(major<22||typeof WebSocket==='undefined'){console.error('Voyager Versus requires Node.js 22.4 or newer. Install it from https://nodejs.org/');process.exit(1);}
@@ -134,6 +135,9 @@ const sourceSeen={community:0,engage:0};
 // OBS sources (2.21.0): which overlay pages are loaded in OBS, for Screen & overlays and the status bar.
 const sources=new Sources();
 const stage=await new Stage({dataDir,version:VERSION,run:args=>actions.doAction('Voyager - Dreadnought Stage',args),log:m=>console.log('[stage] '+m)}).load();
+// 2.21.10: timed OBS sources (show 30 s, hide 10 min, repeat) through the same Stage action (v1.4). First run seeds the SC Ref cycle asked for.
+const rotation=await new Rotation({dataDir,run:args=>actions.doAction('Voyager - Dreadnought Stage',args),uuid:randomUUID}).load();
+if(rotation.seeded&&!rotation.settings.items.length){rotation.configure({items:[{name:'SC Ref',showSeconds:30,hideSeconds:600,enabled:true}]});}
 // What the stage decides from: the Dreadnought overlay and the Versus arena (phase, caller, players, result).
 const stageState=()=>[boss.overlay(),{phase:game.phase,matchId:game.matchId,caller:game.caller,players:game.players,result:game.result}];
 const fleetCamera=new FleetCamera({run:args=>actions.doAction('Voyager - Fleet Alerts',args),log:m=>console.log('[fleet] '+m)});
@@ -146,7 +150,7 @@ const bot=new StreamerBot({onOtherChat:chat=>{
   if(word==='!voyager'){voyagerCommand(chat);return;}
   if(word==='!medals'){try{medals.command({kind:'medals',platform:chat.platform,userId:chat.userId,login:chat.login,name:chat.name});}catch{}return;}
   if(boss.active()&&(word==='!join'||word==='!fire')){try{boss.receive({kind:word.slice(1),platform:chat.platform,userId:chat.userId,login:chat.login,name:chat.name,direct:true});}catch{}}
-},onCards:ev=>{cards.receive(ev);},onFleet:ev=>{fleetState={at:Date.now(),serverAt:Number(ev.serverAt)||Date.now(),state:ev.state};cards.fromFleet(ev.state,ev.serverAt);fleetCamera.receive(ev);try{moments.fleet(ev);}catch{}},onGoals:packet=>{try{moments.goalsReading(packet);}catch{}},onStage:r=>{try{const x=stage.result(r);console.log('[stage] OBS: '+(x.ok?'':'FAILED: ')+x.message);}catch{}},onPoints:p=>{try{if(p?.ok!==true||p.schema!==1||!Array.isArray(p.users))return;
+},onCards:ev=>{cards.receive(ev);},onFleet:ev=>{fleetState={at:Date.now(),serverAt:Number(ev.serverAt)||Date.now(),state:ev.state};cards.fromFleet(ev.state,ev.serverAt);fleetCamera.receive(ev);try{moments.fleet(ev);}catch{}},onGoals:packet=>{try{moments.goalsReading(packet);}catch{}},onStage:r=>{try{if(r.phase==='show'||r.phase==='hide'){rotation.result(r);console.log('[timed] OBS: '+(r.ok?'':'FAILED: ')+r.message);return;}const x=stage.result(r);console.log('[stage] OBS: '+(x.ok?'':'FAILED: ')+x.message);}catch{}},onPoints:p=>{try{if(p?.ok!==true||p.schema!==1||!Array.isArray(p.users))return;
   // Same shape the Public website page sends to /api/community/members — now the host keeps itself current (VIP ribbons, tiers, balances).
   const members=p.users.filter(u=>u&&u.key&&u.pointsFresh!==false).map(u=>({key:u.key,name:u.name||u.login||'',login:u.login||'',capturedIn:Number.isFinite(Number(u.capturedIn))?Number(u.capturedIn):null,points:Number.isFinite(Number(u.points))?Number(u.points):null,tier:typeof u.tier==='string'?u.tier:'',vip:Array.isArray(u.groups)&&u.groups.includes('vip'),emerald:Array.isArray(u.groups)&&u.groups.includes('emerald')}));
   if(members.length)community.receive(members);}catch{}},
@@ -233,12 +237,15 @@ const server=http.createServer(async(req,res)=>{
     if(url.pathname==='/api/shutdown'&&req.method==='POST'){if(!validToken(req)||!req.headers['content-type']?.startsWith('application/json')){response(res,403,{message:'Open the local control panel.'});return;}response(res,200,{ok:true,message:'Saving and stopping Voyager.'});setImmediate(()=>void stop());return;}
     if(url.pathname==='/api/system'&&req.method==='GET'){if(!validToken(req)){response(res,403,{message:'Open the local control panel.'});return;}let writable=true;try{const probe=join(dataDir,'.write-test');await writeFile(probe,'ok');await unlink(probe);}catch{writable=false;}response(res,200,{version:VERSION,node:process.versions.node,platform:process.platform,dataDir,dataWritable:writable,importedFrom,legacyDataPresent:await hasJson(legacyDataDir)&&legacyDataDir!==dataDir,controlBundled:hasControl});return;}
     if(url.pathname==='/api/stage/overlay'&&req.method==='GET'){res.setHeader('Cache-Control','no-store');response(res,200,stage.overlay(...stageState()));return;}
-    if(url.pathname.startsWith('/api/stage')){
+    if(url.pathname.startsWith('/api/stage')||url.pathname.startsWith('/api/rotation')){
       if(!validToken(req)){response(res,403,{message:'Open Voyager Control › Voyager Dreadnought.'});return;}
       if(url.pathname==='/api/stage'&&req.method==='GET'){response(res,200,{...stage.view(),connected:bot.status.connected,action:await actionStatus('Voyager - Dreadnought Stage')});return;}
+      if(url.pathname==='/api/rotation'&&req.method==='GET'){response(res,200,{...rotation.view(),connected:bot.status.connected,action:await actionStatus('Voyager - Dreadnought Stage'),stageUp:!!stage.mode(...stageState())});return;}
       if(req.method!=='POST'||!req.headers['content-type']?.startsWith('application/json')){response(res,405,{message:'Method not allowed.'});return;}
       try{const input=await body(req,65536);
         if(url.pathname==='/api/stage/settings'){response(res,200,{ok:true,...stage.configure(input||{})});return;}
+        if(url.pathname==='/api/rotation/settings'){response(res,200,{ok:true,...rotation.configure(input||{})});return;}
+        if(url.pathname==='/api/rotation/test'){const name=String(input?.name||'').trim();if(!name){response(res,400,{message:'Name the source.'});return;}const r=await rotation.test(name,input?.show!==false);response(res,r?.ok===false?502:200,{ok:r?.ok!==false,message:r?.message||''});return;}
         if(url.pathname==='/api/stage/force'){response(res,200,{ok:true,...stage.force(input?.seconds,input?.mode),...stage.view()});return;}
         if(url.pathname==='/api/stage/cue'){const r=await stage.resend(...stageState());response(res,200,{ok:true,cue:r||stage.cue.last,...stage.view()});return;}
       }catch(e){response(res,400,{message:e.message});return;}
@@ -460,6 +467,7 @@ let ticks=0,lastStatsAsk=0,lastPointsAsk=0;const timer=setInterval(()=>{
   try{boss.tick();}catch{}
   if(ticks%5===0)void fleetCamera.tick();
   if(ticks%2===0)void stage.tick(...stageState()).catch(()=>{});
+  if(ticks%10===5)void rotation.tick({stageUp:!!stage.mode(...stageState()),connected:bot.status.connected}).catch(()=>{});
   if(ticks%20===0)try{moments.tick();}catch{}
   try{game.tick(.1);}catch{game.paused=true;game.note('Host storage error. Check the game folder before restarting.');}ticks++;
   // 2.21.8: the member snapshot from the Points Ledger (tiers, VIP / Emerald groups) every 10 minutes while connected, so cards and
