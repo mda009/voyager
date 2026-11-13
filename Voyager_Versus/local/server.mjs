@@ -27,6 +27,7 @@ import {Stage} from './stage.mjs';
 import {Sources} from './sources.mjs';
 import {Rotation} from './rotation.mjs';
 import {Payer} from './payer.mjs';
+import {Intel} from './intel.mjs';
 let VERSION='unknown';try{VERSION=JSON.parse(await readFile(new URL('../package.json',import.meta.url),'utf8')).version;}catch{}
 const major=Number(process.versions.node.split('.')[0]);
 if(major<22||typeof WebSocket==='undefined'){console.error('Voyager Versus requires Node.js 22.4 or newer. Install it from https://nodejs.org/');process.exit(1);}
@@ -146,6 +147,7 @@ const bot=new StreamerBot({onOtherChat:chat=>{
   try{stage.chat(chat);}catch{}
   try{medals.chatSeen(chat);}catch{}
   try{engage.chat(chat);}catch{}
+  try{intel.chat(chat);}catch{}
   // Kick and YouTube (2.20.8): same direct commands as Twitch, except Voyager Versus (Twitch only).
   const word=chat.text.trim().toLowerCase().split(/\s+/)[0];
   if(word==='!voyager'){voyagerCommand(chat);return;}
@@ -163,6 +165,7 @@ onStats:p=>{try{const m=p?.metrics?.twitch?.subscriptions;if(p?.ok!==false&&m&&m
   try{stage.chat({...chat,platform:'twitch'});}catch{}
   try{medals.chatSeen({...chat,platform:chat.platform||'twitch'});}catch{}
   try{engage.chat({...chat,platform:chat.platform||'twitch'});}catch{}
+  try{intel.chat({...chat,platform:chat.platform||'twitch'});}catch{}
   // Dreadnought (2.20.3): Twitch !join and !fire also work straight from chat, so a missing Streamer.bot command trigger
   // can't stop the fight. The action's copy of the same message is ignored (already boarded / !fire cooldown).
   const word=chat.text.trim().toLowerCase().split(/\s+/)[0];
@@ -213,6 +216,8 @@ const moments=await new Moments({dataDir,boss:()=>boss.overlay(),medals:()=>meda
 game.onEvent=event=>{matchChat.capture(event);try{moments.versus(event);}catch{}};
 if(community)community.extraPayables=()=>[...moments.bonusPayables(),...stage.bonusPayables()];
 // 2.21.12: points owed are paid by the host itself through the Points Ledger as soon as they are owed (Missions › Points owed can switch it off).
+// 2.21.15 SC Intel: Star Citizen news, ships in the store, deals and events — panel + !news !sales !deals !events.
+const intel=await new Intel({dataDir,say:(text,platform='')=>runActionResult('Voyager - Medals',{medalSay:String(text).slice(0,450),medalSayPlatform:['twitch','kick','youtube'].includes(platform)?platform:''}),log:m=>console.log('[sc-intel] '+m)}).load();
 const payer=community?await new Payer({dataDir,community,run:args=>actions.doAction('Voyager - Points Ledger',args),uuid:randomUUID,log:m=>console.log('[auto-pay] '+m)}).load():null;
 if(community)community.onPoints=list=>{try{moments.points(list);}catch{}};medals.onStreak=list=>{try{moments.streaks(list);}catch{}};
 function packet(){const snapshot=game.snapshot();for(const r of snapshot.result?.rewards||[])r.status=economy.data.rewards.find(x=>x.id===r.id)?.status||r.status;return {serverTime:Date.now(),stage:stage.mode(...stageState())==='versus',game:snapshot,connection:bot.status,rewards:rewards.snapshot(),announcements:announcements.snapshot(),matchChat:matchChat.snapshot(),entries:entries.snapshot(),pilotLeaderboard:pilots.snapshot()};}
@@ -239,6 +244,18 @@ const server=http.createServer(async(req,res)=>{
     if(url.pathname==='/api/sources'&&req.method==='GET'){if(!validToken(req)){response(res,403,{message:'Open the local control panel.'});return;}response(res,200,{origin:'http://127.0.0.1:'+port,sources:sources.list(),...sources.summary()});return;}
     if(url.pathname==='/api/shutdown'&&req.method==='POST'){if(!validToken(req)||!req.headers['content-type']?.startsWith('application/json')){response(res,403,{message:'Open the local control panel.'});return;}response(res,200,{ok:true,message:'Saving and stopping Voyager.'});setImmediate(()=>void stop());return;}
     if(url.pathname==='/api/system'&&req.method==='GET'){if(!validToken(req)){response(res,403,{message:'Open the local control panel.'});return;}let writable=true;try{const probe=join(dataDir,'.write-test');await writeFile(probe,'ok');await unlink(probe);}catch{writable=false;}response(res,200,{version:VERSION,node:process.versions.node,platform:process.platform,dataDir,dataWritable:writable,importedFrom,legacyDataPresent:await hasJson(legacyDataDir)&&legacyDataDir!==dataDir,controlBundled:hasControl});return;}
+    if(url.pathname==='/api/intel/panel'&&req.method==='GET'){res.setHeader('Cache-Control','no-store');response(res,200,intel.panel());return;} // OBS panel: public-safe (no keys, no tokens)
+    if(url.pathname.startsWith('/api/intel')){
+      if(!validToken(req)){response(res,403,{message:'Open Voyager Control › SC Intel.'});return;}
+      if(url.pathname==='/api/intel'&&req.method==='GET'){response(res,200,{...intel.view(),connected:bot.status.connected,action:await actionStatus('Voyager - Medals')});return;}
+      if(req.method!=='POST'||!req.headers['content-type']?.startsWith('application/json')){response(res,405,{message:'Method not allowed.'});return;}
+      try{const input=await body(req,65536);
+        if(url.pathname==='/api/intel/settings'){response(res,200,{ok:true,...intel.configure(input||{})});return;}
+        if(url.pathname==='/api/intel/deals'){response(res,200,{ok:true,...intel.setDeals(input?.deals||[])});return;}
+        if(url.pathname==='/api/intel/refresh'){response(res,200,{ok:true,...await intel.refresh()});return;}
+        if(url.pathname==='/api/intel/say'){const kind=String(input?.kind||'');const text=intel.reply(kind);if(!text){response(res,400,{message:'Unknown command.'});return;}const r=await runActionResult('Voyager - Medals',{medalSay:text.slice(0,450),medalSayPlatform:''});response(res,r.ok?200:400,{ok:r.ok,message:r.message,text});return;}
+      }catch(e){response(res,400,{message:e.message});return;}
+      response(res,404,{message:'Not found.'});return;}
     if(url.pathname==='/api/stage/overlay'&&req.method==='GET'){res.setHeader('Cache-Control','no-store');response(res,200,stage.overlay(...stageState()));return;}
     if(url.pathname.startsWith('/api/stage')||url.pathname.startsWith('/api/rotation')){
       if(!validToken(req)){response(res,403,{message:'Open Voyager Control › Voyager Dreadnought.'});return;}
@@ -472,6 +489,7 @@ let ticks=0,lastStatsAsk=0,lastPointsAsk=0;const timer=setInterval(()=>{
   if(ticks%5===0)void fleetCamera.tick();
   if(ticks%2===0)void stage.tick(...stageState()).catch(()=>{});
   if(ticks%50===40&&payer)void payer.tick({connected:bot.status.connected}).then(r=>{if(r&&(r.paid||r.failed))console.log('[auto-pay] '+r.paid+' paid, '+r.failed+' failed'+(r.message?' · '+r.message:''));}).catch(()=>{});
+  if(ticks%300===7)void intel.tick().catch(()=>{});
   if(ticks%10===5)void rotation.tick({stageUp:!!stage.mode(...stageState()),connected:bot.status.connected}).catch(()=>{});
   if(ticks%20===0)try{moments.tick();}catch{}
   try{game.tick(.1);}catch{game.paused=true;game.note('Host storage error. Check the game folder before restarting.');}ticks++;

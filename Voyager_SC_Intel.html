@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Voyager • SC Intel</title>
+<link rel="icon" href="brand-assets/voyager.png">
+<link rel="stylesheet" href="stream-command.css">
+<link rel="stylesheet" href="voyager-brand.css">
+<link rel="stylesheet" href="settings.css?v=2.18">
+<link rel="stylesheet" href="community.css?v=2.20.48">
+<link rel="stylesheet" href="voyager-glass.css?v=2.21.0">
+<style>
+/* SC Intel (2.21.15): Star Citizen news, ships in the store, deals and events — the OBS panel and the chat commands. */
+.si-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:start}
+.si-card{padding:18px 22px;display:flex;flex-direction:column;gap:12px}
+.si-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.si-form label{display:flex;flex-direction:column;gap:5px;font-size:12px;color:#9ab0c5}
+.si-form .check{flex-direction:row;align-items:center;gap:8px;font-size:13px;color:#c9d7e4}
+.si-form input[type=number],.si-form input[type=text],.si-form select,.si-deal input,.si-deal select{height:36px;padding:0 10px;border:1px solid rgba(151,223,255,.18);background:rgba(8,15,24,.55);color:#e6eef7;font:14px 'Segoe UI',sans-serif;min-width:0}
+.si-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.si-src{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.si-st{display:flex;flex-direction:column;gap:4px;padding:12px 14px;border:1px solid rgba(151,223,255,.14);background:rgba(8,15,24,.45);border-radius:12px}
+.si-st small{font:700 11px/1 Rajdhani,'Segoe UI',sans-serif;letter-spacing:1.6px;color:#8ea6bd;text-transform:uppercase}
+.si-st b{font:700 18px/1.2 Rajdhani,'Segoe UI',sans-serif;color:#e6eef7}.si-st span{font-size:12px;color:#9ab0c5}
+.si-st[data-ok=true] b{color:#7ff0b5}.si-st[data-ok=false] b{color:#ff9aa6}
+.si-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;max-height:360px;overflow:auto}
+.si-list li{display:flex;gap:10px;align-items:center;padding:8px 10px;border:1px solid rgba(151,223,255,.1);background:rgba(8,15,24,.35);font-size:13px;color:#c9d7e4}
+.si-list li b{color:#e6eef7}.si-list .r{margin-left:auto;color:#8ea6bd;font-size:12px;white-space:nowrap;display:flex;gap:6px;align-items:center}
+.si-list li.bad small{color:#ff9aa6}.si-list li.ok small{color:#7ff0b5}.si-list li small{color:#8ea6bd;font-size:12px}.si-list li.muted{color:#8ea6bd}
+.si-list a{color:#9fd4ff}
+.si-tag{font:700 9px/1 Rajdhani,'Segoe UI',sans-serif;letter-spacing:.14em;padding:4px 6px;border-radius:4px;background:rgba(151,223,255,.14);color:#97dfff;white-space:nowrap}
+.si-cmd{display:grid;grid-template-columns:110px minmax(0,1fr) auto;gap:10px;align-items:start;padding:10px 12px;border:1px solid rgba(151,223,255,.12);background:rgba(8,15,24,.35);border-radius:10px}
+.si-cmd code{font:700 14px ui-monospace,Consolas,monospace;color:#9fd4ff}.si-cmd .also{display:block;font-size:11px;color:#8ea6bd;margin-top:3px}
+.si-cmd .p{font-size:12px;color:#c9d7e4;line-height:1.45;word-break:break-word}.si-cmd .p small{display:block;color:#8ea6bd;margin-bottom:3px}
+.si-deal{display:grid;grid-template-columns:140px minmax(0,1fr);gap:6px;align-items:center;margin-bottom:8px;padding:8px;border:1px solid rgba(151,223,255,.1);background:rgba(8,15,24,.3);border-radius:10px}
+.si-deal .l2{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:6px}
+.si-deal .l3{grid-column:1/-1;display:flex;gap:10px;align-items:center;justify-content:flex-end}.si-deal .l3 span{font-size:12px;color:#8ea6bd;margin-right:auto}.si-deal .l3 input[type=date]{flex:0 0 170px}
+.si-deal .on{display:flex;align-items:center;gap:6px;font-size:12px;color:#9ab0c5;white-space:nowrap}
+.si-deal.off input,.si-deal.off select{opacity:.55}
+.si-frame{width:100%;aspect-ratio:640/400;border:1px solid rgba(151,223,255,.18);border-radius:12px;background:radial-gradient(circle at 30% 20%,#1b2d4a,#070c15 70%);overflow:hidden}
+.si-frame iframe{width:640px;height:400px;border:0;transform-origin:0 0;display:block}
+@media(max-width:1100px){.si-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body class="voyager-console voyager-settings voyager-community">
+<div class="shell">
+<aside class="rail"><a class="brand" href="Voyager_Stream_Deck.html"><img class="logo-voyager" src="brand-assets/voyager.png" alt="Voyager membership program" width="68" height="68"><span>VOYAGER<small>MDA009 · MISSION CONTROL</small></span></a></aside>
+<main>
+<header class="top"><div><span class="eyebrow">GAMES &amp; EVENTS</span><h1>SC Intel</h1></div><div class="toolbar"><span class="st-note">Star Citizen news, ships in the store, deals and events — on stream and in chat</span><button type="button" id="refresh">Fetch now</button></div></header>
+<p class="st-notice" id="notice" hidden></p>
+<p class="st-notice" id="not-hosted" hidden>Open this page from the Voyager app (or START-VOYAGER-CONTROL.bat).</p>
+
+<div class="si-grid">
+<div style="display:flex;flex-direction:column;gap:16px">
+<section class="card si-card">
+<div class="card-heading"><div><span class="eyebrow">1 · SOURCES</span><h2>What Voyager reads</h2></div><span class="st-pill" id="src-pill" data-state="wait">Checking…</span></div>
+<div class="si-src"><div class="si-st" id="st-news"><small>Comm-Links · news</small><b>—</b><span></span></div><div class="si-st" id="st-sales"><small>Pledge store · ships</small><b>—</b><span></span></div></div>
+<p class="st-hint">News comes from the <b>Star Citizen Wiki API</b> (newest Comm-Links, linking back to RSI) with RSI's own Comm-Link feed as the fallback, refreshed every 20 minutes. Ships in the store come from <b>Fleetyards</b> (everything buyable right now with its pledge price), refreshed every hour. The host on your PC does the reading; nothing is published anywhere. CCU and warbond discounts are not published by any API, so those go in your own list below.</p>
+<form class="si-form" id="settings-form" autocomplete="off">
+<label class="check" style="grid-column:1/-1"><input type="checkbox" name="enabled"> SC Intel is on (panel and chat commands)</label>
+<label>Seconds per panel section<input type="number" name="cycleSeconds" min="5" max="120"></label>
+<label>Reply cooldown per command (seconds)<input type="number" name="cooldownSeconds" min="5" max="600"></label>
+<label>News items on the panel<input type="number" name="newsCount" min="1" max="8"></label>
+<label>Ships on the panel<input type="number" name="shipsCount" min="1" max="8"></label>
+<label class="check"><input type="checkbox" name="news"> Panel shows news</label><label class="check"><input type="checkbox" name="sales"> Panel shows ships in the store</label>
+<label class="check"><input type="checkbox" name="deals"> Panel shows deals &amp; upgrades</label><label class="check"><input type="checkbox" name="events"> Panel shows events</label>
+<label class="check" style="grid-column:1/-1"><input type="checkbox" name="commands"> Chat commands are on</label>
+</form>
+<div class="si-row"><button type="button" class="primary" id="save-settings">Save settings</button></div>
+</section>
+
+<section class="card si-card">
+<div class="card-heading"><div><span class="eyebrow">2 · CHAT COMMANDS</span><h2>What viewers can ask</h2></div><span class="st-pill" id="cmd-pill" data-state="wait">—</span></div>
+<div id="commands" style="display:flex;flex-direction:column;gap:8px"></div>
+<p class="st-hint">Each command answers once per cooldown (so a busy chat can't make Voyager spam), on the platform it was asked from — Twitch, Kick or YouTube. Replies go out through the "Voyager - Medals" action like !report does. <b>Post now</b> sends that reply to chat right now.</p>
+<details><summary>Chat replies (last 12)</summary><ul class="si-list" id="chatout" style="margin-top:10px"></ul></details>
+</section>
+
+<section class="card si-card">
+<div class="card-heading"><div><span class="eyebrow">3 · YOUR LIST</span><h2>Deals, upgrades &amp; events</h2></div><span class="st-pill" id="deals-pill" data-state="wait">0</span></div>
+<p class="st-hint">CCU and warbond discounts, ship deals and events the APIs don't carry. <b>Until</b> hides a row after that day. Event and Free Fly rows join the events section and !events; the rest go to deals and !deals.</p>
+<div id="deals"></div>
+<div class="si-row"><button type="button" id="deal-add">+ Add a row</button><button type="button" class="primary" id="deals-save">Save list</button></div>
+</section>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:16px">
+<section class="card si-card">
+<div class="card-heading"><div><span class="eyebrow">4 · ON STREAM</span><h2>The panel</h2></div><span class="st-pill" id="panel-pill" data-state="wait">—</span></div>
+<div class="si-frame" id="frame"><iframe id="preview" title="SC Intel panel preview" src="Voyager_SC_Intel_Panel.html"></iframe></div>
+<p class="st-hint">Add it in OBS as a Browser source, <b>640 × 400</b>, with this address, and place it where you like (it is a glass card, transparent around the edges). It cycles through its sections every few seconds; the little bars at the top show where it is.</p>
+<div class="si-row"><code id="panel-url" style="font:13px ui-monospace,Consolas,monospace;color:#9fd4ff;background:rgba(151,223,255,.08);padding:6px 8px;border-radius:6px;word-break:break-all"></code><button type="button" id="copy-url">Copy address</button><a class="button" href="Voyager_Screen.html">Sources page</a></div>
+</section>
+
+<section class="card si-card">
+<div class="card-heading"><div><span class="eyebrow">5 · LATEST</span><h2>Comm-Links</h2></div></div>
+<ul class="si-list" id="news"></ul>
+</section>
+<section class="card si-card">
+<div class="card-heading"><div><span class="eyebrow">6 · IN THE STORE</span><h2>Ships on sale now</h2></div><span class="st-pill" id="sales-pill" data-state="wait">—</span></div>
+<ul class="si-list" id="sales"></ul>
+<p class="st-hint">"On sale" means buyable in the pledge store right now, newest changes first — that is how limited sales and concept sales show up at the top. Data by fleetyards.net and api.star-citizen.wiki; neither is affiliated with Cloud Imperium.</p>
+</section>
+</div>
+</div>
+</main>
+</div>
+<script src="sc-intel.js?v=2.21.15"></script>
+<script src="voyager-shell.js?v=2.21.15"></script>
+<script src="voyager-navigation.js"></script>
+</body>
+</html>

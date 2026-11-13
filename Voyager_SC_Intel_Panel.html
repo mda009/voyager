@@ -1,0 +1,77 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Voyager • OBS SC Intel Panel</title><link rel="icon" href="brand-assets/voyager.png">
+<style>
+/* Voyager SC Intel panel (2.21.15): an OBS browser source — 640 × 400 recommended, any size works. Same on-air glass as the
+   other panels. Reads /api/intel/panel from the local host every 20 s and cycles News → Ships in store → Deals → Events. */
+@font-face{font-family:Rajdhani;src:url(brand-assets/Rajdhani-700.ttf);font-weight:700}@font-face{font-family:Rajdhani;src:url(brand-assets/Rajdhani-600.ttf);font-weight:600}
+:root{--accent:#a7d8ff;--ink:#eef4fb;--mute:#8faac1;--gold:#ffd56a;--green:#7ff0b5;--orange:#ffb060;--pink:#ff9ad5;--d:Rajdhani,'Segoe UI',sans-serif;--t:Inter,'Segoe UI',Arial,sans-serif}
+html,body{margin:0;background:transparent;height:100%;overflow:hidden}
+body{font-family:var(--t);color:var(--ink);text-shadow:0 1px 3px #0009}
+#panel{position:absolute;inset:12px;display:flex;flex-direction:column;border-radius:12px;padding:14px 18px 12px;box-sizing:border-box;overflow:hidden;
+  background:linear-gradient(135deg,rgba(9,17,31,.82),rgba(14,28,46,.74) 60%,rgba(10,20,36,.80));border:1px solid rgba(167,216,255,.26);border-top:2px solid var(--accent);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 16px 40px rgba(0,0,0,.45),0 0 28px rgba(95,176,240,.10);-webkit-backdrop-filter:blur(12px) saturate(1.25);backdrop-filter:blur(12px) saturate(1.25);transition:opacity .5s}
+#panel::before{content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(217,229,239,.035) 3px,rgba(217,229,239,.035) 4px),linear-gradient(100deg,transparent 35%,rgba(255,255,255,.05) 50%,transparent 65%)}
+#panel>*{position:relative}
+#panel[hidden]{display:none}
+.top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.brand{display:flex;align-items:center;gap:8px;font:700 11px/1 var(--d);letter-spacing:.24em;color:var(--accent)}.brand img{width:22px;height:22px}
+.tabs{display:flex;gap:4px}.tabs i{display:block;width:26px;height:4px;border-radius:2px;background:rgba(167,216,255,.18);overflow:hidden;position:relative}.tabs i.on::after{content:'';position:absolute;inset:0;background:var(--accent);transform-origin:left;transform:scaleX(var(--p,0))}
+.tabs i.done{background:rgba(167,216,255,.45)}
+h1{font:700 22px/1.1 var(--d);letter-spacing:.03em;margin:10px 0 8px;color:#fff;display:flex;align-items:baseline;gap:10px}
+h1 small{font:600 11px/1 var(--d);letter-spacing:.18em;color:var(--mute)}
+.body{flex:1;min-height:0;position:relative}
+.view{position:absolute;inset:0;display:flex;flex-direction:column;gap:6px;opacity:0;transform:translateX(18px);transition:opacity .45s,transform .45s;pointer-events:none}
+.view.on{opacity:1;transform:none}
+.row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;padding:6px 8px;border:1px solid rgba(167,216,255,.10);background:rgba(8,15,24,.35);border-radius:8px;min-height:38px}
+.row .chip{font:700 9px/1 var(--d);letter-spacing:.16em;padding:5px 7px;border-radius:4px;background:rgba(167,216,255,.14);color:var(--accent);white-space:nowrap}
+.row .chip[data-k=patch]{background:rgba(127,240,181,.16);color:var(--green)}.row .chip[data-k=event],.row .chip[data-k=freefly]{background:rgba(255,213,106,.16);color:var(--gold)}
+.row .chip[data-k=sale],.row .chip[data-k=ccu]{background:rgba(255,176,96,.18);color:var(--orange)}.row .chip[data-k=show]{background:rgba(255,154,213,.16);color:var(--pink)}
+.row .t{min-width:0}.row .t b{display:block;font:600 14px/1.25 var(--t);color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .t small{display:block;font:500 11px/1.3 var(--t);color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+.row .r{font:700 15px/1 var(--d);color:#d5edff;white-space:nowrap;text-align:right;font-variant-numeric:tabular-nums}.row .r small{display:block;font:600 9px/1 var(--d);letter-spacing:.12em;color:var(--mute);margin-top:3px}
+.row .ship{width:64px;height:36px;border-radius:5px;object-fit:cover;background:rgba(167,216,255,.08);border:1px solid rgba(167,216,255,.14)}
+.row .ship.none{display:flex;align-items:center;justify-content:center;font:700 10px/1 var(--d);color:var(--mute);letter-spacing:.1em}
+.empty{flex:1;display:flex;align-items:center;justify-content:center;text-align:center;color:var(--mute);font:500 13px/1.5 var(--t);padding:0 30px}
+.foot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:8px;padding-top:8px;border-top:1px solid rgba(167,216,255,.14);font:600 10px/1 var(--d);letter-spacing:.14em;color:var(--mute)}
+.foot b{color:var(--accent);font-weight:700}.foot .cmd{display:flex;gap:10px;flex-wrap:wrap}
+.foot .src{text-transform:uppercase;font-size:8px;letter-spacing:.12em;opacity:.8}
+</style></head>
+<body><section id="panel" hidden aria-live="polite">
+<div class="top"><span class="brand"><img src="brand-assets/voyager.png" alt="">SC INTEL</span><span class="tabs" id="tabs"></span></div>
+<h1><span id="title">Latest news</span><small id="sub"></small></h1>
+<div class="body" id="body"></div>
+<div class="foot"><span class="cmd" id="cmd"></span><span class="src" id="src"></span></div>
+</section>
+<script>
+(()=>{'use strict';
+const $=id=>document.getElementById(id),el=(t,c,x)=>{const n=document.createElement(t);if(c)n.className=c;if(x!==undefined)n.textContent=x;return n;};
+const SECTIONS=[['news','Latest news','Comm-Links'],['sales','In the pledge store','newest first'],['deals','Deals & upgrades','CCU · warbond'],['events','Events','what is on']];
+let data=null,order=[],idx=-1,switchedAt=0,views={};
+const money=p=>'$'+(Math.round(p)===p?p:p.toFixed(2));
+const until=u=>u?'until '+new Date(u+'T12:00:00').toLocaleDateString('en-AU',{day:'numeric',month:'short'}):'';
+function row(chip,chipKind,title,sub,right,rightSub,img){const r=el('div','row');
+  if(img!==undefined){if(img){const i=el('img','ship');i.src=img;i.alt='';i.onerror=()=>{i.replaceWith(Object.assign(el('span','ship none','SHIP'),{}));};r.append(i);}else r.append(el('span','ship none','SHIP'));}
+  else{const c=el('span','chip',chip);c.dataset.k=chipKind;r.append(c);}
+  const t=el('div','t');t.append(el('b','',title));if(sub)t.append(el('small','',sub));r.append(t);
+  const rr=el('div','r',right||'');if(rightSub)rr.append(el('small','',rightSub));r.append(rr);return r;}
+function build(kind){const v=el('div','view');const d=data;
+  if(kind==='news'){if(!d.news.length)v.append(el('div','empty','Waiting for the Comm-Link feed…'));for(const n of d.news)v.append(row(n.label,n.tag,n.title,'',n.when.toUpperCase(),''));}
+  if(kind==='sales'){if(!d.sales.length)v.append(el('div','empty','Waiting for the ship list…'));for(const s of d.sales)v.append(row('','',s.name,s.maker+(s.status?' · '+s.status.replace(/-/g,' '):''),s.priceLabel||money(s.price),'PLEDGE',s.image||''));}
+  if(kind==='deals'){if(!d.deals.length)v.append(el('div','empty','No CCU, warbond or ship deals listed right now — type !sales for what is in the store.'));for(const x of d.deals)v.append(row(x.label.toUpperCase(),x.kind,x.title,x.detail,until(x.until)?until(x.until).toUpperCase():'',''));}
+  if(kind==='events'){if(!d.events.length)v.append(el('div','empty','Nothing on the events calendar right now.'));for(const x of d.events)v.append(row(x.label,x.kind,x.title,x.detail,until(x.until)?until(x.until).toUpperCase():'',''));}
+  return v;}
+function render(){const p=data.panel;order=SECTIONS.filter(([k])=>p[k]).map(([k])=>k);if(!order.length)order=['news'];
+  const body=$('body');body.replaceChildren();views={};for(const k of order){views[k]=build(k);body.append(views[k]);}
+  const tabs=$('tabs');tabs.replaceChildren();for(const k of order){const t=el('i');t.dataset.k=k;tabs.append(t);}
+  $('cmd').replaceChildren();for(const c of data.commands.slice(0,4)){const b=el('b','',c);$('cmd').append(b);}
+  $('src').textContent='news: star-citizen.wiki · ships: fleetyards.net';
+  if(idx<0||!order[idx])show(0,true);else show(idx,true);}
+function show(i,keep){idx=i%order.length;const k=order[idx];if(!keep)switchedAt=performance.now();
+  for(const [kk,v] of Object.entries(views))v.classList.toggle('on',kk===k);
+  const s=SECTIONS.find(x=>x[0]===k);$('title').textContent=s[1];$('sub').textContent=k==='sales'&&data.salesTotal?data.salesTotal+' ships · '+s[2]:s[2];
+  [...$('tabs').children].forEach((t,j)=>{t.classList.toggle('on',j===idx);t.classList.toggle('done',j<idx);});}
+function frame(){if(data&&order.length>1){const cycle=(data.panel.cycleSeconds||12)*1000,e=performance.now()-switchedAt;const t=$('tabs').children[idx];if(t)t.style.setProperty('--p',Math.min(1,e/cycle));if(e>=cycle)show(idx+1);}else{const t=$('tabs').children[0];if(t)t.style.setProperty('--p',1);}requestAnimationFrame(frame);}
+async function poll(){try{const r=await fetch('/api/intel/panel',{cache:'no-store'});const next=await r.json();const changed=JSON.stringify({n:next.news,s:next.sales,d:next.deals,e:next.events,p:next.panel})!==JSON.stringify(data&&{n:data.news,s:data.sales,d:data.deals,e:data.events,p:data.panel});
+    data=next;$('panel').hidden=!next.enabled;if(changed)render();}catch{}setTimeout(poll,20000);}
+poll();switchedAt=performance.now();requestAnimationFrame(frame);
+})();
+</script></body></html>

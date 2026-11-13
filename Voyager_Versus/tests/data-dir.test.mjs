@@ -6,7 +6,7 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 
-const local=['server.mjs','rewards.mjs','availability.mjs','streamerbot.mjs','stream-entries.mjs','live-overlay.mjs','match-chat.mjs','pilot-leaderboard.mjs','public-site.mjs','connection-config.mjs','community.mjs','boss.mjs','medals.mjs','cards.mjs','engage.mjs','actions.mjs','fleet-camera.mjs','moments.mjs','stage.mjs','sources.mjs','rotation.mjs','payer.mjs'];
+const local=['server.mjs','rewards.mjs','availability.mjs','streamerbot.mjs','stream-entries.mjs','live-overlay.mjs','match-chat.mjs','pilot-leaderboard.mjs','public-site.mjs','connection-config.mjs','community.mjs','boss.mjs','medals.mjs','cards.mjs','engage.mjs','actions.mjs','fleet-camera.mjs','moments.mjs','stage.mjs','sources.mjs','rotation.mjs','payer.mjs','intel.mjs'];
 async function bundle(dir){
   const root=join(dir,'Voyager_Versus');
   await mkdir(join(root,'local'),{recursive:true});await mkdir(join(root,'dist'),{recursive:true});
