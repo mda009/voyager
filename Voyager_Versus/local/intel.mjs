@@ -22,9 +22,9 @@ export const INTEL_COMMANDS=[
 export const DEAL_KINDS={ccu:'CCU / upgrade',sale:'Ship deal',event:'Event',freefly:'Free Fly',note:'Note'};
 export const NEWS_URL='https://api.star-citizen.wiki/api/comm-links?page[size]=15';
 export const NEWS_RSS='https://robertsspaceindustries.com/comm-link/rss';
-export const SALES_URL='https://api.fleetyards.net/v1/models?q[onSaleEq]=true&q[sorts][]=lastUpdatedAt%20desc&perPage=60';
+export const SALES_URL='https://api.fleetyards.net/v1/models?q[onSaleEq]=true&perPage=100'; // 2.21.16: no sorts param (Fleetyards validates it against a fixed list); sorted here by lastUpdatedAt
 const NEWS_MS=20*60*1000,SALES_MS=60*60*1000,RETRY_MS=5*60*1000,EVENT_WINDOW_MS=21*24*3600*1000,SAY_MAX=450;
-const UA='Voyager/'+'2.21.15'+' (+https://voyagercommand.com)';
+const UA='Voyager/'+'2.21.16'+' (+https://voyagercommand.com)';
 const LIMITS={cycleSeconds:[5,120],newsCount:[1,8],shipsCount:[1,8],cooldownSeconds:[5,600]};
 const clean=(v,max)=>String(v??'').replace(/[\u0000-\u001f\u007f]/g,' ').replace(/\s+/g,' ').trim().slice(0,max);
 const num=(v,[min,max],label)=>{const n=Number(v);if(!Number.isFinite(n)||n<min||n>max)throw new Error(label+' must be '+min+' to '+max+'.');return Math.round(n);};
@@ -56,7 +56,7 @@ export function parseNewsRss(xml){
   return out.sort((a,b)=>b.at-a.at||b.id-a.id).slice(0,15);
 }
 export function parseSales(json){
-  const rows=Array.isArray(json)?json:Array.isArray(json?.data)?json.data:[];
+  const rows=Array.isArray(json)?json:Array.isArray(json?.items)?json.items:Array.isArray(json?.data)?json.data:[]; // Fleetyards wraps the list as {items, meta}
   return rows.map(m=>({name:clean(m.name,60),slug:clean(m.slug,80),maker:clean(m.manufacturer?.code||m.manufacturer?.shortName||m.manufacturer?.name||'',20),makerName:clean(m.manufacturer?.name||'',60),
       price:Number(m.pledgePrice)||0,priceLabel:clean(m.pledgePriceLabel||'',20),status:clean(m.productionStatus||'',30),url:clean(m.links?.storeUrl||'',300),image:clean(m.media?.storeImage?.smallUrl||m.media?.storeImage?.url||'',400),updated:Date.parse(m.lastUpdatedAt)||0}))
     .filter(s=>s.name&&s.price>0&&(!s.url||/^https:\/\/robertsspaceindustries\.com\//.test(s.url))).sort((a,b)=>b.updated-a.updated||a.name.localeCompare(b.name)).slice(0,60);
@@ -125,7 +125,7 @@ export class Intel{
     this.busy.sales=true;s.tried=now;
     try{const items=parseSales(await this.fetchJson(SALES_URL));if(!items.length)throw new Error('Fleetyards listed no ships in the store (API change?).');
       Object.assign(s,{items,at:now,ok:true,message:items.length+' ships in the store · fleetyards.net',source:'fleetyards.net'});await this.persistCache();
-    }catch(e){Object.assign(s,{ok:false,message:e.message||'failed'});}
+    }catch(e){Object.assign(s,{ok:false,message:e.message||'failed'});this.log('ships: '+(e.message||'failed'));}
     finally{this.busy.sales=false;}
     return s;
   }

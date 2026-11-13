@@ -31,7 +31,8 @@ test('parsers keep only RSI links, newest first; Fleetyards ships need a price',
   const n=parseNewsApi(wiki);assert.equal(n.length,4,'phishing row dropped');assert.equal(n[0].id,20990);assert.equal(n[0].tag,'patch');assert.equal(n[0].image,'https://robertsspaceindustries.com/media/x.jpg');
   const r=parseNewsRss(rss);assert.equal(r.length,1);assert.equal(r[0].title,'Star Citizen Live: Ships & Vehicles');assert.equal(r[0].id,20995);assert.equal(r[0].tag,'show');
   const s=parseSales(fy);assert.equal(s.length,2);assert.equal(s[0].name,'Polaris');assert.equal(s[0].maker,'RSI');assert.equal(s[0].price,825);assert.equal(s[1].name,'Carrack');
-  assert.deepEqual(parseSales({data:fy}).map(x=>x.name),['Polaris','Carrack'],'wrapped or bare list');
+  assert.deepEqual(parseSales({items:fy,meta:{}}).map(x=>x.name),['Polaris','Carrack'],'Fleetyards wraps the list as {items, meta}');assert.deepEqual(parseSales({data:fy}).map(x=>x.name),['Polaris','Carrack']);
+  assert.ok(!/sorts/.test(SALES_URL),'no sorts param: Fleetyards validates it against a fixed list');assert.ok(/q\[onSaleEq\]=true/.test(SALES_URL));
 });
 
 test('fetches on tick, caches to disk, falls back to the RSS feed, and keeps the last good list on failure',async()=>{

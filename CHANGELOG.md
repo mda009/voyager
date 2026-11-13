@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.21.16 (14 November 2026)
+
+- **SC Intel: ship list fixed.** Fleetyards wraps its list as `{items}` and rejects unknown sort values; Voyager now reads the wrapper and sorts by last update itself. The ships section of the panel, !sales and the website fill in on the next fetch (within a minute of starting).
+
 ## 2.21.15 (14 November 2026)
 
 - **SC Intel.** Star Citizen news, ships in the pledge store, deals and events — on stream, in chat and on the website. A new **SC Intel panel** OBS source (640 × 400, glass card, cycles News → Pledge store → Deals → Events) and a **Games & events › Chat engagement › SC Intel** page. News comes from the Star Citizen Wiki Comm-Link API (RSI's own feed as fallback, every 20 min), ships in the store from Fleetyards (hourly); CCU, warbond and ship deals plus events are your own list on the page (with an "until" date). Chat: **!news, !sales (!ships), !deals (!ccu !upgrades !warbond), !events (!freefly), !intel** — one reply per command per 30 s, on the platform it was asked from.
