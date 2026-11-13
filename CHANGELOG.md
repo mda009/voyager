@@ -2,6 +2,11 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.21.15 (14 November 2026)
+
+- **SC Intel.** Star Citizen news, ships in the pledge store, deals and events — on stream, in chat and on the website. A new **SC Intel panel** OBS source (640 × 400, glass card, cycles News → Pledge store → Deals → Events) and a **Games & events › Chat engagement › SC Intel** page. News comes from the Star Citizen Wiki Comm-Link API (RSI's own feed as fallback, every 20 min), ships in the store from Fleetyards (hourly); CCU, warbond and ship deals plus events are your own list on the page (with an "until" date). Chat: **!news, !sales (!ships), !deals (!ccu !upgrades !warbond), !events (!freefly), !intel** — one reply per command per 30 s, on the platform it was asked from.
+- **Website: SC Intel tab** on voyagercommand.com with the same Comm-Links, ships, deals and events and the chat command chips. Switch it off under Public website › What is shared › SC Intel.
+
 ## 2.21.14 (13 November 2026)
 
 - **Dreadnought: no more chat lockouts.** Twitch locks regular viewers out of chat for 30 s after 20 messages in 30 s, and a pilot sending one !fire and one !shoot every 3 s was already at that limit. Three things: a **Twitch-safe** preset on Dreadnought › The fight (shots every 6 s hitting twice as hard — same damage per minute, half the messages), a note under the cooldown field explaining the limit, and the battle call now says "one of each every N s counts, extra messages are ignored, so no need to spam".

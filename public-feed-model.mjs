@@ -16,7 +16,7 @@ export const DEFAULT_SETTINGS=Object.freeze({
   channelName:'MDA009',
   tagline:'Explore · Earn · Excel. Giveaways, points and Voyager Versus for the MDA009 community.',
   links:{twitch:'',youtube:'',kick:'',discord:'',website:''},
-  sections:{giveaways:true,winners:true,goals:true,points:true,pilots:true,versus:true,program:true,missions:true,season:true,live:true,dreadnought:true,ranks:true,medals:true,crew:true,activity:true,squadrons:true,log:true},
+  sections:{giveaways:true,winners:true,goals:true,points:true,pilots:true,versus:true,program:true,missions:true,season:true,live:true,dreadnought:true,ranks:true,medals:true,crew:true,activity:true,squadrons:true,log:true,intel:true},
   showNames:true,
   leaderboardSize:10,
   commands:{impromptu:'!enter',tickets:'!entergiveaway',versus:'!versus'},
@@ -306,6 +306,14 @@ export function projectCompanion(raw,settings=DEFAULT_SETTINGS,online=true,crewC
         top:list(x?.top).slice(0,5).map(p=>({...person(p),score:int(p?.score,0,1e12)??0})).filter(p=>p.name)})).filter(x=>x.name),
       history:list(q.history).slice(0,6).map(h=>({week:time(h?.week),winner:oneOf(h?.winner,['red','gold','blue'],null)})).filter(h=>h.week&&h.winner)};}
   if(show.log&&s.showNames&&raw.log){out.log={stream:time(raw.log.stream),entries:list(raw.log.entries).slice(0,12).map(e=>({...person(e),text:clean(e?.text,140),at:time(e?.at)})).filter(e=>e.name&&e.text&&e.at&&!/(https?:\/\/|www\.)/i.test(e.text))};}
+  // 2.21.15 SC Intel: Star Citizen news (RSI links only), ships in the pledge store, the streamer's deals and events. No viewer data at all.
+  if(show.intel&&raw.intel&&typeof raw.intel==='object'){const x=raw.intel,rsi=u=>typeof u==='string'&&/^https:\/\/robertsspaceindustries\.com\//.test(u)?u.slice(0,300):'',img=u=>typeof u==='string'&&/^https:\/\/([a-z0-9-]+\.)*(fleetyards\.net|robertsspaceindustries\.com)\//.test(u)?u.slice(0,400):'';
+    const TAGS=['freefly','ccu','sale','event','patch','show','lore','news'],KINDS=['ccu','sale','event','freefly','note'],day=v=>typeof v==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(v)?v:'';
+    const item=d=>({kind:oneOf(d?.kind,KINDS,'note'),title:clean(d?.title,80),detail:clean(d?.detail,160),url:safeUrl(d?.url||''),until:day(d?.until)});
+    out.intel={at:time(x.at),commands:list(x.commands).slice(0,6).map(c=>clean(c,16)).filter(c=>/^![a-z]+$/.test(c)),
+      news:list(x.news).slice(0,8).map(n=>({title:clean(n?.title,140),url:rsi(n?.url),at:time(n?.at),tag:oneOf(n?.tag,TAGS,'news')})).filter(n=>n.title&&n.url),
+      sales:list(x.sales).slice(0,10).map(m=>({name:clean(m?.name,60),maker:clean(m?.maker,20),price:Number.isFinite(Number(m?.price))&&Number(m.price)>0?Math.round(Number(m.price)*100)/100:0,status:clean(m?.status,30),url:rsi(m?.url),image:img(m?.image)})).filter(m=>m.name&&m.price),salesTotal:int(x.salesTotal,0,1e4)??0,
+      deals:list(x.deals).slice(0,12).map(item).filter(d=>d.title),events:list(x.events).slice(0,12).map(item).filter(d=>d.title)};}
   if(show.crew&&s.showNames&&crewCount>0)out.crew={file:'crew.json',count:int(crewCount,0,1e5)??0};
   return out;
 }

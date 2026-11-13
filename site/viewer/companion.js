@@ -20,9 +20,10 @@ const TABS=[
  ['crew','My card','M3 5h18v14H3z M7 10a2 2 0 1 0 4 0a2 2 0 0 0-4 0 M6 16c.6-1.6 1.8-2.4 3-2.4s2.4.8 3 2.4 M14 9h4 M14 13h4'],
  ['goal','Goals','M12 3l2.6 5.4 6 .8-4.3 4.2 1 5.9-5.3-2.8-5.3 2.8 1-5.9L3.4 9.2l6-.8z'],
  ['community','Community','M16 11a4 4 0 1 0-8 0 4 4 0 0 0 8 0z M4 21c0-3.3 3.6-6 8-6s8 2.7 8 6 M19 8a3 3 0 1 0 0-6 M5 8a3 3 0 1 1 0-6'],
+ ['intel','SC Intel','M12 2l2 5 5 .7-3.7 3.4.9 5.2L12 13.9 7.8 16.3l.9-5.2L5 7.7 10 7z M3 20h18 M6 17v3 M18 17v3'],
  ['commands','Commands','M4 6h16v12H4z M7 10l3 2-3 2 M12 14h5'],
  ['guide','Guide','M4 4h7a3 3 0 0 1 3 3v13a2 2 0 0 0-2-2H4z M20 4h-7a3 3 0 0 0-3 3v13a2 2 0 0 1 2-2h8z']];
-const TAB_ALIAS={medals:'community',winners:'community',boards:'community',leaderboards:'community',squad:'community',season:'goal',goals:'goal',dread:'live',giveaways:'live',missions:'live',arena:'live',ranks:'crew',find:'crew',program:'guide',manual:'guide',command:'commands',cmd:'commands',cmds:'commands'};
+const TAB_ALIAS={medals:'community',winners:'community',boards:'community',leaderboards:'community',squad:'community',season:'goal',goals:'goal',dread:'live',giveaways:'live',missions:'live',arena:'live',ranks:'crew',find:'crew',program:'guide',manual:'guide',command:'commands',cmd:'commands',cmds:'commands',news:'intel',sales:'intel',ships:'intel',store:'intel',deals:'intel',events:'intel',sc:'intel'};
 const resolveTab=h=>TABS.some(([t])=>t===h)?h:TAB_ALIAS[h]||null;
 let tab=(resolveTab(location.hash.slice(1))||'live'),wanted=tab; // a link to #crew waits for the feed before it can open that tab
 function sectionsOf(t){return [...document.querySelectorAll('section[data-tab="'+t+'"]')];}
@@ -181,6 +182,23 @@ function renderSquad(){
   const cm=el('div','cmds');cm.style.marginTop='10px';cm.append(copyChip('!squadron '+x.id,'join '+x.name));card.append(cm);
   box.append(card);});
 }
+// ---------- SC Intel (2.21.15) ----------
+const ITAG={freefly:'FREE FLY',ccu:'UPGRADES',sale:'SALE',event:'EVENT',patch:'PATCH',show:'SHOW',lore:'LORE',news:'NEWS'},IKIND={ccu:'CCU / UPGRADE',sale:'SHIP DEAL',event:'EVENT',freefly:'FREE FLY',note:'NOTE'};
+const until=u=>u?'until '+new Date(u+'T12:00:00').toLocaleDateString(undefined,{day:'numeric',month:'short'}):'';
+function irow(tag,tagKind,title,sub,right,rightSub,url,img){const li=el('li');
+ if(img!==undefined){if(img){const i=el('img','ship-img');i.alt='';i.loading='lazy';i.src=img;i.onerror=()=>i.remove();li.append(i);}else li.style.gridTemplateColumns='minmax(0,1fr) auto';}else{li.append(el('span','itag '+tagKind,tag));}
+ const t=el('div','t');const b=el('b');if(url){const a=el('a','',title);a.href=url;a.target='_blank';a.rel='noopener';b.append(a);}else b.textContent=title;t.append(b);if(sub)t.append(el('small','',sub));li.append(t);
+ const r=el('div','r',right||'');if(rightSub)r.append(el('small','',rightSub));li.append(r);return li;}
+function renderIntel(){
+ const x=feed.intel,sec=$('intel');sec.hidden=!x||(!x.news?.length&&!x.sales?.length&&!x.deals?.length&&!x.events?.length);if(sec.hidden)return;
+ $('intel-at').textContent=x.at?'Updated '+ago(x.at)+'.':'';
+ const n=$('intel-news');n.textContent='';if(!x.news?.length)n.append(el('li','empty','No news loaded yet.'));for(const it of x.news||[])n.append(irow(ITAG[it.tag]||'NEWS',it.tag,it.title,'',ago(it.at).toUpperCase(),'',it.url));
+ const s=$('intel-sales');s.textContent='';$('intel-sales-kind').textContent='In the pledge store'+(x.salesTotal?' · '+x.salesTotal+' ships':'');if(!x.sales?.length)s.append(el('li','empty','Ship list not loaded yet.'));
+ for(const m of x.sales||[])s.append(irow('','',m.name,(m.maker||'')+(m.status?' · '+m.status.replace(/-/g,' '):''),'$'+(Math.round(m.price)===m.price?m.price:m.price.toFixed(2)),'PLEDGE',m.url,m.image||''));
+ for(const [id,list] of [['deals',x.deals||[]],['events',x.events||[]]]){const card=$('intel-'+id+'-card'),ul=$('intel-'+id);ul.textContent='';card.hidden=!list.length;
+  for(const d of list)ul.append(irow(IKIND[d.kind]||'NOTE',d.kind,d.title,d.detail,until(d.until).toUpperCase(),'',d.url));}
+ const c=$('intel-cmds');c.textContent='';for(const [cmd,hint] of [['!news','latest Comm-Links'],['!sales','ships in the store'],['!deals','CCU & warbond deals'],['!events','events & Free Fly']])if(!x.commands?.length||x.commands.includes(cmd))c.append(copyChip(cmd,hint));
+}
 function renderLog(){
  const l=feed.log,sec=$('logbook');sec.hidden=!l||!l.entries?.length;if(sec.hidden)return;
  $('logbook-lede').textContent='Moments from the stream on '+new Date(l.stream).toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long'})+', logged by the crew with !log.';
@@ -299,7 +317,7 @@ if(!EMBED&&'serviceWorker' in navigator&&location.protocol==='https:')addEventLi
 // ---------- feed ----------
 addEventListener('voyager:feed',e=>{
  feed=e.detail;
- try{renderNow();}catch{}try{renderDread();}catch{}try{renderRanks();}catch{}try{renderMedals();}catch{}try{renderSquad();}catch{}try{renderLog();}catch{}
+ try{renderNow();}catch{}try{renderDread();}catch{}try{renderRanks();}catch{}try{renderMedals();}catch{}try{renderSquad();}catch{}try{renderLog();}catch{}try{renderIntel();}catch{}
  $('arena').hidden=$('versus').hidden;
  $('find').hidden=!feed.crew;
  renderTabs();

@@ -23,7 +23,7 @@ export function embedOrigins(raw){
 
 // object-src 'self' (not 'none'): Chromium will not show the member manual PDF without it.
 export function headersFile(origins=DEFAULT_EMBED_ORIGINS){
-  const csp=["default-src 'self'","script-src 'self' 'unsafe-inline'","style-src 'self' 'unsafe-inline'","img-src 'self' data:","font-src 'self'",
+  const csp=["default-src 'self'","script-src 'self' 'unsafe-inline'","style-src 'self' 'unsafe-inline'","img-src 'self' data: https://robertsspaceindustries.com https://fleetyards.net https://*.fleetyards.net","font-src 'self'",
     "connect-src 'self' https://raw.githubusercontent.com https://api.github.com","frame-ancestors 'self' "+origins.join(' '),
     "base-uri 'none'","form-action 'none'","object-src 'self'"].join('; ');
   return `/*

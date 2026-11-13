@@ -171,6 +171,13 @@ export class Intel{
       deals:this.activeDeals(now).filter(d=>d.kind!=='event'&&d.kind!=='freefly').map(d=>({kind:d.kind,label:DEAL_KINDS[d.kind],title:d.title,detail:d.detail,until:d.until})),
       events:this.events(now).map(e=>({kind:e.kind,label:e.kind==='freefly'?'FREE FLY':'EVENT',title:e.title,detail:e.detail,until:e.until})),
       status:{news:{ok:this.news.ok,at:this.news.at},sales:{ok:this.sales.ok,at:this.sales.at}}};}
+  // 2.21.15: what the public website gets (Public website › SC Intel switch): more rows than the panel, same public-only data.
+  share(){const now=this.now();if(!this.settings.enabled)return null;
+    return {at:Math.max(this.news.at,this.sales.at),commands:INTEL_COMMANDS.map(c=>c.word),
+      news:this.news.items.slice(0,8).map(n=>({title:n.title,url:n.url,at:n.at,tag:n.tag})),
+      sales:this.sales.items.slice(0,10).map(s=>({name:s.name,maker:s.maker,price:s.price,status:s.status,url:s.url,image:s.image})),salesTotal:this.sales.items.length,
+      deals:this.activeDeals(now).filter(d=>d.kind!=='event'&&d.kind!=='freefly').map(d=>({kind:d.kind,title:d.title,detail:d.detail,url:d.url,until:d.until})),
+      events:this.events(now).map(e=>({kind:e.kind,title:e.title,detail:e.detail,url:e.url,until:e.until}))};}
   view(){const now=this.now();return {settings:this.settings,deals:this.deals.map(d=>({...d,active:dealActive(d,now)})),commands:INTEL_COMMANDS,
       news:{ok:this.news.ok,at:this.news.at,message:this.news.message,source:this.news.source,items:this.news.items.slice(0,10).map(n=>({...n,label:TAG_LABELS[n.tag]||'NEWS',when:when(n.at,now)}))},
       sales:{ok:this.sales.ok,at:this.sales.at,message:this.sales.message,source:this.sales.source,count:this.sales.items.length,items:this.sales.items.slice(0,12)},

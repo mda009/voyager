@@ -323,6 +323,15 @@ nav.tabbar button:focus-visible{outline:2px solid var(--cyan);outline-offset:2px
 .lead-tag{display:inline-block;margin-left:8px;font:700 11px/1 var(--body);letter-spacing:1px;color:#07101c;background:#ffd36b;border-radius:4px;padding:3px 6px;vertical-align:4px}
 ol.logrows li{grid-template-columns:1fr auto}
 ol.logrows .quote{font-size:16px;color:var(--text)}
+/* SC Intel tab (2.21.15) */
+.intel-list li{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center}
+.intel-list li a{color:var(--text);text-decoration:none}.intel-list li a:hover{text-decoration:underline}
+.intel-list .t b{display:block;font-weight:600}.intel-list .t small{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+.intel-list .r{font:700 14px/1.2 var(--display);color:#d5edff;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}.intel-list .r small{display:block;font:600 10px/1 var(--display);letter-spacing:1.2px;color:var(--muted);margin-top:3px}
+.itag{font:700 10px/1 var(--display);letter-spacing:1.4px;padding:5px 6px;border-radius:4px;background:#1b3550;color:#8abbd8;white-space:nowrap}
+.itag.patch{background:#14382a;color:#7ff0b5}.itag.event,.itag.freefly{background:#3b3115;color:#ffd56a}.itag.sale,.itag.ccu{background:#3d2a14;color:#ffb060}.itag.show{background:#3a1f33;color:#ff9ad5}
+.ship-img{width:60px;height:34px;object-fit:cover;border-radius:5px;background:#0b1626;border:1px solid var(--line)}
+.intel .cmds{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0 4px}
 </style>
 </head>
 <body>
@@ -452,6 +461,18 @@ ol.logrows .quote{font-size:16px;color:var(--text)}
   </div>
  </section>
 
+
+ <section id="intel" class="intel" data-tab="intel" aria-labelledby="h-intel" hidden>
+  <h2 id="h-intel">SC Intel</h2><p class="lede">Star Citizen news, what is in the pledge store, deals and events — the same intel as the stream panel and the chat commands. <span id="intel-at"></span></p>
+  <div class="two">
+   <div class="card"><span class="kind">Latest Comm-Links</span><ul class="rows plain intel-list" id="intel-news"></ul></div>
+   <div class="card"><span class="kind" id="intel-sales-kind">In the pledge store</span><ul class="rows plain intel-list" id="intel-sales"></ul><p class="small" style="color:var(--muted)">Buyable right now, newest changes first — limited and concept sales show at the top. Prices in USD from the pledge store.</p></div>
+   <div class="card" id="intel-deals-card" hidden><span class="kind">Deals &amp; upgrades</span><ul class="rows plain intel-list" id="intel-deals"></ul></div>
+   <div class="card" id="intel-events-card" hidden><span class="kind">Events</span><ul class="rows plain intel-list" id="intel-events"></ul></div>
+  </div>
+  <div class="cmds" id="intel-cmds" aria-label="Chat commands to copy"></div>
+  <p class="lede small">Ask in chat and Voyager answers: !news, !sales, !deals, !events. News via api.star-citizen.wiki, ships via fleetyards.net — fan projects, not affiliated with Cloud Imperium Games.</p>
+ </section>
  <section id="commands" data-tab="commands" aria-labelledby="h-commands">
   <h2 id="h-commands">Chat commands</h2><p class="lede">Every Voyager command, what it does, when to use it and its limits. Type a command on its own at the start of a message. They work in Twitch, YouTube and Kick chat unless marked; tap a command to copy it.</p>
   <div class="cmd-groups" id="cmd-groups"></div>
@@ -479,7 +500,7 @@ ol.logrows .quote{font-size:16px;color:var(--text)}
  <footer><p id="updated">Updates every few minutes while the stream tools are running.</p><p><a href="manual.pdf" target="_blank" rel="noopener">Voyager member manual (PDF)</a></p><p>Voyager community site. Giveaway entry happens in stream chat only; this site never asks for passwords or payment.</p></footer>
 </div>
 <script src="fair-draw.js"></script>
-<script src="companion.js?v=2.21.4" defer></script>
+<script src="companion.js?v=2.21.15" defer></script>
 <script>
 (()=>{'use strict';
 // ?embed=1: shown inside another site. Report our height so the host page can size its frame.

@@ -205,7 +205,8 @@ publicSite?.setCompanion(()=>{
   return {live:{onAir:Date.now()-lastChatAt<10*60000},squadrons:ev.squadrons,log:ev.log,
     dreadnought:{...d,history:boss.history.slice(0,6)},
     ranks:{ladder:rv.ranks,top:rv.members.slice(0,25),promotions:rv.promotions},
-    medals:{catalogue:cat,honour:medals.leaderboard(10),recent:medals.state.recent.slice(0,12)}};
+    medals:{catalogue:cat,honour:medals.leaderboard(10),recent:medals.state.recent.slice(0,12)},
+    intel:intel.share()};
 });
 publicSite?.setCrew(()=>cards.crewRows(2000));
 const rewards=new RewardDispatcher({store:economy,bot,onCredit:r=>{game.note(`${r.name}: +${r.amount} Voyager points credited.`, 'reward');matchChat.credit(r);}});
