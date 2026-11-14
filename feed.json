@@ -1,0 +1,2006 @@
+{
+ "schema": 1,
+ "generatedAt": 1794665511319,
+ "online": true,
+ "channel": {
+  "name": "MDA009",
+  "tagline": "Explore · Earn · Excel. Giveaways, points and Voyager Versus for the MDA009 community.",
+  "links": {
+   "twitch": "https://www.twitch.tv/mda009",
+   "youtube": "https://www.youtube.com/@MDA009",
+   "kick": "https://kick.com/mda009",
+   "discord": "https://discord.gg/mda009"
+  }
+ },
+ "sections": {
+  "giveaways": true,
+  "winners": true,
+  "goals": true,
+  "points": true,
+  "pilots": true,
+  "versus": true,
+  "program": true,
+  "missions": true,
+  "season": true,
+  "live": true,
+  "dreadnought": true,
+  "ranks": true,
+  "medals": true,
+  "crew": true,
+  "activity": true,
+  "squadrons": true,
+  "log": true,
+  "intel": true
+ },
+ "giveaways": [],
+ "winners": [
+  {
+   "title": "FIRST FLIGHT STARTER PACK !ENTER",
+   "name": "Rofus_EU",
+   "platform": "kick",
+   "at": 1794654653865,
+   "proof": "gzr43ck"
+  },
+  {
+   "title": "SINISTER PACK !ENTER",
+   "name": "OldBaldGamer86",
+   "platform": "twitch",
+   "at": 1794648796664,
+   "proof": "g1r8lpph"
+  },
+  {
+   "title": "EPOQUE GEIST BUNDLE !ENTER",
+   "name": "temper25",
+   "platform": "twitch",
+   "at": 1794640369067,
+   "proof": "g1lsnukm"
+  },
+  {
+   "title": "FIRST FLIGHT STARTER PACK !ENTER",
+   "name": "Shaggykc",
+   "platform": "twitch",
+   "at": 1794061602806,
+   "proof": "g1unvljb"
+  },
+  {
+   "title": "RUNIC BUNDLE !ENTER",
+   "name": "howitzer9092",
+   "platform": "twitch",
+   "at": 1794049902529,
+   "proof": "gyn5il0"
+  },
+  {
+   "title": "L-21 WOLF LYCAN GAME PACKAGE - LTI COURTESY OF CIG",
+   "name": "kevd105",
+   "platform": "twitch",
+   "at": 1793504334726,
+   "proof": null
+  },
+  {
+   "title": "L-21 WOLF LYCAN GAME PACKAGE - LTI COURTESY OF CIG",
+   "name": "ssixss",
+   "platform": "twitch",
+   "at": 1793463379421,
+   "proof": null
+  },
+  {
+   "title": "FIRST FLIGHT STARTER PACK !ENTER",
+   "name": "northerntechhermit",
+   "platform": "twitch",
+   "at": 1793460601653,
+   "proof": "g91yzy5"
+  },
+  {
+   "title": "RUNIC MONTHLY BUNDLE - !ENTER",
+   "name": "Wirusko84",
+   "platform": "youtube",
+   "at": 1793454000526,
+   "proof": "g1s3ztnz"
+  },
+  {
+   "title": "DAY OF THE VARA PARASITE PACK - !ENTER",
+   "name": "DeimosRus",
+   "platform": "twitch",
+   "at": 1793445755064,
+   "proof": "gyai7gd"
+  },
+  {
+   "title": "STEELTEK BUNDLE",
+   "name": "BunnieBurrow",
+   "platform": "twitch",
+   "at": 1793368847715,
+   "proof": "g33jttw"
+  }
+ ],
+ "goals": [
+  {
+   "key": "silver",
+   "name": "Silver giveaway pool",
+   "points": 42000,
+   "target": 72000
+  },
+  {
+   "key": "gold",
+   "name": "Gold giveaway pool",
+   "points": 72050,
+   "target": 120000
+  },
+  {
+   "key": "platinum",
+   "name": "Platinum giveaway pool",
+   "points": 68000,
+   "target": 200000
+  }
+ ],
+ "leaderboards": {
+  "points": [
+   {
+    "rank": 1,
+    "name": "Nate10250",
+    "platform": "twitch",
+    "value": 42253
+   },
+   {
+    "rank": 2,
+    "name": "beardstax1984",
+    "platform": "twitch",
+    "value": 31756
+   },
+   {
+    "rank": 3,
+    "name": "acey77",
+    "platform": "twitch",
+    "value": 15641
+   },
+   {
+    "rank": 4,
+    "name": "respectfuljohn",
+    "platform": "twitch",
+    "value": 13054
+   },
+   {
+    "rank": 5,
+    "name": "CMDRSpaceRooster",
+    "platform": "twitch",
+    "value": 12134
+   },
+   {
+    "rank": 6,
+    "name": "RedactedTX",
+    "platform": "twitch",
+    "value": 11721
+   },
+   {
+    "rank": 7,
+    "name": "temper25",
+    "platform": "twitch",
+    "value": 10880
+   },
+   {
+    "rank": 8,
+    "name": "DarthSpawn501st",
+    "platform": "twitch",
+    "value": 10769
+   },
+   {
+    "rank": 9,
+    "name": "OrpheusDamocles",
+    "platform": "twitch",
+    "value": 10361
+   },
+   {
+    "rank": 10,
+    "name": "tgbudzzz",
+    "platform": "twitch",
+    "value": 9812
+   }
+  ],
+  "pilots": [
+   {
+    "rank": 1,
+    "name": "temper25",
+    "wins": 16,
+    "losses": 2,
+    "draws": 0,
+    "battles": 18
+   },
+   {
+    "rank": 2,
+    "name": "Weavis69",
+    "wins": 13,
+    "losses": 5,
+    "draws": 0,
+    "battles": 18
+   },
+   {
+    "rank": 3,
+    "name": "DenizenJ",
+    "wins": 8,
+    "losses": 0,
+    "draws": 0,
+    "battles": 8
+   },
+   {
+    "rank": 4,
+    "name": "fatdaddy200",
+    "wins": 8,
+    "losses": 6,
+    "draws": 0,
+    "battles": 14
+   },
+   {
+    "rank": 5,
+    "name": "Rofus_EU",
+    "wins": 5,
+    "losses": 1,
+    "draws": 0,
+    "battles": 6
+   },
+   {
+    "rank": 6,
+    "name": "Paegan",
+    "wins": 5,
+    "losses": 5,
+    "draws": 0,
+    "battles": 10
+   },
+   {
+    "rank": 7,
+    "name": "hillbilly1049",
+    "wins": 4,
+    "losses": 8,
+    "draws": 0,
+    "battles": 12
+   },
+   {
+    "rank": 8,
+    "name": "Astaxic",
+    "wins": 3,
+    "losses": 0,
+    "draws": 0,
+    "battles": 3
+   },
+   {
+    "rank": 9,
+    "name": "respectfuljohn",
+    "wins": 3,
+    "losses": 0,
+    "draws": 0,
+    "battles": 3
+   },
+   {
+    "rank": 10,
+    "name": "V3Lo_Gam1ng",
+    "wins": 3,
+    "losses": 1,
+    "draws": 0,
+    "battles": 4
+   }
+  ]
+ },
+ "versus": {
+  "status": "offline",
+  "cooldownUntil": null,
+  "command": "!versus",
+  "winnerPoints": 50
+ },
+ "program": {
+  "intro": "Voyager is the MDA009 membership program. Take part on stream, earn Voyager points and move up through the membership groups.",
+  "tiers": [
+   {
+    "key": "blue",
+    "name": "Blue",
+    "description": "Super Saturday Game Package Giveaway Entries | Grand Monthly Ship Giveaway Entries"
+   },
+   {
+    "key": "silver",
+    "name": "Silver",
+    "description": "Giveaways valued between $100-$200 USD"
+   },
+   {
+    "key": "gold",
+    "name": "Gold",
+    "description": "Giveaways valued between $200-$500 USD"
+   },
+   {
+    "key": "platinum",
+    "name": "Platinum",
+    "description": "Giveaways valued between $500-$1000 USD"
+   },
+   {
+    "key": "vip",
+    "name": "Ruby VIP",
+    "description": "The Unprofessionals & MDA009 Merchandise"
+   }
+  ],
+  "commands": [
+   {
+    "command": "!enter",
+    "description": "Join an open giveaway from chat on Twitch, YouTube or Kick (!ticket also works)."
+   },
+   {
+    "command": "!entergiveaway",
+    "description": "Join a ticketed giveaway and collect tickets while you watch."
+   },
+   {
+    "command": "!versus",
+    "description": "Call a Voyager Versus battle, or answer one to fly as the challenger."
+   },
+   {
+    "command": "!points",
+    "description": "Call your Voyager Points total in chat"
+   },
+   {
+    "command": "!voyager",
+    "description": "Call your membership card on screen"
+   }
+  ]
+ },
+ "missions": {
+  "endsAt": 1794747600000,
+  "list": [
+   {
+    "title": "Ace of the Arena",
+    "type": "versusWins",
+    "medal": "versus",
+    "platform": "all",
+    "target": 1,
+    "reward": 25,
+    "completed": 10
+   },
+   {
+    "title": "Crew Supporter",
+    "type": "subscribe",
+    "medal": "subs",
+    "platform": "all",
+    "target": 1,
+    "reward": 25,
+    "completed": 19
+   },
+   {
+    "title": "Fleet Gifter",
+    "type": "giftSubs",
+    "medal": "gifter",
+    "platform": "all",
+    "target": 3,
+    "reward": 25,
+    "completed": 6
+   },
+   {
+    "title": "Veteran Crew",
+    "type": "loyalSub",
+    "medal": "substreak",
+    "platform": "all",
+    "target": 6,
+    "reward": 25,
+    "completed": 9
+   },
+   {
+    "title": "Quartermaster",
+    "type": "earnPoints",
+    "medal": "points",
+    "platform": "all",
+    "target": 300,
+    "reward": 25,
+    "completed": 34
+   },
+   {
+    "title": "Hold the Line",
+    "type": "streamStreak",
+    "medal": "streak",
+    "platform": "all",
+    "target": 5,
+    "reward": 25,
+    "completed": 36
+   },
+   {
+    "title": "Care Package",
+    "type": "giftSubs",
+    "medal": "gifter",
+    "platform": "all",
+    "target": 1,
+    "reward": 25,
+    "completed": 9
+   }
+  ]
+ },
+ "season": {
+  "name": "Christmas 2026",
+  "endsAt": 1798113600000,
+  "startedAt": 1793484000000,
+  "active": true,
+  "standings": [
+   {
+    "rank": 1,
+    "name": "BakedEddleman",
+    "platform": "twitch",
+    "points": 38192,
+    "support": 188,
+    "wins": 0
+   },
+   {
+    "rank": 2,
+    "name": "Nate10250",
+    "platform": "twitch",
+    "points": 30679,
+    "support": 76,
+    "wins": 0
+   },
+   {
+    "rank": 3,
+    "name": "cabbofragestef",
+    "platform": "twitch",
+    "points": 19732,
+    "support": 75,
+    "wins": 0
+   },
+   {
+    "rank": 4,
+    "name": "blues0d3th",
+    "platform": "twitch",
+    "points": 14043,
+    "support": 66,
+    "wins": 0
+   },
+   {
+    "rank": 5,
+    "name": "temper25",
+    "platform": "twitch",
+    "points": 12036,
+    "support": 36,
+    "wins": 6
+   },
+   {
+    "rank": 6,
+    "name": "respectfuljohn",
+    "platform": "twitch",
+    "points": 10241,
+    "support": 40,
+    "wins": 0
+   },
+   {
+    "rank": 7,
+    "name": "acey77",
+    "platform": "twitch",
+    "points": 7392,
+    "support": 6,
+    "wins": 0
+   },
+   {
+    "rank": 8,
+    "name": "OrpheusDamocles",
+    "platform": "twitch",
+    "points": 6541,
+    "support": 1,
+    "wins": 0
+   },
+   {
+    "rank": 9,
+    "name": "nugzy_yo",
+    "platform": "twitch",
+    "points": 3740,
+    "support": 1,
+    "wins": 0
+   },
+   {
+    "rank": 10,
+    "name": "DeimosRus",
+    "platform": "twitch",
+    "points": 3576,
+    "support": 1,
+    "wins": 0
+   }
+  ],
+  "supportBonus": 200,
+  "goals": [
+   {
+    "title": "Sub Goal",
+    "description": "",
+    "metric": "support",
+    "platform": "all",
+    "target": 1000,
+    "total": 526,
+    "reward": 150,
+    "reached": false,
+    "missed": false,
+    "dueAt": 1798113600000,
+    "helpers": 10
+   }
+  ],
+  "hall": [
+   {
+    "name": "Christmas 2026",
+    "endedAt": 1794032397632,
+    "champion": null,
+    "topPilot": null
+   }
+  ]
+ },
+ "live": {
+  "onAir": false
+ },
+ "dreadnought": {
+  "phase": "idle",
+  "name": "The Dreadnought",
+  "hp": 0,
+  "maxHp": 0,
+  "lobbyEndsAt": null,
+  "endsAt": null,
+  "endedAt": null,
+  "outcome": null,
+  "pilots": 0,
+  "victoryPoints": 0,
+  "leaders": [],
+  "history": [
+   {
+    "outcome": "escaped",
+    "endedAt": 1794645106297,
+    "pilots": 23,
+    "mvp": {
+     "name": "Weavis69",
+     "platform": "twitch",
+     "damage": 1198
+    }
+   },
+   {
+    "outcome": "escaped",
+    "endedAt": 1794638654932,
+    "pilots": 12,
+    "mvp": {
+     "name": "Weavis69",
+     "platform": "twitch",
+     "damage": 1676
+    }
+   },
+   {
+    "outcome": "escaped",
+    "endedAt": 1794631094309,
+    "pilots": 7,
+    "mvp": {
+     "name": "Weavis69",
+     "platform": "twitch",
+     "damage": 884
+    }
+   },
+   {
+    "outcome": "escaped",
+    "endedAt": 1794623332652,
+    "pilots": 11,
+    "mvp": {
+     "name": "cmdr_kahu",
+     "platform": "twitch",
+     "damage": 924
+    }
+   },
+   {
+    "outcome": "victory",
+    "endedAt": 1794484928208,
+    "pilots": 19,
+    "mvp": {
+     "name": "GingerNinjaD",
+     "platform": "twitch",
+     "damage": 1232
+    }
+   },
+   {
+    "outcome": "escaped",
+    "endedAt": 1794473756000,
+    "pilots": 19,
+    "mvp": {
+     "name": "00Tamako00",
+     "platform": "twitch",
+     "damage": 1607
+    }
+   }
+  ]
+ },
+ "ranks": {
+  "ladder": [
+   {
+    "id": "mid",
+    "name": "Midshipman",
+    "abbr": "MIDN",
+    "points": 0,
+    "top": 0,
+    "holders": 10473
+   },
+   {
+    "id": "aslt",
+    "name": "Acting Sub-Lieutenant",
+    "abbr": "ASLT",
+    "points": 500,
+    "top": 0,
+    "holders": 126
+   },
+   {
+    "id": "slt",
+    "name": "Sub-Lieutenant",
+    "abbr": "SBLT",
+    "points": 1000,
+    "top": 0,
+    "holders": 104
+   },
+   {
+    "id": "lt",
+    "name": "Lieutenant",
+    "abbr": "LEUT",
+    "points": 2500,
+    "top": 0,
+    "holders": 38
+   },
+   {
+    "id": "lcdr",
+    "name": "Lieutenant Commander",
+    "abbr": "LCDR",
+    "points": 5000,
+    "top": 0,
+    "holders": 14
+   },
+   {
+    "id": "cdr",
+    "name": "Commander",
+    "abbr": "CMDR",
+    "points": 10000,
+    "top": 0,
+    "holders": 8
+   },
+   {
+    "id": "capt",
+    "name": "Captain",
+    "abbr": "CAPT",
+    "points": 25000,
+    "top": 0,
+    "holders": 2
+   },
+   {
+    "id": "cdre",
+    "name": "Commodore",
+    "abbr": "CDRE",
+    "points": 50000,
+    "top": 0,
+    "holders": 0
+   },
+   {
+    "id": "radm",
+    "name": "Rear Admiral",
+    "abbr": "RADM",
+    "points": 100000,
+    "top": 0,
+    "holders": 0
+   },
+   {
+    "id": "vadm",
+    "name": "Vice Admiral",
+    "abbr": "VADM",
+    "points": 175000,
+    "top": 10,
+    "holders": 0
+   },
+   {
+    "id": "adml",
+    "name": "Admiral",
+    "abbr": "ADML",
+    "points": 250000,
+    "top": 3,
+    "holders": 0
+   },
+   {
+    "id": "af",
+    "name": "Admiral of the Fleet",
+    "abbr": "AF",
+    "points": 500000,
+    "top": 1,
+    "holders": 1
+   }
+  ],
+  "top": [
+   {
+    "place": 1,
+    "name": "MDA009",
+    "platform": "twitch",
+    "rank": 11,
+    "lifetime": 773241
+   },
+   {
+    "place": 2,
+    "name": "Nate10250",
+    "platform": "twitch",
+    "rank": 6,
+    "lifetime": 42253
+   },
+   {
+    "place": 3,
+    "name": "beardstax1984",
+    "platform": "twitch",
+    "rank": 6,
+    "lifetime": 31756
+   },
+   {
+    "place": 4,
+    "name": "acey77",
+    "platform": "twitch",
+    "rank": 5,
+    "lifetime": 15641
+   },
+   {
+    "place": 5,
+    "name": "respectfuljohn",
+    "platform": "twitch",
+    "rank": 5,
+    "lifetime": 13054
+   },
+   {
+    "place": 6,
+    "name": "OrpheusDamocles",
+    "platform": "twitch",
+    "rank": 5,
+    "lifetime": 13033
+   },
+   {
+    "place": 7,
+    "name": "CMDRSpaceRooster",
+    "platform": "twitch",
+    "rank": 5,
+    "lifetime": 12134
+   },
+   {
+    "place": 8,
+    "name": "RedactedTX",
+    "platform": "twitch",
+    "rank": 5,
+    "lifetime": 11721
+   },
+   {
+    "place": 9,
+    "name": "temper25",
+    "platform": "twitch",
+    "rank": 5,
+    "lifetime": 10880
+   },
+   {
+    "place": 10,
+    "name": "DarthSpawn501st",
+    "platform": "twitch",
+    "rank": 5,
+    "lifetime": 10769
+   },
+   {
+    "place": 11,
+    "name": "cabbofragestef",
+    "platform": "twitch",
+    "rank": 5,
+    "lifetime": 10437
+   },
+   {
+    "place": 12,
+    "name": "tgbudzzz",
+    "platform": "twitch",
+    "rank": 4,
+    "lifetime": 9907
+   },
+   {
+    "place": 13,
+    "name": "GingerNinjaD",
+    "platform": "twitch",
+    "rank": 4,
+    "lifetime": 8933
+   },
+   {
+    "place": 14,
+    "name": "Mac_1701",
+    "platform": "twitch",
+    "rank": 4,
+    "lifetime": 8148
+   },
+   {
+    "place": 15,
+    "name": "richoflight",
+    "platform": "twitch",
+    "rank": 4,
+    "lifetime": 7834
+   },
+   {
+    "place": 16,
+    "name": "skypirategreen",
+    "platform": "twitch",
+    "rank": 4,
+    "lifetime": 7600
+   },
+   {
+    "place": 17,
+    "name": "SCHaulers",
+    "platform": "twitch",
+    "rank": 4,
+    "lifetime": 7047
+   },
+   {
+    "place": 18,
+    "name": "JollyRider",
+    "platform": "twitch",
+    "rank": 4,
+    "lifetime": 6838
+   },
+   {
+    "place": 19,
+    "name": "nugzy_yo",
+    "platform": "twitch",
+    "rank": 4,
+    "lifetime": 6584
+   },
+   {
+    "place": 20,
+    "name": "oldmanobserver",
+    "platform": "twitch",
+    "rank": 4,
+    "lifetime": 6475
+   },
+   {
+    "place": 21,
+    "name": "The__Alpha__Wolf",
+    "platform": "twitch",
+    "rank": 4,
+    "lifetime": 5755
+   },
+   {
+    "place": 22,
+    "name": "Fitzyy_AU",
+    "platform": "twitch",
+    "rank": 4,
+    "lifetime": 5458
+   },
+   {
+    "place": 23,
+    "name": "blues0d3th",
+    "platform": "twitch",
+    "rank": 4,
+    "lifetime": 5372
+   },
+   {
+    "place": 24,
+    "name": "flyndive",
+    "platform": "twitch",
+    "rank": 4,
+    "lifetime": 5109
+   },
+   {
+    "place": 25,
+    "name": "pogsone",
+    "platform": "twitch",
+    "rank": 4,
+    "lifetime": 5090
+   }
+  ],
+  "promotions": [
+   {
+    "name": "locohombre",
+    "platform": "twitch",
+    "rank": 0,
+    "at": 1794647827522
+   },
+   {
+    "name": "temper25",
+    "platform": "twitch",
+    "rank": 0,
+    "at": 1794646245354
+   },
+   {
+    "name": "bmcxofficial",
+    "platform": "twitch",
+    "rank": 0,
+    "at": 1794642478159
+   },
+   {
+    "name": "Cyclopssid",
+    "platform": "twitch",
+    "rank": 0,
+    "at": 1794641056715
+   },
+   {
+    "name": "SireK3V",
+    "platform": "twitch",
+    "rank": 0,
+    "at": 1794640572050
+   },
+   {
+    "name": "InSinnaRator",
+    "platform": "twitch",
+    "rank": 0,
+    "at": 1794640087995
+   },
+   {
+    "name": "distoby",
+    "platform": "twitch",
+    "rank": 0,
+    "at": 1794632143646
+   },
+   {
+    "name": "Wirusko84",
+    "platform": "twitch",
+    "rank": 0,
+    "at": 1794630689269
+   },
+   {
+    "name": "SkandelGG",
+    "platform": "twitch",
+    "rank": 0,
+    "at": 1794621541044
+   },
+   {
+    "name": "elvann2",
+    "platform": "twitch",
+    "rank": 0,
+    "at": 1794619725128
+   },
+   {
+    "name": "xahhu",
+    "platform": "twitch",
+    "rank": 0,
+    "at": 1794616456539
+   },
+   {
+    "name": "blues0d3th",
+    "platform": "twitch",
+    "rank": 0,
+    "at": 1794615276143
+   }
+  ]
+ },
+ "medals": {
+  "catalogue": [
+   {
+    "id": "watch",
+    "name": "Time Watched",
+    "cat": "loyalty",
+    "kind": "count",
+    "unit": "hours",
+    "icon": "M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0-18 0 M12 7v5l3 2",
+    "desc": "Hours watched live (Community Tracker presence)",
+    "grades": [
+     10,
+     100,
+     500,
+     1500
+    ],
+    "earned": [
+     259,
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "id": "follow",
+    "name": "Follower Since",
+    "cat": "loyalty",
+    "kind": "count",
+    "unit": "days",
+    "icon": "M4 6h16v15H4z M4 10h16 M8 3v5 M16 3v5 M8 14h2 M12 14h2 M16 14h2",
+    "desc": "Days since following, or since Voyager first saw you",
+    "grades": [
+     90,
+     365,
+     730,
+     1460
+    ],
+    "earned": [
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "id": "streak",
+    "name": "Unbreakable",
+    "cat": "loyalty",
+    "kind": "count",
+    "unit": "streams in a row",
+    "icon": "M12 3c1 4 5 5 5 10a5 5 0 0 1-10 0c0-3 2-4 2-6 1 1 2 2 2 3 1-2 1-4 1-7z",
+    "desc": "Best run of streams attended in a row",
+    "grades": [
+     5,
+     15,
+     30,
+     60
+    ],
+    "earned": [
+     86,
+     4,
+     5,
+     27
+    ]
+   },
+   {
+    "id": "regular",
+    "name": "Regular Pilot",
+    "cat": "loyalty",
+    "kind": "count",
+    "unit": "streams",
+    "icon": "M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0-6 0",
+    "desc": "Stream days you earned Voyager points",
+    "grades": [
+     10,
+     50,
+     150,
+     400
+    ],
+    "earned": [
+     100,
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "id": "subs",
+    "name": "Loyal Subscriber",
+    "cat": "support",
+    "kind": "count",
+    "unit": "months",
+    "icon": "M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.5-7 10-7 10z",
+    "desc": "Months subscribed, all time (any platform)",
+    "grades": [
+     3,
+     12,
+     24,
+     48
+    ],
+    "earned": [
+     32,
+     12,
+     1,
+     0
+    ]
+   },
+   {
+    "id": "substreak",
+    "name": "Sub Streak",
+    "cat": "support",
+    "kind": "count",
+    "unit": "months in a row",
+    "icon": "M13 2L4 14h7l-1 8 9-12h-7z",
+    "desc": "Months renewed without a lapse",
+    "grades": [
+     3,
+     6,
+     12,
+     24
+    ],
+    "earned": [
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "id": "gifter",
+    "name": "Fleet Gifter",
+    "cat": "support",
+    "kind": "count",
+    "unit": "gifted subs",
+    "icon": "M4 10h16v11H4z M3 7h18v3H3z M12 7v14 M12 7c-2-4-6-3-5 0 M12 7c2-4 6-3 5 0",
+    "desc": "Subs or memberships gifted, all time",
+    "grades": [
+     5,
+     50,
+     250,
+     1000
+    ],
+    "earned": [
+     6,
+     4,
+     3,
+     0
+    ]
+   },
+   {
+    "id": "giftbomb",
+    "name": "Gift Bomb",
+    "cat": "support",
+    "kind": "count",
+    "unit": "subs in one drop",
+    "icon": "M12 2c3 3 4 7 4 11l-4 4-4-4c0-4 1-8 4-11z M8 13l-3 3v3l3-2 M16 13l3 3v3l-3-2",
+    "desc": "Most subs gifted in a single drop",
+    "grades": [
+     5,
+     10,
+     25,
+     50
+    ],
+    "earned": [
+     7,
+     4,
+     0,
+     0
+    ]
+   },
+   {
+    "id": "power",
+    "name": "Power Supply",
+    "cat": "support",
+    "kind": "count",
+    "unit": "Bits",
+    "icon": "M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0-18 0 M12 7v10 M9 9.5c0-1.2 1.3-2 3-2s3 .8 3 2-1.3 1.8-3 2.2-3 1-3 2.3 1.3 2 3 2 3-.8 3-2",
+    "desc": "Bits, Kicks and Super Chats (1.00 = 100 Bits)",
+    "grades": [
+     1000,
+     10000,
+     50000,
+     250000
+    ],
+    "earned": [
+     8,
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "id": "goals",
+    "name": "Goal Breaker",
+    "cat": "support",
+    "kind": "count",
+    "unit": "season goals",
+    "icon": "M5 21V4 M5 4h12l-2 4 2 4H5",
+    "desc": "Community goals helped to reach",
+    "grades": [
+     1,
+     3,
+     10,
+     25
+    ],
+    "earned": [
+     13,
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "id": "patron",
+    "name": "Fleet Patron",
+    "cat": "honour",
+    "kind": "rank",
+    "unit": "rank",
+    "icon": "M3 8l4 4 5-7 5 7 4-4-2 11H5z",
+    "desc": "All-time top supporters (months + gifts + Bits ÷ 500)",
+    "grades": [
+     50,
+     25,
+     10,
+     1
+    ],
+    "earned": [
+     24,
+     25,
+     16,
+     1
+    ]
+   },
+   {
+    "id": "elder",
+    "name": "Elder of the Fleet",
+    "cat": "honour",
+    "kind": "rank",
+    "unit": "rank",
+    "icon": "M12 3l8 3v6c0 5-4 8-8 9-4-1-8-4-8-9V6z",
+    "desc": "Longest-serving viewers (hours watched + weeks with the crew)",
+    "grades": [
+     50,
+     25,
+     10,
+     1
+    ],
+    "earned": [
+     28,
+     18,
+     12,
+     1
+    ]
+   },
+   {
+    "id": "seasonpatron",
+    "name": "Season Patron",
+    "cat": "honour",
+    "kind": "count",
+    "unit": "seasons",
+    "icon": "M7 4h10v5a5 5 0 0 1-10 0z M7 6H4a3 3 0 0 0 3 4 M17 6h3a3 3 0 0 1-3 4 M12 14v4 M8 21h8",
+    "desc": "Top supporter of a community goal (season)",
+    "grades": [
+     1,
+     2,
+     4,
+     8
+    ],
+    "earned": [
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "id": "versus",
+    "name": "Versus Ace",
+    "cat": "games",
+    "kind": "count",
+    "unit": "wins",
+    "icon": "M4 4l9 9 M4 4h4 M4 4v4 M20 4l-9 9 M20 4h-4 M20 4v4 M7 17l-3 3 M17 17l3 3 M9 15l-2 2 M15 15l2 2",
+    "desc": "Voyager Versus battles won",
+    "grades": [
+     1,
+     10,
+     50,
+     200
+    ],
+    "earned": [
+     18,
+     2,
+     0,
+     0
+    ]
+   },
+   {
+    "id": "hotstreak",
+    "name": "Hot Streak",
+    "cat": "games",
+    "kind": "count",
+    "unit": "wins in a row",
+    "icon": "M13 2L4 14h7l-1 8 9-12h-7z",
+    "desc": "Versus wins in a row",
+    "grades": [
+     3,
+     5,
+     10,
+     15
+    ],
+    "earned": [
+     2,
+     2,
+     1,
+     0
+    ]
+   },
+   {
+    "id": "slayer",
+    "name": "Dreadnought Slayer",
+    "cat": "games",
+    "kind": "count",
+    "unit": "victories",
+    "icon": "M12 12m-8 0a8 8 0 1 0 16 0a8 8 0 1 0-16 0 M12 12m-4 0a4 4 0 1 0 8 0a4 4 0 1 0-8 0 M12 2v4 M12 18v4 M2 12h4 M18 12h4",
+    "desc": "Dreadnought victories fought in",
+    "grades": [
+     1,
+     10,
+     25,
+     50
+    ],
+    "earned": [
+     101,
+     3,
+     0,
+     0
+    ]
+   },
+   {
+    "id": "torpedo",
+    "name": "Torpedo Run",
+    "cat": "games",
+    "kind": "count",
+    "unit": "torpedoes",
+    "icon": "M12 2c3 3 4 7 4 11l-4 4-4-4c0-4 1-8 4-11z M8 13l-3 3v3l3-2 M16 13l3 3v3l-3-2 M12 9v.01",
+    "desc": "Gifted subs fired as torpedoes in a fight",
+    "grades": [
+     1,
+     10,
+     50,
+     100
+    ],
+    "earned": [
+     2,
+     3,
+     0,
+     0
+    ]
+   },
+   {
+    "id": "topgun",
+    "name": "Top Gun",
+    "cat": "games",
+    "kind": "count",
+    "unit": "MVPs",
+    "icon": "M3 8l4 4 5-7 5 7 4-4-2 11H5z",
+    "desc": "Fights finished as top damage",
+    "grades": [
+     1,
+     3,
+     10,
+     25
+    ],
+    "earned": [
+     12,
+     3,
+     0,
+     0
+    ]
+   },
+   {
+    "id": "legendary",
+    "name": "Legendary Strike",
+    "cat": "games",
+    "kind": "count",
+    "unit": "legendary kills",
+    "icon": "M13 2L4 14h7l-1 8 9-12h-7z",
+    "desc": "Dreadnought destroyed within the Legendary time (1 minute) while you fought",
+    "grades": [
+     1,
+     5,
+     15,
+     40
+    ],
+    "earned": [
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "id": "hero",
+    "name": "Hero of the Fleet",
+    "cat": "games",
+    "kind": "count",
+    "unit": "heroic kills",
+    "icon": "M12 3l2.6 5.4 6 .8-4.3 4.2 1 5.9-5.3-2.8-5.3 2.8 1-5.9L3.4 9.2l6-.8z M12 3v18",
+    "desc": "Dreadnought destroyed within the Hero time (2 minutes) while you fought",
+    "grades": [
+     1,
+     5,
+     15,
+     40
+    ],
+    "earned": [
+     19,
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "id": "points",
+    "name": "Point Collector",
+    "cat": "community",
+    "kind": "count",
+    "unit": "points",
+    "icon": "M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0-18 0 M12 7v10",
+    "desc": "Voyager points earned, all time",
+    "grades": [
+     1000,
+     10000,
+     50000,
+     250000
+    ],
+    "earned": [
+     30,
+     5,
+     0,
+     1
+    ]
+   },
+   {
+    "id": "missions",
+    "name": "Mission Runner",
+    "cat": "community",
+    "kind": "count",
+    "unit": "missions",
+    "icon": "M4 6h16v14H4z M8 12l3 3 5-6",
+    "desc": "Weekly missions completed",
+    "grades": [
+     5,
+     25,
+     100,
+     250
+    ],
+    "earned": [
+     24,
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "id": "spectrum",
+    "name": "Full Spectrum",
+    "cat": "community",
+    "kind": "count",
+    "unit": "mission types",
+    "icon": "M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.6 6.6 19.5l1.2-6L3.3 9.3l6.1-.7z",
+    "desc": "Different mission types completed",
+    "grades": [
+     2,
+     3,
+     4,
+     6
+    ],
+    "earned": [
+     21,
+     20,
+     17,
+     1
+    ]
+   },
+   {
+    "id": "podium",
+    "name": "Season Podium",
+    "cat": "community",
+    "kind": "count",
+    "unit": "top-3 finishes",
+    "icon": "M7 4h10v5a5 5 0 0 1-10 0z M7 6H4a3 3 0 0 0 3 4 M17 6h3a3 3 0 0 1-3 4 M12 14v4 M8 21h8 M10 18h4",
+    "desc": "Community goals (seasons) finished in the top 3",
+    "grades": [
+     1,
+     2,
+     4,
+     8
+    ],
+    "earned": [
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "id": "champion",
+    "name": "Season Champion",
+    "cat": "community",
+    "kind": "count",
+    "unit": "#1 finishes",
+    "icon": "M3 8l4 4 5-7 5 7 4-4-2 11H5z",
+    "desc": "Community goals (seasons) finished at #1",
+    "grades": [
+     1,
+     2,
+     3,
+     5
+    ],
+    "earned": [
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "id": "comms",
+    "name": "Comms Officer",
+    "cat": "community",
+    "kind": "count",
+    "unit": "chat messages",
+    "icon": "M4 5h16v11H9l-5 4z M8 9h8 M8 12h5",
+    "desc": "Chat messages sent on stream (counted from November 2026)",
+    "grades": [
+     100,
+     1000,
+     5000,
+     20000
+    ],
+    "earned": [
+     61,
+     7,
+     0,
+     0
+    ]
+   },
+   {
+    "id": "lucky",
+    "name": "Lucky Star",
+    "cat": "community",
+    "kind": "count",
+    "unit": "giveaway wins",
+    "icon": "M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.6 6.6 19.5l1.2-6L3.3 9.3l6.1-.7z",
+    "desc": "Giveaways won and confirmed",
+    "grades": [
+     1,
+     3,
+     5,
+     10
+    ],
+    "earned": [
+     22,
+     1,
+     0,
+     0
+    ]
+   },
+   {
+    "id": "founding",
+    "name": "Founding Crew",
+    "cat": "special",
+    "kind": "special",
+    "unit": "",
+    "icon": "M12 3l8 3v6c0 5-4 8-8 9-4-1-8-4-8-9V6z",
+    "desc": "With the crew before Season 2 ends. Can never be earned later.",
+    "grades": null,
+    "earned": [
+     2806,
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "id": "firstcontact",
+    "name": "First Contact",
+    "cat": "special",
+    "kind": "special",
+    "unit": "",
+    "icon": "M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0-6 0",
+    "desc": "Typed !medals for the first time",
+    "grades": null,
+    "earned": [
+     27,
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "id": "laststand",
+    "name": "Last Stand",
+    "cat": "special",
+    "kind": "secret",
+    "unit": "",
+    "icon": "M12 12m-8 0a8 8 0 1 0 16 0a8 8 0 1 0-16 0 M12 8v5 M12 16v.01",
+    "desc": "Secret medal. How to earn it is for you to discover.",
+    "grades": null,
+    "earned": [
+     2,
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "id": "nightwatch",
+    "name": "Night Watch",
+    "cat": "special",
+    "kind": "secret",
+    "unit": "",
+    "icon": "M20 14A8 8 0 1 1 10 4a6 6 0 0 0 10 10z",
+    "desc": "Secret medal. How to earn it is for you to discover.",
+    "grades": null,
+    "earned": [
+     76,
+     0,
+     0,
+     0
+    ]
+   }
+  ],
+  "honour": [
+   {
+    "place": 1,
+    "name": "respectfuljohn",
+    "platform": "twitch",
+    "honour": 72,
+    "medals": 21
+   },
+   {
+    "place": 2,
+    "name": "temper25",
+    "platform": "twitch",
+    "honour": 68,
+    "medals": 22
+   },
+   {
+    "place": 3,
+    "name": "cabbofragestef",
+    "platform": "twitch",
+    "honour": 55,
+    "medals": 15
+   },
+   {
+    "place": 4,
+    "name": "Weavis69",
+    "platform": "twitch",
+    "honour": 51,
+    "medals": 20
+   },
+   {
+    "place": 5,
+    "name": "tmbrwlf99",
+    "platform": "twitch",
+    "honour": 49,
+    "medals": 16
+   },
+   {
+    "place": 6,
+    "name": "OrpheusDamocles",
+    "platform": "twitch",
+    "honour": 49,
+    "medals": 12
+   },
+   {
+    "place": 7,
+    "name": "Nate10250",
+    "platform": "twitch",
+    "honour": 48,
+    "medals": 17
+   },
+   {
+    "place": 8,
+    "name": "richoflight",
+    "platform": "twitch",
+    "honour": 44,
+    "medals": 12
+   },
+   {
+    "place": 9,
+    "name": "Rofus_EU",
+    "platform": "twitch",
+    "honour": 43,
+    "medals": 15
+   },
+   {
+    "place": 10,
+    "name": "DeimosRus",
+    "platform": "twitch",
+    "honour": 43,
+    "medals": 12
+   }
+  ],
+  "recent": [
+   {
+    "name": "skandelz",
+    "platform": "twitch",
+    "medal": "watch",
+    "grade": 0,
+    "special": false,
+    "at": 1794658141392
+   },
+   {
+    "name": "dboyz303",
+    "platform": "twitch",
+    "medal": "watch",
+    "grade": 0,
+    "special": false,
+    "at": 1794658019978
+   },
+   {
+    "name": "Wirusko84",
+    "platform": "youtube",
+    "medal": "firstcontact",
+    "grade": 0,
+    "special": true,
+    "at": 1794657897977
+   },
+   {
+    "name": "hillbilly1049",
+    "platform": "twitch",
+    "medal": "firstcontact",
+    "grade": 0,
+    "special": true,
+    "at": 1794657655167
+   },
+   {
+    "name": "NorthernTechHermit",
+    "platform": "kick",
+    "medal": "firstcontact",
+    "grade": 0,
+    "special": true,
+    "at": 1794657624740
+   },
+   {
+    "name": "TheNorthernTechHermit",
+    "platform": "youtube",
+    "medal": "firstcontact",
+    "grade": 0,
+    "special": true,
+    "at": 1794657624740
+   },
+   {
+    "name": "Wirusko84",
+    "platform": "twitch",
+    "medal": "firstcontact",
+    "grade": 0,
+    "special": true,
+    "at": 1794657594429
+   },
+   {
+    "name": "northerntechhermit",
+    "platform": "twitch",
+    "medal": "firstcontact",
+    "grade": 0,
+    "special": true,
+    "at": 1794657594429
+   },
+   {
+    "name": "Rofus_EU",
+    "platform": "twitch",
+    "medal": "firstcontact",
+    "grade": 0,
+    "special": true,
+    "at": 1794657594429
+   },
+   {
+    "name": "Malek_the_Collie",
+    "platform": "twitch",
+    "medal": "watch",
+    "grade": 0,
+    "special": false,
+    "at": 1794657048566
+   },
+   {
+    "name": "CaptMalarkey",
+    "platform": "twitch",
+    "medal": "watch",
+    "grade": 0,
+    "special": false,
+    "at": 1794656200177
+   },
+   {
+    "name": "alexthedane",
+    "platform": "twitch",
+    "medal": "watch",
+    "grade": 0,
+    "special": false,
+    "at": 1794655653960
+   }
+  ]
+ },
+ "squadrons": {
+  "weekEndsAt": 1794747600000,
+  "standings": [
+   {
+    "id": "gold",
+    "name": "Gold Wing",
+    "score": 2291,
+    "crew": 7,
+    "top": [
+     {
+      "name": "Weavis69",
+      "platform": "twitch",
+      "score": 1199
+     },
+     {
+      "name": "temper25",
+      "platform": "twitch",
+      "score": 941
+     },
+     {
+      "name": "Rofus_EU",
+      "platform": "twitch",
+      "score": 56
+     },
+     {
+      "name": "acey77",
+      "platform": "twitch",
+      "score": 52
+     },
+     {
+      "name": "danjal87",
+      "platform": "twitch",
+      "score": 41
+     }
+    ]
+   },
+   {
+    "id": "red",
+    "name": "Red Wing",
+    "score": 1234,
+    "crew": 4,
+    "top": [
+     {
+      "name": "fatdaddy200",
+      "platform": "twitch",
+      "score": 705
+     },
+     {
+      "name": "ussie284",
+      "platform": "twitch",
+      "score": 192
+     },
+     {
+      "name": "thor_sc7",
+      "platform": "twitch",
+      "score": 186
+     },
+     {
+      "name": "wumdorf",
+      "platform": "twitch",
+      "score": 151
+     }
+    ]
+   },
+   {
+    "id": "blue",
+    "name": "Blue Wing",
+    "score": 1022,
+    "crew": 4,
+    "top": [
+     {
+      "name": "cmdr_kahu",
+      "platform": "twitch",
+      "score": 596
+     },
+     {
+      "name": "tmbrwlf99",
+      "platform": "twitch",
+      "score": 295
+     },
+     {
+      "name": "respectfuljohn",
+      "platform": "twitch",
+      "score": 129
+     },
+     {
+      "name": "DenizenJ",
+      "platform": "twitch",
+      "score": 2
+     }
+    ]
+   }
+  ],
+  "history": [
+   {
+    "week": 1793538000000,
+    "winner": "gold"
+   },
+   {
+    "week": 1792933200000,
+    "winner": "gold"
+   }
+  ]
+ },
+ "intel": {
+  "at": 1794665202241,
+  "commands": [
+   "!news",
+   "!sales",
+   "!deals",
+   "!events",
+   "!intel"
+  ],
+  "news": [
+   {
+    "title": "This Week in Star Citizen",
+    "url": "https://robertsspaceindustries.com/en/comm-link/transmission/21431-This-Week-In-Star-Citizen",
+    "at": 1793649600000,
+    "tag": "show"
+   },
+   {
+    "title": "Jump Point Now Available!",
+    "url": "https://robertsspaceindustries.com/en/comm-link/transmission/21427-Jump-Point-Now-Available",
+    "at": 1793386800000,
+    "tag": "show"
+   },
+   {
+    "title": "10 From the Community",
+    "url": "https://robertsspaceindustries.com/en/comm-link/transmission/21423-10-From-The-Community",
+    "at": 1793386800000,
+    "tag": "news"
+   },
+   {
+    "title": "This Week in Star Citizen",
+    "url": "https://robertsspaceindustries.com/en/comm-link/transmission/21421-This-Week-In-Star-Citizen",
+    "at": 1793386800000,
+    "tag": "show"
+   },
+   {
+    "title": "Roadmap Roundup - October 21, 2026",
+    "url": "https://robertsspaceindustries.com/en/comm-link/transmission/21390-Roadmap-Roundup-October-21-2026",
+    "at": 1792609200000,
+    "tag": "patch"
+   },
+   {
+    "title": "This Week in Star Citizen",
+    "url": "https://robertsspaceindustries.com/en/comm-link/transmission/21388-This-Week-In-Star-Citizen",
+    "at": 1792443600000,
+    "tag": "show"
+   },
+   {
+    "title": "Star Citizen | Behind the Ships: RSI Constellation Mk V Centaurus : Video",
+    "url": "https://robertsspaceindustries.com/en/comm-link/transmission/21381-Star-Citizen-Behind-The-Ships-RSI-Constellation-Mk-V-Centaurus-Video",
+    "at": 1791993600000,
+    "tag": "news"
+   },
+   {
+    "title": "Q&A: RSI Constellation Mk V Centaurus",
+    "url": "https://robertsspaceindustries.com/en/comm-link/engineering/21377-Q-A-RSI-Constellation-Mk-V-Centaurus",
+    "at": 1791993600000,
+    "tag": "news"
+   }
+  ],
+  "sales": [
+   {
+    "name": "Skylark",
+    "maker": "RSI",
+    "price": 45,
+    "status": "flight-ready",
+    "url": "https://robertsspaceindustries.com/pledge/ships/skylark/Skylark",
+    "image": "https://fleetyards.net/files/representations/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjRmYWRhNzMwLThmOTAtNDdhMC04NmVlLTFhNzUzNGM5MWQ0ZiIsInB1ciI6ImJsb2JfaWQifX0=--ca6ec355184ae9bda95e247c5cee37efad4e5f6f/eyJfcmFpbHMiOnsiZGF0YSI6eyJmb3JtYXQiOiJ3ZWJwIiwicmVzaXplX3RvX2xpbWl0IjpbNTAwLDUwMF0sInNhdmVyIjp7InF1YWxpdHkiOjgwfX0sInB1ciI6InZhcmlhdGlvbiJ9fQ==--011157baae893c5ba6b4c93ee39e13a3f828513f/source.jpg/"
+   },
+   {
+    "name": "Galaxy",
+    "maker": "RSI",
+    "price": 400,
+    "status": "flight-ready",
+    "url": "https://robertsspaceindustries.com/pledge/ships/galaxy/Galaxy",
+    "image": "https://fleetyards.net/files/representations/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjMyMTBkNzFjLTNiNDEtNGQwOS1iMTU3LWY2N2EzMmZiNDkwMyIsInB1ciI6ImJsb2JfaWQifX0=--b138bfe551d1514cc2394026c14c4c12a875c7e0/eyJfcmFpbHMiOnsiZGF0YSI6eyJmb3JtYXQiOiJ3ZWJwIiwicmVzaXplX3RvX2xpbWl0IjpbNTAwLDUwMF0sInNhdmVyIjp7InF1YWxpdHkiOjgwfX0sInB1ciI6InZhcmlhdGlvbiJ9fQ==--011157baae893c5ba6b4c93ee39e13a3f828513f/source.jpg/"
+   },
+   {
+    "name": "Constellation Mk IV Andromeda",
+    "maker": "RSI",
+    "price": 240,
+    "status": "flight-ready",
+    "url": "https://robertsspaceindustries.com/pledge/ships/rsi-constellation/Constellation-Mk-IV-Andromeda",
+    "image": "https://fleetyards.net/files/representations/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjFhYmI4YWViLTkxMmYtNGJjMS1iZTIyLWRjNGUwYjFiMTI1NiIsInB1ciI6ImJsb2JfaWQifX0=--07fd5fd8d881a69c6dd4d01536a6e180129b417b/eyJfcmFpbHMiOnsiZGF0YSI6eyJmb3JtYXQiOiJ3ZWJwIiwicmVzaXplX3RvX2xpbWl0IjpbNTAwLDUwMF0sInNhdmVyIjp7InF1YWxpdHkiOjgwfX0sInB1ciI6InZhcmlhdGlvbiJ9fQ==--011157baae893c5ba6b4c93ee39e13a3f828513f/37_Constellation"
+   },
+   {
+    "name": "Constellation Mk IV Taurus",
+    "maker": "RSI",
+    "price": 200,
+    "status": "flight-ready",
+    "url": "https://robertsspaceindustries.com/pledge/ships/rsi-constellation/Constellation-Mk-IV-Taurus",
+    "image": "https://fleetyards.net/files/representations/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjIyMzgwNTgwLTZlNWItNDczNy1hZjk1LWY3YTI4N2Q1NjIyYSIsInB1ciI6ImJsb2JfaWQifX0=--59a7a022288f175d07185a9e409800e8d33aac5b/eyJfcmFpbHMiOnsiZGF0YSI6eyJmb3JtYXQiOiJ3ZWJwIiwicmVzaXplX3RvX2xpbWl0IjpbNTAwLDUwMF0sInNhdmVyIjp7InF1YWxpdHkiOjgwfX0sInB1ciI6InZhcmlhdGlvbiJ9fQ==--011157baae893c5ba6b4c93ee39e13a3f828513f/4-40dbcd13-4971-"
+   },
+   {
+    "name": "Constellation Mk IV Aquila",
+    "maker": "RSI",
+    "price": 315,
+    "status": "flight-ready",
+    "url": "https://robertsspaceindustries.com/pledge/ships/rsi-constellation/Constellation-Mk-IV-Aquila",
+    "image": "https://fleetyards.net/files/representations/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjMzZDVmMjYzLTkxY2EtNDU4ZS04OWY3LWI0MmIyNDI1OGU3YyIsInB1ciI6ImJsb2JfaWQifX0=--c72bfd44e32c8756ee7e7c6d79b08645645585bd/eyJfcmFpbHMiOnsiZGF0YSI6eyJmb3JtYXQiOiJ3ZWJwIiwicmVzaXplX3RvX2xpbWl0IjpbNTAwLDUwMF0sInNhdmVyIjp7InF1YWxpdHkiOjgwfX0sInB1ciI6InZhcmlhdGlvbiJ9fQ==--011157baae893c5ba6b4c93ee39e13a3f828513f/ILW__0002_38_Con"
+   },
+   {
+    "name": "Constellation Mk IV Phoenix",
+    "maker": "RSI",
+    "price": 350,
+    "status": "flight-ready",
+    "url": "https://robertsspaceindustries.com/pledge/ships/rsi-constellation/Constellation-Mk-IV-Phoenix",
+    "image": "https://fleetyards.net/files/representations/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjBmNTVjMjU0LTVhZjEtNGRmNy04ZTc5LTczZGY3YjM4ODlmOSIsInB1ciI6ImJsb2JfaWQifX0=--955dce59c9c3bd7f46f99838796a77ed2ab4bfb6/eyJfcmFpbHMiOnsiZGF0YSI6eyJmb3JtYXQiOiJ3ZWJwIiwicmVzaXplX3RvX2xpbWl0IjpbNTAwLDUwMF0sInNhdmVyIjp7InF1YWxpdHkiOjgwfX0sInB1ciI6InZhcmlhdGlvbiJ9fQ==--011157baae893c5ba6b4c93ee39e13a3f828513f/ILW__0001_39_Con"
+   },
+   {
+    "name": "Polaris",
+    "maker": "RSI",
+    "price": 975,
+    "status": "flight-ready",
+    "url": "https://robertsspaceindustries.com/pledge/ships/polaris/Polaris",
+    "image": "https://api.fleetyards.net/files/representations/redirect/eyJfcmFpbHMiOnsiZGF0YSI6ImU0NTE3NzNiLWRjZmMtNGEyZS1hN2QwLWExYjgwNjQwM2I4OSIsInB1ciI6ImJsb2JfaWQifX0=--ff89b0b659bbb7dbc40111e513f17a9bb69aa169/eyJfcmFpbHMiOnsiZGF0YSI6eyJmb3JtYXQiOiJ3ZWJwIiwicmVzaXplX3RvX2xpbWl0IjpbNTAwLDUwMF0sInNhdmVyIjp7InF1YWxpdHkiOjgwfX0sInB1ciI6InZhcmlhdGlvbiJ9fQ==--011157baae893c5ba6b4c93ee39e13a3f828513f/Star_Citizen"
+   },
+   {
+    "name": "Ursa",
+    "maker": "RSI",
+    "price": 50,
+    "status": "flight-ready",
+    "url": "https://robertsspaceindustries.com/pledge/ships/ursa/Ursa",
+    "image": "https://api.fleetyards.net/files/representations/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjZiMWRmZmQwLWE2NzUtNDBmOC1hZDliLTgxYjUyZWRjMWYxMSIsInB1ciI6ImJsb2JfaWQifX0=--20c6e68fa4f121d8d2ca7825ed0c6f8e648172cf/eyJfcmFpbHMiOnsiZGF0YSI6eyJmb3JtYXQiOiJ3ZWJwIiwicmVzaXplX3RvX2xpbWl0IjpbNTAwLDUwMF0sInNhdmVyIjp7InF1YWxpdHkiOjgwfX0sInB1ciI6InZhcmlhdGlvbiJ9fQ==--011157baae893c5ba6b4c93ee39e13a3f828513f/StarCitizen_"
+   },
+   {
+    "name": "Apollo Triage",
+    "maker": "RSI",
+    "price": 260,
+    "status": "flight-ready",
+    "url": "https://robertsspaceindustries.com/pledge/ships/rsi-apollo/Apollo-Triage",
+    "image": "https://api.fleetyards.net/files/representations/redirect/eyJfcmFpbHMiOnsiZGF0YSI6IjVhOGZjZWRjLTkxM2EtNGYwZC05MzFiLWY4ZTUyY2JhNmNkMyIsInB1ciI6ImJsb2JfaWQifX0=--96c24403beb0d2b400720f1a738b7165c781613f/eyJfcmFpbHMiOnsiZGF0YSI6eyJmb3JtYXQiOiJ3ZWJwIiwicmVzaXplX3RvX2xpbWl0IjpbNTAwLDUwMF0sInNhdmVyIjp7InF1YWxpdHkiOjgwfX0sInB1ciI6InZhcmlhdGlvbiJ9fQ==--011157baae893c5ba6b4c93ee39e13a3f828513f/Star_Citizen"
+   },
+   {
+    "name": "Apollo Medivac",
+    "maker": "RSI",
+    "price": 290,
+    "status": "flight-ready",
+    "url": "https://robertsspaceindustries.com/pledge/ships/rsi-apollo/Apollo-Medivac",
+    "image": "https://api.fleetyards.net/files/representations/redirect/eyJfcmFpbHMiOnsiZGF0YSI6ImRjNDRjYTUxLTdiMjctNDVlNi04NDkwLWI2NWY3ODRmMzQ1NyIsInB1ciI6ImJsb2JfaWQifX0=--e57c238a2311c12a5e9d32efdf6fe8809f96fff6/eyJfcmFpbHMiOnsiZGF0YSI6eyJmb3JtYXQiOiJ3ZWJwIiwicmVzaXplX3RvX2xpbWl0IjpbNTAwLDUwMF0sInNhdmVyIjp7InF1YWxpdHkiOjgwfX0sInB1ciI6InZhcmlhdGlvbiJ9fQ==--011157baae893c5ba6b4c93ee39e13a3f828513f/Star_Citizen"
+   }
+  ],
+  "salesTotal": 60,
+  "deals": [],
+  "events": []
+ },
+ "crew": {
+  "file": "crew.json",
+  "count": 2000
+ }
+}
