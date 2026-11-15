@@ -154,7 +154,8 @@ test('2.25.0 Bridge Quiz leaderboard: correct answers and points per viewer, all
   const win=(name,platform='twitch')=>{const a=e.ask();assert.equal(e.answer({key:platform+':'+name.toLowerCase(),name,platform},a.a[0]),true);at(1000);};
   win('Nova');win('Ace','youtube');win('Nova');e.configure({quiz:{reward:10}});win('Ace','youtube');win('Nova');
   let b=e.quizBoard();assert.deepEqual(b.all.map(r=>[r.place,r.name,r.correct,r.points]),[[1,'Nova',3,20],[2,'Ace',2,15]]);assert.equal(b.all[1].platform,'youtube');assert.deepEqual(b.stream,b.all);assert.equal(b.players,2);
-  const a=e.ask();assert.ok(e.quizBoard().asked,'a live question is flagged');e.cancelQuiz();
+  assert.equal(e.quizBoard().asked,null);const ended=e.quizBoard().endedAt;assert.ok(ended>0&&e.quizBoard().serverAt-ended<=1000,'2.25.1: answered a second ago — the panel holds for 30 s from here');
+  const a=e.ask();assert.ok(e.quizBoard().asked,'a live question is flagged');assert.equal(e.quizBoard().endedAt,0);at(61000);assert.equal(e.quizBoard().asked,null);assert.equal(e.quizBoard().endedAt,a.endsAt,'timed out: finished at its deadline');e.ask();e.cancelQuiz();assert.equal(e.quizBoard().endedAt,0,'cancelled: off at once');
   e.newStream();win('Ace','youtube');b=e.quizBoard();assert.deepEqual(b.stream.map(r=>[r.name,r.correct,r.points]),[['Ace',1,10]],'this stream starts from zero');assert.deepEqual(b.all.map(r=>[r.name,r.correct]),[['Ace',3],['Nova',3]],'tie on correct: more points first');
   assert.equal(e.quizBoard(1).all.length,1);assert.equal(e.view().quiz.board.all.length,2);
   // backfill: a state file from before 2.25.0 has reward records but no scores

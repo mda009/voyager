@@ -302,7 +302,8 @@ export class Engage{
   quizBoard(limit=10){const sc=Object.values(this.state.quiz.scores||{}),stream=this.state.stream?.id||0,n=Math.max(1,Math.min(25,limit|0||10));
     const rank=(rows,c,p)=>rows.filter(r=>r[c]>0).sort((a,b)=>b[c]-a[c]||b[p]-a[p]||a.last-b.last).slice(0,n).map((r,i)=>({place:i+1,name:r.name,platform:r.platform,correct:r[c],points:r[p]}));
     const a=this.state.quiz.active,live=a&&!a.winner&&this.now()<a.endsAt;
-    return {serverAt:this.now(),enabled:this.state.settings.quiz.enabled,all:rank(sc,'correct','points'),stream:rank(sc.filter(r=>r.stream===stream),'sCorrect','sPoints'),players:sc.length,asked:live?{endsAt:a.endsAt}:null,last:this.state.quiz.history[0]?{name:this.state.quiz.history[0].winner?.name||'',at:this.state.quiz.history[0].at}:null};}
+    return {serverAt:this.now(),enabled:this.state.settings.quiz.enabled,all:rank(sc,'correct','points'),stream:rank(sc.filter(r=>r.stream===stream),'sCorrect','sPoints'),players:sc.length,asked:live?{endsAt:a.endsAt}:null,endedAt:a&&!live?(a.winner?.at||a.endsAt):0, // 2.25.1: when the last question finished (answered or timed out), so the panel can stay up for a while after
+      last:this.state.quiz.history[0]?{name:this.state.quiz.history[0].winner?.name||'',at:this.state.quiz.history[0].at}:null};}
   resetQuizBoard(){this.state.quiz.scores={};this.persist(true);return true;}
   quizStatus(){const a=this.state.quiz.active;if(a&&!a.winner&&this.now()<a.endsAt)this.say('🧠 BRIDGE QUIZ: '+a.q+' · '+Math.ceil((a.endsAt-this.now())/1000)+'s left.');return null;}
   cancelQuiz(){const a=this.state.quiz.active;if(!a)throw new Error('No question is running.');this.state.quiz.active=null;this.persist(true);return true;}

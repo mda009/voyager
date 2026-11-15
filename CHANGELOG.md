@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.25.1 (15 November 2026)
+
+- **Bridge Quiz leaderboard shows itself.** The panel now slides on screen when a question is asked and stays for 30 seconds after the question finishes (answered or timed out), then leaves. A cancelled question takes it off at once. `?always=1` on the address keeps it on screen all the time; `?hold=60` changes the 30 seconds.
+
 ## 2.25.0 (15 November 2026)
 
 - **Bridge Quiz leaderboard.** A new OBS panel (Browser source, 460 × 600) ranking the crew by correct answers, with the points awarded beside each name; first place is picked out in gold, a row flashes when someone scores, and a "Question live" badge shows while a question is open. All-time by default; add `?scope=stream` for this stream only and `&rows=5` for a shorter list. The same board, a This stream only switch and a Reset button are on Chat engagement › Bridge Quiz. It starts from the quiz wins still on file (about the last 60 rewarded questions and musters), then counts every correct answer from here on.
