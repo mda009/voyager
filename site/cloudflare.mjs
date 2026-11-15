@@ -25,7 +25,7 @@ export function embedOrigins(raw){
 export function headersFile(origins=DEFAULT_EMBED_ORIGINS){
   const csp=["default-src 'self'","script-src 'self' 'unsafe-inline'","style-src 'self' 'unsafe-inline'","img-src 'self' data: https://robertsspaceindustries.com https://fleetyards.net https://*.fleetyards.net","font-src 'self'",
     "connect-src 'self' https://raw.githubusercontent.com https://api.github.com","frame-ancestors 'self' "+origins.join(' '),
-    "base-uri 'none'","form-action 'none'","object-src 'self'"].join('; ');
+    "frame-src https://player.twitch.tv","worker-src 'self'","base-uri 'none'","form-action 'none'","object-src 'self'"].join('; ');
   return `/*
   Content-Security-Policy: ${csp}
   X-Content-Type-Options: nosniff
@@ -43,16 +43,23 @@ export function headersFile(origins=DEFAULT_EMBED_ORIGINS){
 `;
 }
 
-export function wranglerConfig(assetsDir='./_site'){
-  // Assets-only Worker: no server code. Custom domains are added once in the Cloudflare dashboard.
-  return {name:WORKER_NAME,compatibility_date:'2025-10-01',assets:{directory:assetsDir},workers_dev:true,observability:{enabled:false}};
+export function wranglerConfig(assetsDir='./_site',{pushKv='',feedUrl=''}={}){
+  // Without notification storage: an assets-only Worker, no server code. Custom domains are added once in the Cloudflare dashboard.
+  const base={name:WORKER_NAME,compatibility_date:'2025-10-01',assets:{directory:assetsDir},workers_dev:true,observability:{enabled:false}};
+  if(!/^[0-9a-f]{32}$/.test(pushKv))return base;
+  // 2.23.0 notifications: site/worker.mjs answers /api/push/*, reads the public feed once a minute (cron) and sends Web Push.
+  // PUSH = the KV namespace with subscriptions and keys; SELF = the Worker calling itself for the next batch of sends.
+  return {...base,main:'site/worker.mjs',assets:{directory:assetsDir,binding:'ASSETS'},kv_namespaces:[{binding:'PUSH',id:pushKv}],triggers:{crons:['* * * * *']},
+    services:[{binding:'SELF',service:WORKER_NAME}],vars:{FEED_URL:feedUrl,SUBJECT:'https://voyagercommand.com'}};
 }
 
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
   try{
     const dir=process.argv[2]||'_site';
     await writeFile(join(dir,'_headers'),headersFile(embedOrigins(process.env.VOYAGER_EMBED_ORIGINS)));
-    await writeFile('wrangler.json',JSON.stringify(wranglerConfig('./'+dir.replace(/^\.\//,'')),null,2));
+    const repo=process.env.GITHUB_REPOSITORY||'',pushKv=(process.env.VOYAGER_PUSH_KV||'').trim();
+    await writeFile('wrangler.json',JSON.stringify(wranglerConfig('./'+dir.replace(/^\.\//,''),{pushKv,feedUrl:repo?`https://raw.githubusercontent.com/${repo}/public-data/feed.json`:''}),null,2));
+    console.log(pushKv?'Notifications: on (storage '+pushKv.slice(0,6)+'…)':'Notifications: off (no storage; the site is deployed without them)');
     console.log('Cloudflare settings written: '+join(dir,'_headers')+' and wrangler.json');
   }catch(e){console.error(e.message);process.exitCode=1;}
 }

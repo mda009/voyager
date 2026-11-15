@@ -23,12 +23,13 @@ const TABS=[
  ['crew','My card','M3 5h18v14H3z M7 10a2 2 0 1 0 4 0a2 2 0 0 0-4 0 M6 16c.6-1.6 1.8-2.4 3-2.4s2.4.8 3 2.4 M14 9h4 M14 13h4'],
  ['community','Community','M16 11a4 4 0 1 0-8 0 4 4 0 0 0 8 0z M4 21c0-3.3 3.6-6 8-6s8 2.7 8 6 M19 8a3 3 0 1 0 0-6 M5 8a3 3 0 1 1 0-6'],
  ['more','More','M5 12h.01 M12 12h.01 M19 12h.01'],
+ ['notify','Notifications','M6 9a6 6 0 1 1 12 0c0 6 2 7 2 7H4s2-1 2-7 M10 20a2 2 0 0 0 4 0'],
  ['goal','Goals','M12 3l2.6 5.4 6 .8-4.3 4.2 1 5.9-5.3-2.8-5.3 2.8 1-5.9L3.4 9.2l6-.8z'],
  ['intel','SC Intel','M12 2l2 5 5 .7-3.7 3.4.9 5.2L12 13.9 7.8 16.3l.9-5.2L5 7.7 10 7z M3 20h18 M6 17v3 M18 17v3'],
  ['commands','Commands','M4 6h16v12H4z M7 10l3 2-3 2 M12 14h5'],
  ['guide','Guide','M4 4h7a3 3 0 0 1 3 3v13a2 2 0 0 0-2-2H4z M20 4h-7a3 3 0 0 0-3 3v13a2 2 0 0 1 2-2h8z']];
-const BAR=['home','live','crew','community','more'],PARENT={goal:'more',intel:'more',commands:'more',guide:'more'};
-const SUB_TEXT={goal:'The community goal, giveaway goals and standings',intel:'Star Citizen news, ships in the store, deals and events',commands:'Every chat command and what it does',guide:'How Voyager works, and the member manual'};
+const BAR=['home','live','crew','community','more'],PARENT={notify:'more',goal:'more',intel:'more',commands:'more',guide:'more'};
+const SUB_TEXT={notify:'Alerts when the stream goes live, the Dreadnought appears, a giveaway opens or you win',goal:'The community goal, giveaway goals and standings',intel:'Star Citizen news, ships in the store, deals and events',commands:'Every chat command and what it does',guide:'How Voyager works, and the member manual'};
 const TAB_ALIAS={medals:'community',winners:'community',boards:'community',leaderboards:'community',squad:'community',season:'goal',goals:'goal',dread:'live',giveaways:'live',missions:'live',arena:'live',ranks:'crew',find:'crew',program:'guide',manual:'guide',command:'commands',cmd:'commands',cmds:'commands',news:'intel',sales:'intel',ships:'intel',store:'intel',deals:'intel',events:'intel',sc:'intel',card:'crew',me:'crew'};
 const resolveTab=h=>TABS.some(([t])=>t===h)?h:TAB_ALIAS[h]||(document.getElementById(h)?.dataset?.tab)||null;
 let pendingCard='';{const m=location.hash.match(/^#card\/(.+)$/);if(m){try{pendingCard=decodeURIComponent(m[1]).toLowerCase();}catch{}}}
@@ -320,7 +321,7 @@ async function drawSide(host,f,side='front',b=null){
 const drawFront=(host,f)=>drawSide(host,f,'front');
 function show(m,remember=true,side='front'){
  selected=m;$('crew-results').textContent='';$('crew-search').value='';
- if(remember){try{localStorage.setItem('voyager-me',m.key);}catch{}store.del('voyager-snap');renderHome();}
+ if(remember){try{localStorage.setItem('voyager-me',m.key);}catch{}store.del('voyager-snap');renderHome();push.syncName();}
  const [title,c1,c2]=TIER[m.tier]||TIER.blue,box=$('member');box.hidden=false;box.textContent='';box.className='member-wrap';
  box.style.setProperty('--t',c1);box.style.setProperty('--t2',c2);
  const total=catalogue.size||0,r=m.record||[];
@@ -420,6 +421,53 @@ function onboard(force=false,start=0){
  draw();
 }
 
+// ---------- notifications (2.23.0): Web Push through the site's own Worker ----------
+const NTF=[['live','Stream is live','When the stream goes on air'],['dread','Dreadnought incoming','When the Dreadnought appears, so you can !join in time'],['giveaway','Giveaway open','When a new giveaway opens'],['win','You won','When you are confirmed as a giveaway winner (uses the card name you picked)']];
+const push={ok:false,key:'',sub:null,busy:false,
+ supported:()=>!EMBED&&location.protocol==='https:'&&'serviceWorker' in navigator&&'PushManager' in window&&'Notification' in window,
+ topics(){try{const t=JSON.parse(store.get('voyager-topics')||'null');if(Array.isArray(t))return t;}catch{}return NTF.map(x=>x[0]);},
+ async init(){ // is the Worker there, and is this device already subscribed?
+  if(!push.supported()){push.render();return;}
+  try{const r=await fetch('api/push/key',{cache:'no-store'});if(!r.ok)throw 0;const d=await r.json();if(!d.key)throw 0;push.key=d.key;push.ok=true;}catch{push.ok=false;}
+  push.render();renderTabs();
+  if(push.ok){try{const reg=await Promise.race([navigator.serviceWorker.ready,new Promise((_,no)=>setTimeout(no,6000))]);push.sub=await reg.pushManager.getSubscription();}catch{}}
+  push.render();renderTabs();
+ },
+ async save(topics){const r=await fetch('api/push/subscribe',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({subscription:push.sub.toJSON(),topics,name:store.get('voyager-me')||''})});if(!r.ok)throw new Error((await r.json().catch(()=>({}))).message||'Could not save');store.set('voyager-topics',JSON.stringify(topics));},
+ async enable(){if(push.busy)return;push.busy=true;try{
+   if(isIOS()&&!standalone()){toast('Add Voyager to your Home Screen first');onboard(true,2);return;}
+   const perm=await Notification.requestPermission();if(perm!=='granted'){push.render();return;}
+   const reg=await navigator.serviceWorker.ready,pad='='.repeat((4-push.key.length%4)%4),raw=atob((push.key+pad).replace(/-/g,'+').replace(/_/g,'/'));
+   push.sub=await reg.pushManager.getSubscription()||await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:Uint8Array.from(raw,c=>c.charCodeAt(0))});
+   const t=push.topics();await push.save(t.length?t:NTF.map(x=>x[0]));toast('Notifications are on');
+  }catch(e){toast(e?.message||'Could not turn notifications on');}finally{push.busy=false;push.render();}},
+ async disable(){try{if(push.sub){await fetch('api/push/unsubscribe',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({endpoint:push.sub.endpoint})}).catch(()=>{});await push.sub.unsubscribe();}}catch{}push.sub=null;toast('Notifications are off');push.render();},
+ async setTopic(k,on){const t=new Set(push.topics());on?t.add(k):t.delete(k);const list=NTF.map(x=>x[0]).filter(x=>t.has(x));try{if(!list.length){await push.disable();store.set('voyager-topics','[]');return;}await push.save(list);}catch(e){toast(e?.message||'Could not save');}push.render();},
+ async syncName(){if(push.sub&&push.ok)try{await push.save(push.topics());}catch{}},
+ render(){
+  const sec=$('notify');if(!sec)return;sec.hidden=!push.ok;const prompt=$('ntf-prompt');
+  const perm=push.supported()?Notification.permission:'denied',on=!!push.sub&&perm==='granted',needHome=isIOS()&&!standalone();
+  if(prompt)prompt.hidden=!(push.ok&&!on&&perm==='default'&&!store.get('voyager-ntf-later')&&feed);
+  if(!push.ok)return;
+  const st=$('ntf-state');st.dataset.on=on?'true':perm==='denied'?'blocked':'false';st.textContent='';st.append(el('i'),el('span','',on?'On for this device':perm==='denied'?'Blocked in this browser':'Off'));
+  const list=$('ntf-list');list.textContent='';const mine=push.topics();
+  for(const [k,title,sub] of NTF){const lab=el('label');const t=el('div');t.append(el('b','',title),el('small','',k==='win'&&!store.get('voyager-me')?sub+' — find your card first':sub));const c=el('input');c.type='checkbox';c.checked=on&&mine.includes(k);c.disabled=!on;c.setAttribute('aria-label',title);c.onchange=()=>push.setTopic(k,c.checked);lab.append(t,c);list.append(lab);}
+  $('ntf-on').hidden=on;$('ntf-test').hidden=!on;$('ntf-off').hidden=!on;
+  $('ntf-note').textContent=perm==='denied'?'Notifications are blocked for this site. Allow them in your browser or phone settings, then come back here.':needHome&&!on?'On iPhone and iPad, add Voyager to your Home Screen first (Share › Add to Home Screen), then open it from there and turn notifications on.':on?'Alerts arrive within a minute or two of it happening on stream.':'Your browser will ask for permission. Only this device is signed up; nothing else about you is stored.';
+ }};
+$('ntf-on').onclick=()=>push.enable();$('ntf-off').onclick=()=>push.disable();
+$('ntf-test').onclick=async()=>{try{const r=await fetch('api/push/test',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({endpoint:push.sub.endpoint})});toast(r.ok?'Test sent — it should appear in a moment':'The test could not be sent');}catch{toast('The test could not be sent');}};
+$('ntf-prompt-on').onclick=()=>{go('notify');push.enable();};$('ntf-prompt-x').onclick=()=>{store.set('voyager-ntf-later','1');$('ntf-prompt').hidden=true;};
+push.init();
+
+// ---------- watch here (2.23.0): the Twitch player, loaded only when tapped ----------
+function renderWatch(){
+ const sec=$('watch');if(!sec)return;const url=feed?.channel?.links?.twitch||'',m=url.match(/^https:\/\/(?:www\.)?twitch\.tv\/([A-Za-z0-9_]{3,25})\/?$/);
+ sec.hidden=EMBED||!m||!/^[a-z0-9.-]+$/i.test(location.hostname);if(sec.hidden)return;
+ const ch=m[1],on=!!feed.live?.onAir;$('watch-chat').href='https://www.twitch.tv/'+ch;$('player-label').textContent=on?'Play the stream here':'Off air — play the channel here';
+ $('player-start').onclick=()=>{const f=document.createElement('iframe');f.src='https://player.twitch.tv/?channel='+encodeURIComponent(ch)+'&parent='+encodeURIComponent(location.hostname)+'&muted=false&autoplay=true';f.allow='autoplay; fullscreen; picture-in-picture';f.allowFullscreen=true;f.title='Twitch stream';$('player').replaceChildren(f);};
+}
+
 // ---------- pull to refresh (phones and tablets) ----------
 (()=>{if(EMBED||!('ontouchstart' in window))return;const ind=$('ptr');let y0=null,pull=0,busy=false;
  const set=(px,live)=>{ind.classList.toggle('live',live);ind.style.transform='translateY('+(px-70)+'px)';ind.style.opacity=String(Math.min(1,px/60));ind.style.setProperty('--r',(px*4)+'deg');};
@@ -433,7 +481,7 @@ function onboard(force=false,start=0){
 // ---------- feed ----------
 addEventListener('voyager:feed',e=>{
  feed=e.detail;
- try{renderNow();}catch{}try{renderHome();}catch{}try{renderDread();}catch{}try{renderRanks();}catch{}try{renderMedals();}catch{}try{renderSquad();}catch{}try{renderLog();}catch{}try{renderIntel();}catch{}
+ try{renderNow();}catch{}try{renderHome();}catch{}try{renderWatch();}catch{}try{push.render();}catch{}try{renderDread();}catch{}try{renderRanks();}catch{}try{renderMedals();}catch{}try{renderSquad();}catch{}try{renderLog();}catch{}try{renderIntel();}catch{}
  $('arena').hidden=$('versus').hidden;
  $('find').hidden=!feed.crew;
  renderTabs();

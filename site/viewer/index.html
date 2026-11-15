@@ -419,6 +419,24 @@ header.top{position:sticky;top:0;z-index:25;margin:0 -16px;padding:10px 16px;bac
  .subhead{margin:10px 0 -6px}
 }
 @media (display-mode:standalone){.install{display:none!important}footer p:last-child{display:none}}
+/* Stage 2 (2.23.0): notifications and the player */
+.ntf-state{display:flex;align-items:center;gap:10px;font:700 15px/1.2 var(--display);letter-spacing:.6px;margin-bottom:12px}
+.ntf-state i{width:10px;height:10px;border-radius:50%;background:var(--faint);flex:none}.ntf-state[data-on=true] i{background:var(--green);box-shadow:0 0 8px var(--green)}.ntf-state[data-on=blocked] i{background:var(--rose)}
+.ntf-list{display:grid;gap:8px}
+.ntf-list label{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:#0b1626;cursor:pointer}
+.ntf-list b{display:block;font:700 16px/1.2 var(--display);letter-spacing:.4px}.ntf-list small{display:block;color:var(--muted);font-size:13px;margin-top:2px}
+.ntf-list input{appearance:none;-webkit-appearance:none;width:46px;height:28px;border-radius:999px;background:#1d3048;position:relative;cursor:pointer;transition:background .15s;margin:0}
+.ntf-list input::after{content:'';position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#8ea6bd;transition:transform .15s,background .15s}
+.ntf-list input:checked{background:#1d5fd0}.ntf-list input:checked::after{transform:translateX(18px);background:#fff}
+.ntf-list input:disabled{opacity:.45;cursor:default}.ntf-list input:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+.ntf-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.ntf-prompt{margin-top:14px}.ntf-prompt .x{background:none!important;color:var(--muted)!important;margin-left:0!important;padding:8px 10px!important;font-size:20px!important;line-height:1}
+.watch-chat{font-size:13px;text-decoration:none}
+.player{position:relative;margin-top:12px;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:radial-gradient(ellipse at 50% 40%,#1c3e6e,#070d16 75%);border:1px solid var(--line)}
+.player iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.player button{position:absolute;inset:0;width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:none;border:0;color:var(--text);cursor:pointer;font:700 15px/1 var(--display);letter-spacing:1.4px;text-transform:uppercase}
+.player button svg{width:64px;height:64px;padding:14px;border-radius:50%;background:#13253cdd;border:1px solid var(--line-strong);color:#fff}
+@media (min-width:900px){#watch .player{max-width:760px}}
 </style>
 </head>
 <body>
@@ -442,6 +460,7 @@ header.top{position:sticky;top:0;z-index:25;margin:0 -16px;padding:10px 16px;bac
   <div class="since" id="home-since" hidden></div>
   <h2 class="home-h" id="h-rightnow">Happening now</h2>
   <div class="rightnow" id="rightnow" aria-labelledby="h-rightnow"><div class="sk sk-tile"></div><div class="sk sk-tile"></div><div class="sk sk-tile"></div></div>
+  <div class="install ntf-prompt" id="ntf-prompt" hidden><span>Get an alert when the stream goes live or the Dreadnought appears.</span><button type="button" id="ntf-prompt-on">Turn on</button><button type="button" class="x" id="ntf-prompt-x" aria-label="Not now">×</button></div>
   <div class="install" id="install" hidden><span id="install-text">Add Voyager to your home screen for one-tap access.</span><button type="button" id="install-btn">Install</button></div>
  </section>
 
@@ -451,6 +470,26 @@ header.top{position:sticky;top:0;z-index:25;margin:0 -16px;padding:10px 16px;bac
    <h1 id="h-now">Live from the stream</h1>
    <p id="tagline">Keep this open while you watch: giveaways, the Dreadnought, your card, ranks and medals, live from the stream.</p>
    <div class="chips" id="chips" aria-label="Chat commands to copy"></div>
+  </div>
+ </section>
+
+ <!-- Watch here (2.23.0): the Twitch player beside the live info; loads only when tapped -->
+ <section id="watch" data-tab="live" aria-labelledby="h-watch" hidden>
+  <div class="card watch-card">
+   <div class="gw-top"><span class="kind" id="h-watch">Watch here</span><a class="watch-chat" id="watch-chat" target="_blank" rel="noopener noreferrer">Open on Twitch ↗</a></div>
+   <div class="player" id="player"><button type="button" id="player-start"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor"/></svg><span id="player-label">Play the stream here</span></button></div>
+   <p class="lede small" style="margin:10px 0 0">Chat commands are typed in the stream's own chat — tap a command above to copy it.</p>
+  </div>
+ </section>
+
+ <!-- Notifications (2.23.0) -->
+ <section id="notify" data-tab="notify" aria-labelledby="h-notify" hidden>
+  <h2 id="h-notify">Notifications</h2><p class="lede">Get an alert on this device when something starts. No account needed, and you can switch any of them off here.</p>
+  <div class="card">
+   <div class="ntf-state" id="ntf-state"></div>
+   <div class="ntf-list" id="ntf-list"></div>
+   <div class="si-row ntf-actions"><button type="button" class="btn" id="ntf-on">Turn on notifications</button><button type="button" class="btn ghost" id="ntf-test" hidden>Send a test</button><button type="button" class="btn ghost" id="ntf-off" hidden>Turn all off</button></div>
+   <p class="lede small" id="ntf-note" style="margin:12px 0 0"></p>
   </div>
  </section>
 
@@ -606,7 +645,7 @@ header.top{position:sticky;top:0;z-index:25;margin:0 -16px;padding:10px 16px;bac
  <footer><p id="updated">Updates every few minutes while the stream tools are running.</p><p><a href="manual.pdf" target="_blank" rel="noopener">Voyager member manual (PDF)</a></p><p>Voyager community site. Giveaway entry happens in stream chat only; this site never asks for passwords or payment.</p></footer>
 </div>
 <script src="fair-draw.js"></script>
-<script src="companion.js?v=2.22.0" defer></script>
+<script src="companion.js?v=2.23.0" defer></script>
 <script>
 (()=>{'use strict';
 // ?embed=1: shown inside another site. Report our height so the host page can size its frame.
