@@ -104,17 +104,17 @@ test('Reset for a new stream (2.20.35): everyone can !report again; owed rewards
   assert.equal(e.chat(msg('Nova','!report')).ok,true,'reports again after the reset');assert.equal(e.rewardBatches().length,owed+1,'the earlier muster is still owed');
 });
 
-test('2.21.13 quiz bank 3: the harder Star Citizen & general knowledge set replaces the 2.20.22 and 2.20.94 starters, keeps the streamer\'s own questions and sets a 25-point default reward to 5',async()=>{
+test('2.26.0 quiz bank 4: the harder Star Citizen & general knowledge set replaces the 2.20.22 and 2.20.94 starters, keeps the streamer\'s own questions and sets a 25-point default reward to 5',async()=>{
   const {mkdtemp,writeFile}=await import('node:fs/promises');const {tmpdir}=await import('node:os');const {join}=await import('node:path');
   const dir=await mkdtemp(join(tmpdir(),'voyager-quiz-'));
   await writeFile(join(dir,'engage.json'),JSON.stringify({schema:1,settings:{quiz:{reward:25}},quiz:{bank:[{id:'a1',q:'Which planet has the Great Red Spot?',a:['jupiter']},{id:'a2',q:'What chat command shows your Voyager membership card?',a:['!voyager']},{id:'a3',q:'Which studio develops Star Citizen?',a:['cig']},{id:'m1',q:'What is my cat called?',a:['nova']}],active:null,history:[],lastAutoAt:0}}));
   const e=await new Engage({dataDir:dir,now:()=>1000,say:()=>{}}).load();
   const qs=e.state.quiz.bank.map(x=>x.q);
-  assert.ok(qs.includes('What does CIG call its fork of CryEngine that runs Star Citizen?'),'new set loaded');assert.ok(!qs.includes('Which studio develops Star Citizen?'),'2.20.94 starter replaced');assert.ok(qs.includes('What is my cat called?'),'own question kept');
+  assert.ok(qs.includes('What is the name of Orison\'s spaceport?'),'new set loaded');assert.ok(!qs.includes('What does CIG call its fork of CryEngine that runs Star Citizen?'),'2.21.13 starter replaced');assert.ok(!qs.includes('Which studio develops Star Citizen?'),'2.20.94 starter replaced');assert.ok(qs.includes('What is my cat called?'),'own question kept');
   assert.ok(!qs.includes('What chat command shows your Voyager membership card?'),'old Voyager-command starter replaced');
   assert.ok(!qs.includes('Which planet has the Great Red Spot?'),'2.20.22 starter replaced');assert.equal(new Set(qs).size,qs.length,'no duplicates');
-  assert.equal(e.state.settings.quiz.reward,5);assert.equal(e.state.quiz.bankVersion,3);
-  assert.ok(e.state.quiz.bank.length>=120);
+  assert.equal(e.state.settings.quiz.reward,5);assert.equal(e.state.quiz.bankVersion,4);
+  assert.ok(e.state.quiz.bank.length>=220);
   e.loadStarters();assert.ok(!e.state.quiz.bank.some(x=>x.q==='What is my cat called?'),'reload replaces everything');
 });
 
@@ -163,4 +163,20 @@ test('2.25.0 Bridge Quiz leaderboard: correct answers and points per viewer, all
   const {Engage}=await import('../local/engage.mjs');const e2=await new Engage({dataDir:e.dataDir,now:()=>2e12,say:()=>{}}).load();
   assert.deepEqual(e2.quizBoard().all.map(r=>[r.name,r.correct,r.points]),[['Ace',3,25],['Nova',3,20]]);assert.deepEqual(e2.quizBoard().stream,[],'old wins do not count as this stream');
   e2.resetQuizBoard();assert.deepEqual(e2.quizBoard().all,[]);
+});
+
+test('2.26.0: a question is asked once and never again — not after edits, a reload of the set or a restart; the quiz stops when all are used',async()=>{
+  const {e,at}=await make();e.configure({quiz:{seconds:15}});
+  e.setBank([{id:'q1',q:'One?',a:['1']},{id:'q2',q:'Two?',a:['2']},{id:'q3',q:'Three?',a:['3']}]);
+  const seen=[];for(let i=0;i<3;i++){seen.push(e.ask().q);at(16000);}
+  assert.deepEqual([...seen].sort(),['One?','Three?','Two?'],'each asked exactly once');assert.equal(e.view().quiz.remaining,0);assert.ok(e.view().quiz.bank.every(x=>x.asked));
+  assert.throws(()=>e.ask(),/Every question has been asked/);assert.throws(()=>e.ask('q1'),/already been asked/,'not even when picked by hand');
+  e.setBank([{id:'zz',q:'  one? ',a:['1']},{id:'q4',q:'Four?',a:['4']}]);assert.equal(e.view().quiz.remaining,1,'re-added with a new id and spacing: still used');
+  assert.equal(e.ask().q,'Four?');at(16000);assert.throws(()=>e.ask(),/Every question/);
+  e.loadStarters();const act=e.ask(),first=act.q;assert.equal(e.answer({key:'twitch:x',name:'X',platform:'twitch'},act.a[0]),true);at(16000);e.loadStarters();assert.ok(e.view().quiz.bank.find(x=>x.q===first).asked,'reloading the shipped set keeps what was asked');
+  await e.persist(true);await e.saving;const {Engage}=await import('../local/engage.mjs');const e2=await new Engage({dataDir:e.dataDir,now:()=>3e12,say:()=>{}}).load();
+  assert.ok(e2.state.quiz.asked.length>=5,'remembered across restarts');assert.ok(e2.view().quiz.bank.find(x=>x.q===first).asked);
+  // an older data file has no "asked" list: it starts from the questions in its history
+  const fs=await import('node:fs/promises'),path=await import('node:path'),file=path.join(e.dataDir,'engage.json'),raw=JSON.parse(await fs.readFile(file,'utf8'));delete raw.quiz.asked;await fs.writeFile(file,JSON.stringify(raw));
+  const e3=await new Engage({dataDir:e.dataDir,now:()=>3e12,say:()=>{}}).load();assert.ok(e3.view().quiz.bank.find(x=>x.q===first).asked,'seeded from the answered questions in its history');
 });

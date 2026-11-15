@@ -14,10 +14,10 @@ const PLAT={twitch:'Twitch',youtube:'YouTube',kick:'Kick'};
 function fill(form,obj){const f=$(form).elements;for(const [k,v] of Object.entries(obj)){const i=f[k];if(!i)continue;if(i.type==='checkbox')i.checked=!!v;else i.value=v;}}
 function read(form){const out={};for(const i of $(form).elements){if(!i.name)continue;out[i.name]=i.type==='checkbox'?i.checked:i.type==='number'?Number(i.value):i.value;}return out;}
 function renderBank(){
-  const box=$('bank');box.textContent='';$('bank-count').textContent=bank.length;
+  const box=$('bank');box.textContent='';const used=new Set((view?.quiz?.bank||[]).filter(x=>x.asked).map(x=>x.id));$('bank-count').textContent=bank.length+' · '+(view?.quiz?.remaining??bank.length)+' not yet asked';
   bank.forEach((q,i)=>{const row=el('div','eg-q');const qi=el('input');qi.value=q.q;qi.maxLength=160;qi.setAttribute('aria-label','Question '+(i+1));qi.oninput=()=>{q.q=qi.value;};
     const ai=el('input');ai.value=(q.a||[]).join(' | ');ai.setAttribute('aria-label','Answers for question '+(i+1));ai.oninput=()=>{q.a=ai.value.split('|').map(x=>x.trim()).filter(Boolean);};
-    const ask=el('button','','Ask');ask.type='button';ask.onclick=async()=>{try{view={...view,...await api('/api/engage/quiz/ask',{id:q.id})};notice('Question asked in chat and on stream.');render();}catch(e){notice(e.message,true);}};
+    const ask=el('button','',used.has(q.id)?'Asked':'Ask');ask.type='button';ask.disabled=used.has(q.id);if(used.has(q.id)){row.style.opacity='.5';ask.title='Already asked on stream. Questions are never repeated.';}ask.onclick=async()=>{try{view={...view,...await api('/api/engage/quiz/ask',{id:q.id})};notice('Question asked in chat and on stream.');render();}catch(e){notice(e.message,true);}};
     const del=el('button','link','Remove');del.type='button';del.onclick=()=>{bank.splice(i,1);renderBank();};
     const wrap=el('div','eg-row');wrap.append(ask,del);row.append(qi,ai,wrap);box.append(row);});
 }
@@ -53,6 +53,7 @@ function render(){
   {const b=view.quiz.board||{},rows=($('board-scope').checked?b.stream:b.all)||[],bl=$('quiz-board');bl.textContent='';if(!rows.length)bl.append(el('li','muted',$('board-scope').checked?'Nobody has answered correctly this stream yet.':'Nobody has answered correctly yet.'));
    for(const r of rows){const li=el('li');li.append(el('b','','#'+r.place+' '+r.name),el('span','',r.correct+' correct'+(PLAT[r.platform]?' · '+PLAT[r.platform]:'')),el('span','r',r.points.toLocaleString()+' pts'));bl.append(li);}
    $('board-url').textContent=location.origin+'/control/Voyager_Quiz_Leaderboard_Panel.html';}
+  {const left=view.quiz.remaining??0,n=$('quiz-left');if(n){n.textContent=left?left+' question'+(left===1?'':'s')+' not yet asked. Each one is asked once and never again.':'Every question has been asked. Add new ones below — questions are never repeated.';n.style.color=left<20?'#ffd27a':'';}if(bank&&!document.activeElement?.closest?.('#bank'))renderBank();}
   const qh=$('quiz-history');qh.textContent='';for(const h of view.quiz.history){const li=el('li');li.append(el('b','',h.winner?h.winner.name:'No winner'),el('span','',h.q),el('span','r',ago(h.at)));qh.append(li);}
   // squadrons
   const st=$('standings');st.textContent='';const max=Math.max(1,...view.squadrons.standings.map(x=>x.score));

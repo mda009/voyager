@@ -2,6 +2,11 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.26.0 (15 November 2026)
+
+- **Bridge Quiz: new, harder questions.** 227 fresh questions replace the shipped set — Star Citizen (spaceports, Pyro, factions, lore, Squadron 42 cast, jargon, ship variants, weapon makers), space, science, computing and games, sci-fi, geography and history. None of them appeared in any earlier set; your own questions are kept.
+- **Questions are never repeated.** A question is asked once, ever. Voyager remembers what has been asked by its wording, so editing the list, reloading the shipped set or restarting never brings one back, and a used question cannot be picked by hand either. Chat engagement shows how many are left (amber under 20) and marks used ones "Asked". When every question has been used the quiz stops and says so; add new questions to carry on. The list now holds up to 500.
+
 ## 2.25.1 (15 November 2026)
 
 - **Bridge Quiz leaderboard shows itself.** The panel now slides on screen when a question is asked and stays for 30 seconds after the question finishes (answered or timed out), then leaves. A cancelled question takes it off at once. `?always=1` on the address keeps it on screen all the time; `?hold=60` changes the 30 seconds.
