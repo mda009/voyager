@@ -28,6 +28,7 @@ import {Sources} from './sources.mjs';
 import {Rotation} from './rotation.mjs';
 import {Payer} from './payer.mjs';
 import {Intel} from './intel.mjs';
+import {Requests} from './requests.mjs';
 let VERSION='unknown';try{VERSION=JSON.parse(await readFile(new URL('../package.json',import.meta.url),'utf8')).version;}catch{}
 const major=Number(process.versions.node.split('.')[0]);
 if(major<22||typeof WebSocket==='undefined'){console.error('Voyager Versus requires Node.js 22.4 or newer. Install it from https://nodejs.org/');process.exit(1);}
@@ -206,7 +207,7 @@ publicSite?.setCompanion(()=>{
     dreadnought:{...d,history:boss.history.slice(0,6)},
     ranks:{ladder:rv.ranks,top:rv.members.slice(0,25),promotions:rv.promotions},
     medals:{catalogue:cat,honour:medals.leaderboard(10),recent:medals.state.recent.slice(0,12)},
-    intel:intel.share()};
+    intel:intel.share(),requests:requests.share()};
 });
 publicSite?.setCrew(()=>cards.crewRows(2000));
 const rewards=new RewardDispatcher({store:economy,bot,onCredit:r=>{game.note(`${r.name}: +${r.amount} Voyager points credited.`, 'reward');matchChat.credit(r);}});
@@ -219,6 +220,10 @@ if(community)community.extraPayables=()=>[...moments.bonusPayables(),...stage.bo
 // 2.21.12: points owed are paid by the host itself through the Points Ledger as soon as they are owed (Missions › Points owed can switch it off).
 // 2.21.15 SC Intel: Star Citizen news, ships in the store, deals and events — panel + !news !sales !deals !events.
 const intel=await new Intel({dataDir,say:(text,platform='')=>runActionResult('Voyager - Medals',{medalSay:String(text).slice(0,450),medalSayPlatform:['twitch','kick','youtube'].includes(platform)?platform:''}),log:m=>console.log('[sc-intel] '+m)}).load();
+// 2.24.0 viewer requests from the companion website: read from the site's Worker, checked here, shown on an overlay and in chat.
+const requests=await new Requests({dataDir,siteUrl:()=>publicSite?.view?.().siteUrl||'',round:()=>engage?.state?.stream?.id||0,onAir:()=>Date.now()-lastChatAt<10*60000,
+  known:name=>{const k=String(name||'').toLowerCase();try{return cards.crewRows(5000).find(r=>String(r.name||'').toLowerCase()===k)?.name||null;}catch{return null;}},
+  say:text=>runActionResult('Voyager - Medals',{medalSay:String(text).slice(0,450),medalSayPlatform:''}),log:m=>console.log('[requests] '+m)}).load();
 const payer=community?await new Payer({dataDir,community,run:args=>actions.doAction('Voyager - Points Ledger',args),uuid:randomUUID,log:m=>console.log('[auto-pay] '+m)}).load():null;
 if(community)community.onPoints=list=>{try{moments.points(list);}catch{}};medals.onStreak=list=>{try{moments.streaks(list);}catch{}};
 function packet(){const snapshot=game.snapshot();for(const r of snapshot.result?.rewards||[])r.status=economy.data.rewards.find(x=>x.id===r.id)?.status||r.status;return {serverTime:Date.now(),stage:stage.mode(...stageState())==='versus',game:snapshot,connection:bot.status,rewards:rewards.snapshot(),announcements:announcements.snapshot(),matchChat:matchChat.snapshot(),entries:entries.snapshot(),pilotLeaderboard:pilots.snapshot()};}
@@ -245,6 +250,19 @@ const server=http.createServer(async(req,res)=>{
     if(url.pathname==='/api/sources'&&req.method==='GET'){if(!validToken(req)){response(res,403,{message:'Open the local control panel.'});return;}response(res,200,{origin:'http://127.0.0.1:'+port,sources:sources.list(),...sources.summary()});return;}
     if(url.pathname==='/api/shutdown'&&req.method==='POST'){if(!validToken(req)||!req.headers['content-type']?.startsWith('application/json')){response(res,403,{message:'Open the local control panel.'});return;}response(res,200,{ok:true,message:'Saving and stopping Voyager.'});setImmediate(()=>void stop());return;}
     if(url.pathname==='/api/system'&&req.method==='GET'){if(!validToken(req)){response(res,403,{message:'Open the local control panel.'});return;}let writable=true;try{const probe=join(dataDir,'.write-test');await writeFile(probe,'ok');await unlink(probe);}catch{writable=false;}response(res,200,{version:VERSION,node:process.versions.node,platform:process.platform,dataDir,dataWritable:writable,importedFrom,legacyDataPresent:await hasJson(legacyDataDir)&&legacyDataDir!==dataDir,controlBundled:hasControl});return;}
+    if(url.pathname==='/api/requests/overlay'&&req.method==='GET'){res.setHeader('Cache-Control','no-store');response(res,200,requests.overlay());return;} // OBS alert: names and labels only
+    if(url.pathname.startsWith('/api/requests')){
+      if(!validToken(req)){response(res,403,{message:'Open Voyager Control › Viewer requests.'});return;}
+      if(url.pathname==='/api/requests'&&req.method==='GET'){response(res,200,{...requests.view(),connected:bot.status.connected});return;}
+      if(req.method!=='POST'||!req.headers['content-type']?.startsWith('application/json')){response(res,405,{message:'Method not allowed.'});return;}
+      try{const input=await body(req,65536);
+        if(url.pathname==='/api/requests/settings'){response(res,200,{ok:true,...requests.configure(input||{})});return;}
+        if(url.pathname==='/api/requests/mark'){response(res,200,{ok:true,...requests.mark(String(input?.id||''),String(input?.status||''))});return;}
+        if(url.pathname==='/api/requests/test'){response(res,200,{ok:true,...requests.test(String(input?.key||''))});return;}
+        if(url.pathname==='/api/requests/clear'){response(res,200,{ok:true,...requests.clear()});return;}
+        if(url.pathname==='/api/requests/check'){await requests.poll();response(res,200,{ok:true,...requests.view()});return;}
+      }catch(e){response(res,400,{message:e.message});return;}
+      response(res,404,{message:'Not found.'});return;}
     if(url.pathname==='/api/intel/panel'&&req.method==='GET'){res.setHeader('Cache-Control','no-store');response(res,200,intel.panel());return;} // OBS panel: public-safe (no keys, no tokens)
     if(url.pathname.startsWith('/api/intel')){
       if(!validToken(req)){response(res,403,{message:'Open Voyager Control › SC Intel.'});return;}
@@ -491,6 +509,7 @@ let ticks=0,lastStatsAsk=0,lastPointsAsk=0;const timer=setInterval(()=>{
   if(ticks%2===0)void stage.tick(...stageState()).catch(()=>{});
   if(ticks%50===40&&payer)void payer.tick({connected:bot.status.connected}).then(r=>{if(r&&(r.paid||r.failed))console.log('[auto-pay] '+r.paid+' paid, '+r.failed+' failed'+(r.message?' · '+r.message:''));}).catch(()=>{});
   if(ticks%300===7)void intel.tick().catch(()=>{});
+  if(ticks%100===33)void requests.poll().catch(()=>{}); // every 10 s
   if(ticks%10===5)void rotation.tick({stageUp:!!stage.mode(...stageState()),connected:bot.status.connected}).catch(()=>{});
   if(ticks%20===0)try{moments.tick();}catch{}
   try{game.tick(.1);}catch{game.paused=true;game.note('Host storage error. Check the game folder before restarting.');}ticks++;

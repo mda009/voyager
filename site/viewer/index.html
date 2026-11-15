@@ -437,6 +437,17 @@ header.top{position:sticky;top:0;z-index:25;margin:0 -16px;padding:10px 16px;bac
 .player button{position:absolute;inset:0;width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:none;border:0;color:var(--text);cursor:pointer;font:700 15px/1 var(--display);letter-spacing:1.4px;text-transform:uppercase}
 .player button svg{width:64px;height:64px;padding:14px;border-radius:50%;background:#13253cdd;border:1px solid var(--line-strong);color:#fff}
 @media (min-width:900px){#watch .player{max-width:760px}}
+/* Viewer requests (2.24.0) */
+.req-opts{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.req-opts button{padding:14px 12px;border-radius:12px;border:1px solid var(--line-strong);background:#13253c;color:var(--text);font:700 16px/1.15 var(--display);letter-spacing:.5px;cursor:pointer;min-height:54px}
+.req-opts button:hover:not(:disabled){border-color:var(--cyan)}
+.req-opts button:disabled{opacity:.5;cursor:default}
+.req-opts button.mine{background:#3b3115;border-color:#ffd56a;color:#ffe6a3;opacity:1}
+.req-tally{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}.req-tally:empty{display:none}
+.req-tally span{font:600 12px/1 var(--display);letter-spacing:1px;padding:6px 9px;border-radius:999px;background:#0b1626;border:1px solid var(--line);color:var(--muted)}
+.req-tally b{color:#ffd56a;margin-left:5px}
+.req-recent{margin-top:10px}.req-recent:empty{display:none}
+.req-recent li{display:flex;justify-content:space-between;gap:10px;font-size:14px}.req-recent small{color:var(--muted);white-space:nowrap}
 </style>
 </head>
 <body>
@@ -470,6 +481,17 @@ header.top{position:sticky;top:0;z-index:25;margin:0 -16px;padding:10px 16px;bac
    <h1 id="h-now">Live from the stream</h1>
    <p id="tagline">Keep this open while you watch: giveaways, the Dreadnought, your card, ranks and medals, live from the stream.</p>
    <div class="chips" id="chips" aria-label="Chat commands to copy"></div>
+  </div>
+ </section>
+
+ <!-- Viewer requests (2.24.0): ask the streamer for something, once per stream -->
+ <section id="requests" data-tab="live" aria-labelledby="h-requests" hidden>
+  <div class="card req-card">
+   <div class="gw-top"><span class="kind" id="h-requests">Make a request</span><span class="when" id="req-state"></span></div>
+   <p class="lede small" id="req-lede" style="margin:8px 0 12px"></p>
+   <div class="req-opts" id="req-opts"></div>
+   <div class="req-tally" id="req-tally"></div>
+   <ul class="rows plain req-recent" id="req-recent"></ul>
   </div>
  </section>
 
@@ -645,7 +667,7 @@ header.top{position:sticky;top:0;z-index:25;margin:0 -16px;padding:10px 16px;bac
  <footer><p id="updated">Updates every few minutes while the stream tools are running.</p><p><a href="manual.pdf" target="_blank" rel="noopener">Voyager member manual (PDF)</a></p><p>Voyager community site. Giveaway entry happens in stream chat only; this site never asks for passwords or payment.</p></footer>
 </div>
 <script src="fair-draw.js"></script>
-<script src="companion.js?v=2.23.0" defer></script>
+<script src="companion.js?v=2.24.0" defer></script>
 <script>
 (()=>{'use strict';
 // ?embed=1: shown inside another site. Report our height so the host page can size its frame.

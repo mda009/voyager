@@ -16,7 +16,7 @@ export const DEFAULT_SETTINGS=Object.freeze({
   channelName:'MDA009',
   tagline:'Explore · Earn · Excel. Giveaways, points and Voyager Versus for the MDA009 community.',
   links:{twitch:'',youtube:'',kick:'',discord:'',website:''},
-  sections:{giveaways:true,winners:true,goals:true,points:true,pilots:true,versus:true,program:true,missions:true,season:true,live:true,dreadnought:true,ranks:true,medals:true,crew:true,activity:true,squadrons:true,log:true,intel:true},
+  sections:{giveaways:true,winners:true,goals:true,points:true,pilots:true,versus:true,program:true,missions:true,season:true,live:true,dreadnought:true,ranks:true,medals:true,crew:true,activity:true,squadrons:true,log:true,intel:true,requests:true},
   showNames:true,
   leaderboardSize:10,
   commands:{impromptu:'!enter',tickets:'!entergiveaway',versus:'!versus'},
@@ -314,6 +314,11 @@ export function projectCompanion(raw,settings=DEFAULT_SETTINGS,online=true,crewC
       news:list(x.news).slice(0,8).map(n=>({title:clean(n?.title,140),url:rsi(n?.url),at:time(n?.at),tag:oneOf(n?.tag,TAGS,'news')})).filter(n=>n.title&&n.url),
       sales:list(x.sales).slice(0,10).map(m=>({name:clean(m?.name,60),maker:clean(m?.maker,20),price:Number.isFinite(Number(m?.price))&&Number(m.price)>0?Math.round(Number(m.price)*100)/100:0,status:clean(m?.status,30),url:rsi(m?.url),image:img(m?.image)})).filter(m=>m.name&&m.price),salesTotal:int(x.salesTotal,0,1e4)??0,
       deals:list(x.deals).slice(0,12).map(item).filter(d=>d.title),events:list(x.events).slice(0,12).map(item).filter(d=>d.title)};}
+  // 2.24.0 viewer requests: what can be asked for, whether asking is open, and (with names shown) who has asked this stream.
+  if(show.requests&&raw.requests&&typeof raw.requests==='object'){const x=raw.requests,opts=list(x.options).slice(0,10).map(o=>({key:clean(o?.key,20).toLowerCase().replace(/[^a-z0-9]/g,''),label:clean(o?.label,30)})).filter(o=>o.key&&o.label);
+    if(opts.length)out.requests={open:x.open===true,round:int(x.round,0,1e15)??0,options:opts,
+      recent:s.showNames?list(x.recent).slice(0,12).map(r=>({name:clean(r?.name,LIMITS.name),label:clean(r?.label,30),at:time(r?.at),done:r?.done===true})).filter(r=>r.name&&r.label):[],
+      tally:list(x.tally).slice(0,10).map(t=>({label:clean(t?.label,30),count:int(t?.count,0,1e5)??0})).filter(t=>t.label&&t.count)};}
   if(show.crew&&s.showNames&&crewCount>0)out.crew={file:'crew.json',count:int(crewCount,0,1e5)??0};
   return out;
 }

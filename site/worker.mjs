@@ -134,7 +134,31 @@ async function api(req,env,url){
   }
   return json({message:'Not found.'},404);
 }
+// ---------- viewer requests (2.24.0) ----------
+// The website posts a request here; the Voyager app reads the list (GET /api/requests) and decides what to accept.
+// Kept in one KV entry: the newest 100 from the last 12 hours. No free text: a card name and one of the streamer's options.
+const REQ_KEEP_MS=12*3600000,REQ_PER_NETWORK=4;
+async function requestList(env,now=Date.now()){const list=await env.PUSH.get('requests','json');return (Array.isArray(list)?list:[]).filter(r=>now-r.at<REQ_KEEP_MS);}
+export async function requestApi(req,env,url,fetcher=fetch,now=Date.now()){
+  if(!env.PUSH)return json({message:'Requests are not set up on this site.'},503);
+  if(url.pathname==='/api/requests'&&req.method==='GET'){const after=Number(url.searchParams.get('after'))||0;return json({requests:(await requestList(env,now)).filter(r=>r.at>after).map(({id,name,key,at,round})=>({id,name,key,at,round}))});}
+  if(url.pathname!=='/api/request'||req.method!=='POST')return json({message:'Not found.'},404);
+  let body=null;try{const text=await req.text();if(text.length>1000)return json({message:'Too large.'},413);body=JSON.parse(text);}catch{return json({message:'Send JSON.'},400);}
+  const name=clean(body?.name,60),key=clean(body?.key,20).toLowerCase(),dev=clean(body?.device,40);
+  if(!name||!/^[a-z0-9]{1,20}$/.test(key)||!/^[a-f0-9]{16,40}$/.test(dev))return json({message:'Pick your card first, then choose what to request.'},400);
+  // The streamer's current options and whether requests are open come from the public feed.
+  let feed=null;try{const r=await fetcher(env.FEED_URL+(env.FEED_URL.includes('?')?'&':'?')+'t='+Math.floor(now/20000));if(r.ok)feed=await r.json();}catch{}
+  const rq=feed?.requests;if(!rq?.open||now-(feed.generatedAt||0)>STALE_MS)return json({message:'Requests are closed right now — they open while the stream is live.'},409);
+  if(!(rq.options||[]).some(o=>o.key===key))return json({message:'That is not on the request list any more.'},400);
+  const round=Number(rq.round)||0,list=await requestList(env,now),who=name.toLowerCase();
+  if(list.some(r=>r.round===round&&(r.name.toLowerCase()===who||r.dev===dev)))return json({message:'You have already made your request for this stream.'},409);
+  const net=(await sha((req.headers.get('cf-connecting-ip')||'')+':'+new Date(now).toISOString().slice(0,10))).slice(0,16);
+  if(list.filter(r=>r.net===net&&now-r.at<24*3600000).length>=REQ_PER_NETWORK)return json({message:'Too many requests from this network today.'},429);
+  const entry={id:(await sha(who+':'+round+':'+now)).slice(0,20),name,key,at:now,round,dev,net};
+  await env.PUSH.put('requests',JSON.stringify([...list,entry].slice(-100)));
+  return json({ok:true,id:entry.id,round});
+}
 export default {
-  async fetch(req,env){const url=new URL(req.url);if(url.pathname.startsWith('/api/push/'))return api(req,env,url).catch(e=>json({message:'Notifications are unavailable right now.'},500));return env.ASSETS.fetch(req);},
+  async fetch(req,env){const url=new URL(req.url);if(url.pathname==='/api/request'||url.pathname==='/api/requests')return requestApi(req,env,url).catch(()=>json({message:'Requests are unavailable right now.'},500));if(url.pathname.startsWith('/api/push/'))return api(req,env,url).catch(e=>json({message:'Notifications are unavailable right now.'},500));return env.ASSETS.fetch(req);},
   async scheduled(event,env,ctx){ctx.waitUntil(tick(env).catch(()=>{}));}
 };

@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Voyager • Viewer requests</title>
+<link rel="icon" href="brand-assets/voyager.png">
+<link rel="stylesheet" href="stream-command.css">
+<link rel="stylesheet" href="voyager-brand.css">
+<link rel="stylesheet" href="settings.css?v=2.18">
+<link rel="stylesheet" href="community.css?v=2.20.48">
+<link rel="stylesheet" href="voyager-glass.css?v=2.21.0">
+<style>
+/* Viewer requests (2.24.0): what viewers ask for from the companion website. */
+.rq-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:16px;align-items:start}
+.rq-card{padding:18px 22px;display:flex;flex-direction:column;gap:12px}
+.rq-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.rq-tally{display:flex;flex-wrap:wrap;gap:8px}
+.rq-tally span{padding:8px 12px;border:1px solid rgba(151,223,255,.14);background:rgba(8,15,24,.45);border-radius:10px;font:700 15px/1 Rajdhani,'Segoe UI',sans-serif;color:#e6eef7}
+.rq-tally span b{color:#ffd56a;margin-left:6px}
+.rq-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;max-height:520px;overflow:auto}
+.rq-list li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px 12px;border:1px solid rgba(151,223,255,.12);background:rgba(8,15,24,.35);border-radius:10px;font-size:14px;color:#c9d7e4}
+.rq-list li b{color:#e6eef7}.rq-list li small{display:block;color:#8ea6bd;font-size:12px;margin-top:2px}
+.rq-list li[data-status=done]{opacity:.6}.rq-list li[data-status=dismissed]{opacity:.4;text-decoration:line-through}
+.rq-list .muted{display:block;color:#8ea6bd}
+.rq-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.rq-form label{display:flex;flex-direction:column;gap:5px;font-size:12px;color:#9ab0c5}
+.rq-form .check{flex-direction:row;align-items:center;gap:8px;font-size:13px;color:#c9d7e4}
+.rq-form input[type=number],.rq-opt input[type=text]{height:36px;padding:0 10px;border:1px solid rgba(151,223,255,.18);background:rgba(8,15,24,.55);color:#e6eef7;font:14px 'Segoe UI',sans-serif;min-width:0}
+.rq-opt{display:grid;grid-template-columns:minmax(0,1fr) auto auto auto;gap:8px;align-items:center;margin-bottom:6px}
+.rq-opt label{display:flex;align-items:center;gap:6px;font-size:12px;color:#9ab0c5}
+@media(max-width:1100px){.rq-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body class="voyager-console voyager-settings voyager-community">
+<div class="shell">
+<aside class="rail"><a class="brand" href="Voyager_Stream_Deck.html"><img class="logo-voyager" src="brand-assets/voyager.png" alt="Voyager membership program" width="68" height="68"><span>VOYAGER<small>MDA009 · MISSION CONTROL</small></span></a></aside>
+<main>
+<header class="top"><div><span class="eyebrow">GAMES &amp; EVENTS</span><h1>Viewer requests</h1></div><div class="toolbar"><span class="st-note">What viewers ask for from the companion website · one request each per stream</span><button type="button" id="check">Check now</button></div></header>
+<p class="st-notice" id="notice" hidden></p>
+<p class="st-notice" id="not-hosted" hidden>Open this page from the Voyager app (or START-VOYAGER-CONTROL.bat).</p>
+
+<div class="rq-grid">
+<section class="card rq-card">
+<div class="card-heading"><div><span class="eyebrow">THIS STREAM</span><h2>Requests</h2></div><span class="st-pill" id="open-pill" data-state="wait">—</span></div>
+<div class="rq-tally" id="tally"></div>
+<ul class="rq-list" id="list"></ul>
+<div class="rq-row"><button type="button" id="test">Show a test alert</button><button type="button" id="clear">Clear this stream's requests</button></div>
+<p class="st-hint">A request arrives a few seconds after the viewer sends it. <b>Done</b> marks it as granted (the website shows a tick); <b>Dismiss</b> removes it from the count. Requests start over with each new stream, and when you press Reset per-stream counters.</p>
+</section>
+
+<div style="display:flex;flex-direction:column;gap:16px">
+<section class="card rq-card">
+<div class="card-heading"><div><span class="eyebrow">SETTINGS</span><h2>How requests work</h2></div><span class="st-pill" id="link-pill" data-state="wait">Checking…</span></div>
+<form class="rq-form" id="settings-form" autocomplete="off">
+<label class="check" style="grid-column:1/-1"><input type="checkbox" name="enabled"> Viewers can make requests from the website</label>
+<label class="check" style="grid-column:1/-1"><input type="checkbox" name="onlyLive"> Only while the stream is live (chat seen in the last 10 minutes)</label>
+<label class="check"><input type="checkbox" name="chat"> Tell me in chat</label>
+<label class="check"><input type="checkbox" name="overlay"> Show the overlay alert</label>
+<label>Alert stays on screen (seconds)<input type="number" name="overlaySeconds" min="4" max="60"></label>
+</form>
+<div><span class="eyebrow" style="display:block;margin-bottom:8px">WHAT THEY CAN ASK FOR</span><div id="options"></div></div>
+<div class="rq-row"><button type="button" id="opt-add">+ Add</button><button type="button" class="primary" id="save">Save settings</button></div>
+<p class="st-hint" id="link-note"></p>
+</section>
+<section class="card rq-card">
+<div class="card-heading"><div><span class="eyebrow">OBS</span><h2>The alert overlay</h2></div></div>
+<p class="st-hint">Add a Browser source, <b>1920 × 1080</b>, above your other sources, with this address. A gold card drops in at the top when a request arrives: who asked, what for, and the running count.</p>
+<div class="rq-row"><code id="overlay-url" style="font:13px ui-monospace,Consolas,monospace;color:#9fd4ff;background:rgba(151,223,255,.08);padding:6px 8px;border-radius:6px;word-break:break-all"></code><button type="button" id="copy-url">Copy address</button></div>
+<p class="st-hint">The website cannot prove who is typing, so a request carries the card name the viewer picked. Voyager only accepts names on your crew list, one request per name and per device each stream, a few per network per day, and only from your list above — there is no free text to moderate.</p>
+</section>
+</div>
+</div>
+</main>
+</div>
+<script src="requests-control.js?v=2.24.0"></script>
+<script src="voyager-shell.js?v=2.24.0"></script>
+<script src="voyager-navigation.js"></script>
+</body>
+</html>

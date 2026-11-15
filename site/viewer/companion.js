@@ -97,6 +97,7 @@ window.renderRightNow=function(){
  const open=(feed.giveaways||[]).filter(g=>g.status==='open');if(open.length&&feed.online&&Date.now()-feed.generatedAt<15*60000)tile('',open.length===1?'Giveaway open':open.length+' giveaways open',open[0].title+(open[0].eligibility?' · '+open[0].eligibility:''),'live','giveaways');
  const d=feed.dreadnought;if(d&&['lobby','battle'].includes(d.phase))tile('red',d.phase==='lobby'?'Dreadnought boarding':'Dreadnought fight',d.phase==='lobby'?'Type !join now':'Type !fire to attack','live','dread');
  const m=feed.missions;if(m&&(m.list||[]).length&&box.children.length<3)tile('',(m.list||[]).length+' missions this week','Finish one to earn Voyager points','live','missions');
+ if(feed.requests?.open&&feed.requests.options?.length&&box.children.length<4)tile('gold','Make a request','Ask for '+feed.requests.options.slice(0,3).map(o=>o.label).join(', ')+(feed.requests.options.length>3?'…':''),'live','requests');
  const h=document.getElementById('h-rightnow');if(h)h.hidden=!box.children.length;
 };
 const st=document.createElement('style');st.textContent='section.off{display:none!important}'+(EMBED?' nav.tabbar{position:static!important;padding:0!important;background:none!important;border:0!important;margin-top:10px!important}.embed .wrap{padding-bottom:24px!important}':'');document.head.append(st);
@@ -265,7 +266,7 @@ async function loadCrew(force=false){
   search();
   if(pendingCard){const pm=crew.find(m=>m.key===pendingCard);pendingCard='';if(pm)show(pm,false);else toast('That card is not on the crew list');}
   try{const saved=localStorage.getItem('voyager-me');if(saved&&!selected){const me=crew.find(m=>m.key===saved);if(me)show(me,false);}}catch{}
-  renderHome();
+  renderHome();try{renderRequests();}catch{}
   return crew;}catch{$('crew-note').textContent='The crew list isn’t available right now. Try again in a few minutes.';return null;}finally{crewLoading=null;}})();
  return crewLoading;
 }
@@ -460,6 +461,26 @@ $('ntf-test').onclick=async()=>{try{const r=await fetch('api/push/test',{method:
 $('ntf-prompt-on').onclick=()=>{go('notify');push.enable();};$('ntf-prompt-x').onclick=()=>{store.set('voyager-ntf-later','1');$('ntf-prompt').hidden=true;};
 push.init();
 
+// ---------- viewer requests (2.24.0): one request per person per stream ----------
+function deviceId(){let d=store.get('voyager-device');if(!/^[a-f0-9]{32}$/.test(d||'')){d=[...crypto.getRandomValues(new Uint8Array(16))].map(b=>b.toString(16).padStart(2,'0')).join('');store.set('voyager-device',d);}return d;}
+let reqBusy=false;
+function renderRequests(){
+ const sec=$('requests');if(!sec)return;const rq=feed?.requests;sec.hidden=EMBED||!rq||!rq.options?.length;if(sec.hidden)return;
+ const me=store.get('voyager-me'),meName=me&&crew?crew.find(m=>m.key===me)?.name:me;let mine=null;try{mine=JSON.parse(store.get('voyager-request')||'null');}catch{}
+ if(mine&&mine.round!==rq.round)mine=null;const listed=(rq.recent||[]).find(r=>me&&r.name.toLowerCase()===me);
+ $('req-state').textContent=rq.open?'Open':'Closed';
+ $('req-lede').textContent=!rq.open?'Requests open while the stream is live. Come back when it is on air.':mine||listed?'Your request is in'+(listed?.done?' — and it has been granted ✓':'. One request per person each stream.'):!me?'Find your card first, then ask for what you would like to see on stream. One request each per stream.':'Ask for what you would like to see on stream'+(meName?', '+meName:'')+'. One request each per stream.';
+ const box=$('req-opts');box.textContent='';
+ for(const o of rq.options){const b=el('button','',o.label);b.type='button';const isMine=(mine&&mine.key===o.key)||(listed&&listed.label===o.label);if(isMine)b.classList.add('mine');b.disabled=!rq.open||!!mine||!!listed||reqBusy;
+  b.onclick=async()=>{if(!me){toast('Find your card first');go('crew');setTimeout(()=>$('crew-search')?.focus(),250);return;}
+   reqBusy=true;renderRequests();try{const r=await fetch('api/request',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({name:meName||me,key:o.key,device:deviceId()})});const d=await r.json().catch(()=>({}));
+    if(r.ok||r.status===409&&/already/.test(d.message||'')){store.set('voyager-request',JSON.stringify({round:rq.round,key:o.key,at:Date.now()}));toast(r.ok?'Request sent — watch the stream':'You have already asked this stream');}else toast(d.message||'The request could not be sent');
+   }catch{toast('The request could not be sent');}reqBusy=false;renderRequests();};
+  box.append(b);}
+ const t=$('req-tally');t.textContent='';for(const x of rq.tally||[]){const sp=el('span','',x.label);sp.append(el('b','',String(x.count)));t.append(sp);}
+ const rec=$('req-recent');rec.textContent='';for(const r of (rq.recent||[]).slice(0,5)){const li=el('li');li.append(el('span','',r.name+' asked for '+r.label+(r.done?' ✓':'')),el('small','',ago(r.at)));rec.append(li);}
+}
+
 // ---------- watch here (2.23.0): the Twitch player, loaded only when tapped ----------
 function renderWatch(){
  const sec=$('watch');if(!sec)return;const url=feed?.channel?.links?.twitch||'',m=url.match(/^https:\/\/(?:www\.)?twitch\.tv\/([A-Za-z0-9_]{3,25})\/?$/);
@@ -481,7 +502,7 @@ function renderWatch(){
 // ---------- feed ----------
 addEventListener('voyager:feed',e=>{
  feed=e.detail;
- try{renderNow();}catch{}try{renderHome();}catch{}try{renderWatch();}catch{}try{push.render();}catch{}try{renderDread();}catch{}try{renderRanks();}catch{}try{renderMedals();}catch{}try{renderSquad();}catch{}try{renderLog();}catch{}try{renderIntel();}catch{}
+ try{renderNow();}catch{}try{renderHome();}catch{}try{renderWatch();}catch{}try{renderRequests();}catch{}try{push.render();}catch{}try{renderDread();}catch{}try{renderRanks();}catch{}try{renderMedals();}catch{}try{renderSquad();}catch{}try{renderLog();}catch{}try{renderIntel();}catch{}
  $('arena').hidden=$('versus').hidden;
  $('find').hidden=!feed.crew;
  renderTabs();

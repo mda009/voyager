@@ -1,0 +1,30 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Voyager • OBS Viewer Request Alert</title><link rel="icon" href="brand-assets/voyager.png">
+<style>
+/* Voyager viewer request alert (2.24.0): an OBS browser source, 1920 × 1080, transparent. A glass card drops in top-centre
+   when a viewer asks for something from the companion website, stays for a few seconds, then leaves. */
+@font-face{font-family:Rajdhani;src:url(brand-assets/Rajdhani-700.ttf);font-weight:700}@font-face{font-family:Rajdhani;src:url(brand-assets/Rajdhani-600.ttf);font-weight:600}
+html,body{margin:0;background:transparent;height:100%;overflow:hidden;font-family:Inter,'Segoe UI',Arial,sans-serif;color:#eef4fb}
+#card{position:absolute;left:50%;top:70px;transform:translate(-50%,-180px);opacity:0;min-width:520px;max-width:900px;display:grid;grid-template-columns:auto minmax(0,1fr);gap:18px;align-items:center;padding:18px 26px 18px 20px;border-radius:14px;
+  background:linear-gradient(135deg,rgba(9,17,31,.88),rgba(14,28,46,.80) 60%,rgba(10,20,36,.86));border:1px solid rgba(255,213,106,.45);border-top:3px solid #ffd56a;box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 18px 46px rgba(0,0,0,.5),0 0 34px rgba(255,213,106,.18);
+  -webkit-backdrop-filter:blur(12px) saturate(1.25);backdrop-filter:blur(12px) saturate(1.25);transition:transform .55s cubic-bezier(.2,.8,.2,1),opacity .45s;text-shadow:0 1px 3px #0009}
+#card.on{transform:translate(-50%,0);opacity:1}
+#icon{width:64px;height:64px;border-radius:14px;display:flex;align-items:center;justify-content:center;background:rgba(255,213,106,.14);border:1px solid rgba(255,213,106,.4);color:#ffd56a}
+#icon svg{width:36px;height:36px}
+small{display:block;font:700 13px/1 Rajdhani,'Segoe UI',sans-serif;letter-spacing:.26em;color:#ffd56a;text-transform:uppercase}
+b{display:block;font:700 34px/1.1 Rajdhani,'Segoe UI',sans-serif;letter-spacing:.02em;margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+b span{color:#ffd56a}
+em{display:block;font:500 15px/1.3 Inter,'Segoe UI',sans-serif;font-style:normal;color:#a9bfd4;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#bar{position:absolute;left:0;bottom:0;height:3px;background:#ffd56a;border-radius:0 0 0 14px;width:100%;transform-origin:left;transform:scaleX(var(--p,1))}
+</style></head>
+<body><div id="card" role="status"><div id="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v11H9l-5 4z"/><path d="M8 9h8M8 12h5"/></svg></div>
+<div><small>Viewer request</small><b id="line"></b><em id="sub"></em></div><i id="bar"></i></div>
+<script>
+(()=>{'use strict';const $=id=>document.getElementById(id);let shown=0,alert=null,offset=0;
+function show(a){alert=a;if(a.id!==shown){shown=a.id;const line=$('line');line.textContent='';line.append(document.createTextNode(a.name+' asks for '));const s=document.createElement('span');s.textContent=a.label;line.append(s);}
+  $('card').classList.add('on');}
+function frame(){if(alert){const now=Date.now()+offset,p=Math.max(0,Math.min(1,(alert.until-now)/(alert.until-alert.at)));$('bar').style.setProperty('--p',p);if(now>=alert.until){$('card').classList.remove('on');alert=null;}}requestAnimationFrame(frame);}
+async function poll(){try{const d=await(await fetch('/api/requests/overlay',{cache:'no-store'})).json();offset=d.serverAt-Date.now();
+    if(d.enabled&&d.alert){show(d.alert);$('sub').textContent=(d.tally||[]).map(t=>t.label+' ×'+t.count).join('  ·  ')+(d.waiting?'  ·  +'+d.waiting+' more waiting':'');}
+    else if(!d.alert&&alert){$('card').classList.remove('on');alert=null;}}catch{}setTimeout(poll,1500);}
+poll();requestAnimationFrame(frame);})();
+</script></body></html>

@@ -2,6 +2,11 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.24.0 (15 November 2026)
+
+- **Viewer requests.** Viewers can ask for something from the companion website (Live tab › Make a request): Bridge Quiz, Dreadnought, Frenzy, Marbles, Voyager Versus — your own list of up to 10. One request per person per stream. You are told by a **Viewer request alert** overlay (new OBS source, 1920 × 1080, a gold card top-centre) and a chat line with the running count. New page **Games & events › Chat engagement › Viewer requests**: this stream's requests with Done / Dismiss, the tally, settings (on/off, only while live, chat line, overlay, alert seconds, the list) and a test alert. The website shows who has asked and a tick when you mark a request done.
+- How it travels: the website posts to the site's Cloudflare Worker; the app reads that list every 10 seconds and accepts a request only if the option is on your list, the name is on your crew list and that person has not asked this stream. The Worker also allows one request per device per stream and four per network per day. Switch for the website under Public website › What is shared › Viewer requests.
+
 ## 2.23.1 (15 November 2026)
 
 - **Reset per-stream counters keeps the !report muster.** Pressing the button (Live, or Chat engagement) still restarts squadron chat points, arrival cards, Captain's Log allowances and Versus stream entries, but whoever has already reported stays reported and cannot collect again. A new stream that Voyager detects on its own (Twitch going live, or 4 hours without chat) still starts a fresh muster.
