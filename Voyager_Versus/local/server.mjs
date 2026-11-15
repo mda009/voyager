@@ -401,6 +401,7 @@ const server=http.createServer(async(req,res)=>{
       response(res,404,{message:'Unknown Streamer.bot request.'});return;
     }
     if(url.pathname==='/api/boss/overlay'&&req.method==='GET'){res.setHeader('Cache-Control','no-store');{const b=boss.overlay();response(res,200,{...b,relay:engage.relayView(),stage:stage.active(b)});}return;}
+    if(url.pathname==='/api/engage/quiz/board'&&req.method==='GET'){res.setHeader('Cache-Control','no-store');response(res,200,engage.quizBoard(Number(url.searchParams.get('rows'))||10));return;} // OBS panel: names and scores only
     if(url.pathname==='/api/engage/overlay'&&req.method==='GET'){res.setHeader('Cache-Control','no-store');const inStage=url.searchParams.get('stage')==='1';if(!inStage)sourceSeen.engage=Date.now();response(res,200,{...engage.overlay({always:inStage}),stage:stage.active(...stageState())});return;}
     if(url.pathname.startsWith('/api/engage')){
       if(!validToken(req)){response(res,403,{message:'Open Voyager Control › Chat engagement.'});return;}
@@ -409,6 +410,7 @@ const server=http.createServer(async(req,res)=>{
       try{
         const input=await body(req,262144)||{};
         if(url.pathname==='/api/engage/settings'){response(res,200,{ok:true,...engage.configure(input)});return;}
+        if(url.pathname==='/api/engage/quiz/board/reset'){engage.resetQuizBoard();response(res,200,{ok:true,...engage.view()});return;}
         if(url.pathname==='/api/engage/quiz/ask'){engage.ask(input.id||'');response(res,200,{ok:true,...engage.view()});return;}
         if(url.pathname==='/api/engage/quiz/cancel'){engage.cancelQuiz();response(res,200,{ok:true,...engage.view()});return;}
         if(url.pathname==='/api/engage/quiz/bank'){engage.setBank(input.bank);response(res,200,{ok:true,...engage.view()});return;}

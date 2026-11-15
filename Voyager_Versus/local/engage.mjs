@@ -207,7 +207,9 @@ export class Engage{
     if((Number(raw.quiz?.bankVersion)||1)<QUIZ_BANK_VERSION){const oldQ=new Set(OLD_STARTERS.map(x=>x.q)),starterQ=new Set(QUIZ_STARTERS.map(x=>x.q));const kept=(this.state.quiz.bank||[]).filter(x=>!oldQ.has(x.q)&&!starterQ.has(x.q));
       this.state.quiz.bank=[...QUIZ_STARTERS.map(x=>({id:randomUUID().slice(0,8),...x})),...kept];this.state.quiz.bankVersion=QUIZ_BANK_VERSION;if(this.state.settings.quiz.reward===25)this.state.settings.quiz.reward=5;this.persist(true);}
     // 2.21.4: the quiz pays 5 points a correct answer (asked for in 2.20.94); a saved 10 or 25 from before becomes 5 once.
-    if(!this.state.quizReward5){if([10,25].includes(this.state.settings.quiz.reward))this.state.settings.quiz.reward=5;this.state.quizReward5=true;this.persist(true);}}}catch{}return this;}
+    if(!this.state.quizReward5){if([10,25].includes(this.state.settings.quiz.reward))this.state.settings.quiz.reward=5;this.state.quizReward5=true;this.persist(true);}
+    // 2.25.0: start the Bridge Quiz leaderboard from the quiz wins still on file (the reward records kept for payouts).
+    if(!this.state.quiz.scores){this.state.quiz.scores={};for(const b of [...(this.state.rewards||[])].reverse())if(String(b.id).startsWith('quiz-'))for(const p of b.pilots||[]){const st=this.state.stream;this.state.stream={id:-1};this.quizScore(p,b.reward,b.at);this.state.stream=st;}this.persist(true);}}}catch{}return this;}
   // Replace the bank with the shipped set (Voyager Control › Chat engagement).
   loadStarters(){this.state.quiz.bank=QUIZ_STARTERS.map(x=>({id:randomUUID().slice(0,8),...x}));this.state.quiz.bankVersion=QUIZ_BANK_VERSION;this.persist(true);return this.state.quiz.bank;}
   persist(force=false){if(!this.dataDir)return this.saving;if(!force&&this.now()-this.savedAt<15000){this.dirty=true;return this.saving;}
@@ -288,9 +290,20 @@ export class Engage{
     a.winner={key:who.key,name:who.name,platform:who.platform,at:now};
     if(a.reward>0)this.addReward('quiz-'+a.id,'Bridge Quiz: '+a.q.slice(0,40),a.reward,'Bridge Quiz',who);
     this.state.quiz.history=[{id:a.id,qid:a.qid,q:a.q,answer:a.a[0],winner:a.winner,at:now},...this.state.quiz.history].slice(0,50);
+    this.quizScore(who,a.reward,now);
     this.say('🧠 '+who.name+' got it! The answer was '+a.a[0]+'. +'+a.reward+' Voyager points.');
     this.toast('quizwin',{name:who.name,platform:who.platform,answer:a.a[0],q:a.q});this.persist(true);return true;
   }
+  // Bridge Quiz leaderboard (2.25.0): correct answers and points awarded per viewer, all-time and for the current stream.
+  quizScore(who,points,now=this.now()){const sc=this.state.quiz.scores||(this.state.quiz.scores={}),stream=this.state.stream?.id||0;
+    const r=sc[who.key]||(sc[who.key]={name:who.name,platform:who.platform,correct:0,points:0,last:0,stream:0,sCorrect:0,sPoints:0});
+    if(r.stream!==stream){r.stream=stream;r.sCorrect=0;r.sPoints=0;}
+    r.name=who.name;r.platform=who.platform;r.correct++;r.points+=Math.max(0,Number(points)||0);r.sCorrect++;r.sPoints+=Math.max(0,Number(points)||0);r.last=now;}
+  quizBoard(limit=10){const sc=Object.values(this.state.quiz.scores||{}),stream=this.state.stream?.id||0,n=Math.max(1,Math.min(25,limit|0||10));
+    const rank=(rows,c,p)=>rows.filter(r=>r[c]>0).sort((a,b)=>b[c]-a[c]||b[p]-a[p]||a.last-b.last).slice(0,n).map((r,i)=>({place:i+1,name:r.name,platform:r.platform,correct:r[c],points:r[p]}));
+    const a=this.state.quiz.active,live=a&&!a.winner&&this.now()<a.endsAt;
+    return {serverAt:this.now(),enabled:this.state.settings.quiz.enabled,all:rank(sc,'correct','points'),stream:rank(sc.filter(r=>r.stream===stream),'sCorrect','sPoints'),players:sc.length,asked:live?{endsAt:a.endsAt}:null,last:this.state.quiz.history[0]?{name:this.state.quiz.history[0].winner?.name||'',at:this.state.quiz.history[0].at}:null};}
+  resetQuizBoard(){this.state.quiz.scores={};this.persist(true);return true;}
   quizStatus(){const a=this.state.quiz.active;if(a&&!a.winner&&this.now()<a.endsAt)this.say('🧠 BRIDGE QUIZ: '+a.q+' · '+Math.ceil((a.endsAt-this.now())/1000)+'s left.');return null;}
   cancelQuiz(){const a=this.state.quiz.active;if(!a)throw new Error('No question is running.');this.state.quiz.active=null;this.persist(true);return true;}
   setBank(list){
@@ -392,7 +405,7 @@ export class Engage{
     const stream=st.stream.id,muster=st.muster.find(m=>m.stream===stream);
     return {settings:st.settings,defaults:ENGAGE_DEFAULTS,stream:{id:stream,lastAt:st.stream.lastAt},relay:this.relayView(),chatOut:this.chatOut,
       muster:{count:muster?.crew.length||0,crew:(muster?.crew||[]).slice(-40).reverse()},
-      quiz:{bank:st.quiz.bank,active:st.quiz.active,history:st.quiz.history.slice(0,15)},
+      quiz:{bank:st.quiz.bank,active:st.quiz.active,history:st.quiz.history.slice(0,15),board:this.quizBoard(10)},
       squadrons:{standings:this.standings(),members:Object.keys(st.squadrons.members).length,history:st.squadrons.history.slice(0,8),weekId:st.squadrons.week.id,panel:!!st.panel&&!(st.panel.until&&this.now()>st.panel.until),panelUntil:st.panel?.until||0},
       log:st.log.filter(e=>!e.hidden).slice(0,80),rewards:st.rewards.slice(0,12).map(b=>({title:b.title,label:b.label,reward:b.reward,count:b.pilots.length,at:b.at}))};
   }

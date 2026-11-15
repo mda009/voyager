@@ -50,6 +50,9 @@ function render(){
   else if(a?.winner)live.append(el('span','eyebrow','LAST QUESTION'),el('b','',a.winner.name+' won · '+a.a[0]),el('span','st-hint',a.q));
   else live.append(el('span','st-hint','No question running. Ask one, or set automatic questions.'));
   $('quiz-cancel').disabled=!(a&&!a.winner&&Date.now()<a.endsAt);
+  {const b=view.quiz.board||{},rows=($('board-scope').checked?b.stream:b.all)||[],bl=$('quiz-board');bl.textContent='';if(!rows.length)bl.append(el('li','muted',$('board-scope').checked?'Nobody has answered correctly this stream yet.':'Nobody has answered correctly yet.'));
+   for(const r of rows){const li=el('li');li.append(el('b','','#'+r.place+' '+r.name),el('span','',r.correct+' correct'+(PLAT[r.platform]?' · '+PLAT[r.platform]:'')),el('span','r',r.points.toLocaleString()+' pts'));bl.append(li);}
+   $('board-url').textContent=location.origin+'/control/Voyager_Quiz_Leaderboard_Panel.html';}
   const qh=$('quiz-history');qh.textContent='';for(const h of view.quiz.history){const li=el('li');li.append(el('b','',h.winner?h.winner.name:'No winner'),el('span','',h.q),el('span','r',ago(h.at)));qh.append(li);}
   // squadrons
   const st=$('standings');st.textContent='';const max=Math.max(1,...view.squadrons.standings.map(x=>x.score));
@@ -66,6 +69,9 @@ function render(){
 async function mod(id,patch){try{view={...view,...await api('/api/engage/log',{id,...patch})};render();}catch(e){notice(e.message,true);}}
 async function load(){try{view=await api('/api/engage');render();}catch(e){notice(e.message,true);}}
 for(const f of ['relay-form','report-form','quiz-form','sq-form','arr-form','log-form'])$(f).addEventListener('input',()=>{editing=true;});
+$('board-scope').onchange=()=>render();
+$('board-reset').onclick=async()=>{if(!confirm('Reset the Bridge Quiz leaderboard? Everyone starts again from zero. Points already awarded are not touched.'))return;try{view={...view,...await api('/api/engage/quiz/board/reset',{})};notice('Bridge Quiz leaderboard reset.');render();}catch(e){notice(e.message,true);}};
+$('board-copy').onclick=async()=>{try{await navigator.clipboard.writeText($('board-url').textContent);notice('Address copied.');}catch{notice('Select the address and copy it.',true);}};
 $('new-stream').onclick=async()=>{if(!confirm('Reset the per-stream counters now? Squadron chat, arrivals and log allowances start over for this stream. The !report muster is kept (nobody can report twice) and points are not touched.'))return;
   try{view={...view,...await api('/api/engage/stream/new',{})};notice('New stream started: per-stream counters reset.');render();}catch(e){notice(e.message,true);}};
 $('save').onclick=async()=>{try{const sq=read('sq-form');

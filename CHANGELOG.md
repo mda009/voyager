@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.25.0 (15 November 2026)
+
+- **Bridge Quiz leaderboard.** A new OBS panel (Browser source, 460 × 600) ranking the crew by correct answers, with the points awarded beside each name; first place is picked out in gold, a row flashes when someone scores, and a "Question live" badge shows while a question is open. All-time by default; add `?scope=stream` for this stream only and `&rows=5` for a shorter list. The same board, a This stream only switch and a Reset button are on Chat engagement › Bridge Quiz. It starts from the quiz wins still on file (about the last 60 rewarded questions and musters), then counts every correct answer from here on.
+
 ## 2.24.0 (15 November 2026)
 
 - **Viewer requests.** Viewers can ask for something from the companion website (Live tab › Make a request): Bridge Quiz, Dreadnought, Frenzy, Marbles, Voyager Versus — your own list of up to 10. One request per person per stream. You are told by a **Viewer request alert** overlay (new OBS source, 1920 × 1080, a gold card top-centre) and a chat line with the running count. New page **Games & events › Chat engagement › Viewer requests**: this stream's requests with Done / Dismiss, the tally, settings (on/off, only while live, chat line, overlay, alert seconds, the list) and a test alert. The website shows who has asked and a tick when you mark a request done.

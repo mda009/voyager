@@ -1,0 +1,53 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Voyager • OBS Bridge Quiz Leaderboard</title><link rel="icon" href="brand-assets/voyager.png">
+<style>
+/* Voyager Bridge Quiz leaderboard (2.25.0): an OBS browser source — 460 × 600 recommended, any size works. Ranked by correct
+   answers, with the points awarded. ?scope=stream = this stream only (default: all-time) · ?rows=5..10 · hidden until someone scores. */
+@font-face{font-family:Rajdhani;src:url(brand-assets/Rajdhani-700.ttf);font-weight:700}@font-face{font-family:Rajdhani;src:url(brand-assets/Rajdhani-600.ttf);font-weight:600}
+:root{--accent:#a7d8ff;--ink:#eef4fb;--mute:#8faac1;--gold:#ffd56a;--d:Rajdhani,'Segoe UI',sans-serif;--t:Inter,'Segoe UI',Arial,sans-serif}
+html,body{margin:0;background:transparent;height:100%;overflow:hidden;font-family:var(--t);color:var(--ink);text-shadow:0 1px 3px #0009}
+#panel{position:absolute;left:12px;right:12px;top:12px;display:flex;flex-direction:column;border-radius:12px;padding:14px 16px 12px;box-sizing:border-box;overflow:hidden;
+  background:linear-gradient(135deg,rgba(9,17,31,.82),rgba(14,28,46,.74) 60%,rgba(10,20,36,.80));border:1px solid rgba(167,216,255,.26);border-top:2px solid var(--accent);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 16px 40px rgba(0,0,0,.45),0 0 28px rgba(95,176,240,.10);-webkit-backdrop-filter:blur(12px) saturate(1.25);backdrop-filter:blur(12px) saturate(1.25);transition:opacity .5s}
+#panel[hidden]{display:none}
+.top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.brand{display:flex;align-items:center;gap:8px;font:700 11px/1 var(--d);letter-spacing:.24em;color:var(--accent)}.brand img{width:22px;height:22px}
+.live{font:700 10px/1 var(--d);letter-spacing:.16em;padding:5px 8px;border-radius:999px;background:rgba(255,213,106,.16);color:var(--gold)}.live[hidden]{display:none}
+h1{font:700 24px/1.1 var(--d);letter-spacing:.03em;margin:10px 0 2px;color:#fff}
+.sub{font:600 11px/1 var(--d);letter-spacing:.18em;color:var(--mute);text-transform:uppercase;margin-bottom:10px}
+.head,.row{display:grid;grid-template-columns:34px minmax(0,1fr) 74px 82px;gap:8px;align-items:center}
+.head{font:700 9px/1 var(--d);letter-spacing:.16em;color:var(--mute);text-transform:uppercase;padding:0 8px 6px}
+.head span:nth-child(3),.head span:nth-child(4),.row .c,.row .p{text-align:right}
+.rows{display:flex;flex-direction:column;gap:5px}
+.row{padding:7px 8px;border:1px solid rgba(167,216,255,.10);background:rgba(8,15,24,.35);border-radius:8px;min-height:30px;animation:in .4s both}
+@keyframes in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.row .n{font:700 16px/1 var(--d);color:var(--mute);text-align:center}
+.row[data-place="1"]{border-color:rgba(255,213,106,.45);background:linear-gradient(90deg,rgba(255,213,106,.14),rgba(8,15,24,.35) 70%)}.row[data-place="1"] .n{color:var(--gold)}
+.row[data-place="2"] .n{color:#dfe7f0}.row[data-place="3"] .n{color:#e0a36a}
+.row .who{min-width:0;font:600 15px/1.2 var(--t);color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .c{font:700 18px/1 var(--d);color:#d5edff;font-variant-numeric:tabular-nums}.row .c small{font:600 9px/1 var(--d);letter-spacing:.1em;color:var(--mute);margin-left:3px}
+.row .p{font:700 15px/1 var(--d);color:var(--gold);font-variant-numeric:tabular-nums}.row .p small{font:600 9px/1 var(--d);letter-spacing:.1em;color:var(--mute);margin-left:3px}
+.row.bump{animation:bump .9s}
+@keyframes bump{0%{box-shadow:0 0 0 0 rgba(255,213,106,.7)}100%{box-shadow:0 0 0 12px rgba(255,213,106,0)}}
+.foot{margin-top:9px;padding-top:8px;border-top:1px solid rgba(167,216,255,.14);font:600 10px/1.3 var(--d);letter-spacing:.14em;color:var(--mute);text-transform:uppercase}
+.foot b{color:var(--accent)}
+</style></head>
+<body><section id="panel" hidden aria-live="polite">
+<div class="top"><span class="brand"><img src="brand-assets/voyager.png" alt="">BRIDGE QUIZ</span><span class="live" id="live" hidden>QUESTION LIVE</span></div>
+<h1>Leaderboard</h1><div class="sub" id="sub">All-time</div>
+<div class="head"><span></span><span>Crew</span><span>Correct</span><span>Points</span></div>
+<div class="rows" id="rows"></div>
+<div class="foot" id="foot">First correct answer in chat scores</div>
+</section>
+<script>
+(()=>{'use strict';const $=id=>document.getElementById(id),el=(t,c,x)=>{const n=document.createElement(t);if(c)n.className=c;if(x!==undefined)n.textContent=x;return n;};
+const params=new URLSearchParams(location.search),scope=params.get('scope')==='stream'?'stream':'all',rows=Math.max(3,Math.min(10,Number(params.get('rows'))||8));
+let prev=new Map(),key='';
+async function poll(){try{const d=await(await fetch('/api/engage/quiz/board?rows='+rows,{cache:'no-store'})).json();const list=(d[scope]||[]).slice(0,rows);
+  $('panel').hidden=!d.enabled||!list.length;$('live').hidden=!d.asked;$('sub').textContent=scope==='stream'?'This stream':'All-time';
+  const k=JSON.stringify(list);if(k!==key){key=k;const box=$('rows');box.textContent='';
+   for(const r of list){const row=el('div','row');row.dataset.place=r.place;const c=el('span','c',String(r.correct));const p=el('span','p',r.points.toLocaleString());p.append(el('small','','PTS'));
+    row.append(el('span','n',String(r.place)),el('span','who',r.name),c,p);if(prev.size&&prev.get(r.name)!==undefined&&prev.get(r.name)<r.correct||prev.size&&prev.get(r.name)===undefined)row.classList.add('bump');box.append(row);}
+   prev=new Map(list.map(r=>[r.name,r.correct]));}
+ }catch{}setTimeout(poll,3000);}
+poll();})();
+</script></body></html>

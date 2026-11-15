@@ -148,3 +148,18 @@ test('2.23.1: the Reset per-stream counters button keeps the !report muster — 
   assert.equal(e.chat(msg('Ace','!report')).ok,true,'someone new can still report');
   assert.equal(e.state.muster.filter(m=>m.stream===e.state.stream.id).length,1,'one muster for the stream');
 });
+
+test('2.25.0 Bridge Quiz leaderboard: correct answers and points per viewer, all-time and this stream; backfilled from wins on file; reset',async()=>{
+  const {e,at}=await make();e.configure({quiz:{reward:5,seconds:60}});
+  const win=(name,platform='twitch')=>{const a=e.ask();assert.equal(e.answer({key:platform+':'+name.toLowerCase(),name,platform},a.a[0]),true);at(1000);};
+  win('Nova');win('Ace','youtube');win('Nova');e.configure({quiz:{reward:10}});win('Ace','youtube');win('Nova');
+  let b=e.quizBoard();assert.deepEqual(b.all.map(r=>[r.place,r.name,r.correct,r.points]),[[1,'Nova',3,20],[2,'Ace',2,15]]);assert.equal(b.all[1].platform,'youtube');assert.deepEqual(b.stream,b.all);assert.equal(b.players,2);
+  const a=e.ask();assert.ok(e.quizBoard().asked,'a live question is flagged');e.cancelQuiz();
+  e.newStream();win('Ace','youtube');b=e.quizBoard();assert.deepEqual(b.stream.map(r=>[r.name,r.correct,r.points]),[['Ace',1,10]],'this stream starts from zero');assert.deepEqual(b.all.map(r=>[r.name,r.correct]),[['Ace',3],['Nova',3]],'tie on correct: more points first');
+  assert.equal(e.quizBoard(1).all.length,1);assert.equal(e.view().quiz.board.all.length,2);
+  // backfill: a state file from before 2.25.0 has reward records but no scores
+  await e.persist(true);await e.saving;const fs=await import('node:fs/promises'),path=await import('node:path');const file=path.join(e.dataDir,'engage.json');const raw=JSON.parse(await fs.readFile(file,'utf8'));delete raw.quiz.scores;await fs.writeFile(file,JSON.stringify(raw));
+  const {Engage}=await import('../local/engage.mjs');const e2=await new Engage({dataDir:e.dataDir,now:()=>2e12,say:()=>{}}).load();
+  assert.deepEqual(e2.quizBoard().all.map(r=>[r.name,r.correct,r.points]),[['Ace',3,25],['Nova',3,20]]);assert.deepEqual(e2.quizBoard().stream,[],'old wins do not count as this stream');
+  e2.resetQuizBoard();assert.deepEqual(e2.quizBoard().all,[]);
+});
