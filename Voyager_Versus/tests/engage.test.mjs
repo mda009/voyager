@@ -139,3 +139,12 @@ test('2.21.5: every chat line Voyager tries to post is remembered with whether S
   fail=true;e.chat({platform:'youtube',userId:'UC1',login:'',name:'Tube',text:'!report'});e.now=()=>20000;e.tick();await new Promise(r=>setTimeout(r,5));
   v=e.view();assert.equal(v.chatOut[0].ok,false);assert.match(v.chatOut[0].message,/not in Streamer.bot/);assert.equal(v.chatOut[0].platform,'youtube');
 });
+
+test('2.23.1: the Reset per-stream counters button keeps the !report muster — nobody reports twice, new arrivals still can',async()=>{
+  const {e}=await make();
+  assert.equal(e.chat(msg('Nova','!report')).ok,true);const owed=e.rewardBatches().length,before=e.state.stream.id;
+  e.newStream(undefined,{keepMuster:true});assert.notEqual(e.state.stream.id,before,'the other per-stream counters do start over');
+  assert.equal(e.chat(msg('Nova','!report')).already,true,'already reported: still reported after the reset');assert.equal(e.rewardBatches().length,owed,'nothing paid twice');
+  assert.equal(e.chat(msg('Ace','!report')).ok,true,'someone new can still report');
+  assert.equal(e.state.muster.filter(m=>m.stream===e.state.stream.id).length,1,'one muster for the stream');
+});

@@ -66,7 +66,7 @@ function render(){
 async function mod(id,patch){try{view={...view,...await api('/api/engage/log',{id,...patch})};render();}catch(e){notice(e.message,true);}}
 async function load(){try{view=await api('/api/engage');render();}catch(e){notice(e.message,true);}}
 for(const f of ['relay-form','report-form','quiz-form','sq-form','arr-form','log-form'])$(f).addEventListener('input',()=>{editing=true;});
-$('new-stream').onclick=async()=>{if(!confirm('Reset the per-stream counters now? Everyone can !report again and squadron chat, arrivals and log allowances start over for this stream. Points are not touched.'))return;
+$('new-stream').onclick=async()=>{if(!confirm('Reset the per-stream counters now? Squadron chat, arrivals and log allowances start over for this stream. The !report muster is kept (nobody can report twice) and points are not touched.'))return;
   try{view={...view,...await api('/api/engage/stream/new',{})};notice('New stream started: per-stream counters reset.');render();}catch(e){notice(e.message,true);}};
 $('save').onclick=async()=>{try{const sq=read('sq-form');
   view={...view,...await api('/api/engage/settings',{relay:read('relay-form'),report:read('report-form'),quiz:read('quiz-form'),arrivals:read('arr-form'),log:read('log-form'),

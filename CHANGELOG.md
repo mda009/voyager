@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.23.1 (15 November 2026)
+
+- **Reset per-stream counters keeps the !report muster.** Pressing the button (Live, or Chat engagement) still restarts squadron chat points, arrival cards, Captain's Log allowances and Versus stream entries, but whoever has already reported stays reported and cannot collect again. A new stream that Voyager detects on its own (Twitch going live, or 4 hours without chat) still starts a fresh muster.
+
 ## 2.23.0 (15 November 2026)
 
 - **Website: notifications (stage 2).** Viewers can turn on alerts under More › Notifications (and from a prompt on Home): **Stream is live**, **Dreadnought incoming**, **Giveaway open** and **You won** — each with its own switch, a Send a test button, no account. A small Cloudflare Worker beside the site (`site/worker.mjs`) keeps the push subscriptions in a KV namespace, reads the public feed once a minute and sends the alerts; the Voyager app is not involved and holds no new key. The deploy workflow finds or creates the storage itself; if the Cloudflare token may not manage KV the site still deploys, without notifications, and the run shows a warning saying which permission to add.

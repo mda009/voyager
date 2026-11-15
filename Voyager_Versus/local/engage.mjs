@@ -217,7 +217,11 @@ export class Engage{
   key(chat){const p=String(chat.platform||'twitch').toLowerCase();if(!['twitch','youtube','kick'].includes(p))return '';const id=clean(chat.userId,128),login=clean(chat.login,60).toLowerCase();return id?p+':'+id:login?p+':@'+login:'';}
   // A "stream" here is a run of chat with no gap longer than 4 hours (or a Twitch StreamOnline).
   streamFor(now){const s=this.state.stream;if(!s.id||now-s.lastAt>SESSION_GAP){s.id=now;this.state.reports=this.state.reports||{};}s.lastAt=now;return s.id;}
-  newStream(now=this.now()){const id=Math.max(now,(this.state.stream?.id||0)+1);this.state.stream={id,lastAt:now};this.pendingReports=[];this.persist(true);}
+  // keepMuster (2.23.1): the "Reset per-stream counters" button keeps tonight's !report muster — whoever has reported stays reported
+  // and cannot collect again. A genuinely new stream (the automatic one after a long gap in chat) still starts a fresh muster.
+  newStream(now=this.now(),{keepMuster=false}={}){const old=this.state.stream?.id,id=Math.max(now,(old||0)+1);
+    if(keepMuster){const m=this.state.muster.find(x=>x.stream===old);if(m)m.stream=id;}else this.pendingReports=[];
+    this.state.stream={id,lastAt:now};this.persist(true);}
 
   // ---------- every chat message ----------
   chat(chat){
