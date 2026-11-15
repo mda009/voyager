@@ -220,7 +220,7 @@ export class Engage{
   // keepMuster (2.23.1): the "Reset per-stream counters" button keeps tonight's !report muster — whoever has reported stays reported
   // and cannot collect again. A genuinely new stream (the automatic one after a long gap in chat) still starts a fresh muster.
   newStream(now=this.now(),{keepMuster=false}={}){const old=this.state.stream?.id,id=Math.max(now,(old||0)+1);
-    if(keepMuster){const m=this.state.muster.find(x=>x.stream===old);if(m)m.stream=id;}else this.pendingReports=[];
+    if(keepMuster){const m=this.state.muster.find(x=>x.stream===old);if(m)m.stream=id;for(const r of Object.values(this.state.reports||{})){if(r.last===old)r.last=id;if(r.told===old)r.told=id;}}else this.pendingReports=[];
     this.state.stream={id,lastAt:now};this.persist(true);}
 
   // ---------- every chat message ----------
