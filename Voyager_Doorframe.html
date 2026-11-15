@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Voyager • Doorframe</title>
+<link rel="icon" href="brand-assets/voyager.png">
+<link rel="stylesheet" href="stream-command.css">
+<link rel="stylesheet" href="voyager-brand.css">
+<link rel="stylesheet" href="settings.css?v=2.18">
+<link rel="stylesheet" href="community.css?v=2.20.48">
+<link rel="stylesheet" href="voyager-glass.css?v=2.21.0">
+<style>
+/* Doorframe (2.27.0): the game only you can start. */
+.df-grid{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:16px;align-items:start}
+.df-card{padding:18px 22px;display:flex;flex-direction:column;gap:12px}
+.df-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.df-frame{width:100%;aspect-ratio:16/9;border:1px solid rgba(151,223,255,.18);border-radius:12px;background:radial-gradient(circle at 30% 20%,#1b2d4a,#070c15 70%);overflow:hidden}
+.df-frame{position:relative}.df-frame iframe{position:absolute;left:0;top:0;width:1280px;height:720px;max-width:none;border:0;transform-origin:0 0;display:block}
+.df-now{padding:12px 14px;border:1px solid rgba(151,223,255,.14);background:rgba(8,15,24,.45);border-radius:12px;font-size:14px;color:#c9d7e4}
+.df-now b{color:#ffd56a}
+.df-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px}
+.df-st{display:flex;flex-direction:column;gap:4px;padding:12px 14px;border:1px solid rgba(151,223,255,.14);background:rgba(8,15,24,.45);border-radius:12px}
+.df-st small{font:700 11px/1 Rajdhani,'Segoe UI',sans-serif;letter-spacing:1.6px;color:#8ea6bd;text-transform:uppercase}
+.df-st b{font:700 22px/1.1 Rajdhani,'Segoe UI',sans-serif;color:#e6eef7}
+.df-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.df-form label{display:flex;flex-direction:column;gap:5px;font-size:12px;color:#9ab0c5}
+.df-form .check{flex-direction:row;align-items:center;gap:8px;font-size:13px;color:#c9d7e4;grid-column:1/-1}
+.df-form input[type=number],.df-ob input[type=text],.df-ob select{height:36px;padding:0 10px;border:1px solid rgba(151,223,255,.18);background:rgba(8,15,24,.55);color:#e6eef7;font:14px 'Segoe UI',sans-serif;min-width:0}
+.df-items{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:6px}
+.df-items label{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid rgba(151,223,255,.12);background:rgba(8,15,24,.35);border-radius:10px;font-size:13px;color:#c9d7e4}
+.df-items code{margin-left:auto;font:12px ui-monospace,Consolas,monospace;color:#9fd4ff}
+.df-ob{display:grid;grid-template-columns:minmax(0,1fr) 120px auto;gap:6px;margin-bottom:8px;padding:8px;border:1px solid rgba(151,223,255,.1);background:rgba(8,15,24,.3);border-radius:10px}
+.df-ob .l2{grid-column:1/-1}.df-ob .l2 input{width:100%;box-sizing:border-box}
+.df-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.df-list li{display:flex;justify-content:space-between;gap:10px;padding:8px 10px;border:1px solid rgba(151,223,255,.1);background:rgba(8,15,24,.35);font-size:13px;color:#c9d7e4}
+.df-list small{color:#8ea6bd;white-space:nowrap}
+@media(max-width:1100px){.df-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body class="voyager-console voyager-settings voyager-community">
+<div class="shell">
+<aside class="rail"><a class="brand" href="Voyager_Stream_Deck.html"><img class="logo-voyager" src="brand-assets/voyager.png" alt="Voyager membership program" width="68" height="68"><span>VOYAGER<small>MDA009 · MISSION CONTROL</small></span></a></aside>
+<main>
+<header class="top"><div><span class="eyebrow">GAMES &amp; EVENTS</span><h1>Doorframe</h1></div><div class="toolbar"><span class="st-note">Only you can start it · chat plays with !duck !hop !squeeze</span><button type="button" class="primary" id="start">Start a round</button><button type="button" id="stop" hidden>Stop the round</button></div></header>
+<p class="st-notice" id="notice" hidden></p>
+<p class="st-notice" id="not-hosted" hidden>Open this page from the Voyager app (or START-VOYAGER-CONTROL.bat).</p>
+
+<div class="df-grid">
+<div style="display:flex;flex-direction:column;gap:16px">
+<section class="card df-card">
+<div class="card-heading"><div><span class="eyebrow">ON STREAM</span><h2>The game</h2></div><span class="st-pill" id="state-pill" data-state="wait">—</span></div>
+<div class="df-frame" id="frame"><iframe id="preview" title="Doorframe overlay preview" src="Voyager_Doorframe_Overlay.html"></iframe></div>
+<div class="df-now" id="now">Press <b>Start a round</b>. She heads for the first door and chat gets a few seconds to type the right command.</div>
+<p class="st-hint">Add it in OBS once: Browser source, <b>1280 × 720</b> (any 16:9 size works), at this address. It is invisible until you start a round, and viewers cannot start one — not from chat and not from the website.</p>
+<div class="df-row"><code id="overlay-url" style="font:13px ui-monospace,Consolas,monospace;color:#9fd4ff;background:rgba(151,223,255,.08);padding:6px 8px;border-radius:6px;word-break:break-all"></code><button type="button" id="copy-url">Copy address</button></div>
+</section>
+<section class="card df-card">
+<div class="card-heading"><div><span class="eyebrow">SCOREBOARD</span><h2>Bones broken</h2></div></div>
+<div class="df-stats" id="stats"></div>
+<ul class="df-list" id="history"></ul>
+</section>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:16px">
+<section class="card df-card">
+<div class="card-heading"><div><span class="eyebrow">SETTINGS</span><h2>How a round runs</h2></div></div>
+<form class="df-form" id="settings-form" autocomplete="off">
+<label class="check"><input type="checkbox" name="enabled"> Doorframe is on</label>
+<label>Doors per round<input type="number" name="doors" min="1" max="5"></label>
+<label>Seconds to vote at each door<input type="number" name="seconds" min="4" max="20"></label>
+<label>Points for typing the right command<input type="number" name="reward" min="0" max="1000"></label>
+<label>Clean-run bonus (no bones broken)<input type="number" name="cleanBonus" min="0" max="5000"></label>
+<label class="check"><input type="checkbox" name="announce"> Announce each door and the result in chat</label>
+</form>
+<p class="st-hint">The most-typed command decides. A tie, or nobody typing, counts as a bonk. Points go to everyone who typed the right command for a door, even when chat as a whole got it wrong, and are paid automatically like other Voyager points.</p>
+</section>
+<section class="card df-card">
+<div class="card-heading"><div><span class="eyebrow">IN THE WAY</span><h2>Obstacles</h2></div><span class="st-pill" id="ob-pill" data-state="ok">0</span></div>
+<p class="st-hint">A new one at every door; each comes up once before any comes round again. <code>!hop</code> over floor things, <code>!duck</code> under hanging things, <code>!squeeze</code> past things beside the door.</p>
+<div class="df-items" id="builtin"></div>
+<span class="eyebrow" style="display:block;margin-top:6px">YOUR OWN</span>
+<div id="custom"></div>
+<div class="df-row"><button type="button" id="ob-add">+ Add an obstacle</button><button type="button" class="primary" id="save">Save settings &amp; obstacles</button></div>
+<p class="st-hint">Your own obstacles appear on screen as a mystery crate with their name on the sign, and use your punchline when she hits them.</p>
+</section>
+</div>
+</div>
+</main>
+</div>
+<script src="doorframe-control.js?v=2.27.0"></script>
+<script src="voyager-shell.js?v=2.27.0"></script>
+<script src="voyager-navigation.js"></script>
+</body>
+</html>

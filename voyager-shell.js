@@ -24,6 +24,8 @@ const DESTINATIONS=[
   tabs:[['Voyager_Versus.html','Versus']]},
  {id:'give',label:'Giveaways',ico:'✦',group:'Games & events',help:'START_HERE.html',keys:'giveaway draw winner pool chat members ticket tickets watchtime weighted entrants board',
   tabs:[['Giveaway_Control.html','Chat & members'],['Voyager_Ticket_Giveaway.html','Ticketed'],['Voyager_Entrant_Board.html','Entrant board ↗',{blank:true}]]},
+ {id:'doorframe',label:'Doorframe',ico:'▯',group:'Games & events',live:true,help:'Voyager_Guide.html',keys:'doorframe door game clumsy platform boots bonk bones duck hop squeeze obstacle cat coffee table',
+  tabs:[['Voyager_Doorframe.html','Doorframe']]},
  {id:'engage',label:'Chat engagement',ico:'✺',group:'Games & events',live:true,help:'Voyager_Guide.html',keys:'viewer requests request overlay alert website ask sc intel star citizen news comm-link ships on sale pledge store ccu warbond upgrades deals events free fly !news !sales !deals !events chat engagement report muster quiz trivia squadron squadrons team relay comms arrival log captain recap commands command cooldown duplicates',
   tabs:[['Voyager_Engage.html','Chat engagement'],['Voyager_Commands.html','Chat commands'],['Voyager_SC_Intel.html','SC Intel'],['Voyager_Requests.html','Viewer requests']]},
  {id:'screen',label:'Screen & overlays',ico:'▦',group:'On screen',live:true,help:'MOMENTS_SETUP.html',keys:'screen overlays obs sources browser source layout positions canvas drag arrange moments ticker hints surge banner support alerts fleet camera stage',

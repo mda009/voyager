@@ -1,0 +1,177 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Voyager • OBS Doorframe</title><link rel="icon" href="brand-assets/voyager.png">
+<style>
+/* Voyager Doorframe overlay (2.27.0): an OBS browser source. Any 16:9 size works (1280 × 720 recommended; the stage scales to fit).
+   Invisible until a round is started from Voyager Control › Doorframe; reads /api/doorframe/overlay four times a second. */
+@font-face{font-family:Rajdhani;src:url(brand-assets/Rajdhani-700.ttf);font-weight:700}@font-face{font-family:Rajdhani;src:url(brand-assets/Rajdhani-600.ttf);font-weight:600}
+:root{--panel:rgba(9,17,31,.86);--panel2:rgba(14,28,46,.78);--line:rgba(167,216,255,.26);--line2:rgba(167,216,255,.12);--ink:#eef4fb;--mute:#8faac1;--accent:#a7d8ff;--gold:#ffd56a;--green:#7ff0b5;--red:#ff7c93;
+  --display:Rajdhani,'Segoe UI',system-ui,sans-serif;--body:Inter,'Segoe UI',system-ui,sans-serif}
+html,body{margin:0;height:100%;background:transparent;overflow:hidden;color:var(--ink)}
+.stage.on{opacity:1;transform:none}
+/* ---------- the stage ---------- */
+.stage{position:absolute;inset:0;margin:auto;width:min(100vw,177.78vh);aspect-ratio:16/9;opacity:0;transform:scale(.96);transition:opacity .5s,transform .5s cubic-bezier(.2,.8,.2,1);border:1px solid var(--line);border-top:2px solid var(--accent);border-radius:14px;overflow:hidden;background:#070d18;box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 18px 46px rgba(0,0,0,.5),0 0 34px rgba(95,176,240,.14);min-width:0;container-type:inline-size}
+.stage::after{content:'';position:absolute;inset:0;pointer-events:none;z-index:8;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(217,229,239,.03) 3px,rgba(217,229,239,.03) 4px)}
+/* a ship corridor: bulkhead panels, a strip light, a viewport with stars */
+.wallpaper{position:absolute;inset:0 0 22% 0;background:
+  radial-gradient(circle at 16% 34%,#fff 0 .18cqw,transparent .2cqw),radial-gradient(circle at 22% 22%,#cfe6ff 0 .14cqw,transparent .16cqw),radial-gradient(circle at 11% 26%,#fff 0 .12cqw,transparent .14cqw),radial-gradient(circle at 26% 38%,#cfe6ff 0 .12cqw,transparent .14cqw),
+  radial-gradient(ellipse 13% 22% at 18% 30%,#0b1d3d 0 98%,transparent 100%),
+  radial-gradient(ellipse 14.2% 24% at 18% 30%,rgba(167,216,255,.55) 0 98%,transparent 100%),
+  linear-gradient(90deg,transparent 0 33%,rgba(167,216,255,.10) 33% 33.3%,transparent 33.3% 78%,rgba(167,216,255,.10) 78% 78.3%,transparent 78.3%),
+  linear-gradient(#0d1c33,#12284a 70%,#0e2140)}
+.wallpaper::before{content:'';position:absolute;left:6%;right:6%;top:6%;height:1.1cqw;border-radius:1cqw;background:linear-gradient(90deg,transparent,rgba(167,216,255,.75),transparent);filter:blur(.15cqw)}
+.floor{position:absolute;left:0;right:0;bottom:0;height:22%;background:repeating-linear-gradient(90deg,#16263f 0 11.6%,#0c1830 11.6% 12%),#16263f;border-top:2px solid rgba(167,216,255,.6);box-shadow:0 -1cqw 2.4cqw rgba(95,176,240,.18)}
+.hud{position:absolute;left:2.2%;top:3.5%;right:2.2%;display:flex;justify-content:space-between;align-items:flex-start;gap:8px;z-index:6;pointer-events:none}
+.pill{background:rgba(8,15,24,.72);border:1px solid var(--line);border-radius:999px;padding:.45cqw 1.6cqw;font:700 2cqw/1.3 var(--display);letter-spacing:.12em;text-transform:uppercase;color:var(--ink);white-space:nowrap;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.pill b{color:var(--red)}
+.title{color:var(--gold);border-color:rgba(255,213,106,.45)}
+/* the door: a bulkhead hatch */
+.door{position:absolute;left:58%;bottom:22%;width:17%;height:62%;z-index:2}
+.door .hole{position:absolute;inset:0;background:radial-gradient(circle at 30% 30%,#fff 0 .14cqw,transparent .16cqw),radial-gradient(circle at 68% 52%,#cfe6ff 0 .12cqw,transparent .14cqw),radial-gradient(circle at 44% 74%,#fff 0 .1cqw,transparent .12cqw),linear-gradient(#050a14,#0b1a36);border:.9cqw solid #24456f;border-bottom:0;border-radius:2.4cqw 2.4cqw 0 0;box-shadow:inset 0 0 0 .25cqw var(--accent),0 0 2.2cqw rgba(95,176,240,.45)}
+.door .step{display:none}
+.door.shake{animation:shake .5s}
+@keyframes shake{20%{transform:translate(-1.2%,0) rotate(-2deg)}40%{transform:translate(1.2%,0) rotate(2deg)}60%{transform:translate(-.8%,0) rotate(-1deg)}80%{transform:translate(.6%,0)}}
+.sign{position:absolute;left:50%;top:-11.5%;transform:translateX(-50%);background:rgba(8,15,24,.8);border:1px solid rgba(255,213,106,.5);border-radius:.8cqw;padding:.45cqw 1.4cqw;font:700 2.1cqw/1.2 var(--display);letter-spacing:.14em;color:var(--gold);white-space:nowrap;box-shadow:0 0 1.6cqw rgba(255,213,106,.22)}
+.item{position:absolute;z-index:4;pointer-events:none;transform-origin:50% 100%;animation:plop .5s cubic-bezier(.3,1.7,.5,1) both;filter:drop-shadow(0 0 .5cqw rgba(167,216,255,.35))}
+.item svg{display:block;width:100%;height:100%;overflow:visible}
+.item[data-kind=floor]{left:60%;bottom:21%;width:13%;height:20%}
+.item[data-kind=hang]{left:58.5%;bottom:46%;width:16%;height:38%;transform-origin:50% 0;animation-name:drop}
+.item[data-kind=side]{left:55%;bottom:21%;width:14%;height:50%}
+@keyframes plop{from{transform:scale(0)}to{transform:scale(1)}}
+@keyframes drop{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+.item.hit{animation:hit .6s both}
+@keyframes hit{30%{transform:rotate(-14deg) translateY(-8%)}60%{transform:rotate(10deg)}100%{transform:none}}
+/* the heroine */
+.gal{position:absolute;left:6%;bottom:21%;width:13%;height:72%;z-index:3;transform-origin:50% 100%;transition:left 1.5s linear;filter:drop-shadow(0 0 .7cqw rgba(167,216,255,.4))}
+.gal svg{width:100%;height:100%;overflow:visible;transform-origin:50% 100%;display:block}
+.gal.walk svg{animation:walk .34s infinite alternate ease-in-out}
+@keyframes walk{from{transform:rotate(-4deg) translateY(0)}to{transform:rotate(4deg) translateY(-2.5%)}}
+.gal.idle svg{animation:wobble 1.1s infinite alternate ease-in-out}
+@keyframes wobble{from{transform:rotate(-2.5deg)}to{transform:rotate(2.5deg)}}
+.gal.duck svg{animation:duck 1.25s both}
+@keyframes duck{0%{transform:scaleY(1)}25%,75%{transform:scaleY(.52) scaleX(1.25)}100%{transform:scaleY(1)}}
+.gal.hop svg{animation:hop 1.25s both}
+@keyframes hop{0%{transform:translateY(0) scaleY(1)}15%{transform:translateY(0) scaleY(.8)}50%{transform:translateY(-34%) scaleY(1.1) rotate(8deg)}85%{transform:translateY(0) scaleY(.85)}100%{transform:none}}
+.gal.squeeze svg{animation:squeeze 1.25s both}
+@keyframes squeeze{0%{transform:scaleX(1)}25%,75%{transform:scaleX(.38) scaleY(1.12)}100%{transform:scaleX(1)}}
+.gal.bonk svg{animation:bonk 1.5s both}
+@keyframes bonk{0%{transform:none}12%{transform:translateX(18%) rotate(10deg)}22%{transform:translateX(-10%) rotate(-24deg) scaleY(.9)}45%{transform:translateX(-22%) rotate(-88deg) translateY(4%)}75%{transform:translateX(-22%) rotate(-88deg) translateY(4%)}100%{transform:none}}
+.gal.strut svg{animation:strut .3s 6 alternate}
+@keyframes strut{from{transform:rotate(-6deg) translateY(-3%)}to{transform:rotate(6deg) translateY(0)}}
+.cast{display:none}.gal[data-bones="1"] .c1,.gal[data-bones="2"] .c1,.gal[data-bones="3"] .c1,.gal[data-bones="2"] .c2,.gal[data-bones="3"] .c2,.gal[data-bones="3"] .c3{display:block}
+.gal.bonk .eyes-ok{display:none}.eyes-x{display:none}.gal.bonk .eyes-x{display:block}
+/* pops */
+.pop{position:absolute;z-index:7;left:50%;top:30%;transform:translate(-50%,-50%) scale(0) rotate(-8deg);font:700 9cqw/1 var(--display);letter-spacing:.06em;color:var(--gold);text-shadow:0 0 2.4cqw rgba(255,213,106,.55),0 .3cqw 0 #0008;pointer-events:none;white-space:nowrap}
+.pop.on{animation:pop 1.3s both}
+@keyframes pop{0%{transform:translate(-50%,-50%) scale(0) rotate(-20deg)}18%{transform:translate(-50%,-50%) scale(1.25) rotate(6deg)}30%,80%{transform:translate(-50%,-50%) scale(1) rotate(-4deg);opacity:1}100%{transform:translate(-50%,-70%) scale(.9);opacity:0}}
+.pop.bad{color:var(--red);text-shadow:0 0 2.4cqw rgba(255,124,147,.6),0 .3cqw 0 #0008}.pop.good{color:var(--green);text-shadow:0 0 2.4cqw rgba(127,240,181,.55),0 .3cqw 0 #0008}
+.bone{position:absolute;z-index:7;left:50%;top:54%;transform:translate(-50%,-50%) scale(0);background:linear-gradient(135deg,var(--panel),var(--panel2));border:1px solid rgba(255,124,147,.5);border-top:2px solid var(--red);border-radius:1cqw;padding:1cqw 2.2cqw;font:700 2.5cqw/1.25 var(--display);letter-spacing:.06em;text-align:center;box-shadow:0 1cqw 3cqw rgba(0,0,0,.5);max-width:70%;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+.bone small{display:block;font:500 1.6cqw/1.35 var(--body);letter-spacing:0;color:var(--mute);margin-top:.3cqw}
+.bone.on{animation:boneIn 2.6s both}
+@keyframes boneIn{0%{transform:translate(-50%,-50%) scale(0)}12%{transform:translate(-50%,-50%) scale(1.1)}20%,85%{transform:translate(-50%,-50%) scale(1);opacity:1}100%{transform:translate(-50%,-50%) scale(.9);opacity:0}}
+.stars{position:absolute;z-index:6;width:14%;aspect-ratio:1;left:54%;top:14%;display:none}
+.stars.on{display:block;animation:spin 1s linear infinite}
+.stars i{position:absolute;font:normal 3.4cqw/1 var(--display);color:var(--gold);text-shadow:0 0 1cqw rgba(255,213,106,.7)}
+.stars i:nth-child(1){left:40%;top:0}.stars i:nth-child(2){right:0;top:55%}.stars i:nth-child(3){left:0;top:55%}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* vote bars */
+.vote{position:absolute;left:2.2%;right:2.2%;bottom:3.4%;z-index:6;display:grid;grid-template-columns:repeat(3,1fr);gap:1.2cqw}
+.vote div{position:relative;background:rgba(8,15,24,.72);border:1px solid var(--line2);border-radius:.8cqw;padding:.6cqw 1.3cqw;font:700 2cqw/1.3 var(--display);letter-spacing:.08em;overflow:hidden;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.vote div::before{content:'';position:absolute;inset:0;width:var(--w,0%);background:linear-gradient(90deg,rgba(167,216,255,.30),rgba(167,216,255,.12));transition:width .25s}
+.vote div span{position:relative;display:flex;justify-content:space-between;gap:1cqw}.vote em{font-style:normal;color:var(--accent);font-variant-numeric:tabular-nums}
+.vote div.win{border-color:rgba(127,240,181,.6)}.vote div.win::before{background:linear-gradient(90deg,rgba(127,240,181,.42),rgba(127,240,181,.14))}
+.clock{position:absolute;left:0;right:0;bottom:0;height:.7cqw;background:var(--gold);box-shadow:0 0 1.2cqw rgba(255,213,106,.7);transform-origin:left;transform:scaleX(var(--t,0));z-index:7}
+.result{position:absolute;inset:0;z-index:9;display:flex;align-items:center;justify-content:center;background:rgba(4,8,16,.72)}
+.result[hidden]{display:none}
+.result div{background:linear-gradient(135deg,var(--panel),var(--panel2));border:1px solid rgba(255,213,106,.45);border-top:2px solid var(--gold);border-radius:1.2cqw;padding:2cqw 4cqw;text-align:center;box-shadow:0 2cqw 5cqw rgba(0,0,0,.55),0 0 3cqw rgba(255,213,106,.18);max-width:80%}
+.result h2{font:700 4.6cqw/1.05 var(--display);letter-spacing:.08em;margin:0 0 .8cqw;color:var(--gold);text-transform:uppercase}
+.result p{margin:0;font:500 2cqw/1.4 var(--body);color:var(--ink)}
+@media (prefers-reduced-motion:reduce){.gal svg,.pop.on,.bone.on,.stars.on,.door.shake,.item{animation-duration:.01s!important}}
+
+</style></head>
+<body>
+<div class="stage" id="stage" aria-label="Game stage">
+  <div class="wallpaper"></div><div class="floor"></div>
+  <div class="hud"><span class="pill title" id="doorno">Door 1 of 3</span><span class="pill">Bones this stream: <b id="bones">0</b></span></div>
+  <div class="door" id="door"><div class="hole"></div><div class="step"></div><div class="sign" id="sign"></div></div>
+  <div class="item" id="item" data-kind="floor"></div>
+  <div class="stars" id="stars"><i>★</i><i>★</i><i>★</i></div>
+  <div class="gal idle" id="gal" data-bones="0">
+   <svg viewBox="0 0 120 420" aria-hidden="true">
+    <!-- huge platform boots -->
+    <g stroke="#0a1626" stroke-width="5" stroke-linejoin="round">
+     <rect x="4" y="336" width="54" height="80" rx="14" fill="#c08bff"/><rect x="-6" y="372" width="70" height="46" rx="12" fill="#5b7fb5"/>
+     <rect x="62" y="336" width="54" height="80" rx="14" fill="#c08bff"/><rect x="56" y="372" width="70" height="46" rx="12" fill="#5b7fb5"/>
+     <rect x="12" y="346" width="38" height="9" rx="4" fill="#ffe45c" stroke-width="3"/><rect x="70" y="346" width="38" height="9" rx="4" fill="#ffe45c" stroke-width="3"/>
+     <!-- long legs -->
+     <rect x="22" y="212" width="22" height="150" rx="11" fill="#ffd2b8"/><rect x="76" y="212" width="22" height="150" rx="11" fill="#ffd2b8"/>
+     <rect class="cast c3" x="19" y="262" width="28" height="66" rx="8" fill="#fffaf2"/>
+     <!-- dress -->
+     <path d="M30 118 Q60 100 90 118 L104 226 Q60 244 16 226 Z" fill="#3fb2ff"/>
+     <circle cx="60" cy="150" r="6" fill="#ffe45c" stroke-width="3"/><circle cx="60" cy="178" r="6" fill="#ffe45c" stroke-width="3"/>
+     <!-- arms -->
+     <rect x="2" y="126" width="18" height="92" rx="9" fill="#ffd2b8" transform="rotate(10 11 126)"/><rect x="100" y="126" width="18" height="92" rx="9" fill="#ffd2b8" transform="rotate(-10 109 126)"/>
+     <rect class="cast c2" x="98" y="160" width="24" height="52" rx="8" fill="#fffaf2" transform="rotate(-10 109 126)"/>
+     <!-- head, bun, face -->
+     <circle cx="60" cy="22" r="20" fill="#1d3a66"/>
+     <circle cx="60" cy="70" r="42" fill="#ffd2b8"/>
+     <path d="M18 66 Q22 22 60 26 Q98 22 102 66 Q84 44 60 46 Q36 44 18 66 Z" fill="#1d3a66"/>
+     <rect class="cast c1" x="20" y="34" width="80" height="16" rx="8" fill="#fffaf2"/>
+    </g>
+    <g class="eyes-ok"><circle cx="44" cy="74" r="9" fill="#fff" stroke="#0a1626" stroke-width="3"/><circle cx="76" cy="74" r="9" fill="#fff" stroke="#0a1626" stroke-width="3"/><circle cx="46" cy="76" r="4" fill="#0a1626"/><circle cx="78" cy="76" r="4" fill="#0a1626"/>
+     <path d="M46 94 Q60 106 74 94" fill="none" stroke="#0a1626" stroke-width="4" stroke-linecap="round"/></g>
+    <g class="eyes-x" stroke="#0a1626" stroke-width="5" stroke-linecap="round"><path d="M37 67l14 14M51 67l-14 14M69 67l14 14M83 67l-14 14"/><circle cx="60" cy="98" r="7" fill="#0a1626"/></g>
+    <circle cx="30" cy="88" r="7" fill="#ff8fbf" opacity=".8"/><circle cx="90" cy="88" r="7" fill="#ff8fbf" opacity=".8"/>
+   </svg>
+  </div>
+  <div class="pop" id="pop"></div><div class="bone" id="bone"></div>
+  <div class="vote" id="vote"><div data-k="duck"><span>!duck <em>0</em></span></div><div data-k="hop"><span>!hop <em>0</em></span></div><div data-k="squeeze"><span>!squeeze <em>0</em></span></div></div>
+  <div class="clock" id="clock"></div>
+  <div class="result" id="result" hidden><div><h2 id="res-h"></h2><p id="res-p"></p></div></div>
+ </div>
+<script>
+(()=>{'use strict';
+const $=id=>document.getElementById(id),gal=$('gal'),door=$('door'),stage=$('stage'),item=$('item');
+const S='stroke="#0a1626" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"';
+const ART={
+ cat:`<g ${S}><path d="M78 70 Q98 60 92 38" fill="none"/><ellipse cx="52" cy="72" rx="30" ry="22" fill="#ff9d3b"/><circle cx="28" cy="48" r="20" fill="#ff9d3b"/><path d="M12 38 L14 18 L28 30 Z M30 30 L44 18 L44 40 Z" fill="#ff9d3b"/></g><circle cx="21" cy="46" r="3" fill="#0a1626"/><circle cx="35" cy="46" r="3" fill="#0a1626"/><path d="M24 55 Q28 59 32 55" fill="none" stroke="#0a1626" stroke-width="3" stroke-linecap="round"/>`,
+ vacuum:`<g ${S}><ellipse cx="50" cy="80" rx="46" ry="16" fill="#8a8fa8"/><ellipse cx="50" cy="74" rx="46" ry="16" fill="#c9cde0"/><circle cx="50" cy="72" r="8" fill="#37e0b0"/></g>`,
+ banana:`<g ${S}><path d="M50 60 Q20 62 8 90 Q34 84 50 70 Q66 84 92 90 Q80 62 50 60 Z" fill="#ffe45c"/><path d="M44 62 Q50 40 56 62 Z" fill="#ffd21f"/></g>`,
+ lego:`<g ${S}><rect x="18" y="62" width="64" height="30" rx="4" fill="#ff3b5c"/><rect x="26" y="52" width="16" height="12" rx="3" fill="#ff3b5c"/><rect x="58" y="52" width="16" height="12" rx="3" fill="#ff3b5c"/></g>`,
+ chandelier:`<g ${S}><path d="M50 0 V40" fill="none"/><path d="M14 58 Q50 96 86 58 Z" fill="#ffe45c"/><path d="M14 58 H86" fill="none"/><rect x="18" y="40" width="8" height="18" fill="#fffaf2"/><rect x="46" y="36" width="8" height="22" fill="#fffaf2"/><rect x="74" y="40" width="8" height="18" fill="#fffaf2"/></g><circle cx="22" cy="34" r="5" fill="#ffb347"/><circle cx="50" cy="30" r="5" fill="#ffb347"/><circle cx="78" cy="34" r="5" fill="#ffb347"/>`,
+ washing:`<g ${S}><path d="M0 22 Q50 34 100 22" fill="none"/><path d="M14 26 V62 H30 V46 H24 V27 Z" fill="#37e0b0"/><path d="M40 30 H64 V72 H40 Z" fill="#ff4fa3"/><path d="M74 27 V58 H90 V44 H84 V26 Z" fill="#7a4cff"/></g>`,
+ plant:`<g ${S}><path d="M50 0 V34 M50 0 L28 40 M50 0 L72 40" fill="none"/><path d="M26 40 H74 L66 70 H34 Z" fill="#ffb347"/><path d="M36 40 Q20 20 10 34 M50 40 Q50 14 40 10 M64 40 Q80 20 90 34 M44 40 Q30 60 22 84 M58 40 Q72 62 80 84" fill="none" stroke="#1fae7a" stroke-width="7"/></g>`,
+ table:`<g ${S}><rect x="4" y="66" width="92" height="10" rx="4" fill="#b9793f"/><rect x="12" y="76" width="8" height="24" fill="#8a5527"/><rect x="80" y="76" width="8" height="24" fill="#8a5527"/><rect x="40" y="52" width="18" height="14" rx="3" fill="#fffaf2"/><path d="M58 56 Q68 59 58 63" fill="none"/></g>`,
+ wardrobe:`<g ${S}><rect x="10" y="2" width="80" height="96" rx="5" fill="#b9793f"/><path d="M50 4 V96" fill="none"/></g><circle cx="42" cy="52" r="4" fill="#0a1626"/><circle cx="58" cy="52" r="4" fill="#0a1626"/>`,
+ laundry:`<g ${S}><path d="M6 100 Q4 62 34 58 Q40 30 62 44 Q92 44 94 100 Z" fill="#c9f4ff"/><path d="M30 70 Q46 60 60 74" fill="none"/><path d="M58 50 L70 34 L78 52 Z" fill="#ff4fa3"/><rect x="18" y="80" width="20" height="10" rx="3" fill="#ffe45c"/></g>`,
+ crate:`<g ${S}><rect x="12" y="30" width="76" height="68" rx="6" fill="#b9793f"/><path d="M12 30 L88 98 M88 30 L12 98" fill="none"/></g><text x="50" y="76" text-anchor="middle" font-family="Rajdhani,sans-serif" font-weight="700" font-size="44" fill="#ffd56a" stroke="#0a1626" stroke-width="2">?</text>`
+};
+const POPS={duck:'SWOOSH!',hop:'BOING!',squeeze:'SQUISH!'},BONKS=['BONK!','CRACK!','THUNK!','OOF!'];
+let offset=0,last='',data=null;
+const setPose=c=>{if(gal.className!=='gal '+c)gal.className='gal '+c;};
+function pop(text,cls){const p=$('pop');p.className='pop '+cls;p.textContent=text;void p.offsetWidth;p.classList.add('on');}
+function moveTo(left,instant){if(instant){gal.style.transition='none';gal.style.left=left;void gal.offsetWidth;gal.style.transition='';}else gal.style.left=left;}
+function enter(r){ // one-off effects when a phase begins
+ const ph=r.phase;
+ if(ph==='approach'){$('result').hidden=true;$('doorno').textContent='Door '+(r.door+1)+' of '+r.doors;$('sign').textContent=r.item.name.toUpperCase()+'!';
+  item.dataset.kind=r.item.kind;item.className='item';item.innerHTML='<svg viewBox="0 0 100 100" aria-hidden="true">'+(ART[r.item.art]||ART.crate)+'</svg>';
+  moveTo('6%',true);setPose('walk');moveTo('44%');door.classList.remove('shake');$('stars').classList.remove('on');for(const d of $('vote').children)d.classList.remove('win');}
+ if(ph==='vote')setPose('idle');
+ if(ph==='pass'){setPose(r.item.cmd||r.choice||'hop');pop(POPS[r.item.cmd||r.choice]||'WHEW!','good');}
+ if(ph==='bonk'){setPose('bonk');door.classList.add('shake');item.classList.add('hit');$('stars').classList.add('on');pop(BONKS[Math.floor(Math.random()*BONKS.length)],'bad');
+  gal.dataset.bones=Math.min(3,r.bones);const b=$('bone');b.textContent='';b.append(document.createTextNode('Broken: '+(r.bone?.name||'something')));const s=document.createElement('small');s.textContent=r.bone?.line||'';b.append(s);b.classList.remove('on');void b.offsetWidth;b.classList.add('on');}
+ if(ph==='exit'){item.innerHTML='';door.classList.remove('shake');$('stars').classList.remove('on');setPose('walk');moveTo('82%');}
+ if(ph==='result'&&r.result){setPose(r.result.clean?'strut':'idle');$('res-h').textContent=r.result.title;
+  $('res-p').textContent=r.result.cleared+' of '+r.result.doors+' doors cleared · '+r.result.bones+' bone'+(r.result.bones===1?'':'s')+' broken'+(r.result.players?' · '+r.result.players+' crew earned Voyager points'+(r.result.clean?' and the clean-run bonus':''):'');$('result').hidden=false;}
+}
+function paint(r){
+ $('bones').textContent=data.streamBones||0;
+ const v=r.votes||{},total=Math.max(1,(v.duck||0)+(v.hop||0)+(v.squeeze||0));
+ for(const d of $('vote').children){const k=d.dataset.k,n=v[k]||0;d.style.setProperty('--w',Math.round(100*n/total)+'%');d.querySelector('em').textContent=n;d.classList.toggle('win',r.phase!=='vote'&&r.phase!=='approach'&&r.choice===k);}
+}
+function frame(){const r=data?.round;if(r&&r.phase==='vote'){const now=Date.now()+offset;$('clock').style.setProperty('--t',Math.max(0,Math.min(1,(now-r.phaseAt)/(r.phaseEndsAt-r.phaseAt))));}else $('clock').style.setProperty('--t',0);requestAnimationFrame(frame);}
+async function poll(){try{const d=await(await fetch('/api/doorframe/overlay',{cache:'no-store'})).json();data=d;offset=d.serverAt-Date.now();const r=d.round;
+  stage.classList.toggle('on',!!(d.enabled&&r));
+  if(r){const key=r.id+':'+r.door+':'+r.phase;if(key!==last){if(!last.startsWith(r.id+':'))gal.dataset.bones='0';last=key;enter(r);}paint(r);}else if(last){last='';gal.dataset.bones='0';item.innerHTML='';$('result').hidden=true;}
+ }catch{}setTimeout(poll,250);}
+poll();requestAnimationFrame(frame);
+})();
+</script></body></html>

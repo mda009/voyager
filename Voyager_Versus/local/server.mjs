@@ -29,6 +29,7 @@ import {Rotation} from './rotation.mjs';
 import {Payer} from './payer.mjs';
 import {Intel} from './intel.mjs';
 import {Requests} from './requests.mjs';
+import {Doorframe} from './doorframe.mjs';
 let VERSION='unknown';try{VERSION=JSON.parse(await readFile(new URL('../package.json',import.meta.url),'utf8')).version;}catch{}
 const major=Number(process.versions.node.split('.')[0]);
 if(major<22||typeof WebSocket==='undefined'){console.error('Voyager Versus requires Node.js 22.4 or newer. Install it from https://nodejs.org/');process.exit(1);}
@@ -149,6 +150,7 @@ const bot=new StreamerBot({onOtherChat:chat=>{
   try{medals.chatSeen(chat);}catch{}
   try{engage.chat(chat);}catch{}
   try{intel.chat(chat);}catch{}
+  try{doorframe.chat(chat);}catch{}
   // Kick and YouTube (2.20.8): same direct commands as Twitch, except Voyager Versus (Twitch only).
   const word=chat.text.trim().toLowerCase().split(/\s+/)[0];
   if(word==='!voyager'){voyagerCommand(chat);return;}
@@ -167,6 +169,7 @@ onStats:p=>{try{const m=p?.metrics?.twitch?.subscriptions;if(p?.ok!==false&&m&&m
   try{medals.chatSeen({...chat,platform:chat.platform||'twitch'});}catch{}
   try{engage.chat({...chat,platform:chat.platform||'twitch'});}catch{}
   try{intel.chat({...chat,platform:chat.platform||'twitch'});}catch{}
+  try{doorframe.chat({...chat,platform:chat.platform||'twitch'});}catch{}
   // Dreadnought (2.20.3): Twitch !join and !fire also work straight from chat, so a missing Streamer.bot command trigger
   // can't stop the fight. The action's copy of the same message is ignored (already boarded / !fire cooldown).
   const word=chat.text.trim().toLowerCase().split(/\s+/)[0];
@@ -220,6 +223,10 @@ if(community)community.extraPayables=()=>[...moments.bonusPayables(),...stage.bo
 // 2.21.12: points owed are paid by the host itself through the Points Ledger as soon as they are owed (Missions › Points owed can switch it off).
 // 2.21.15 SC Intel: Star Citizen news, ships in the store, deals and events — panel + !news !sales !deals !events.
 const intel=await new Intel({dataDir,say:(text,platform='')=>runActionResult('Voyager - Medals',{medalSay:String(text).slice(0,450),medalSayPlatform:['twitch','kick','youtube'].includes(platform)?platform:''}),log:m=>console.log('[sc-intel] '+m)}).load();
+// 2.27.0 Doorframe: the game only the streamer can start (Voyager Control › Doorframe). Chat votes with !duck !hop !squeeze.
+const doorframe=await new Doorframe({dataDir,key:chat=>engage.key(chat),stream:()=>engage?.state?.stream?.id||0,
+  reward:(id,title,points,label,who)=>{try{engage.addReward(id,title,points,label,who);engage.persist(true);}catch{}},
+  say:text=>runActionResult('Voyager - Medals',{medalSay:String(text).slice(0,450),medalSayPlatform:''})}).load();
 // 2.24.0 viewer requests from the companion website: read from the site's Worker, checked here, shown on an overlay and in chat.
 const requests=await new Requests({dataDir,siteUrl:()=>publicSite?.view?.().siteUrl||'',round:()=>engage?.state?.stream?.id||0,onAir:()=>Date.now()-lastChatAt<10*60000,
   known:name=>{const k=String(name||'').toLowerCase();try{return cards.crewRows(5000).find(r=>String(r.name||'').toLowerCase()===k)?.name||null;}catch{return null;}},
@@ -250,6 +257,17 @@ const server=http.createServer(async(req,res)=>{
     if(url.pathname==='/api/sources'&&req.method==='GET'){if(!validToken(req)){response(res,403,{message:'Open the local control panel.'});return;}response(res,200,{origin:'http://127.0.0.1:'+port,sources:sources.list(),...sources.summary()});return;}
     if(url.pathname==='/api/shutdown'&&req.method==='POST'){if(!validToken(req)||!req.headers['content-type']?.startsWith('application/json')){response(res,403,{message:'Open the local control panel.'});return;}response(res,200,{ok:true,message:'Saving and stopping Voyager.'});setImmediate(()=>void stop());return;}
     if(url.pathname==='/api/system'&&req.method==='GET'){if(!validToken(req)){response(res,403,{message:'Open the local control panel.'});return;}let writable=true;try{const probe=join(dataDir,'.write-test');await writeFile(probe,'ok');await unlink(probe);}catch{writable=false;}response(res,200,{version:VERSION,node:process.versions.node,platform:process.platform,dataDir,dataWritable:writable,importedFrom,legacyDataPresent:await hasJson(legacyDataDir)&&legacyDataDir!==dataDir,controlBundled:hasControl});return;}
+    if(url.pathname==='/api/doorframe/overlay'&&req.method==='GET'){res.setHeader('Cache-Control','no-store');response(res,200,doorframe.overlay());return;} // OBS overlay; never says which command is right while a vote is open
+    if(url.pathname.startsWith('/api/doorframe')){
+      if(!validToken(req)){response(res,403,{message:'Open Voyager Control › Doorframe.'});return;} // starting a round needs the control token: only the streamer can
+      if(url.pathname==='/api/doorframe'&&req.method==='GET'){response(res,200,{...doorframe.view(),connected:bot.status.connected});return;}
+      if(req.method!=='POST'||!req.headers['content-type']?.startsWith('application/json')){response(res,405,{message:'Method not allowed.'});return;}
+      try{const input=await body(req,65536);
+        if(url.pathname==='/api/doorframe/settings'){response(res,200,{ok:true,...doorframe.configure(input||{})});return;}
+        if(url.pathname==='/api/doorframe/start'){response(res,200,{ok:true,...doorframe.start()});return;}
+        if(url.pathname==='/api/doorframe/stop'){response(res,200,{ok:true,...doorframe.stop()});return;}
+      }catch(e){response(res,400,{message:e.message});return;}
+      response(res,404,{message:'Not found.'});return;}
     if(url.pathname==='/api/requests/overlay'&&req.method==='GET'){res.setHeader('Cache-Control','no-store');response(res,200,requests.overlay());return;} // OBS alert: names and labels only
     if(url.pathname.startsWith('/api/requests')){
       if(!validToken(req)){response(res,403,{message:'Open Voyager Control › Viewer requests.'});return;}
@@ -511,6 +529,7 @@ let ticks=0,lastStatsAsk=0,lastPointsAsk=0;const timer=setInterval(()=>{
   if(ticks%2===0)void stage.tick(...stageState()).catch(()=>{});
   if(ticks%50===40&&payer)void payer.tick({connected:bot.status.connected}).then(r=>{if(r&&(r.paid||r.failed))console.log('[auto-pay] '+r.paid+' paid, '+r.failed+' failed'+(r.message?' · '+r.message:''));}).catch(()=>{});
   if(ticks%300===7)void intel.tick().catch(()=>{});
+  try{doorframe.tick();}catch{}
   if(ticks%100===33)void requests.poll().catch(()=>{}); // every 10 s
   if(ticks%10===5)void rotation.tick({stageUp:!!stage.mode(...stageState()),connected:bot.status.connected}).catch(()=>{});
   if(ticks%20===0)try{moments.tick();}catch{}

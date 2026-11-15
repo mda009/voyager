@@ -2,6 +2,12 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.27.0 (15 November 2026)
+
+- **Doorframe, a new game only you can start.** A tall, clumsy heroine in giant platform boots heads for a run of doors, with something new in the way at each one: a cat, a robot vacuum, a banana peel, one Lego brick, a chandelier, the washing line, a hanging plant, a coffee table, a wardrobe, the laundry pile. Chat has a few seconds to type **!duck**, **!hop** or **!squeeze**; the most-typed command decides. Right, and she squashes, boings or squishes past. Wrong, tied or silent, and she bonks the frame, sees stars and breaks something ("Broken: her dignity"), picking up a bandage or cast each time. Everyone who typed the right command for a door earns points (paid automatically), with a bonus for a clean run.
+- New sidebar tab **Games & events › Doorframe**: Start a round, a live preview, settings (doors per round 1–5, seconds to vote, points, clean-run bonus, chat announcements), the obstacle list (switch built-ins off, add your own with a punchline), and the bones-broken scoreboard. New OBS source **Doorframe game** (1280 × 720, in the stream's glass style), invisible until a round starts.
+- Viewers cannot start it: there is no chat command for it, it is not on the website and not on the request list.
+
 ## 2.26.1 (15 November 2026)
 
 - **Website: Bridge Quiz leaderboard.** Community › Leaderboards has two new boards, **Bridge Quiz** (all-time) and **Quiz · this stream**: the top ten by correct answers with the points awarded. The Community tab gets a "new" dot when the board changes. Shown only with viewer names on; switch under Public website › What is shared › Bridge Quiz leaderboard.
