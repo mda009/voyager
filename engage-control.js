@@ -73,7 +73,7 @@ for(const f of ['relay-form','report-form','quiz-form','sq-form','arr-form','log
 $('board-scope').onchange=()=>render();
 $('board-reset').onclick=async()=>{if(!confirm('Reset the Bridge Quiz leaderboard? Everyone starts again from zero. Points already awarded are not touched.'))return;try{view={...view,...await api('/api/engage/quiz/board/reset',{})};notice('Bridge Quiz leaderboard reset.');render();}catch(e){notice(e.message,true);}};
 $('board-copy').onclick=async()=>{try{await navigator.clipboard.writeText($('board-url').textContent);notice('Address copied.');}catch{notice('Select the address and copy it.',true);}};
-$('new-stream').onclick=async()=>{if(!confirm('Reset the per-stream counters now? Squadron chat, arrivals and log allowances start over for this stream. The !report muster is kept (nobody can report twice) and points are not touched.'))return;
+$('new-stream').onclick=async()=>{if(!confirm('Reset the per-stream counters now? Everyone can !report again and squadron chat, arrivals and log allowances start over for this stream. Points are not touched.'))return;
   try{view={...view,...await api('/api/engage/stream/new',{})};notice('New stream started: per-stream counters reset.');render();}catch(e){notice(e.message,true);}};
 $('save').onclick=async()=>{try{const sq=read('sq-form');
   view={...view,...await api('/api/engage/settings',{relay:read('relay-form'),report:read('report-form'),quiz:read('quiz-form'),arrivals:read('arr-form'),log:read('log-form'),

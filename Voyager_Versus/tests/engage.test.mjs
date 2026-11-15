@@ -140,7 +140,7 @@ test('2.21.5: every chat line Voyager tries to post is remembered with whether S
   v=e.view();assert.equal(v.chatOut[0].ok,false);assert.match(v.chatOut[0].message,/not in Streamer.bot/);assert.equal(v.chatOut[0].platform,'youtube');
 });
 
-test('2.23.1: the Reset per-stream counters button keeps the !report muster — nobody reports twice, new arrivals still can',async()=>{
+test('the keepMuster option still works for callers that ask for it (the button no longer does, 2.27.1) — nobody reports twice, new arrivals still can',async()=>{
   const {e}=await make();
   assert.equal(e.chat(msg('Nova','!report')).ok,true);const owed=e.rewardBatches().length,before=e.state.stream.id;
   e.newStream(undefined,{keepMuster:true});assert.notEqual(e.state.stream.id,before,'the other per-stream counters do start over');
@@ -179,4 +179,9 @@ test('2.26.0: a question is asked once and never again — not after edits, a re
   // an older data file has no "asked" list: it starts from the questions in its history
   const fs=await import('node:fs/promises'),path=await import('node:path'),file=path.join(e.dataDir,'engage.json'),raw=JSON.parse(await fs.readFile(file,'utf8'));delete raw.quiz.asked;await fs.writeFile(file,JSON.stringify(raw));
   const e3=await new Engage({dataDir:e.dataDir,now:()=>3e12,say:()=>{}}).load();assert.ok(e3.view().quiz.bank.find(x=>x.q===first).asked,'seeded from the answered questions in its history');
+});
+
+test('2.27.1: Reset per-stream counters clears the !report muster again — everyone can report afresh',async()=>{
+  const {e}=await make();assert.equal(e.chat(msg('Nova','!report')).ok,true);
+  e.newStream();assert.equal(e.chat(msg('Nova','!report')).ok,true,'reported before the reset: may report again');assert.equal(e.chat(msg('Nova','!report')).already,true);
 });

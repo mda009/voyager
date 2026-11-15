@@ -48,7 +48,7 @@ async function refresh(){
 // ---- buttons ----
 $('connect').onclick=()=>act($('connect'),'Connect chat',()=>api('/api/control',{type:'connect_saved'}));
 $('disconnect').onclick=()=>act($('disconnect'),'Disconnect',()=>api('/api/control',{type:'disconnect'}),'Disconnected.');
-$('new-stream').onclick=()=>{if(!confirm('Reset the per-stream counters now? Squadrons, arrival cards and Versus stream entries start again from zero. The !report muster is kept.'))return;
+$('new-stream').onclick=()=>{if(!confirm('Reset the per-stream counters now? !report muster, squadrons, arrival cards and Versus stream entries start again from zero.'))return;
   act($('new-stream'),'New stream',async()=>{await api('/api/engage/stream/new',{});const r=await api('/api/control',{type:'new_stream',value:{confirm:true}}).catch(e=>({message:'Chat counters reset. Versus: '+e.message}));return r;},r=>r?.message||'Counters reset.');};
 $('goals-read').onclick=()=>act($('goals-read'),'Read goals from OBS',()=>api('/api/streamerbot/run',{key:'goals.read'}));
 $('points-scan').onclick=()=>act($('points-scan'),'Scan tier groups',()=>api('/api/streamerbot/run',{key:'points.scan'}));

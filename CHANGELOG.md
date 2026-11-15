@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.27.1 (15 November 2026)
+
+- **Reset per-stream counters clears the !report muster again.** Pressing the button (Live, or Chat engagement) starts the muster afresh along with squadron chat points, arrival cards, Captain's Log allowances and Versus stream entries, so everyone can !report again. This undoes the 2.23.1 change.
+
 ## 2.27.0 (15 November 2026)
 
 - **Doorframe, a new game only you can start.** A tall, clumsy heroine in giant platform boots heads for a run of doors, with something new in the way at each one: a cat, a robot vacuum, a banana peel, one Lego brick, a chandelier, the washing line, a hanging plant, a coffee table, a wardrobe, the laundry pile. Chat has a few seconds to type **!duck**, **!hop** or **!squeeze**; the most-typed command decides. Right, and she squashes, boings or squishes past. Wrong, tied or silent, and she bonks the frame, sees stars and breaks something ("Broken: her dignity"), picking up a bandage or cast each time. Everyone who typed the right command for a door earns points (paid automatically), with a bonus for a clean run.
