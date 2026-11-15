@@ -6,7 +6,7 @@ import {join,resolve,dirname} from 'node:path';
 import {fileURLToPath} from 'node:url';
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 export const FEED_BRANCH='public-data';
-const ASSETS=[['brand-assets/voyager.png','voyager.png'],['brand-assets/Rajdhani-600.ttf','Rajdhani-600.ttf'],['brand-assets/Rajdhani-700.ttf','Rajdhani-700.ttf'],['desktop/build/icon.png','icon.png']];
+const ASSETS=[['brand-assets/voyager.png','voyager.png'],['brand-assets/Rajdhani-600.ttf','Rajdhani-600.ttf'],['brand-assets/Rajdhani-700.ttf','Rajdhani-700.ttf'],['desktop/build/icon.png','icon.png'],['site/viewer/icon-192.png','icon-192.png'],['site/viewer/icon-180.png','icon-180.png'],['site/viewer/icon-maskable.png','icon-maskable.png']];
 export async function buildSite(repo,out){
   if(!/^[A-Za-z0-9-]+\/[A-Za-z0-9_.-]+$/.test(repo||''))throw new Error('Pass the GitHub repository as owner/name.');
   const feed=`https://raw.githubusercontent.com/${repo}/${FEED_BRANCH}/feed.json`;

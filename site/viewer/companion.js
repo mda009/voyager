@@ -15,43 +15,88 @@ let feed=null,crew=null,crewAt=0,crewLoading=null,selected=null;
 // ---------- tabs ----------
 // 2.20.51: five tabs by what you are doing. Live (while watching), My card (you), Goals (the community goal and giveaway goals),
 // Community (squadrons, leaderboards, winners, medals) and Guide. Old links (#medals, #winners, #boards) still land in the right place.
+// 2.22.0 app shell: five tabs in the bar — Home, Live, My card, Community, More. Goals, SC Intel, Commands and Guide are pages
+// under More (the bar keeps More lit and a back pill appears). Old links (#goal, #intel, #medals, …) still land in the right place.
 const TABS=[
+ ['home','Home','M3 11l9-8 9 8 M5 10v10h5v-6h4v6h5V10'],
  ['live','Live','M5 12a7 7 0 0 1 14 0 M2 12a10 10 0 0 1 20 0 M12 12m-2 0a2 2 0 1 0 4 0a2 2 0 1 0-4 0 M12 14v7'],
  ['crew','My card','M3 5h18v14H3z M7 10a2 2 0 1 0 4 0a2 2 0 0 0-4 0 M6 16c.6-1.6 1.8-2.4 3-2.4s2.4.8 3 2.4 M14 9h4 M14 13h4'],
- ['goal','Goals','M12 3l2.6 5.4 6 .8-4.3 4.2 1 5.9-5.3-2.8-5.3 2.8 1-5.9L3.4 9.2l6-.8z'],
  ['community','Community','M16 11a4 4 0 1 0-8 0 4 4 0 0 0 8 0z M4 21c0-3.3 3.6-6 8-6s8 2.7 8 6 M19 8a3 3 0 1 0 0-6 M5 8a3 3 0 1 1 0-6'],
+ ['more','More','M5 12h.01 M12 12h.01 M19 12h.01'],
+ ['goal','Goals','M12 3l2.6 5.4 6 .8-4.3 4.2 1 5.9-5.3-2.8-5.3 2.8 1-5.9L3.4 9.2l6-.8z'],
  ['intel','SC Intel','M12 2l2 5 5 .7-3.7 3.4.9 5.2L12 13.9 7.8 16.3l.9-5.2L5 7.7 10 7z M3 20h18 M6 17v3 M18 17v3'],
  ['commands','Commands','M4 6h16v12H4z M7 10l3 2-3 2 M12 14h5'],
  ['guide','Guide','M4 4h7a3 3 0 0 1 3 3v13a2 2 0 0 0-2-2H4z M20 4h-7a3 3 0 0 0-3 3v13a2 2 0 0 1 2-2h8z']];
-const TAB_ALIAS={medals:'community',winners:'community',boards:'community',leaderboards:'community',squad:'community',season:'goal',goals:'goal',dread:'live',giveaways:'live',missions:'live',arena:'live',ranks:'crew',find:'crew',program:'guide',manual:'guide',command:'commands',cmd:'commands',cmds:'commands',news:'intel',sales:'intel',ships:'intel',store:'intel',deals:'intel',events:'intel',sc:'intel'};
-const resolveTab=h=>TABS.some(([t])=>t===h)?h:TAB_ALIAS[h]||null;
-let tab=(resolveTab(location.hash.slice(1))||'live'),wanted=tab; // a link to #crew waits for the feed before it can open that tab
+const BAR=['home','live','crew','community','more'],PARENT={goal:'more',intel:'more',commands:'more',guide:'more'};
+const SUB_TEXT={goal:'The community goal, giveaway goals and standings',intel:'Star Citizen news, ships in the store, deals and events',commands:'Every chat command and what it does',guide:'How Voyager works, and the member manual'};
+const TAB_ALIAS={medals:'community',winners:'community',boards:'community',leaderboards:'community',squad:'community',season:'goal',goals:'goal',dread:'live',giveaways:'live',missions:'live',arena:'live',ranks:'crew',find:'crew',program:'guide',manual:'guide',command:'commands',cmd:'commands',cmds:'commands',news:'intel',sales:'intel',ships:'intel',store:'intel',deals:'intel',events:'intel',sc:'intel',card:'crew',me:'crew'};
+const resolveTab=h=>TABS.some(([t])=>t===h)?h:TAB_ALIAS[h]||(document.getElementById(h)?.dataset?.tab)||null;
+let pendingCard='';{const m=location.hash.match(/^#card\/(.+)$/);if(m){try{pendingCard=decodeURIComponent(m[1]).toLowerCase();}catch{}}}
+let tab=pendingCard?'crew':(resolveTab(location.hash.slice(1))||'home'),wanted=tab; // a link to #crew waits for the feed before it can open that tab
+const store={get(k){try{return localStorage.getItem(k);}catch{return null;}},set(k,v){try{localStorage.setItem(k,v);}catch{}},del(k){try{localStorage.removeItem(k);}catch{}}};
 function sectionsOf(t){return [...document.querySelectorAll('section[data-tab="'+t+'"]')];}
 function available(t){return sectionsOf(t).some(s=>!s.hidden);}
+// "New" dots: a short fingerprint of what each tab shows; the dot clears when the tab is opened.
+function sigs(){const f=feed||{};const j=v=>JSON.stringify(v??null);return {
+ live:j([(f.giveaways||[]).map(g=>[g.id||g.title,g.status]),f.dreadnought?.phase,(f.dreadnought?.recent||[])[0]?.at,f.versus?.status==='live']),
+ community:j([(f.winners||[])[0],(f.medals?.recent||[])[0],f.squadrons?.leader]),
+ goal:j([(f.season?.goals||[]).map(g=>[g.title,!!g.reached]),f.season?.name]),
+ intel:j([(f.intel?.news||[])[0]?.title,(f.intel?.deals||[]).length,(f.intel?.events||[]).length,(f.intel?.sales||[])[0]?.name])};}
+let seen={};try{seen=JSON.parse(store.get('voyager-seen')||'{}')||{};}catch{}
+const fresh1=k=>{const s=sigs()[k];return !!feed&&s!==undefined&&seen[k]!==undefined&&seen[k]!==s;};
+function markSeen(t){if(!feed)return;const s=sigs();let ch=false;for(const k of Object.keys(s))if(k===t||seen[k]===undefined){if(seen[k]!==s[k]){seen[k]=s[k];ch=true;}}if(ch)store.set('voyager-seen',JSON.stringify(seen));}
+const hasNew=t=>t==='more'?Object.keys(PARENT).some(k=>available(k)&&fresh1(k)):fresh1(t);
+function icon(path){const i=svg('svg',{viewBox:'0 0 24 24',fill:'none',stroke:'currentColor','stroke-width':'1.8','stroke-linecap':'round','stroke-linejoin':'round','aria-hidden':'true'});i.append(svg('path',{d:path}));return i;}
 function renderTabs(){
  const bar=$('tabbar');bar.textContent='';bar.setAttribute('role','tablist');
- const shown=TABS.filter(([t])=>available(t));if(wanted&&shown.some(([t])=>t===wanted)){tab=wanted;if(feed)wanted=null;}if(!shown.some(([t])=>t===tab))tab=shown[0]?.[0]||'live';
- const busy=feed&&(feed.live?.onAir||['lobby','battle'].includes(feed.dreadnought?.phase));
- for(const [t,label,path] of shown){
-  const b=el('button');b.type='button';b.setAttribute('role','tab');b.setAttribute('aria-selected',String(t===tab));b.setAttribute('aria-controls',sectionsOf(t)[0]?.id||'');
-  const icon=svg('svg',{viewBox:'0 0 24 24',fill:'none',stroke:'currentColor','stroke-width':'1.8','stroke-linecap':'round','stroke-linejoin':'round','aria-hidden':'true'});icon.append(svg('path',{d:path}));
-  b.append(icon,el('span','',label));if(t==='live'&&busy&&t!==tab)b.append(el('i','pip'));
+ const ok=TABS.filter(([t])=>available(t)).map(([t])=>t);if(wanted&&ok.includes(wanted)){tab=wanted;if(feed)wanted=null;}if(!ok.includes(tab))tab=ok.includes('home')?'home':ok[0]||'home';
+ const lit=PARENT[tab]||tab,busy=feed&&(feed.live?.onAir||['lobby','battle'].includes(feed.dreadnought?.phase));
+ markSeen(tab);
+ for(const [t,label,path] of TABS.filter(([t])=>BAR.includes(t)&&ok.includes(t))){
+  const b=el('button');b.type='button';b.setAttribute('role','tab');b.setAttribute('aria-selected',String(t===lit));b.setAttribute('aria-controls',sectionsOf(t)[0]?.id||'');
+  b.append(icon(path),el('span','',label));if(t!==lit&&((t==='live'&&busy)||hasNew(t)))b.append(el('i','pip'));
   b.onclick=()=>go(t);bar.append(b);
  }
  for(const s of document.querySelectorAll('section[data-tab]'))s.classList.toggle('off',s.dataset.tab!==tab);
+ const sub=$('subhead');sub.hidden=!PARENT[tab];if(PARENT[tab])$('sub-title').textContent=TABS.find(([t])=>t===tab)[1];
+ renderMore();
 }
-function go(t,push=true){tab=t;wanted=null;if(push)history.replaceState(null,'','#'+t);renderTabs();if(t==='crew')loadCrew();window.scrollTo({top:0,behavior:'smooth'});}
-addEventListener('hashchange',()=>{const h=location.hash.slice(1),t=resolveTab(h);if(!t)return;go(t,false);if(h!==t){const sec=document.getElementById(h);if(sec)setTimeout(()=>sec.scrollIntoView({behavior:'smooth',block:'start'}),60);}});
+function renderMore(){
+ const box=$('more-list');if(!box)return;box.textContent='';
+ const item=(path,title,subText,fn,dot)=>{const b=el('button');b.type='button';const t=el('div');const h=el('b','',title);if(dot)h.append(el('i'));t.append(h,el('small','',subText));b.append(icon(path),t,el('span','go','›'));b.onclick=fn;box.append(b);};
+ for(const [t,label,path] of TABS.filter(([t])=>PARENT[t]==='more'&&available(t)))item(path,label,SUB_TEXT[t]||'',()=>go(t),fresh1(t));
+ box.append(el('div','more-h','The app'));
+ item('M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7 M12 3v13 M7 8l5-5 5 5','Share Voyager','Send the companion to a friend',()=>share({title:'Voyager · Stream companion',text:'Giveaways, the Dreadnought, membership cards and medals, live from the stream.',url:location.origin+location.pathname}));
+ if(!EMBED&&!standalone())item('M12 3v12 M7 10l5 5 5-5 M5 21h14','Install the app','Add Voyager to your home screen',()=>installFlow());
+ if(!EMBED)item('M12 8v4l3 2 M21 12a9 9 0 1 1-9-9','Welcome tour','See the three-step welcome again',()=>onboard(true));
+}
+const scrollAt={};let lastIdx=0;
+function go(t,push=true){
+ if(t===tab&&push){window.scrollTo({top:0,behavior:'smooth'});return;}
+ scrollAt[tab]=window.scrollY;const order=TABS.map(x=>x[0]),from=order.indexOf(tab),to=order.indexOf(t);
+ tab=t;wanted=null;if(push)history.pushState(null,'','#'+t);renderTabs();if(t==='crew')loadCrew();
+ const dx=PARENT[t]?'18px':t==='more'&&PARENT[order[from]]?'-18px':to>=from?'14px':'-14px';
+ for(const s of sectionsOf(t)){s.style.setProperty('--dx',dx);s.classList.remove('tab-in');void s.offsetWidth;s.classList.add('tab-in');}
+ window.scrollTo({top:PARENT[t]?0:scrollAt[t]||0});
+}
+$('sub-back').onclick=()=>go('more');
+addEventListener('hashchange',()=>{const h=location.hash.slice(1);const c=h.match(/^card\/(.+)$/);if(c){try{pendingCard=decodeURIComponent(c[1]).toLowerCase();}catch{}go('crew',false);loadCrew(true);return;}
+ const t=resolveTab(h);if(!t)return;if(t!==tab)go(t,false);if(h!==t){const sec=document.getElementById(h);if(sec)setTimeout(()=>sec.scrollIntoView({behavior:'smooth',block:'start'}),60);}});
+// ---------- small app helpers: toast, share, standalone ----------
+let toastTimer=0;function toast(text){let t=$('toast');if(!t){t=el('div','toast');t.id='toast';t.setAttribute('role','status');document.body.append(t);}t.textContent=text;t.classList.add('on');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('on'),2200);}
+const standalone=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+async function share(data){try{if(navigator.share){await navigator.share(data);return;}}catch(e){if(e?.name==='AbortError')return;}
+ try{await navigator.clipboard.writeText((data.text?data.text+' ':'')+data.url);toast('Link copied');}catch{toast(data.url);}}
 // Right now: what is on, one tap away (the community goal, an open giveaway, the Dreadnought, missions).
 window.renderRightNow=function(){
  const box=document.getElementById('rightnow');if(!box||!feed)return;box.textContent='';
  const tile=(cls,title,sub,target,section)=>{const b=el('button',cls);b.type='button';const t=el('b');t.append(el('i'),document.createTextNode(title));b.append(t,el('small','',sub));b.onclick=()=>{go(target);if(section){const sec=document.getElementById(section);if(sec)setTimeout(()=>sec.scrollIntoView({behavior:'smooth',block:'start'}),80);}};box.append(b);};
  const s=feed.season;if(s&&s.active!==false&&s.name){const days=s.endsAt?Math.max(0,Math.ceil((s.endsAt-Date.now())/864e5)):0,next=(s.goals||[]).find(g=>!g.reached&&!g.missed),done=(s.goals||[]).filter(g=>g.reached).length;
   tile('gold',s.name,(s.endsAt?days+' days to go · ':'')+(next?next.title+' '+Math.min(100,Math.floor(next.total/next.target*100))+'%':done+' of '+(s.goals||[]).length+' goals reached'),'goal','season');}
- const open=(feed.giveaways||[]).filter(g=>g.status==='open');if(open.length&&fresh())tile('',open.length===1?'Giveaway open':open.length+' giveaways open',open[0].title+(open[0].eligibility?' · '+open[0].eligibility:''),'live','giveaways');
+ const open=(feed.giveaways||[]).filter(g=>g.status==='open');if(open.length&&feed.online&&Date.now()-feed.generatedAt<15*60000)tile('',open.length===1?'Giveaway open':open.length+' giveaways open',open[0].title+(open[0].eligibility?' · '+open[0].eligibility:''),'live','giveaways');
  const d=feed.dreadnought;if(d&&['lobby','battle'].includes(d.phase))tile('red',d.phase==='lobby'?'Dreadnought boarding':'Dreadnought fight',d.phase==='lobby'?'Type !join now':'Type !fire to attack','live','dread');
  const m=feed.missions;if(m&&(m.list||[]).length&&box.children.length<3)tile('',(m.list||[]).length+' missions this week','Finish one to earn Voyager points','live','missions');
- if(!box.children.length&&feed.sections?.crew!==false)tile('','Find your card','Your tier, rank, medals and Twitch watch streak','crew','find');
+ const h=document.getElementById('h-rightnow');if(h)h.hidden=!box.children.length;
 };
 const st=document.createElement('style');st.textContent='section.off{display:none!important}'+(EMBED?' nav.tabbar{position:static!important;padding:0!important;background:none!important;border:0!important;margin-top:10px!important}.embed .wrap{padding-bottom:24px!important}':'');document.head.append(st);
 
@@ -217,7 +262,9 @@ async function loadCrew(force=false){
   crew=d.members.map(m=>({name:String(m[0]),platform:m[1],tier:m[2],rank:m[3]|0,place:m[4]|0,lifetime:Number(m[5])||0,medals:Array.isArray(m[6])?m[6]:[],record:Array.isArray(m[7])?m[7]:null,front:m[8]&&typeof m[8]==='object'?m[8]:null,back:m[9]&&typeof m[9]==='object'?m[9]:null,key:String(m[0]).toLowerCase()}));crewAt=Date.now();
   $('crew-note').textContent=fmt(crew.length)+' crew members · updated '+ago(d.generatedAt)+'. Not listed? Earn some Voyager points on stream and check back.';
   search();
+  if(pendingCard){const pm=crew.find(m=>m.key===pendingCard);pendingCard='';if(pm)show(pm,false);else toast('That card is not on the crew list');}
   try{const saved=localStorage.getItem('voyager-me');if(saved&&!selected){const me=crew.find(m=>m.key===saved);if(me)show(me,false);}}catch{}
+  renderHome();
   return crew;}catch{$('crew-note').textContent='The crew list isn’t available right now. Try again in a few minutes.';return null;}finally{crewLoading=null;}})();
  return crewLoading;
 }
@@ -273,7 +320,7 @@ async function drawSide(host,f,side='front',b=null){
 const drawFront=(host,f)=>drawSide(host,f,'front');
 function show(m,remember=true,side='front'){
  selected=m;$('crew-results').textContent='';$('crew-search').value='';
- if(remember)try{localStorage.setItem('voyager-me',m.key);}catch{}
+ if(remember){try{localStorage.setItem('voyager-me',m.key);}catch{}store.del('voyager-snap');renderHome();}
  const [title,c1,c2]=TIER[m.tier]||TIER.blue,box=$('member');box.hidden=false;box.textContent='';box.className='member-wrap';
  box.style.setProperty('--t',c1);box.style.setProperty('--t2',c2);
  const total=catalogue.size||0,r=m.record||[];
@@ -301,27 +348,97 @@ function show(m,remember=true,side='front'){
  under.append(el('h4','','Medals · '+m.medals.length+' of '+(total||'–')+' unlocked'));
  if(locked.length){const det=el('details','locked-list');det.append(el('summary','','Still to earn · '+locked.length));const lg=el('div','medal-grid');for(const md of locked)lg.append(medalTile(md,0,0,true));det.append(lg);under.append(det);}
  under.append(el('p','hint','Tap the card to turn it over ↻'));
- const again=el('button','chip','Not you? Search again');again.type='button';again.onclick=()=>{try{localStorage.removeItem('voyager-me');}catch{}selected=null;box.hidden=true;$('crew-search').focus();};
- const foot=el('div','card-foot');foot.append(again,el('span','lede small','Tap the card to turn it over · type !voyager in chat to show it on stream.'));
+ const again=el('button','chip','Not you? Search again');again.type='button';again.onclick=()=>{try{localStorage.removeItem('voyager-me');}catch{}selected=null;box.hidden=true;$('crew-search').focus();renderHome();};
+ const sh=el('button','chip','Share this card');sh.type='button';sh.onclick=()=>share({title:m.name+' · Voyager',text:m.name+' — '+title+(m.place?', #'+fmt(m.place)+' on the Voyager crew':'')+(m.medals.length?' · '+m.medals.length+' medals':'')+'.',url:location.origin+location.pathname+'#card/'+encodeURIComponent(m.key)});
+ const foot=el('div','card-foot');foot.append(sh,again,el('span','lede small','Tap the card to turn it over · type !voyager in chat to show it on stream.'));
  box.append(ctl,flipper,under,foot);
 }
 $('crew-search').addEventListener('input',()=>{if(!crew)loadCrew();search();});
 $('crew-search').addEventListener('focus',()=>loadCrew());
 
+// ---------- home (2.22.0): you first ----------
+let sinceText=null;
+function sinceLast(me){
+ if(sinceText!==null)return sinceText;sinceText='';
+ const now={k:me.key,l:me.lifetime,m:me.medals.length,r:me.rank,at:Date.now()};let old=null;try{old=JSON.parse(store.get('voyager-snap')||'null');}catch{}
+ if(old&&old.k===me.key&&now.at-old.at>10*60000){const bits=[];if(now.l>old.l)bits.push('+'+fmt(now.l-old.l)+' points');if(now.m>old.m)bits.push((now.m-old.m)+' new medal'+(now.m-old.m===1?'':'s'));if(now.r>old.r)bits.push('promoted to '+(feed.ranks?.ladder?.[now.r]?.name||'a new rank'));
+  if(bits.length)sinceText='Since your last visit ('+ago(old.at)+'): '+bits.join(' · ')+'.';}
+ if(!old||old.k!==me.key||now.at-old.at>10*60000)store.set('voyager-snap',JSON.stringify(now));
+ return sinceText;
+}
+function renderHome(){
+ if(!feed)return;const on=!!feed.live?.onAir,fr=feed.online&&Date.now()-feed.generatedAt<15*60000;
+ $('home-onair').dataset.on=String(on&&fr);$('home-onair-text').textContent=on&&fr?'Live now':fr?'Stream tools on':'Off air';$('home-updated').textContent='Updated '+ago(feed.generatedAt);
+ const box=$('home-me'),saved=store.get('voyager-me'),me=saved&&crew?crew.find(m=>m.key===saved):null,since=$('home-since');
+ $('h-home').textContent=me?'Welcome back, '+me.name:'Welcome aboard';box.textContent='';since.hidden=true;
+ if(me){const [title,c1,c2]=TIER[me.tier]||TIER.blue,rank=feed.ranks?.ladder?.[me.rank]?.name||'';
+  const b=el('button','me-card');b.type='button';b.style.setProperty('--t',c1);b.style.setProperty('--t2',c2);const t=el('div');t.append(el('b','',me.name),el('small','',title+(rank?' · '+rank:'')+(PLATFORM[me.platform]?' · '+PLATFORM[me.platform]:'')));
+  b.append(el('span','badge',(title[0]||'V')),t,el('span','go','›'));b.onclick=()=>go('crew');
+  const st=el('div','me-stats');for(const [k,v] of [['Lifetime points',fmt(me.lifetime)],['Crew place',me.place?'#'+fmt(me.place):'—'],['Medals',fmt(me.medals.length)]]){const d=el('div');d.append(el('small','',k),el('b','',v));st.append(d);}
+  box.append(b,st);const txt=sinceLast(me);if(txt){since.textContent=txt;since.hidden=false;}}
+ else if(saved&&feed.crew&&!crew){box.append(el('div','sk sk-block'));loadCrew();}
+ else if(feed.crew){const c=el('div','me-cta');const btn=el('button','','Find my card');btn.type='button';btn.onclick=()=>{go('crew');setTimeout(()=>$('crew-search')?.focus(),250);};c.append(el('span','','Find your name once and your tier, rank, points and medals live here.'),btn);box.append(c);}
+ else box.append(el('p','lede',feed.channel?.tagline||'Giveaways, the Dreadnought, ranks and medals, live from the stream.'));
+}
 // ---------- install (PWA) ----------
 let installEvent=null;
-addEventListener('beforeinstallprompt',e=>{e.preventDefault();installEvent=e;if(!EMBED)$('install').hidden=false;});
-$('install-btn').onclick=async()=>{if(!installEvent)return;installEvent.prompt();try{await installEvent.userChoice;}catch{}installEvent=null;$('install').hidden=true;};
+const isIOS=()=>/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+function installHint(){if(EMBED||standalone())return;const box=$('install');if(installEvent){$('install-text').textContent='Add Voyager to your home screen for one-tap access.';$('install-btn').textContent='Install';box.hidden=false;}
+ else if(isIOS()){$('install-text').textContent='Add Voyager to your Home Screen to use it like an app.';$('install-btn').textContent='How';box.hidden=false;}}
+async function installFlow(){if(installEvent){installEvent.prompt();try{await installEvent.userChoice;}catch{}installEvent=null;$('install').hidden=true;return;}onboard(true,2);}
+addEventListener('beforeinstallprompt',e=>{e.preventDefault();installEvent=e;installHint();});
+addEventListener('appinstalled',()=>{$('install').hidden=true;toast('Voyager installed');});
+$('install-btn').onclick=installFlow;
 if(!EMBED&&'serviceWorker' in navigator&&location.protocol==='https:')addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+installHint();
+
+// ---------- welcome (first run): what it is, find your name, add to home screen ----------
+function onboard(force=false,start=0){
+ if(EMBED||(!force&&(store.get('voyager-welcomed')||standalone()&&store.get('voyager-me'))))return;if($('onb'))return;
+ const wrap=el('div','onb');wrap.id='onb';wrap.setAttribute('role','dialog');wrap.setAttribute('aria-modal','true');wrap.setAttribute('aria-label','Welcome to Voyager');const inner=el('div','onb-in');wrap.append(inner);document.body.append(wrap);
+ let step=start;const close=()=>{store.set('voyager-welcomed','1');wrap.remove();renderHome();};
+ const dots=()=>{const d=el('div','dots');for(let i=0;i<3;i++)d.append(el('i',i===step?'on':''));return d;};
+ const nav=(nextLabel,next)=>{const row=el('div','row');const n=el('button','btn',nextLabel);n.type='button';n.onclick=next;row.append(n);const sk=el('button','skip',step<2?'Skip':'Close');sk.type='button';sk.onclick=close;return [row,sk];};
+ function draw(){inner.textContent='';
+  if(step===0){const img=el('img','logo');img.src='assets/voyager.png';img.alt='';const f=el('div','feat');
+   for(const [t,d] of [['Your card','Tier, rank, points and medals'],['Live','Giveaways and the Dreadnought as they happen'],['Community','Leaderboards, winners, squadrons'],['SC Intel','Star Citizen news and ships in the store']]){const x=el('div','',t);x.append(el('small','',d));f.append(x);}
+   inner.append(img,dots(),el('h1','','Welcome aboard'),el('p','','Voyager is the companion to the '+((feed?.channel?.name)||'MDA009')+' stream. Keep it next to the stream, or check in between streams.'),f,...nav('Next',()=>{step=1;draw();}));}
+  else if(step===1){inner.append(dots(),el('h1','','Find your name'),el('p','','Pick yourself from the crew list and Voyager opens on your own card every time.'));
+   if(!feed?.crew){inner.append(el('p','','The crew list is not available right now — you can do this later from My card.'),...nav('Next',()=>{step=2;draw();}));return;}
+   const lab=el('label','search');const inp=el('input');inp.type='search';inp.placeholder='Type your name…';inp.autocomplete='off';inp.autocapitalize='off';inp.spellcheck=false;lab.append(inp);const res=el('ul','results');const picked=el('div','picked');picked.hidden=true;
+   const find=()=>{res.textContent='';const q=inp.value.trim().toLowerCase();if(q.length<2||!crew)return;for(const m of crew.filter(x=>x.key.includes(q)).sort((a,b)=>(a.key.startsWith(q)?0:1)-(b.key.startsWith(q)?0:1)||a.place-b.place).slice(0,6)){const li=el('li');const b=el('button');b.type='button';b.append(el('b','',m.name),el('small','',(TIER[m.tier]||TIER.blue)[0]+(PLATFORM[m.platform]?' · '+PLATFORM[m.platform]:'')));
+     b.onclick=()=>{show(m,true);res.textContent='';inp.value='';picked.hidden=false;picked.textContent='You are '+m.name+' — '+(TIER[m.tier]||TIER.blue)[0]+'.';};li.append(b);res.append(li);}};
+   inp.oninput=find;loadCrew().then(find);
+   inner.append(lab,res,picked,el('p','','Not listed yet? Earn some Voyager points on stream — chat, !report, join a Dreadnought fight — and check back.'),...nav('Next',()=>{step=2;draw();}));setTimeout(()=>inp.focus(),100);}
+  else{inner.append(dots(),el('h1','',standalone()?'You are all set':'Put it on your home screen'));
+   if(standalone())inner.append(el('p','','Voyager is installed. It opens on your card and updates itself while the stream is live.'));
+   else if(installEvent){inner.append(el('p','','One tap and Voyager sits beside your other apps, full screen, and opens instantly.'));const row=el('div','row');const b=el('button','btn','Install Voyager');b.type='button';b.onclick=async()=>{await installFlow();close();};row.append(b);inner.append(row);}
+   else if(isIOS()){const ol=el('ol');for(const t of ['Open this page in Safari.','Tap the Share button (the square with an arrow).','Choose "Add to Home Screen", then Add.'])ol.append(el('li','',t));inner.append(el('p','','On iPhone and iPad:'),ol);}
+   else{const ol=el('ol');for(const t of ['Open your browser menu (⋮ or ⋯).','Choose "Install app" or "Add to Home screen".'])ol.append(el('li','',t));inner.append(el('p','','In Chrome, Edge or Samsung Internet:'),ol);}
+   const row=el('div','row');const d=el('button','btn'+(installEvent&&!standalone()?' ghost':''),'Done');d.type='button';d.onclick=close;row.append(d);inner.append(row);}
+ }
+ draw();
+}
+
+// ---------- pull to refresh (phones and tablets) ----------
+(()=>{if(EMBED||!('ontouchstart' in window))return;const ind=$('ptr');let y0=null,pull=0,busy=false;
+ const set=(px,live)=>{ind.classList.toggle('live',live);ind.style.transform='translateY('+(px-70)+'px)';ind.style.opacity=String(Math.min(1,px/60));ind.style.setProperty('--r',(px*4)+'deg');};
+ addEventListener('touchstart',e=>{if(busy||window.scrollY>0||$('onb')||e.touches.length!==1){y0=null;return;}y0=e.touches[0].clientY;pull=0;},{passive:true});
+ addEventListener('touchmove',e=>{if(y0===null)return;const d=e.touches[0].clientY-y0;if(d<=0||window.scrollY>0){pull=0;set(0,false);return;}pull=Math.min(110,d*.5);set(pull,false);},{passive:true});
+ addEventListener('touchend',async()=>{if(y0===null)return;y0=null;if(pull<64){set(0,true);return;}busy=true;ind.classList.add('spin');set(64,true);
+  try{await Promise.all([window.voyagerReload?.(),tab==='crew'||store.get('voyager-me')?loadCrew(true):null,new Promise(r=>setTimeout(r,500))]);}catch{}
+  ind.classList.remove('spin');set(0,true);busy=false;toast('Updated');},{passive:true});
+})();
 
 // ---------- feed ----------
 addEventListener('voyager:feed',e=>{
  feed=e.detail;
- try{renderNow();}catch{}try{renderDread();}catch{}try{renderRanks();}catch{}try{renderMedals();}catch{}try{renderSquad();}catch{}try{renderLog();}catch{}try{renderIntel();}catch{}
+ try{renderNow();}catch{}try{renderHome();}catch{}try{renderDread();}catch{}try{renderRanks();}catch{}try{renderMedals();}catch{}try{renderSquad();}catch{}try{renderLog();}catch{}try{renderIntel();}catch{}
  $('arena').hidden=$('versus').hidden;
  $('find').hidden=!feed.crew;
  renderTabs();
- if(tab==='crew'&&feed.crew)loadCrew();
+ if((tab==='crew'||store.get('voyager-me')||pendingCard)&&feed.crew)loadCrew();
+ if(!onboard.done){onboard.done=true;setTimeout(()=>onboard(),400);}
 });
 setInterval(()=>{for(const n of document.querySelectorAll('[data-until]'))n.textContent=(n.dataset.prefix||'')+left(Number(n.dataset.until));},1000);
 renderTabs();

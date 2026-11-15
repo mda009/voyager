@@ -104,7 +104,9 @@ export class PublicSite{
     if(now-(this.rebuiltAt||0)>=10000)this.rebuild();
     if(!s.publish.enabled||!s.publish.repo||!this.token||u.busy||now<u.nextAt)return;
     const changed=this.changedAt>u.lastAt;
-    if(!(changed&&now-u.lastAt>=MIN_UPLOAD_MS)&&now-u.lastAt<KEEPALIVE_MS)return;
+    // 2.22.0: while a Dreadnought fight is boarding or on, publish changes every 20 s so the companion app keeps up.
+    const minGap=['lobby','battle'].includes(this.feed?.dreadnought?.phase)?20000:MIN_UPLOAD_MS;
+    if(!(changed&&now-u.lastAt>=minGap)&&now-u.lastAt<KEEPALIVE_MS)return;
     await this.push();
   }
   async push(timeoutMs=20000){

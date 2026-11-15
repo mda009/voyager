@@ -7,7 +7,7 @@
 <title>Voyager · Stream companion</title>
 <meta name="description" content="The Voyager stream companion: what's on now, giveaways, the Dreadnought, your membership card, naval ranks, medals and leaderboards.">
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="apple-touch-icon" href="assets/icon.png">
+<link rel="apple-touch-icon" href="assets/icon-180.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -332,25 +332,131 @@ ol.logrows .quote{font-size:16px;color:var(--text)}
 .itag.patch{background:#14382a;color:#7ff0b5}.itag.event,.itag.freefly{background:#3b3115;color:#ffd56a}.itag.sale,.itag.ccu{background:#3d2a14;color:#ffb060}.itag.show{background:#3a1f33;color:#ff9ad5}
 .ship-img{width:60px;height:34px;object-fit:cover;border-radius:5px;background:#0b1626;border:1px solid var(--line)}
 .intel .cmds{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0 4px}
+/* ===== App shell (2.22.0): home screen, five tabs, More, onboarding, transitions, pull to refresh ===== */
+html{overscroll-behavior-y:contain}
+body{-webkit-tap-highlight-color:transparent}
+button,a,.chip{touch-action:manipulation}
+.home-card h1{font:700 clamp(28px,6vw,42px)/1.04 var(--display);margin:10px 0 12px}
+.home-h{font-size:18px;letter-spacing:1.6px;text-transform:uppercase;color:#8abbd8;margin:22px 0 10px}
+#home .rightnow{grid-template-columns:repeat(auto-fit,minmax(200px,1fr));margin:0}
+#home .rightnow button{padding:14px;border-radius:14px;background:linear-gradient(170deg,var(--panel-2),var(--panel) 60%);min-height:72px;justify-content:center}
+#home .install{margin-top:14px}
+.me{display:flex;flex-direction:column;gap:10px}
+.me-card{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:14px;align-items:center;width:100%;text-align:left;padding:14px;border-radius:14px;border:1px solid color-mix(in srgb,var(--t,#3fb2ff) 45%,transparent);background:linear-gradient(120deg,color-mix(in srgb,var(--t2,#0b2c6e) 55%,transparent),#0b1626 70%);color:var(--text);cursor:pointer;font:inherit}
+.me-card .badge{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:color-mix(in srgb,var(--t,#3fb2ff) 22%,#0b1626);color:var(--t,#3fb2ff);font:700 20px/1 var(--display);border:1px solid color-mix(in srgb,var(--t,#3fb2ff) 50%,transparent)}
+.me-card b{display:block;font:700 20px/1.1 var(--display);letter-spacing:.4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.me-card small{display:block;color:var(--muted);font-size:13px;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.me-card .go{color:var(--muted);font-size:22px}
+.me-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.me-stats div{padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:#0b1626}
+.me-stats small{display:block;font:700 10px/1 var(--display);letter-spacing:1.4px;color:#8abbd8;text-transform:uppercase}
+.me-stats b{display:block;font:700 20px/1.2 var(--display);margin-top:5px;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.me-cta{display:flex;align-items:center;gap:12px;padding:14px;border:1px dashed var(--line-strong);border-radius:14px;background:#0b1626;color:var(--muted);font-size:14px}
+.me-cta button,.btn{font:700 14px/1 var(--display);letter-spacing:1px;text-transform:uppercase;background:linear-gradient(180deg,#2a7cff,#1d5fd0);color:#fff;border:0;border-radius:10px;padding:12px 16px;cursor:pointer;white-space:nowrap}
+.me-cta button{margin-left:auto}
+.btn.ghost{background:#13253c;border:1px solid var(--line-strong);color:var(--text)}
+.since{margin-top:12px;padding:12px 14px;border:1px solid #2c5a3f;background:#0d2219;border-radius:12px;color:#bfeed3;font-size:14px}
+/* skeletons */
+.sk{border-radius:10px;background:linear-gradient(90deg,#0f1c2e 25%,#182a42 50%,#0f1c2e 75%);background-size:200% 100%;animation:sk 1.3s linear infinite}
+.sk-line{height:18px}.sk-block{height:76px}.sk-tile{height:72px;border-radius:14px}
+@keyframes sk{to{background-position:-200% 0}}
+/* More */
+.more-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
+.more-list button{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:14px;align-items:center;text-align:left;padding:14px;border:1px solid var(--line);border-radius:14px;background:linear-gradient(170deg,var(--panel-2),var(--panel) 60%);color:var(--text);cursor:pointer;font:inherit;min-height:68px}
+.more-list button:hover{border-color:var(--line-strong)}
+.more-list svg{width:26px;height:26px;color:#8abbd8}
+.more-list b{display:flex;align-items:center;gap:8px;font:700 17px/1.1 var(--display);letter-spacing:.5px}
+.more-list small{display:block;color:var(--muted);font-size:13px;margin-top:3px}
+.more-list .go{color:var(--faint);font-size:20px}
+.more-list .pip,.more-list b i{width:8px;height:8px;border-radius:50%;background:var(--rose);box-shadow:0 0 8px var(--rose);display:inline-block}
+.more-h{grid-column:1/-1;font:700 12px/1 var(--display);letter-spacing:2px;color:#8abbd8;text-transform:uppercase;margin:10px 0 0}
+/* sub-page header (pages under More) */
+.subhead{display:flex;align-items:center;gap:10px;margin:14px 0 -14px}
+.subhead[hidden]{display:none}
+.subhead button{display:inline-flex;align-items:center;gap:4px;background:#13253c;border:1px solid var(--line-strong);color:var(--text);border-radius:999px;padding:8px 14px 8px 8px;font:700 14px/1 var(--display);letter-spacing:1px;text-transform:uppercase;cursor:pointer}
+.subhead svg{width:18px;height:18px}
+.subhead b{font:700 14px/1 var(--display);letter-spacing:2px;color:#8abbd8;text-transform:uppercase}
+/* tab transitions */
+@keyframes tabin{from{opacity:0;transform:translateX(var(--dx,14px))}to{opacity:1;transform:none}}
+section.tab-in{animation:tabin .22s cubic-bezier(.2,.7,.2,1) both}
+/* pull to refresh */
+.ptr{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 8px);z-index:40;width:38px;height:38px;margin-left:-19px;border-radius:50%;background:#13253c;border:1px solid var(--line-strong);display:flex;align-items:center;justify-content:center;transform:translateY(-70px);opacity:0;pointer-events:none;box-shadow:0 6px 18px #0008}
+.ptr.live{transition:transform .2s,opacity .2s}
+.ptr i{width:18px;height:18px;border-radius:50%;border:2.5px solid #8abbd8;border-top-color:transparent;transform:rotate(var(--r,0deg))}
+.ptr.spin i{animation:ptrspin .7s linear infinite}
+@keyframes ptrspin{to{transform:rotate(360deg)}}
+/* toast */
+.toast{position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);background:#13253c;border:1px solid var(--line-strong);color:var(--text);padding:10px 16px;border-radius:999px;font-size:14px;z-index:60;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;white-space:nowrap}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+/* onboarding */
+.onb{position:fixed;inset:0;z-index:80;background:radial-gradient(ellipse 90% 50% at 50% 0,#1a3b6a,#070d16 70%);display:flex;flex-direction:column;padding:max(24px,env(safe-area-inset-top,0px)) 22px max(22px,env(safe-area-inset-bottom,0px));overflow:auto}
+.onb-in{max-width:460px;width:100%;margin:auto;display:flex;flex-direction:column;gap:16px;text-align:center;align-items:center}
+.onb img.logo{width:96px;height:96px;object-fit:contain;filter:drop-shadow(0 0 22px #00d8ff55)}
+.onb h1{font:700 34px/1.05 var(--display);margin:0}
+.onb p{color:var(--muted);margin:0;font-size:16px}
+.onb .dots{display:flex;gap:6px;justify-content:center}.onb .dots i{width:22px;height:4px;border-radius:2px;background:#1d3048}.onb .dots i.on{background:var(--cyan)}
+.onb .row{display:flex;gap:10px;width:100%}.onb .row .btn{flex:1;padding:15px 16px;font-size:15px}
+.onb .skip{background:none;border:0;color:var(--muted);font:600 14px/1 var(--body);padding:10px;cursor:pointer}
+.onb .search{width:100%}.onb .results{width:100%;text-align:left;max-height:240px;overflow:auto}
+.onb .feat{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;text-align:left}
+.onb .feat div{padding:12px;border:1px solid var(--line);border-radius:12px;background:#0b1626aa;font:600 14px/1.3 var(--display);letter-spacing:.3px}
+.onb .feat small{display:block;color:var(--muted);font:500 12px/1.35 var(--body);margin-top:3px}
+.onb ol{text-align:left;color:var(--text);margin:0;padding-left:22px;display:flex;flex-direction:column;gap:8px;font-size:15px}
+.onb .picked{width:100%;padding:12px 14px;border:1px solid #2c5a3f;background:#0d2219;border-radius:12px;color:#bfeed3;font-size:15px}
+/* app bar: sticky everywhere; tabs under it on tablets and desktop */
+header.top{position:sticky;top:0;z-index:25;margin:0 -16px;padding:10px 16px;background:#070d16e8;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.embed header.top{position:static}
+@media (min-width:761px){nav.tabbar{position:sticky;top:72px;z-index:24;margin:0 -16px;padding:8px 16px;background:#070d16e8;backdrop-filter:blur(12px);border-bottom:1px solid #1a2a3d}
+ .embed nav.tabbar{position:static}}
+@media (max-width:760px){
+ header.top{padding:8px 16px;gap:10px}header.top img{width:36px;height:36px}.brandname{font-size:18px;letter-spacing:3px}.brandsub{font-size:10px}
+ .status{padding:5px 9px;font-size:12px;margin-left:auto;max-width:46vw}.status span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ section{margin-top:18px}
+ nav.tabbar button{min-height:52px;position:relative}
+ nav.tabbar button .pip{position:absolute;top:6px;left:calc(50% + 8px)}
+ nav.tabbar button svg{width:23px;height:23px}
+ .me-stats b{font-size:17px}
+ .subhead{margin:10px 0 -6px}
+}
+@media (display-mode:standalone){.install{display:none!important}footer p:last-child{display:none}}
 </style>
 </head>
 <body>
 <div class="wrap">
  <header class="top"><img src="assets/voyager.png" alt="" width="44" height="44"><div class="brand"><div class="brandname" id="channel">VOYAGER</div><div class="brandsub">Stream companion</div></div>
-  <span class="status" id="status" data-state="loading" role="status"><i></i><span>Connecting…</span></span><a class="open-full" id="open-full" href="./" target="_blank" rel="noopener">Open full page ↗</a></header>
+  <span class="status" id="status" data-state="loading" role="status" style="margin-left:auto"><i></i><span>Connecting…</span></span><a class="open-full" id="open-full" href="./" target="_blank" rel="noopener">Open full page ↗</a></header>
  <nav class="tabbar" id="tabbar" aria-label="Companion"></nav>
  <div class="banner" id="offline" hidden></div>
+
+ <div class="subhead" id="subhead" hidden><button type="button" id="sub-back" aria-label="Back to More"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span>More</span></button><b id="sub-title"></b></div>
+ <div class="ptr" id="ptr" aria-hidden="true"><i></i></div>
+
+ <!-- Home (2.22.0): you first, then what is on right now -->
+ <section id="home" data-tab="home" aria-labelledby="h-home">
+  <div class="card now-card home-card">
+   <div class="now-top"><span class="onair" id="home-onair" data-on="false"><i></i><b id="home-onair-text">Off air</b></span><span class="when" id="home-updated"></span></div>
+   <h1 id="h-home">Welcome aboard</h1>
+   <div class="me" id="home-me"><div class="sk sk-line" style="width:70%"></div><div class="sk sk-block"></div></div>
+   <div class="links" id="links"></div>
+  </div>
+  <div class="since" id="home-since" hidden></div>
+  <h2 class="home-h" id="h-rightnow">Happening now</h2>
+  <div class="rightnow" id="rightnow" aria-labelledby="h-rightnow"><div class="sk sk-tile"></div><div class="sk sk-tile"></div><div class="sk sk-tile"></div></div>
+  <div class="install" id="install" hidden><span id="install-text">Add Voyager to your home screen for one-tap access.</span><button type="button" id="install-btn">Install</button></div>
+ </section>
 
  <section id="now" data-tab="live" aria-labelledby="h-now">
   <div class="card now-card" id="now-card">
    <div class="now-top"><span class="onair" id="onair" data-on="false"><i></i><b id="onair-text">Off air</b></span><span class="when" id="updated-short"></span></div>
-   <h1 id="h-now">Your Voyager companion</h1>
+   <h1 id="h-now">Live from the stream</h1>
    <p id="tagline">Keep this open while you watch: giveaways, the Dreadnought, your card, ranks and medals, live from the stream.</p>
-   <div class="rightnow" id="rightnow" aria-label="Right now"></div>
-   <div class="links" id="links"></div>
    <div class="chips" id="chips" aria-label="Chat commands to copy"></div>
-   <div class="install" id="install" hidden><span>Add Voyager to your home screen for one-tap access.</span><button type="button" id="install-btn">Install</button></div>
   </div>
+ </section>
+
+ <section id="more" data-tab="more" aria-labelledby="h-more">
+  <h2 id="h-more">More</h2>
+  <div class="more-list" id="more-list"></div>
  </section>
 
  <section id="dread" data-tab="live" aria-labelledby="h-dread" hidden>
@@ -500,7 +606,7 @@ ol.logrows .quote{font-size:16px;color:var(--text)}
  <footer><p id="updated">Updates every few minutes while the stream tools are running.</p><p><a href="manual.pdf" target="_blank" rel="noopener">Voyager member manual (PDF)</a></p><p>Voyager community site. Giveaway entry happens in stream chat only; this site never asks for passwords or payment.</p></footer>
 </div>
 <script src="fair-draw.js"></script>
-<script src="companion.js?v=2.21.15" defer></script>
+<script src="companion.js?v=2.22.0" defer></script>
 <script>
 (()=>{'use strict';
 // ?embed=1: shown inside another site. Report our height so the host page can size its frame.
@@ -721,7 +827,7 @@ function render(){if(!feed)return;renderHeader();renderGiveaways();renderGoals()
 
 async function load(){
  try{
-  const r=await fetch(FEED+(FEED.includes('?')?'&':'?')+'t='+Math.floor(Date.now()/60000),{cache:'no-store'});
+  const r=await fetch(FEED+(FEED.includes('?')?'&':'?')+'t='+Math.floor(Date.now()/20000),{cache:'no-store'});
   if(!r.ok)throw new Error('HTTP '+r.status);
   const data=await r.json();
   if(!data||data.schema!==1||!Number.isFinite(data.generatedAt))throw new Error('Unexpected data');
@@ -735,7 +841,11 @@ setInterval(()=>{
  for(const n of document.querySelectorAll('[data-closes]'))n.textContent=left(Number(n.dataset.closes));
  const d=$('versus-detail');if(d.dataset.until){const t=Number(d.dataset.until);if(t>Date.now())d.textContent='Next battle in '+left(t).replace(' left','');else{delete d.dataset.until;$('versus-state').textContent='Ready for battle';d.textContent='The arena is open. Start a battle from chat.';}}
 },1000);
-load();setInterval(load,60000);
+// 2.22.0: check every 20 s while something is on (Dreadnought, an open giveaway, a Versus battle), every minute otherwise.
+const busyNow=()=>!!feed&&fresh()&&(['lobby','battle'].includes(feed.dreadnought?.phase)||(feed.giveaways||[]).some(g=>g.status==='open')||feed.versus?.status==='live');
+let pollTimer=0;function schedule(){clearTimeout(pollTimer);pollTimer=setTimeout(async()=>{if(!document.hidden)await load();schedule();},busyNow()?20000:60000);}
+window.voyagerReload=async()=>{await load();schedule();};
+load().then(schedule);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&Date.now()-lastOk>30000)load();});
 })();
 </script>
