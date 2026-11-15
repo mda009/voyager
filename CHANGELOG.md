@@ -2,6 +2,12 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.22.0 (15 November 2026)
+
+- **Website: the companion now behaves like an app (stage 1).** Opens on a **Home** screen with the viewer's own card (tier, rank, points, crew place, medals), the on-air badge, watch links, "happening now" tiles and a "since your last visit" line. Five tabs — Home, Live, My card, Community, More — with Goals, SC Intel, Commands and Guide under More. First-visit **welcome tour** (what it is, find your name, add to home screen, with iPhone instructions). Tab transitions with remembered scroll, pull to refresh, loading placeholders, "new" dots on tabs, **Share this card** (links straight to a card via `#card/<name>`), fuller install manifest with icon sizes and shortcuts.
+- **Faster live updates.** The site checks every 20 s while a Dreadnought fight, giveaway or Versus battle is on; the host publishes every 20 s during a Dreadnought fight (once a minute otherwise).
+- Fixed: with a giveaway open, the Dreadnought and missions "happening now" tiles disappeared.
+
 ## 2.21.16 (14 November 2026)
 
 - **SC Intel: ship list fixed.** Fleetyards wraps its list as `{items}` and rejects unknown sort values; Voyager now reads the wrapper and sorts by last update itself. The ships section of the panel, !sales and the website fill in on the next fetch (within a minute of starting).
