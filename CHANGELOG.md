@@ -2,6 +2,10 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.26.1 (15 November 2026)
+
+- **Website: Bridge Quiz leaderboard.** Community › Leaderboards has two new boards, **Bridge Quiz** (all-time) and **Quiz · this stream**: the top ten by correct answers with the points awarded. The Community tab gets a "new" dot when the board changes. Shown only with viewer names on; switch under Public website › What is shared › Bridge Quiz leaderboard.
+
 ## 2.26.0 (15 November 2026)
 
 - **Bridge Quiz: new, harder questions.** 227 fresh questions replace the shipped set — Star Citizen (spaceports, Pyro, factions, lore, Squadron 42 cast, jargon, ship variants, weapon makers), space, science, computing and games, sci-fi, geography and history. None of them appeared in any earlier set; your own questions are kept.

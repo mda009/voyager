@@ -54,3 +54,9 @@ test('the website Worker: one request per name and per device each stream, only 
   const get=await requestApi(new Request('https://voyagercommand.com/api/requests?after=0'),env,new URL('https://voyagercommand.com/api/requests?after=0'),fetcher,now);const list=(await get.json()).requests;
   assert.equal(list.length,5);assert.deepEqual(Object.keys(list[0]).sort(),['at','id','key','name','round'],'device and network marks never leave the Worker');
 });
+
+test('2.26.1 the public feed carries the Bridge Quiz leaderboard, only with viewer names shown',()=>{
+  const raw={quiz:{all:[{place:1,name:'AuroraFox',platform:'twitch',correct:14,points:70},{name:'',correct:3,points:5},{name:'Zero',correct:0,points:0}],stream:[{name:'Quasar',platform:'youtube',correct:2,points:10}]}};
+  assert.deepEqual(projectCompanion(raw,{showNames:true},1e12).quiz,{all:[{rank:1,name:'AuroraFox',platform:'twitch',correct:14,points:70}],stream:[{rank:1,name:'Quasar',platform:'youtube',correct:2,points:10}]});
+  assert.equal(projectCompanion(raw,{showNames:false},1e12).quiz,undefined);assert.equal(projectCompanion(raw,{showNames:true,sections:{quiz:false}},1e12).quiz,undefined);
+});

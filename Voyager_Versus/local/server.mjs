@@ -207,7 +207,7 @@ publicSite?.setCompanion(()=>{
     dreadnought:{...d,history:boss.history.slice(0,6)},
     ranks:{ladder:rv.ranks,top:rv.members.slice(0,25),promotions:rv.promotions},
     medals:{catalogue:cat,honour:medals.leaderboard(10),recent:medals.state.recent.slice(0,12)},
-    intel:intel.share(),requests:requests.share()};
+    intel:intel.share(),requests:requests.share(),quiz:(()=>{const b=engage.quizBoard(10);return {all:b.all,stream:b.stream};})()};
 });
 publicSite?.setCrew(()=>cards.crewRows(2000));
 const rewards=new RewardDispatcher({store:economy,bot,onCredit:r=>{game.note(`${r.name}: +${r.amount} Voyager points credited.`, 'reward');matchChat.credit(r);}});

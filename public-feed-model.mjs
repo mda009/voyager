@@ -16,7 +16,7 @@ export const DEFAULT_SETTINGS=Object.freeze({
   channelName:'MDA009',
   tagline:'Explore · Earn · Excel. Giveaways, points and Voyager Versus for the MDA009 community.',
   links:{twitch:'',youtube:'',kick:'',discord:'',website:''},
-  sections:{giveaways:true,winners:true,goals:true,points:true,pilots:true,versus:true,program:true,missions:true,season:true,live:true,dreadnought:true,ranks:true,medals:true,crew:true,activity:true,squadrons:true,log:true,intel:true,requests:true},
+  sections:{giveaways:true,winners:true,goals:true,points:true,pilots:true,versus:true,program:true,missions:true,season:true,live:true,dreadnought:true,ranks:true,medals:true,crew:true,activity:true,squadrons:true,log:true,intel:true,requests:true,quiz:true},
   showNames:true,
   leaderboardSize:10,
   commands:{impromptu:'!enter',tickets:'!entergiveaway',versus:'!versus'},
@@ -314,6 +314,10 @@ export function projectCompanion(raw,settings=DEFAULT_SETTINGS,online=true,crewC
       news:list(x.news).slice(0,8).map(n=>({title:clean(n?.title,140),url:rsi(n?.url),at:time(n?.at),tag:oneOf(n?.tag,TAGS,'news')})).filter(n=>n.title&&n.url),
       sales:list(x.sales).slice(0,10).map(m=>({name:clean(m?.name,60),maker:clean(m?.maker,20),price:Number.isFinite(Number(m?.price))&&Number(m.price)>0?Math.round(Number(m.price)*100)/100:0,status:clean(m?.status,30),url:rsi(m?.url),image:img(m?.image)})).filter(m=>m.name&&m.price),salesTotal:int(x.salesTotal,0,1e4)??0,
       deals:list(x.deals).slice(0,12).map(item).filter(d=>d.title),events:list(x.events).slice(0,12).map(item).filter(d=>d.title)};}
+  // 2.26.1 Bridge Quiz leaderboard: correct answers and points awarded, all-time and this stream. Names, so only with viewer names shown.
+  if(show.quiz&&s.showNames&&raw.quiz&&typeof raw.quiz==='object'){const row=(r,i)=>({rank:i+1,name:clean(r?.name,LIMITS.name),platform:oneOf(r?.platform,Object.keys(PLATFORMS),''),correct:int(r?.correct,0,1e6)??0,points:int(r?.points,0,1e9)??0});
+    const all=list(raw.quiz.all).slice(0,LIMITS.leaders).map(row).filter(r=>r.name&&r.correct),stream=list(raw.quiz.stream).slice(0,LIMITS.leaders).map(row).filter(r=>r.name&&r.correct);
+    if(all.length||stream.length)out.quiz={all,stream};}
   // 2.24.0 viewer requests: what can be asked for, whether asking is open, and (with names shown) who has asked this stream.
   if(show.requests&&raw.requests&&typeof raw.requests==='object'){const x=raw.requests,opts=list(x.options).slice(0,10).map(o=>({key:clean(o?.key,20).toLowerCase().replace(/[^a-z0-9]/g,''),label:clean(o?.label,30)})).filter(o=>o.key&&o.label);
     if(opts.length)out.requests={open:x.open===true,round:int(x.round,0,1e15)??0,options:opts,

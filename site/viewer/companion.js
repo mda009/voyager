@@ -30,7 +30,7 @@ const TABS=[
  ['guide','Guide','M4 4h7a3 3 0 0 1 3 3v13a2 2 0 0 0-2-2H4z M20 4h-7a3 3 0 0 0-3 3v13a2 2 0 0 1 2-2h8z']];
 const BAR=['home','live','crew','community','more'],PARENT={notify:'more',goal:'more',intel:'more',commands:'more',guide:'more'};
 const SUB_TEXT={notify:'Alerts when the stream goes live, the Dreadnought appears, a giveaway opens or you win',goal:'The community goal, giveaway goals and standings',intel:'Star Citizen news, ships in the store, deals and events',commands:'Every chat command and what it does',guide:'How Voyager works, and the member manual'};
-const TAB_ALIAS={medals:'community',winners:'community',boards:'community',leaderboards:'community',squad:'community',season:'goal',goals:'goal',dread:'live',giveaways:'live',missions:'live',arena:'live',ranks:'crew',find:'crew',program:'guide',manual:'guide',command:'commands',cmd:'commands',cmds:'commands',news:'intel',sales:'intel',ships:'intel',store:'intel',deals:'intel',events:'intel',sc:'intel',card:'crew',me:'crew'};
+const TAB_ALIAS={quiz:'community',medals:'community',winners:'community',boards:'community',leaderboards:'community',squad:'community',season:'goal',goals:'goal',dread:'live',giveaways:'live',missions:'live',arena:'live',ranks:'crew',find:'crew',program:'guide',manual:'guide',command:'commands',cmd:'commands',cmds:'commands',news:'intel',sales:'intel',ships:'intel',store:'intel',deals:'intel',events:'intel',sc:'intel',card:'crew',me:'crew'};
 const resolveTab=h=>TABS.some(([t])=>t===h)?h:TAB_ALIAS[h]||(document.getElementById(h)?.dataset?.tab)||null;
 let pendingCard='';{const m=location.hash.match(/^#card\/(.+)$/);if(m){try{pendingCard=decodeURIComponent(m[1]).toLowerCase();}catch{}}}
 let tab=pendingCard?'crew':(resolveTab(location.hash.slice(1))||'home'),wanted=tab; // a link to #crew waits for the feed before it can open that tab
@@ -40,7 +40,7 @@ function available(t){return sectionsOf(t).some(s=>!s.hidden);}
 // "New" dots: a short fingerprint of what each tab shows; the dot clears when the tab is opened.
 function sigs(){const f=feed||{};const j=v=>JSON.stringify(v??null);return {
  live:j([(f.giveaways||[]).map(g=>[g.id||g.title,g.status]),f.dreadnought?.phase,(f.dreadnought?.recent||[])[0]?.at,f.versus?.status==='live']),
- community:j([(f.winners||[])[0],(f.medals?.recent||[])[0],f.squadrons?.leader]),
+ community:j([(f.winners||[])[0],(f.medals?.recent||[])[0],f.squadrons?.leader,(f.quiz?.all||[]).map(r=>[r.name,r.correct])]),
  goal:j([(f.season?.goals||[]).map(g=>[g.title,!!g.reached]),f.season?.name]),
  intel:j([(f.intel?.news||[])[0]?.title,(f.intel?.deals||[]).length,(f.intel?.events||[]).length,(f.intel?.sales||[])[0]?.name])};}
 let seen={};try{seen=JSON.parse(store.get('voyager-seen')||'{}')||{};}catch{}

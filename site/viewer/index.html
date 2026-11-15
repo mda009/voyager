@@ -667,7 +667,7 @@ header.top{position:sticky;top:0;z-index:25;margin:0 -16px;padding:10px 16px;bac
  <footer><p id="updated">Updates every few minutes while the stream tools are running.</p><p><a href="manual.pdf" target="_blank" rel="noopener">Voyager member manual (PDF)</a></p><p>Voyager community site. Giveaway entry happens in stream chat only; this site never asks for passwords or payment.</p></footer>
 </div>
 <script src="fair-draw.js"></script>
-<script src="companion.js?v=2.24.0" defer></script>
+<script src="companion.js?v=2.26.1" defer></script>
 <script>
 (()=>{'use strict';
 // ?embed=1: shown inside another site. Report our height so the host page can size its frame.
@@ -793,8 +793,8 @@ function renderWinners(){
   box.append(li);}
 }
 function renderLeaders(){
- const boards={points:feed.leaderboards?.points||[],pilots:feed.leaderboards?.pilots||[]};
- const names={points:'Voyager points',pilots:'Versus pilots'};
+ const boards={points:feed.leaderboards?.points||[],pilots:feed.leaderboards?.pilots||[],quiz:feed.quiz?.all||[],quizStream:feed.quiz?.stream||[]};
+ const names={points:'Voyager points',pilots:'Versus pilots',quiz:'Bridge Quiz',quizStream:'Quiz · this stream'};
  const available=Object.keys(boards).filter(k=>boards[k].length);
  const v=feed.versus;
  $('leaderboards').hidden=!available.length&&!v;
@@ -807,6 +807,7 @@ function renderLeaders(){
   const li=el('li');const n=platformTag(r.platform);n.append(el('span','',r.name));
   const val=el('span','value');
   if(tab==='points'){val.append(fmt(r.value),el('small','','points'));}
+  else if(tab==='quiz'||tab==='quizStream'){val.append(fmt(r.correct)+' correct',el('small','',fmt(r.points)+' points awarded'));}
   else{val.append(fmt(r.wins)+' W',el('small','',r.losses+' L · '+r.battles+' battles'));}
   li.append(el('span','rank',r.rank),n,val);list.append(li);
  }
