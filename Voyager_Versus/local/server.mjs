@@ -30,6 +30,7 @@ import {Payer} from './payer.mjs';
 import {Intel} from './intel.mjs';
 import {Requests} from './requests.mjs';
 import {Doorframe} from './doorframe.mjs';
+import {TicketGranter} from './tickets.mjs';
 let VERSION='unknown';try{VERSION=JSON.parse(await readFile(new URL('../package.json',import.meta.url),'utf8')).version;}catch{}
 const major=Number(process.versions.node.split('.')[0]);
 if(major<22||typeof WebSocket==='undefined'){console.error('Voyager Versus requires Node.js 22.4 or newer. Install it from https://nodejs.org/');process.exit(1);}
@@ -126,7 +127,9 @@ function voyagerCommand(chat){
 function medalTick(){try{if(community)medals.observeCommunity(community);medals.observePilots(savedRankings||[]);medals.evaluate();}catch(e){console.warn('Medals: '+e.message);}}
 function rankTick(){try{cards.tickRanks();}catch(e){console.warn('Ranks: '+e.message);}}
 let engage=null;
-const boss=await new BossFight({dataDir,say:text=>{void bossSay(text);},onResult:r=>{medals.observeBoss(r);try{engage?.observeBoss(r);}catch{}}}).load();
+// 2.28.0: tickets for the active ticketed giveaway, awarded by games (a Dreadnought victory) through the Ticket Giveaway action.
+const ticketGranter=await new TicketGranter({dataDir,run:args=>runActionResult('Voyager - Ticket Giveaway',args),log:m=>console.log('[tickets] '+m)}).load();
+const boss=await new BossFight({dataDir,say:text=>{void bossSay(text);},onResult:r=>{medals.observeBoss(r);try{engage?.observeBoss(r);}catch{}},onTickets:g=>{ticketGranter.grant(g);}}).load();
 // 2.20.22 chat engagement: Comms Relay, !report, Bridge Quiz, Squadrons, arrival cards and the Captain's Log. Chat replies go out
 // through the Voyager - Medals action (it posts on Twitch, YouTube and Kick).
 engage=await new Engage({dataDir,say:(text,platform='')=>runActionResult('Voyager - Medals',{medalSay:String(text).slice(0,450),medalSayPlatform:['twitch','kick','youtube'].includes(platform)?platform:''}),boss:()=>boss,cards:()=>cards,community:()=>community,pilots:()=>savedRankings||[]}).load();
@@ -160,6 +163,7 @@ const bot=new StreamerBot({onOtherChat:chat=>{
   // Same shape the Public website page sends to /api/community/members — now the host keeps itself current (VIP ribbons, tiers, balances).
   const members=p.users.filter(u=>u&&u.key&&u.pointsFresh!==false).map(u=>({key:u.key,name:u.name||u.login||'',login:u.login||'',capturedIn:Number.isFinite(Number(u.capturedIn))?Number(u.capturedIn):null,points:Number.isFinite(Number(u.points))?Number(u.points):null,tier:typeof u.tier==='string'?u.tier:'',vip:Array.isArray(u.groups)&&u.groups.includes('vip'),emerald:Array.isArray(u.groups)&&u.groups.includes('emerald')}));
   if(members.length)community.receive(members);}catch{}},
+onTickets:p=>{try{ticketGranter.resolve(p);}catch{}},
 onStats:p=>{try{const m=p?.metrics?.twitch?.subscriptions;if(p?.ok!==false&&m&&m.value!==null&&m.value!==undefined)community?.twitchSubs({value:m.value,at:Number(p.serverAt)||Date.now()});}catch{}},onWatchStreak:w=>{try{const r=medals.syncStreak(w);if(r)console.log('[streak] '+r.name+' shared a Twitch watch streak of '+r.streak+(r.before!==r.streak?' (Voyager had '+r.before+')':''));}catch{}},onMedals:ev=>{if(ev.type==='voyager.medals.data')medals.ingestExport(ev);else medals.command(ev);},onBoss:ev=>{
   if(ev.kind==='call'&&!['lobby','result'].includes(game.phase)){game.note('Finish the Versus battle before calling the Dreadnought.','system');return;}
   boss.receive(ev);
@@ -445,7 +449,7 @@ const server=http.createServer(async(req,res)=>{
     }
     if(url.pathname.startsWith('/api/boss')){
       if(!validToken(req)){response(res,403,{message:'Open Voyager Control to run the Dreadnought.'});return;}
-      if(url.pathname==='/api/boss'&&req.method==='GET'){response(res,200,{...boss.view(),connected:bot.status.connected,action:await actionStatus('Voyager - Dreadnought'),lastChatAt,otherChat:bot.otherChat});return;}
+      if(url.pathname==='/api/boss'&&req.method==='GET'){response(res,200,{...boss.view(),ticketGrants:ticketGranter.view(),ticketAction:await actionStatus('Voyager - Ticket Giveaway'),connected:bot.status.connected,action:await actionStatus('Voyager - Dreadnought'),lastChatAt,otherChat:bot.otherChat});return;}
       if(url.pathname==='/api/boss/control'&&req.method==='POST'){
         if(!req.headers['content-type']?.startsWith('application/json')){response(res,403,{message:'Invalid request.'});return;}
         const {action,value}=await body(req);
@@ -528,6 +532,7 @@ let ticks=0,lastStatsAsk=0,lastPointsAsk=0;const timer=setInterval(()=>{
   try{boss.tick();}catch{}
   if(ticks%5===0)void fleetCamera.tick();
   if(ticks%2===0)void stage.tick(...stageState()).catch(()=>{});
+  if(ticks%50===20)void ticketGranter.tick({connected:bot.status.connected}).catch(()=>{});
   if(ticks%50===40&&payer)void payer.tick({connected:bot.status.connected}).then(r=>{if(r&&(r.paid||r.failed))console.log('[auto-pay] '+r.paid+' paid, '+r.failed+' failed'+(r.message?' · '+r.message:''));}).catch(()=>{});
   if(ticks%300===7)void intel.tick().catch(()=>{});
   try{doorframe.tick();}catch{}

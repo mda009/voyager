@@ -49,7 +49,7 @@ test('Victory pays every pilot who fought the same points; the boss escapes when
   b.receive(ev('fire','nova'));b.receive(ev('gift','orion',{amount:1}));
   assert.equal(b.overlay().phase,'result');assert.equal(b.overlay().outcome,'victory');
   const [batch,mvpBatch]=b.rewardBatches();assert.equal(batch.reward,100);assert.deepEqual(batch.pilots.map(p=>p.key).sort(),['twitch:nova','twitch:orion'],'pilots who never fired get nothing');
-  assert.equal(mvpBatch.reward,25,'2.20.90: the MVP bonus is a second batch');assert.equal(mvpBatch.pilots.length,1);assert.equal(mvpBatch.pilots[0].key,b.history[0].mvp.key);assert.match(mvpBatch.title,/MVP/);
+  assert.equal(mvpBatch.reward,50,'2.20.90: the MVP bonus is a second batch (50 points from 2.28.0)');assert.equal(mvpBatch.pilots.length,1);assert.equal(mvpBatch.pilots[0].key,b.history[0].mvp.key);assert.match(mvpBatch.title,/MVP/);
   assert.match(said.at(-1),/MVP: ORION/);
   b.tick();at(30000);assert.equal(b.overlay().phase,'idle');
   b.call();b.receive(ev('join','nova'));at(10000);at(61000);
@@ -63,7 +63,7 @@ test('2.20.44 speed goals: a kill within the Legendary or Hero time adds a bonus
   b.call();b.receive(ev('join','nova'));at(10000);at(45000);b.receive(ev('gift','nova',{amount:1}));
   let h=b.history[0];assert.equal(h.outcome,'victory');assert.equal(h.speed,'legendary');assert.equal(h.elapsed,45000);assert.equal(h.base,100);assert.equal(h.bonus,10);assert.equal(h.reward,110);
   let [batch]=b.rewardBatches();assert.equal(batch.reward,110);assert.match(batch.title,/Legendary kill in 0:45 \(\+10 bonus\)/);
-  assert.match(said.at(-1),/LEGENDARY: destroyed in 0:45/);assert.match(said.at(-1),/Legendary Strike medal and 110 Voyager points \(\+10% speed bonus\)/);
+  assert.match(said.at(-1),/LEGENDARY: destroyed in 0:45/);assert.match(said.at(-1),/Legendary Strike medal and 10 giveaway tickets and 110 Voyager points \(\+10% speed bonus\)/);
   const o=b.overlay();assert.equal(o.speed,'legendary');assert.equal(o.bonus,10);assert.equal(o.victoryPoints,110);assert.deepEqual(o.goals,{legendary:60,hero:120,bonusPct:10});
   b.tick();at(30000);
   // Hero: destroyed 90 s in.
@@ -72,7 +72,7 @@ test('2.20.44 speed goals: a kill within the Legendary or Hero time adds a bonus
   b.tick();at(30000);
   // Too slow: 150 s in, plain victory points, no bonus.
   b.call();b.receive(ev('join','nova'));at(10000);at(150000);b.receive(ev('gift','nova',{amount:1}));
-  h=b.history[0];assert.equal(h.speed,'');assert.equal(h.bonus,0);assert.equal(h.reward,100);assert.match(said.at(-1),/earns 100 Voyager points\./);assert.doesNotMatch(said.at(-1),/medal/);
+  h=b.history[0];assert.equal(h.speed,'');assert.equal(h.bonus,0);assert.equal(h.reward,100);assert.match(said.at(-1),/earns 10 giveaway tickets and 100 Voyager points\./);assert.doesNotMatch(said.at(-1),/medal/);
   assert.equal(b.rewardBatches().length,6,'three victories, each with a victory batch and an MVP batch');
   // Goals off and limits.
   b.tick();at(30000);b.configure({legendarySeconds:0,heroSeconds:0});
@@ -116,7 +116,7 @@ test('An escape (or a fight ended early) never awards points',async()=>{
   b.call();b.receive(ev('join','nova'));at(10000);b.receive(ev('fire','nova'));b.receive(ev('gift','orion',{amount:3}));
   at(61000);
   assert.equal(b.history[0].outcome,'escaped');assert.deepEqual(b.history[0].rewarded,[]);assert.equal(b.rewardBatches().length,0);
-  assert.match(said.at(-1),/No points/);assert.match(b.overlay().feed[0].text,/No points awarded/);
+  assert.match(said.at(-1),/No tickets/);assert.match(b.overlay().feed[0].text,/No tickets awarded/);
   at(30000);b.call();b.receive(ev('join','nova'));at(10000);b.receive(ev('fire','nova'));b.cancel();
   assert.equal(b.rewardBatches().length,0,'cancelled fights pay nothing');
 });
@@ -135,7 +135,7 @@ test('2.20.12 balance: saved settings on the old defaults move to the easier one
   await writeFile(join(dir,'dreadnought.json'),JSON.stringify({schema:1,settings:{baseHp:4000,hpPerPilot:350,lateJoinHp:150,fireMin:12,fireMax:22,fireCooldown:4,battleSeconds:300,victoryPoints:250},history:[]}));
   const b=await new BossFight({dataDir:dir}).load();
   assert.equal(b.settings.baseHp,1000);assert.equal(b.settings.hpPerPilot,150);assert.equal(b.settings.fireMin,15);assert.equal(b.settings.fireCooldown,3);
-  assert.equal(b.settings.battleSeconds,300,'changed by the streamer, kept');assert.equal(b.settings.victoryPoints,250);
+  assert.equal(b.settings.battleSeconds,300,'changed by the streamer, kept');assert.equal(b.settings.victoryPoints,0,'2.28.0: victories pay tickets, so saved victory points move to 0 once');
   b.configure({baseHp:4000});await b.saving;
   assert.equal((await new BossFight({dataDir:dir}).load()).settings.baseHp,4000,'choosing the old value again after the update sticks');
 });
@@ -149,4 +149,20 @@ test('2.21.14: the overlay carries each pilot\'s reload timers (fireAt / shootAt
   assert.equal(b.receive(ev('fire','a')).ignored,true,'spam inside the cooldown is dropped');
   b.receive(ev('shoot','a'));assert.equal(b.overlay().fleet[0].shootAt,b.now()+6000);
   assert.ok(said.some(m=>/one of each every 6 s counts/.test(m)),'cadence in the battle call');
+});
+
+test('2.28.0: a victory gives every pilot who fought 10 tickets for the ticketed giveaway and the MVP 50 points and 10 more; nothing for an escape',async()=>{
+  let now=1_800_000_000_000;const said=[],grants=[];const dir=await mkdtemp(join(tmpdir(),'voyager-boss-'));
+  const b=await new BossFight({dataDir:dir,now:()=>now,random:()=>0.5,say:t=>said.push(t),onTickets:g=>grants.push(g)}).load();
+  assert.deepEqual([b.settings.victoryPoints,b.settings.mvpBonus,b.settings.victoryTickets,b.settings.mvpTickets],[0,50,10,10]);
+  b.configure({lobbySeconds:10,battleSeconds:60,baseHp:500,hpPerPilot:0,lateJoinHp:0,legendarySeconds:0,heroSeconds:0});const at=ms=>{now+=ms;b.tick();};
+  b.call();b.receive(ev('join','nova'));b.receive(ev('join','idle'));at(10000);b.receive(ev('fire','nova'));b.receive(ev('gift','orion',{amount:1}));
+  assert.equal(b.history[0].outcome,'victory');assert.equal(grants.length,1);assert.equal(grants[0].id,'boss-'+b.history[0].id);assert.match(grants[0].reason,/Dreadnought victory/);
+  assert.deepEqual(grants[0].grants.map(g=>[g.key,g.tickets]).sort(),[['twitch:nova',10],['twitch:orion',20]],'the MVP gets 10 more; the pilot who never fired gets none');
+  const batches=b.rewardBatches();assert.equal(batches.length,1,'no victory points any more, only the MVP bonus');assert.equal(batches[0].reward,50);assert.match(batches[0].title,/MVP/);
+  assert.match(said.at(-1),/MVP: ORION \(\d+\) earns 50 Voyager points and 10 more tickets\. Every pilot who fought earns 10 giveaway tickets\./);
+  assert.equal(b.overlay().victoryTickets,10);assert.equal(b.history[0].tickets,10);assert.equal(b.history[0].ticketPilots,2);
+  at(30000);b.call();b.receive(ev('join','nova'));at(10000);b.receive(ev('fire','nova'));at(61000);assert.equal(b.history[0].outcome,'escaped');assert.equal(grants.length,1,'an escape gives no tickets');
+  // the move happens once: later changes to the reward settings stay
+  b.configure({victoryPoints:25,mvpTickets:0});await b.saving;const again=await new BossFight({dataDir:dir}).load();assert.equal(again.settings.victoryPoints,25);assert.equal(again.settings.mvpTickets,0);
 });

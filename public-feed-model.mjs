@@ -286,7 +286,7 @@ export function projectCompanion(raw,settings=DEFAULT_SETTINGS,online=true,crewC
   if(show.live)out.live={onAir:online&&raw.live?.onAir===true};
   if(show.dreadnought&&raw.dreadnought){const d=raw.dreadnought,phase=oneOf(d.phase,['idle','lobby','battle','result'],'idle');
     out.dreadnought={phase:online?phase:'idle',name:clean(d.name,40)||'The Dreadnought',hp:int(d.hp,0,1e9)??0,maxHp:int(d.maxHp,0,1e9)??0,lobbyEndsAt:time(d.lobbyEndsAt),endsAt:time(d.endsAt),endedAt:time(d.endedAt),
-      outcome:oneOf(d.outcome,['victory','escaped'],null),pilots:int(d.pilots,0,1e5)??0,victoryPoints:int(d.victoryPoints,0,1e6)??0,
+      outcome:oneOf(d.outcome,['victory','escaped'],null),pilots:int(d.pilots,0,1e5)??0,victoryPoints:int(d.victoryPoints,0,1e6)??0,victoryTickets:int(d.victoryTickets,0,1000)??0,
       leaders:list(d.leaders).slice(0,5).map(l=>({...person(l),damage:int(l?.damage,0,1e9)??0})).filter(l=>l.name),
       history:list(d.history).slice(0,6).map(h=>({outcome:oneOf(h?.outcome,['victory','escaped'],'escaped'),endedAt:time(h?.endedAt),pilots:int(h?.pilots,0,1e5)??0,mvp:h?.mvp?{...person(h.mvp),damage:int(h.mvp.damage,0,1e9)??0}:null})).filter(h=>h.endedAt)};}
   if(show.ranks&&raw.ranks){const r=raw.ranks;

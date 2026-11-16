@@ -49,8 +49,8 @@ export function parseOtherChat(payload){
   return {platform,userId:id,login,name,text,messageId:d.messageId||m?.id||d.id||null,demo:false,color:String(u.color||u.identity?.color||''),role:Number(u.role??0)||0,sub:!!(u.subscribed||u.isSubscriber||u.isMember)};
 }
 export class StreamerBot {
-  constructor({onOtherChat=()=>{},onChat=()=>{},onStatus=()=>{},onStreamOnline=()=>{},onBoss=()=>{},onMedals=()=>{},onCards=()=>{},onFleet=()=>{},onGoals=()=>{},onWatchStreak=()=>{},onStage=()=>{},onStats=()=>{},onPoints=()=>{},WebSocketImpl=globalThis.WebSocket,retryMs=3000}={}){
-    this.onStreamOnline=onStreamOnline;this.onOtherChat=onOtherChat;this.otherChat={kick:0,youtube:0,subscribed:null};this.onBoss=onBoss;this.onMedals=onMedals;this.onGoals=onGoals;this.onWatchStreak=onWatchStreak;this.onStage=onStage;this.onStats=onStats;this.onPoints=onPoints;this.onCards=onCards;this.onFleet=onFleet;this.rewardResponses=new Map();
+  constructor({onOtherChat=()=>{},onChat=()=>{},onStatus=()=>{},onStreamOnline=()=>{},onBoss=()=>{},onMedals=()=>{},onCards=()=>{},onFleet=()=>{},onGoals=()=>{},onWatchStreak=()=>{},onStage=()=>{},onStats=()=>{},onTickets=()=>{},onPoints=()=>{},WebSocketImpl=globalThis.WebSocket,retryMs=3000}={}){
+    this.onTickets=onTickets;this.onStreamOnline=onStreamOnline;this.onOtherChat=onOtherChat;this.otherChat={kick:0,youtube:0,subscribed:null};this.onBoss=onBoss;this.onMedals=onMedals;this.onGoals=onGoals;this.onWatchStreak=onWatchStreak;this.onStage=onStage;this.onStats=onStats;this.onPoints=onPoints;this.onCards=onCards;this.onFleet=onFleet;this.rewardResponses=new Map();
     this.pending=new Map();this.requestSequence=0;this.onChat=onChat;this.onStatus=onStatus;this.WebSocketImpl=WebSocketImpl;this.retryMs=retryMs;this.generation=0;this.socket=null;this.timer=null;this.handshake=null;this.wanted=false;this.seen=new Map();this.status={connected:false,message:'Streamer.bot disconnected'};
   }
   statusUpdate(connected,message){this.status={connected,message};this.onStatus(this.status);}
@@ -107,6 +107,7 @@ export class StreamerBot {
       // Dreadnought stage (2.20.86): what OBS did with the move/restore cue, from the "Voyager - Dreadnought Stage" action.
       if(reply?.type==='voyager.stage.result'&&reply.v===1){try{this.onStage(reply);}catch{}return;}
       // Stream Stats (2.21.7): follower/subscriber counts from the "Voyager - Stream Stats" action, whoever asked for them.
+      if(reply?.type==='voyager.tickets.v1'){try{this.onTickets(reply);}catch{}return;} // 2.28.0: ticket grants from games wait for this answer
       if(reply?.type==='voyager.stream.stats.v1'){try{this.onStats(reply);}catch{}return;}
       // Points Ledger (2.21.8): the member snapshot (tiers, VIP / Emerald groups, balances), whoever asked for it.
       if(reply?.type==='voyager.points.v1'){try{this.onPoints(reply);}catch{}return;}

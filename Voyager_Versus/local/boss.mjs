@@ -11,7 +11,7 @@ const FILE='dreadnought.json';
 // every 3 s (was 4), four minutes on the clock (was three), and the Dreadnought's return fire knocks pilots out for 6 s
 // (was 10) every 20 s (was 15). Cheers and gifted subs are unchanged.
 export const BOSS_DEFAULTS={name:'The Dreadnought',lobbySeconds:60,battleSeconds:240,baseHp:1000,hpPerPilot:150,lateJoinHp:75,
-  fireMin:15,fireMax:30,fireCooldown:3,bitDamage:2.5,giftDamage:600,victoryPoints:100,mvpBonus:25,chatCall:true,announce:true,
+  fireMin:15,fireMax:30,fireCooldown:3,bitDamage:2.5,giftDamage:600,victoryPoints:0,mvpBonus:50,victoryTickets:10,mvpTickets:10,chatCall:true,announce:true,
   // 2.20.44 speed goals: destroyed within legendarySeconds of the battle starting → Legendary medal; within heroSeconds → Hero medal.
   // Either one adds speedBonusPct % to every fighting pilot's victory points.
   legendarySeconds:60,heroSeconds:120,speedBonusPct:10};
@@ -19,7 +19,7 @@ export const BOSS_DEFAULTS={name:'The Dreadnought',lobbySeconds:60,battleSeconds
 const OLD_BALANCE={battleSeconds:180,baseHp:4000,hpPerPilot:350,lateJoinHp:150,fireMin:12,fireMax:22,fireCooldown:4};
 const BALANCE=2,STUN_MS=6000,ATTACK_MS=20000,ENRAGED_ATTACK_MS=10000;
 const LIMITS={lobbySeconds:[10,300],battleSeconds:[60,900],baseHp:[500,1e6],hpPerPilot:[0,1e5],lateJoinHp:[0,1e5],fireMin:[1,1000],fireMax:[1,2000],
-  fireCooldown:[1,60],bitDamage:[0,100],giftDamage:[0,1e5],victoryPoints:[0,1e6],mvpBonus:[0,1e5],legendarySeconds:[0,900],heroSeconds:[0,900],speedBonusPct:[0,500]};
+  fireCooldown:[1,60],bitDamage:[0,100],giftDamage:[0,1e5],victoryPoints:[0,1e6],mvpBonus:[0,1e5],victoryTickets:[0,1000],mvpTickets:[0,1000],legendarySeconds:[0,900],heroSeconds:[0,900],speedBonusPct:[0,500]};
 const RESULT_MS=25000,FEED=12,EFFECTS=40;
 const clean=(v,max)=>String(v??'').replace(/[\u0000-\u001f\u007f]/g,' ').trim().slice(0,max);
 const PLATFORMS=['twitch','youtube','kick'];
@@ -38,12 +38,12 @@ export function normalizeBossSettings(raw={}){
 export function speedGoal(s,elapsedMs){if(s.legendarySeconds>0&&elapsedMs<=s.legendarySeconds*1000)return 'legendary';if(s.heroSeconds>0&&elapsedMs<=s.heroSeconds*1000)return 'hero';return '';}
 export const clock=ms=>{const t=Math.max(0,Math.round(ms/1000));return Math.floor(t/60)+':'+String(t%60).padStart(2,'0');};
 export class BossFight{
-  constructor({dataDir,now=Date.now,random=Math.random,say=()=>{},onResult=()=>{}}={}){
-    this.onResult=onResult;this.dataDir=dataDir;this.now=now;this.random=random;this.say=say;this.settings={...BOSS_DEFAULTS};this.history=[];this.battle=null;
+  constructor({dataDir,now=Date.now,random=Math.random,say=()=>{},onResult=()=>{},onTickets=()=>{}}={}){
+    this.onResult=onResult;this.onTickets=onTickets;this.dataDir=dataDir;this.now=now;this.random=random;this.say=say;this.settings={...BOSS_DEFAULTS};this.history=[];this.battle=null;
     this.receipts=new Map();this.saving=Promise.resolve();this.seq=0;
   }
-  async load(){try{const raw=JSON.parse(await readFile(join(this.dataDir,FILE),'utf8'));const saved={...(raw.settings||{})};if(raw.balance!==BALANCE)for(const [k,v] of Object.entries(OLD_BALANCE))if(saved[k]===v)delete saved[k];this.settings=normalizeBossSettings(saved);if(raw.balance!==BALANCE)this.persist();this.history=Array.isArray(raw.history)?raw.history.slice(0,30):[];}catch{}return this;}
-  persist(){if(!this.dataDir)return this.saving;const data=JSON.stringify({schema:1,balance:BALANCE,settings:this.settings,history:this.history}),tmp=join(this.dataDir,FILE+'.tmp');this.saving=this.saving.then(async()=>{await writeFile(tmp,data);await rename(tmp,join(this.dataDir,FILE));}).catch(()=>{});return this.saving;}
+  async load(){try{const raw=JSON.parse(await readFile(join(this.dataDir,FILE),'utf8'));const saved={...(raw.settings||{})};if(raw.balance!==BALANCE)for(const [k,v] of Object.entries(OLD_BALANCE))if(saved[k]===v)delete saved[k];if(!raw.ticketRewards){saved.victoryPoints=0;saved.mvpBonus=50;saved.victoryTickets=10;saved.mvpTickets=10;}this.settings=normalizeBossSettings(saved);if(raw.balance!==BALANCE||!raw.ticketRewards)this.persist();this.history=Array.isArray(raw.history)?raw.history.slice(0,30):[];}catch{}return this;}
+  persist(){if(!this.dataDir)return this.saving;const data=JSON.stringify({schema:1,balance:BALANCE,ticketRewards:true,settings:this.settings,history:this.history}),tmp=join(this.dataDir,FILE+'.tmp');this.saving=this.saving.then(async()=>{await writeFile(tmp,data);await rename(tmp,join(this.dataDir,FILE));}).catch(()=>{});return this.saving;}
   configure(raw){if(this.active())throw new Error('Change settings between fights.');this.settings=normalizeBossSettings({...this.settings,...raw});this.persist();return this.view();}
   active(){return !!this.battle&&['lobby','battle'].includes(this.battle.phase);}
   busy(){return !!this.battle&&this.battle.phase!=='done';}
@@ -163,20 +163,26 @@ export class BossFight{
     // 2.20.44 speed goals: a fast kill earns the Legendary or Hero medal and a bonus on the victory points.
     const speed=outcome==='victory'?speedGoal(s,elapsed):'',bonus=speed?Math.round(s.victoryPoints*s.speedBonusPct/100):0,reward=s.victoryPoints+bonus;
     b.speed=speed;b.bonus=bonus;b.reward=reward;b.elapsed=elapsed;
-    this.note(outcome==='victory'?(speed==='legendary'?'LEGENDARY! ':speed==='hero'?'HEROIC! ':'')+s.name+' destroyed in '+clock(elapsed)+'! Victory, pilots!':s.name+' escaped with '+Math.ceil(b.hp/b.maxHp*100)+'% hull left. No points awarded.','alert');
+    this.note(outcome==='victory'?(speed==='legendary'?'LEGENDARY! ':speed==='hero'?'HEROIC! ':'')+s.name+' destroyed in '+clock(elapsed)+'! Victory, pilots!':s.name+' escaped with '+Math.ceil(b.hp/b.maxHp*100)+'% hull left. No tickets awarded.','alert');
     if(!b.demo){
-      const rewarded=outcome==='victory'&&reward>0?pilots.filter(p=>p.fires>0||p.bits>0||p.gifts>0):[];
+      // 2.28.0: a victory pays tickets for the active ticketed giveaway (victoryTickets each, mvpTickets more for the MVP); points are optional.
+      const fought=outcome==='victory'?pilots.filter(p=>p.fires>0||p.bits>0||p.gifts>0):[],rewarded=reward>0?fought:[];
+      const tix=outcome==='victory'?fought.map(p=>({key:p.key,name:p.name,login:p.login||'',tickets:s.victoryTickets+(mvp&&p.key===mvp.key?s.mvpTickets:0)})).filter(g=>g.tickets>0):[];
+      if(mvp&&outcome==='victory'&&s.mvpTickets>0&&!tix.some(g=>g.key===mvp.key))tix.push({key:mvp.key,name:mvp.name,login:mvp.login||'',tickets:s.mvpTickets});
       this.history.unshift({id:b.id,name:s.name,outcome,startedAt:b.startedAt,endedAt:now,maxHp:b.maxHp,damage:total,pilots:pilots.length,
         mvp:mvp?{key:mvp.key,name:mvp.name,platform:mvp.platform,damage:mvp.damage}:null,mvpBonus:mvp&&outcome==='victory'?s.mvpBonus:0,top:pilots.slice(0,5).map(p=>({name:p.name,platform:p.platform,damage:p.damage})),
-        reward,base:s.victoryPoints,bonus,speed,elapsed,rewarded:rewarded.map(p=>({key:p.key,name:p.name,platform:p.platform}))});
+        reward,base:s.victoryPoints,bonus,speed,elapsed,rewarded:rewarded.map(p=>({key:p.key,name:p.name,platform:p.platform})),tickets:outcome==='victory'?s.victoryTickets:0,mvpTickets:mvp&&outcome==='victory'?s.mvpTickets:0,ticketPilots:tix.length});
       this.history=this.history.slice(0,30);this.persist();
       // Voyager Medals (2.18): who fought, torpedoes fired, the MVP, the killing blow and (2.20.44) the speed goal.
       try{this.onResult({id:b.id,outcome,endsAt:b.endsAt,endedAt:now,mvpKey:mvp?.key||'',lastHit:b.lastHit||null,speed,elapsed,
         pilots:pilots.map(p=>({key:p.key,name:p.name,platform:p.platform,damage:p.damage,fires:p.fires,bits:p.bits,gifts:p.gifts}))});}catch{}
+      if(tix.length)try{this.onTickets({id:'boss-'+b.id,reason:'Voyager Dreadnought victory: '+s.name,grants:tix});}catch{}
+      const prize=[s.victoryTickets>0?s.victoryTickets+' giveaway ticket'+(s.victoryTickets===1?'':'s'):'',reward>0?reward+' Voyager points'+(bonus>0?' (+'+s.speedBonusPct+'% speed bonus)':''):''].filter(Boolean).join(' and ');
+      const mvpPrize=mvp?[s.mvpBonus>0?s.mvpBonus+' Voyager points':'',s.mvpTickets>0?s.mvpTickets+' more ticket'+(s.mvpTickets===1?'':'s'):''].filter(Boolean).join(' and '):'';
       const medal=speed==='legendary'?' LEGENDARY: destroyed in '+clock(elapsed)+' — every pilot who fought earns the Legendary Strike medal':speed==='hero'?' HEROIC: destroyed in '+clock(elapsed)+' — every pilot who fought earns the Hero of the Fleet medal':'';
       this.announce(outcome==='victory'
-        ?'💥 '+s.name+' is destroyed! '+pilots.length+' pilots dealt '+total.toLocaleString('en')+' damage.'+(mvp?' MVP: '+mvp.name+' ('+mvp.damage.toLocaleString('en')+').':'')+(medal?medal+(rewarded.length?' and '+reward+' Voyager points (+'+s.speedBonusPct+'% speed bonus).':'.'):rewarded.length?' Every pilot who fought earns '+reward+' Voyager points.':'')
-        :'☠ '+s.name+' escaped with '+Math.ceil(b.hp/b.maxHp*100)+'% hull left. No points this time. Regroup, pilots: it will be back.');
+        ?'💥 '+s.name+' is destroyed! '+pilots.length+' pilots dealt '+total.toLocaleString('en')+' damage.'+(mvp?' MVP: '+mvp.name+' ('+mvp.damage.toLocaleString('en')+')'+(mvpPrize?' earns '+mvpPrize:'')+'.':'')+(medal?medal+(prize?' and '+prize+'.':'.'):prize&&fought.length?' Every pilot who fought earns '+prize+'.':'')
+        :'☠ '+s.name+' escaped with '+Math.ceil(b.hp/b.maxHp*100)+'% hull left. No tickets this time. Regroup, pilots: it will be back.');
     }
   }
   // Called about ten times a second by the host.
@@ -211,7 +217,7 @@ export class BossFight{
     const pilots=[...b.pilots.values()];
     return {serverAt:now,phase:b.phase,id:b.id,demo:b.demo,name:s.name,hp:b.hp,maxHp:b.maxHp,lobbyEndsAt:b.lobbyEndsAt,endsAt:b.endsAt,startedAt:b.startedAt,endedAt:b.endedAt,
       outcome:b.outcome,shield:b.shieldUntil>now,shieldUntil:b.shieldUntil,enraged:b.enraged,victoryPoints:b.phase==='result'&&b.reward!==undefined?b.reward:s.victoryPoints,
-      speed:b.speed||'',bonus:b.bonus||0,elapsed:b.phase==='result'?b.elapsed||0:0,mvpBonus:s.mvpBonus,goals:{legendary:s.legendarySeconds,hero:s.heroSeconds,bonusPct:s.speedBonusPct},
+      victoryTickets:s.victoryTickets,mvpTickets:s.mvpTickets,speed:b.speed||'',bonus:b.bonus||0,elapsed:b.phase==='result'?b.elapsed||0:0,mvpBonus:s.mvpBonus,goals:{legendary:s.legendarySeconds,hero:s.heroSeconds,bonusPct:s.speedBonusPct},
       pilots:pilots.length,cooldown:s.fireCooldown,fleet:pilots.slice(0,12).map(p=>({slot:p.slot,name:p.name,platform:p.platform,stunned:p.stunnedUntil>now,fireAt:(p.lastFire||0)+s.fireCooldown*1000,shootAt:(p.lastShoot||0)+s.fireCooldown*1000})), // 2.21.14: reload timers for the stage
       leaders:pilots.filter(p=>p.damage>0).sort((a,c)=>c.damage-a.damage).slice(0,5).map(p=>({name:p.name,platform:p.platform,damage:p.damage})),
       feed:b.feed.slice(0,6),effects:b.effects.filter(e=>now-e.at<6000),

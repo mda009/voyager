@@ -125,7 +125,7 @@ function renderDread(){
  $('h-dread').textContent=d.name||'The Dreadnought';
  const top=el('div','gw-top');top.append(el('span','kind','Co-op boss fight'),el('span','badge '+(phase==='battle'?'s-drawing':phase==='lobby'?'s-open':''),phase==='battle'?'Battle on':phase==='lobby'?'Boarding':phase==='result'?'Just ended':'Standing by'));card.append(top);
  if(phase==='lobby'){
-  card.append(el('div','phase lobby','It’s approaching!'),el('p','who','Board the fleet now, then fire when the battle starts. Everyone who fights earns '+fmt(d.victoryPoints)+' Voyager points if it’s destroyed.'));
+  card.append(el('div','phase lobby','It’s approaching!'),el('p','who','Board the fleet now, then fire when the battle starts. Everyone who fights earns '+([d.victoryTickets?fmt(d.victoryTickets)+' ticket'+(d.victoryTickets===1?'':'s')+' for the ticketed giveaway':'',d.victoryPoints?fmt(d.victoryPoints)+' Voyager points':''].filter(Boolean).join(' and ')||'glory')+' if it’s destroyed.'));
   if(d.lobbyEndsAt){const c=el('p','who');c.dataset.until=d.lobbyEndsAt;c.dataset.prefix='Battle starts in ';c.textContent='Battle starts in '+left(d.lobbyEndsAt);card.append(c);}
   const cm=el('div','cmds');cm.append(copyChip('!join','board the fleet'));card.append(cm);
  }else if(phase==='battle'){

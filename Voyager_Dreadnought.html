@@ -89,8 +89,11 @@
 <label>!fire / !shoot cooldown (seconds)<input name="fireCooldown" type="number" min="1" max="60"><small class="st-hint" style="display:block;margin-top:4px">Each pilot gets one !fire and one !shoot per cooldown; extra messages are ignored. Twitch locks regular viewers out of chat for 30 s after 20 messages in 30 s, so at 3 s a pilot playing perfectly is already at that limit — 6 s (Twitch-safe) halves it.</small></label>
 <label>Damage per bit<input name="bitDamage" type="number" min="0" max="100" step="0.1"></label>
 <label>Damage per gifted sub<input name="giftDamage" type="number" min="0" max="100000"></label>
-<label>Victory points (each pilot)<input name="victoryPoints" type="number" min="0" max="1000000"></label>
-<label>MVP bonus (most damage, on a victory)<input name="mvpBonus" type="number" min="0" max="100000"></label>
+<label>Victory tickets (each pilot, for the active ticketed giveaway)<input name="victoryTickets" type="number" min="0" max="1000"></label>
+<label>MVP extra tickets (most damage, on a victory)<input name="mvpTickets" type="number" min="0" max="1000"></label>
+<label>MVP Voyager points (on a victory)<input name="mvpBonus" type="number" min="0" max="100000"></label>
+<label>Victory Voyager points (each pilot; 0 = tickets only)<input name="victoryPoints" type="number" min="0" max="1000000"></label>
+<p class="st-hint" id="ticket-status" style="grid-column:1/-1;margin:0"></p>
 <label>Legendary kill: destroyed within (seconds)<input name="legendarySeconds" type="number" min="0" max="900"></label>
 <label>Hero kill: destroyed within (seconds)<input name="heroSeconds" type="number" min="0" max="900"></label>
 <label>Speed bonus on victory points (%)<input name="speedBonusPct" type="number" min="0" max="500"></label>
@@ -163,8 +166,8 @@
 <script src="giveaway-connection.js"></script>
 <script src="points-model.js?v=4.4"></script>
 <script src="points-connection.js?v=4.4"></script>
-<script src="dreadnought.js?v=2.21.14"></script>
-<script src="voyager-shell.js?v=2.27.1"></script>
+<script src="dreadnought.js?v=2.28.0"></script>
+<script src="voyager-shell.js?v=2.28.0"></script>
 <script src="voyager-navigation.js"></script>
 </body>
 </html>

@@ -10,7 +10,7 @@ async function api(path,body){
   const r=await fetch(path,{method:body?'POST':'GET',headers:{'X-Voyager-Token':token,...(body?{'Content-Type':'application/json'}:{})},body:body?JSON.stringify(body):undefined});
   const d=await r.json().catch(()=>({}));if(!r.ok||d.ok===false)throw new Error(d.message||'Voyager answered '+r.status);return d;
 }
-const FIELDS=['name','lobbySeconds','battleSeconds','baseHp','hpPerPilot','fireMin','fireMax','fireCooldown','bitDamage','giftDamage','victoryPoints','mvpBonus','legendarySeconds','heroSeconds','speedBonusPct'];
+const FIELDS=['name','lobbySeconds','battleSeconds','baseHp','hpPerPilot','fireMin','fireMax','fireCooldown','bitDamage','giftDamage','victoryPoints','mvpBonus','victoryTickets','mvpTickets','legendarySeconds','heroSeconds','speedBonusPct'];
 const time=ms=>{const s=Math.max(0,Math.ceil(ms/1000));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');};
 function render(){
   if(!view)return;const s=view.settings,l=view.live,f=$('settings').elements,phase=l.phase;
@@ -27,6 +27,8 @@ function render(){
   for(const x of view.history){const li=el('li',x.outcome==='victory'?'win':'');li.append(el('b','',(x.outcome==='victory'?'★ Destroyed':x.outcome==='empty'?'Nobody boarded':'☠ Escaped')+' · '+x.name),
     el('span','',new Date(x.endedAt).toLocaleString([], {weekday:'short',day:'numeric',month:'short',hour:'numeric',minute:'2-digit'})+' · '+x.pilots+' pilots · '+x.damage.toLocaleString()+' damage'+(x.mvp?' · MVP '+x.mvp.name:'')+(x.speed==='legendary'?' · ⚡ Legendary kill in '+clock(x.elapsed):x.speed==='hero'?' · ★ Heroic kill in '+clock(x.elapsed):'')+(x.rewardedCount?' · '+x.rewardedCount+' × '+x.reward+' pts owed'+(x.bonus?' (incl. +'+x.bonus+' speed bonus)':''):'')));h.append(li);}
   if(!view.history.length)h.append(el('li','',"No fights yet. Call the Dreadnought when you're live."));
+  {const n=document.getElementById('ticket-status'),tg=view.ticketGrants||{},last=(tg.history||[])[0],wait=(tg.waiting||[])[0],ta=view.ticketAction?.state;
+   if(n){n.textContent=(ta&&ta!=='found'?'The "Voyager - Ticket Giveaway" action is not ready in Streamer.bot, so tickets cannot be given. ':'')+'Tickets go to the ticketed giveaway that is collecting entries when the Dreadnought is destroyed; with none running (or after its first draw) no tickets are given. Needs Ticket Giveaway action v1.5.'+(wait?' Waiting: '+wait.tickets+' tickets for '+wait.accounts+' pilots'+(wait.message?' ('+wait.message+')':'')+'.':'')+(last?' Last: '+last.message:'');n.style.color=last&&last.status==='failed'||ta&&ta!=='found'?'#ff9aa6':'';}}
   const ev=view.lastEvent,act=view.action?.state,chat=view.lastChatAt&&Date.now()-view.lastChatAt<15*60000;
   const checks=[
     [view.connected,view.connected?'Voyager is connected to Streamer.bot':'Voyager is not connected to Streamer.bot: connect it in Voyager Versus › Stream setup'],

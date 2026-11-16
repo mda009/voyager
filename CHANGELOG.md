@@ -2,6 +2,12 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.28.0 (17 November 2026)
+
+- **Dreadnought victories pay giveaway tickets.** Every pilot who fought now earns **10 tickets for the active ticketed giveaway** instead of Voyager points, and the MVP earns **50 Voyager points and 10 more tickets**. Your saved settings are moved to these values once; all four amounts are on Dreadnought › The fight (victory tickets, MVP extra tickets, MVP points, and victory points, now 0).
+- Tickets are added by the "Voyager - Ticket Giveaway" action, which needs updating to **v1.5** (Settings & Streamer.bot › install hub): it gains a "grant" operation that adds tickets to several accounts at once and audits each one. Tickets go to the giveaway that is collecting entries when the Dreadnought is destroyed. With no ticketed giveaway running, or after its first draw, no tickets are given; the Dreadnought page shows what happened to the last grant. Pilots on a platform not enabled for the giveaway, blocked accounts, and pilots without an account id are skipped.
+- The stage result line, the chat announcement and the website now say tickets.
+
 ## 2.27.1 (15 November 2026)
 
 - **Reset per-stream counters clears the !report muster again.** Pressing the button (Live, or Chat engagement) starts the muster afresh along with squadron chat points, arrival cards, Captain's Log allowances and Versus stream entries, so everyone can !report again. This undoes the 2.23.1 change.

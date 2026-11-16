@@ -1,4 +1,5 @@
-// Voyager Ticket Giveaway v1.4. One enabled action: Voyager - Ticket Giveaway.
+// Voyager Ticket Giveaway v1.5. One enabled action: Voyager - Ticket Giveaway.
+// v1.5: operator operation "grant" (tickets awarded by Voyager games, e.g. a Dreadnought victory) for several accounts at once.
 // Dedicated blocking queue: Voyager Tickets; Concurrent OFF. See TICKET_GIVEAWAY_SETUP.html.
 // Independent ticket ledger. Never writes points, groups or VoyagerGiveawayStateV1.
 using System;
@@ -35,7 +36,7 @@ public class CPHInline
         bool native=(presence||chat||reset)&&platform.Length>0;
         if(Flag("isTest")||Flag("isInternal")||Flag("isFromSharedChatGuest"))return true;
         // Chat/events cannot invoke operator operations, even if extra arguments exist.
-        if(!native && !new[]{"sync","create","setTracking","enablePlatforms","pause","resume","lock","reopen","adjust","block","unblock","draw","reroll","confirm","complete","archive","show","hide","lookup","exportArchive"}.Contains(op))return true;
+        if(!native && !new[]{"sync","create","setTracking","enablePlatforms","pause","resume","lock","reopen","adjust","grant","block","unblock","draw","reroll","confirm","complete","archive","show","hide","lookup","exportArchive"}.Contains(op))return true;
         Guid rid;if(!native&&!Guid.TryParse(requestId,out rid))return false;
         lock(Gate)
         {
@@ -166,6 +167,25 @@ public class CPHInline
                         if(op=="pause"&&status!="open"||op=="resume"&&status!="paused"||op=="lock"&&!new[]{"open","paused"}.Contains(status)||op=="reopen"&&status!="locked")throw new Exception("This entry control is unavailable in the current state.");
                         if((op=="resume"||op=="reopen")&&now>=N(c["endsAt"]))throw new Exception("The collection deadline has passed.");
                         c["status"]=op=="pause"?"paused":op=="lock"?"locked":"open";s["presence"]=new JObject();Audit(c,op,"",0,"Operator control",now);
+                    }
+                    else if(op=="grant")
+                    {
+                        // Tickets awarded by a Voyager game to the accounts that earned them. Audited per account like a manual adjustment.
+                        if(draws.Count>0||status=="completed")throw new Exception("Tickets and eligibility are frozen after the first draw.");
+                        string reason=Required("ticketReason",240);JArray grants=JArray.Parse(Read("ticketGrants"));
+                        if(grants.Count==0||grants.Count>200)throw new Exception("Send 1 to 200 ticket grants.");
+                        long granted=0,accounts=0,skipped=0;
+                        foreach(JToken g in grants)
+                        {
+                            string gp=((string)g["platform"]??"").Trim().ToLowerInvariant(),gid=(string)g["id"]??"";long amount=N(g["tickets"]);
+                            if(!Platforms.Contains(gp)||!ValidId(gid)||amount<1||amount>100000||!((JArray)c["platforms"]).Any(x=>(string)x==gp)){skipped++;continue;}
+                            JObject identity=Identity(gp,gid,(string)g["login"]??"",(string)g["name"]??"");string key=(string)identity["key"];
+                            JObject u=c["users"][key] as JObject;if(u==null)u=Join(c,identity,now);
+                            if(u["blocked"]!=null&&(bool)u["blocked"]){skipped++;continue;}
+                            long balance=N(u["tickets"])+amount;if(balance>MaxTickets||Total(c)+amount>MaxTickets)throw new Exception("Giveaway ticket capacity reached.");
+                            u["manual"]=Signed(u["manual"])+amount;u["tickets"]=balance;Audit(c,"grant",key,amount,reason,now);granted+=amount;accounts++;
+                        }
+                        s["lastGrant"]=new JObject{["at"]=now,["requestId"]=requestId,["tickets"]=granted,["accounts"]=accounts,["skipped"]=skipped,["reason"]=reason};
                     }
                     else if(op=="adjust"||op=="block"||op=="unblock")
                     {
