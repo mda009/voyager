@@ -10,7 +10,7 @@ const PLATFORM={twitch:'Twitch',youtube:'YouTube',kick:'Kick'};
 const EMBED=document.documentElement.classList.contains('embed');
 const FEED=document.querySelector('meta[name=voyager-feed]').content||'feed.json';
 const crewUrl=()=>new URL('crew.json',new URL(FEED,location.href)).href;
-let feed=null,crew=null,crewAt=0,crewLoading=null,selected=null;
+let feed=null,crew=null,crewAt=0,crewVer=0,crewLoading=null,selected=null;
 
 // ---------- tabs ----------
 // 2.20.51: five tabs by what you are doing. Live (while watching), My card (you), Goals (the community goal and giveaway goals),
@@ -293,15 +293,19 @@ function renderLog(){
 const TIER={blue:['Blue Explorer','#3fb2ff','#0b2c6e'],silver:['Silver Sentinel','#eef3f9','#3a4552'],gold:['Gold Commander','#ffc53d','#5c3a04'],platinum:['Platinum Vanguard','#c08bff','#2a0f5c']};
 async function loadCrew(force=false){
  const sec=$('find');if(sec.hidden)return null;
- if(crew&&!force&&Date.now()-crewAt<5*60000)return crew;
+ // 2.32.0: reload as soon as the feed says a card changed (feed.crew.at); otherwise at most every five minutes.
+ const ver=feed?.crew?.at||0;
+ if(crew&&!force&&ver===crewVer&&Date.now()-crewAt<5*60000)return crew;
  if(crewLoading)return crewLoading;
  $('crew-note').textContent='Loading the crew list…';
- crewLoading=(async()=>{try{const r=await fetch(crewUrl()+'?t='+Math.floor(Date.now()/300000),{cache:'no-store'});if(!r.ok)throw new Error();const d=await r.json();if(d?.schema!==1||!Array.isArray(d.members))throw new Error();
-  crew=d.members.map(m=>({name:String(m[0]),platform:m[1],tier:m[2],rank:m[3]|0,place:m[4]|0,lifetime:Number(m[5])||0,medals:Array.isArray(m[6])?m[6]:[],record:Array.isArray(m[7])?m[7]:null,front:m[8]&&typeof m[8]==='object'?m[8]:null,back:m[9]&&typeof m[9]==='object'?m[9]:null,key:String(m[0]).toLowerCase()}));crewAt=Date.now();
+ crewLoading=(async()=>{try{const r=await fetch(crewUrl()+'?t='+(ver||Math.floor(Date.now()/300000)),{cache:'no-store'});if(!r.ok)throw new Error();const d=await r.json();if(d?.schema!==1||!Array.isArray(d.members))throw new Error();
+  crew=d.members.map(m=>({name:String(m[0]),platform:m[1],tier:m[2],rank:m[3]|0,place:m[4]|0,lifetime:Number(m[5])||0,medals:Array.isArray(m[6])?m[6]:[],record:Array.isArray(m[7])?m[7]:null,front:m[8]&&typeof m[8]==='object'?m[8]:null,back:m[9]&&typeof m[9]==='object'?m[9]:null,key:String(m[0]).toLowerCase()}));crewAt=Date.now();crewVer=ver;
   $('crew-note').textContent=fmt(crew.length)+' crew members · updated '+ago(d.generatedAt)+'. Not listed? Earn some Voyager points on stream and check back.';
   search();
   if(pendingCard){const pm=crew.find(m=>m.key===pendingCard);pendingCard='';if(pm)show(pm,false);else toast('That card is not on the crew list');}
   try{const saved=localStorage.getItem('voyager-me');if(saved&&!selected){const me=crew.find(m=>m.key===saved);if(me)show(me,false);}}catch{}
+  // The card on screen follows the new data (it used to stay as first drawn until the page was reopened).
+  try{if(selected){const fresh=crew.find(m=>m.key===selected.key&&m.platform===selected.platform)||crew.find(m=>m.key===selected.key);if(fresh&&document.activeElement!==$('crew-search')&&JSON.stringify(fresh)!==JSON.stringify(selected))show(fresh,false);}}catch{}
   renderHome();try{renderRequests();}catch{}
   return crew;}catch{$('crew-note').textContent='The crew list isn’t available right now. Try again in a few minutes.';return null;}finally{crewLoading=null;}})();
  return crewLoading;

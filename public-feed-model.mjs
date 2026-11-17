@@ -235,7 +235,7 @@ export function sanitizeCollected(raw){
   return {giveaways,points:{available:r.points?.available===true,leaders,goals},sources:{giveaway:r.sources?.giveaway===true,tickets:r.sources?.tickets===true,points:r.sources?.points===true}};
 }
 
-export function buildFeed({collected,settings,pilots=[],versus=null,winners=[],online=true,now=Date.now(),proofIds=new Set(),community=null,companion=null,crewCount=0}){
+export function buildFeed({collected,settings,pilots=[],versus=null,winners=[],online=true,now=Date.now(),proofIds=new Set(),community=null,companion=null,crewCount=0,crewAt=0}){
   const s=normalizeSettings(settings),c=sanitizeCollected(collected),show=s.sections;
   const name=n=>s.showNames?n:initials(n);
   const feed={schema:SCHEMA,generatedAt:now,online:online===true,
@@ -262,7 +262,7 @@ export function buildFeed({collected,settings,pilots=[],versus=null,winners=[],o
       goals:list(community.season.goals).slice(0,8).map(g=>({title:clean(g.title,40),description:clean(g.description,120),metric:oneOf(g.metric,['support','subs','gifts','points','versus'],'support'),platform:oneOf(g.platform,['all','twitch','youtube','kick'],'all'),target:int(g.target,1,1e9)??1,total:int(g.total,0,1e12)??0,reward:int(g.reward,0,1e6)??0,reached:g.reached===true,missed:g.missed===true,dueAt:time(g.dueAt),helpers:int(g.helpers,0,1e7)??0})).filter(g=>g.title),
       hall:list(community.hall).slice(0,6).map(h=>({name:clean(h.name,40),endedAt:time(h.endedAt),champion:h.champion?{...person(h.champion),points:int(h.champion.points,0,1e12)??0}:null,topPilot:h.topPilot?{name:name(clean(h.topPilot.name,LIMITS.name)),wins:int(h.topPilot.wins,0,1e9)??0}:null}))};
   }
-  if(companion&&typeof companion==='object')Object.assign(feed,projectCompanion(companion,s,online===true,crewCount));
+  if(companion&&typeof companion==='object')Object.assign(feed,projectCompanion(companion,s,online===true,crewCount,crewAt));
   if(show.program)feed.program={intro:s.program.intro,tiers:s.program.tiers.map(t=>({key:t.key,name:t.name,description:t.description})),commands:s.program.commands.map(c=>({...c}))};
   return feed;
 }
@@ -301,7 +301,7 @@ window.addEventListener('message',function(e){
 // naval ranks, medals and a lookup of each member's card (tier, rank and medals; never watch time, tickets or IDs).
 const RANK_COUNT=12,MEDAL_CATS=['loyalty','support','honour','games','community','special'],TIERS_ALL=['blue','silver','gold','platinum'];
 const medalId=v=>typeof v==='string'&&/^[a-z]{2,20}$/.test(v)?v:null;
-export function projectCompanion(raw,settings=DEFAULT_SETTINGS,online=true,crewCount=0){
+export function projectCompanion(raw,settings=DEFAULT_SETTINGS,online=true,crewCount=0,crewAt=0){
   const s=normalizeSettings(settings),show=s.sections,name=n=>s.showNames?n:initials(n),out={};
   const person=p=>{const n=clean(p?.name,LIMITS.name);return n?{name:name(n),platform:oneOf(p?.platform,Object.keys(PLATFORMS),'')}:null;};
   if(show.live)out.live={onAir:online&&raw.live?.onAir===true};
@@ -351,7 +351,7 @@ export function projectCompanion(raw,settings=DEFAULT_SETTINGS,online=true,crewC
     if(opts.length)out.requests={open:x.open===true,round:int(x.round,0,1e15)??0,options:opts,
       recent:s.showNames?list(x.recent).slice(0,30).map(r=>({name:clean(r?.name,LIMITS.name),label:clean(r?.label,30),at:time(r?.at),done:r?.done===true})).filter(r=>r.name&&r.label):[],
       tally:list(x.tally).slice(0,10).map(t=>({label:clean(t?.label,30),count:int(t?.count,0,1e5)??0})).filter(t=>t.label&&t.count)};}
-  if(show.crew&&s.showNames&&crewCount>0)out.crew={file:'crew.json',count:int(crewCount,0,1e5)??0};
+  if(show.crew&&s.showNames&&crewCount>0)out.crew={file:'crew.json',count:int(crewCount,0,1e5)??0,at:time(crewAt)}; // at: when a card last changed, so the site reloads them straight away
   return out;
 }
 // The back of the card: [honour, fights, victories, MVPs, damage, Versus wins, losses, missions, giveaways won, season podiums, season place, season points, 'YYYY-MM' first seen,

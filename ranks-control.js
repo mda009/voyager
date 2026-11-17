@@ -38,7 +38,9 @@ function roster(){
     if(m.next===null)nx.append(el('small','','Highest rank'));
     else{const bar=el('i'),fill=el('em');fill.style.width=(m.progress*100)+'%';bar.append(fill);
       nx.append(bar,el('small','',m.gated?'Needs top '+view.ranks[m.next].top+' all-time for '+view.ranks[m.next].name:fmt(m.need)+' to '+view.ranks[m.next].name));}
-    tr.append(el('td','n',String(m.place)),who,rk,el('td','n hide-sm',fmt(m.lifetime)),nx);T.append(tr);
+    const life=el('td','n hide-sm',fmt(m.lifetime)+(m.fixed?' ✎':''));if(m.fixed)life.title='Corrected by you';
+    const fx=el('button','link','Correct');fx.type='button';fx.style.cssText='margin-left:8px;font-size:12px';fx.onclick=()=>openFix(m);who.append(fx);
+    tr.append(el('td','n',String(m.place)),who,rk,life,nx);T.append(tr);
   }
   if(!rows.length){const tr=el('tr'),td=el('td','rk-empty',view.total?'Nobody matches.':'No lifetime points yet. Ranks appear once the Points Ledger has synced (Points & members).');td.colSpan=5;tr.append(td);T.append(tr);}
   $('more').hidden=rows.length<=shown;$('more').textContent='Show more ('+fmt(rows.length-shown)+' left)';
@@ -59,11 +61,25 @@ function render(){
   const pill=$('state-pill');pill.dataset.state=view.settings.ranks?'ok':'wait';pill.textContent=view.settings.ranks?'Ranks on':'Ranks off';
   $('off').hidden=view.settings.ranks;
   const F=$('filter');if(F.options.length===1)view.ranks.forEach((r,i)=>F.append(Object.assign(el('option','',r.name),{value:String(i)})));
-  ladder();roster();if(!editing)settings();
+  ladder();roster();fixes();if(!editing)settings();
   const L=$('promotions');L.textContent='';
   for(const p of view.promotions.slice(0,15)){const li=el('li');li.append(insignia(p.to,true));const t=el('span');t.append(el('b','',p.name),document.createTextNode(' → '+view.ranks[p.to].name));li.append(t,el('span','r',ago(p.at)));L.append(li);}
   if(!view.promotions.length)L.append(el('li','','No promotions yet. They are checked about once a minute while Voyager runs.'));
 }
+// 2.32.0 lifetime corrections
+let fixing=null;
+function openFix(m){fixing=m;editing=true;$('fix-form').hidden=false;$('fix-name').textContent=m.name+' · '+(PLATFORM[m.platform]||m.platform);
+  $('fix-info').textContent='Lifetime '+fmt(m.lifetime)+' · '+view.ranks[m.rank].name+(m.balance!==null?' · balance now '+fmt(m.balance):'');$('fix-value').value=m.balance!==null?m.balance:m.lifetime;$('fix-balance').disabled=m.balance===null;
+  $('fix-card').scrollIntoView({behavior:'smooth',block:'center'});$('fix-value').focus();}
+function closeFix(){fixing=null;editing=false;$('fix-form').hidden=true;}
+async function saveFix(key,value,text){try{const v=await api('/api/cards/lifetime',{key,value});view={...view,...v};closeFix();notice(text+' Cards on stream and the website follow within a couple of minutes.');render();}catch(e){notice(e.message,true);}}
+$('fix-save').onclick=()=>{if(!fixing)return;const n=Number($('fix-value').value);if(!Number.isInteger(n)||n<0){notice('Type a whole number, 0 or more.',true);return;}saveFix(fixing.key,n,fixing.name+"'s lifetime points are now "+fmt(n)+'.');};
+$('fix-balance').onclick=()=>{if(fixing&&fixing.balance!==null)$('fix-value').value=fixing.balance;};
+$('fix-zero').onclick=()=>{if(fixing)saveFix(fixing.key,0,fixing.name+' is left out of the ranks.');};
+$('fix-cancel').onclick=closeFix;
+function fixes(){const L=$('fixes'),list=view.fixes||[];L.textContent='';const pill=$('fix-pill');pill.dataset.state=list.length?'ok':'wait';pill.textContent=list.length?list.length+' in place':'None';
+  for(const f of list){const li=el('li');const t=el('span');t.append(el('b','',f.name),document.createTextNode(' · '+(PLATFORM[f.platform]||f.platform)+' · was '+fmt(f.was)+', set to '+fmt(f.set)+(f.now!==f.set?', now '+fmt(f.now):'')+(f.set===0&&!f.now?' (left out of ranks)':'')));
+    const b=el('button','link','Undo');b.type='button';b.onclick=()=>saveFix(f.key,null,'Correction removed for '+f.name+'.');li.append(t,el('span','r',ago(f.at)),b);L.append(li);}}
 async function load(){try{view=await api('/api/cards/ranks');render();}catch(e){notice(e.message,true);}}
 $('settings').addEventListener('focusin',()=>{editing=true;});$('settings').addEventListener('change',()=>{editing=true;});
 $('search').addEventListener('input',()=>{shown=PAGE;roster();});$('filter').addEventListener('change',()=>{shown=PAGE;render();});$('platform').addEventListener('change',()=>{shown=PAGE;roster();});

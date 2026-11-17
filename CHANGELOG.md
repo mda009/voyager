@@ -2,6 +2,13 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.32.0 (17 November 2026)
+
+**Members' cards update on the website straight away, and lifetime points can be corrected.**
+
+- **Faster card updates.** Members' cards for the website are now rebuilt every 2 minutes (was 10), and the feed tells the website the moment a card changed, so it reloads the cards at once instead of waiting up to five more minutes. A card that is already open on someone's phone now redraws with the new numbers; before, it stayed as first drawn until the page was reopened.
+- **Correct a member's lifetime points** (Ranks › Correct beside a name). Lifetime points are everything that ever reached an account, so points given by mistake or for testing still counted after they were taken back — which is how an account with a small balance could hold Admiral of the Fleet. Set what the lifetime total should be (one click to use the current balance); points earned afterwards add on top, and promotions carry on from the corrected rank. **0** leaves the account out of the ranks and the all-time board. Corrections are listed with Undo. The card on stream, the Ranks page, the website's ranks and the member's card all follow.
+
 ## 2.31.0 (17 November 2026)
 
 **SC Intel: up-to-date news, patch notes, what is playable now, and a section for each active event.**

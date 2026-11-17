@@ -79,7 +79,7 @@ const SAMPLE_VIEWER=now=>({name:'NebulaKnight',login:'nebulaknight',platform:'tw
 export class Cards{
   constructor({dataDir,now=Date.now,say=()=>{},medals=null,community=()=>null,rankings=()=>[]}={}){
     Object.assign(this,{dataDir,now,say,medals,community,rankings});
-    this.state={schema:1,settings:structuredClone(CARD_DEFAULTS),members:{},queue:[],recent:[],seq:0,ranks:{},ranksPrimed:false,promoChat:[],promotions:[]};this.lastChatAt=0;this.saving=Promise.resolve();this.lastEvent=null;
+    this.state={schema:1,settings:structuredClone(CARD_DEFAULTS),members:{},queue:[],recent:[],seq:0,ranks:{},ranksPrimed:false,promoChat:[],promotions:[],fixes:{}};this.lastChatAt=0;this.saving=Promise.resolve();this.lastEvent=null;
   }
   async load(){try{const raw=JSON.parse(await readFile(join(this.dataDir,FILE),'utf8'));if(raw?.schema===1){this.state={...this.state,...raw};this.state.settings={...structuredClone(CARD_DEFAULTS),...raw.settings};try{this.state.settings=normalizeCardSettings(raw.settings||{});}catch{this.state.settings=structuredClone(CARD_DEFAULTS);}}}catch{}return this;}
   persist(){if(!this.dataDir)return this.saving;const data=JSON.stringify(this.state),tmp=join(this.dataDir,FILE+'.tmp');this.saving=this.saving.then(async()=>{await writeFile(tmp,data);await rename(tmp,join(this.dataDir,FILE));}).catch(()=>{});return this.saving;}
@@ -157,9 +157,24 @@ export class Cards{
   board(){
     if(this.memo?.board)return this.memo.board;
     const members=this.community()?.state?.members||{};
-    const rows=Object.entries(members).filter(([,m])=>!BUCKETS.has(m.login)&&lifetimeOf(m)>0).map(([key,m])=>({key,value:lifetimeOf(m)})).sort((a,b)=>b.value-a.value);
+    const rows=Object.entries(members).filter(([,m])=>!BUCKETS.has(m.login)).map(([key,m])=>({key,value:this.lifeOf(key,m)})).filter(r=>r.value>0).sort((a,b)=>b.value-a.value);
     const place=new Map();rows.forEach((r,i)=>place.set(r.key,i+1));
     const out={rows,place};if(this.memo)this.memo.board=out;return out;
+  }
+  // 2.32.0 lifetime corrections. Lifetime points are everything that ever reached an account (the Points Ledger's captured-in),
+  // so points given by mistake or for testing and then taken back still count. A correction says "this account's lifetime
+  // is N as of now": points earned afterwards add on top. 0 leaves the account out of the ranks and the all-time board.
+  lifeOf(key,m){const f=this.state.fixes?.[key];if(!f)return lifetimeOf(m);return Math.max(0,f.set+Math.max(0,num(m?.value)-f.from));}
+  correctLifetime(key,value){
+    const m=this.community()?.state?.members?.[key];if(!m)throw new Error('That member is not in the points list.');
+    if(!this.state.fixes)this.state.fixes={};
+    if(value===null||value===undefined||value===''){delete this.state.fixes[key];}
+    else{const n=Number(value);if(!Number.isInteger(n)||n<0||n>1e12)throw new Error('Lifetime points must be a whole number, 0 or more.');
+      if(!this.state.fixes[key]&&Object.keys(this.state.fixes).length>=200)throw new Error('Up to 200 corrections.');
+      this.state.fixes[key]={set:n,from:num(m.value),at:this.now(),name:clean(m.name||m.login||key,60),was:lifetimeOf(m)};}
+    // The rank Voyager remembers follows the correction, so nobody is "promoted" back up to where they were.
+    const {rows,place}=this.board(),row=rows.find(r=>r.key===key);if(row)this.state.ranks[key]=this.rankOf(row.value,place.get(key));else delete this.state.ranks[key];
+    this.persist();return this.ranksView();
   }
   rankOf(lifetime,place){
     const pts=this.state.settings.rankPoints;let i=0;
@@ -218,7 +233,7 @@ export class Cards{
     const community=this.community(),cm=sample?{value:214560}:community?.state?.members?.[who.key]||null;
     const since=Math.min(v?.first||now,now),hidden=!!m.private;
     const balance=who.hasPoints?who.points:num(cm?.balance);
-    const lifetime=sample?num(cm?.value):over?Math.max(lifetimeOf(cm),balance):lifetimeOf(cm);
+    const lifetime=sample?num(cm?.value):over?Math.max(this.lifeOf(who.key,cm),balance):this.lifeOf(who.key,cm);
     const allTime=sample?6:this.board().place.get(who.key)||0;
     const rv=this.rankView(who.key,lifetime,allTime);
     // Versus
@@ -415,11 +430,12 @@ export class Cards{
     const {rows,place}=this.board(),members=this.community()?.state?.members||{},pts=this.state.settings.rankPoints,count=new Array(RANKS.length).fill(0);
     const roster=rows.map(r=>{const m=members[r.key]||{},pl=place.get(r.key),i=this.rankOf(r.value,pl),next=RANKS[i+1];count[i]++;
       const need=next?Math.max(0,pts[i+1]-r.value):0,span=next?pts[i+1]-pts[i]:0;
-      return {key:r.key,name:clean(m.name||m.login||r.key,60),platform:r.key.split(':')[0],tier:m.tier||this.state.members[r.key]?.tier||'blue',lifetime:r.value,place:pl,rank:i,
+      return {key:r.key,name:clean(m.name||m.login||r.key,60),platform:r.key.split(':')[0],tier:m.tier||this.state.members[r.key]?.tier||'blue',lifetime:r.value,balance:Number.isFinite(m.balance)?m.balance:null,fixed:!!this.state.fixes?.[r.key],place:pl,rank:i,
         next:next?i+1:null,need,gated:!!next&&need===0&&!!next.top,progress:next?Math.max(0,Math.min(1,span?(r.value-pts[i])/span:1)):1};});
     return {settings:{ranks:this.state.settings.ranks,promoChat:this.state.settings.promoChat,promoMin:this.state.settings.promoMin,rankPoints:pts,enabled:this.state.settings.enabled},
       defaults:CARD_DEFAULTS.rankPoints,ranks:RANKS.map((x,i)=>({...x,points:pts[i],holders:count[i]})),insignia:INSIGNIA,total:roster.length,
-      lifetime:rows.reduce((a,r)=>a+r.value,0),members:roster.slice(0,limit),promotions:(this.state.promotions||[]).slice(0,50)};
+      lifetime:rows.reduce((a,r)=>a+r.value,0),members:roster.slice(0,limit),promotions:(this.state.promotions||[]).slice(0,50),
+      fixes:Object.entries(this.state.fixes||{}).map(([key,f])=>({key,name:members[key]?.name||f.name||key,platform:key.split(':')[0],set:f.set,was:f.was||0,at:f.at,now:this.lifeOf(key,members[key])})).sort((a,b)=>b.at-a.at)};
   }
   // 2.20.63: what the OBS leaderboard panel reads to show each leader's naval rank and member tier (local only, no balances).
   rankOverlay(){

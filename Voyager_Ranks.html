@@ -110,13 +110,23 @@
 <button type="button" id="preview-promo">Preview a promotion (sample data)</button>
 <p class="st-hint">Promotions play on the membership card source in OBS. The preview uses sample data and posts nothing in chat.</p>
 </section>
+<section class="card rk-card" id="fix-card">
+<div class="card-heading"><div><span class="eyebrow">CORRECTIONS</span><h2>Correct a member's lifetime points</h2></div><span class="st-pill" id="fix-pill" data-state="wait">None</span></div>
+<p class="st-hint">Lifetime points are everything that ever reached an account, so points given by mistake or for testing still count after you take them back — which can leave an account with a rank its balance does not match. Press <b>Correct</b> beside a name in the roster, set what the lifetime total should be, and points earned from then on add on top. <b>0</b> leaves the account out of the ranks and the all-time board. Cards on stream and on the website follow within a couple of minutes.</p>
+<form id="fix-form" class="rk-form" autocomplete="off" hidden>
+<div style="grid-column:1/-1"><b id="fix-name"></b> <small id="fix-info" style="color:#8ea6bd"></small></div>
+<label>Lifetime points should be<input type="number" id="fix-value" min="0" step="1"></label>
+<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:end"><button type="button" class="primary" id="fix-save">Save correction</button><button type="button" id="fix-balance">Use current balance</button><button type="button" id="fix-zero">Leave out of ranks (0)</button><button type="button" id="fix-cancel">Cancel</button></div>
+</form>
+<ul class="rk-list" id="fixes"></ul>
+</section>
 <section class="card rk-card"><span class="eyebrow">RECENT PROMOTIONS</span><ul class="rk-list" id="promotions"></ul></section>
 </div>
 </div>
 </main>
 </div>
-<script src="ranks-control.js?v=2.20.13"></script>
-<script src="voyager-shell.js?v=2.31.0"></script>
+<script src="ranks-control.js?v=2.32.0"></script>
+<script src="voyager-shell.js?v=2.32.0"></script>
 <script src="voyager-navigation.js"></script>
 </body>
 </html>

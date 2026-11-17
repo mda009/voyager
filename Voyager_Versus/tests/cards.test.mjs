@@ -190,3 +190,24 @@ test('rank overlay for the OBS leaderboard panel lists each member with naval ra
   assert.equal(nova.login,'nova');assert.equal(nova.tier,'blue');assert.equal(nova.platform,'twitch');assert.equal(nova.rank.abbr,'LEUT','52,000 lifetime points is Lieutenant');assert.equal(nova.place,1);
   assert.ok(!('balance' in nova)&&!('lifetime' in nova)&&!('value' in nova),'no points on the panel feed');assert.equal(o.ranks,true);
 });
+
+test('2.32.0 lifetime corrections: test points taken back no longer hold a rank; points earned afterwards add on; 0 leaves an account out',async()=>{
+  const {cards}=await make();
+  const members={};cards.community=()=>({state:{members},standings:()=>[]});
+  // The streamer's account had 773,263 points pass through it; the balance is 3,643.
+  members['twitch:9']={name:'Captain',login:'captain',platform:'twitch',value:12_000_000,balance:3643};members['twitch:2']={name:'Nova',login:'nova',platform:'twitch',value:52_000,balance:900};
+  let v=cards.ranksView();assert.equal(v.members[0].name,'Captain');assert.equal(v.ranks[v.members[0].rank].name,'Admiral of the Fleet');assert.equal(v.members[0].balance,3643);assert.equal(v.members[0].fixed,false);
+  cards.tickRanks();
+  v=cards.correctLifetime('twitch:9',3643);
+  assert.deepEqual(v.members.map(m=>[m.name,m.place,m.lifetime,v.ranks[m.rank].name,m.fixed]),[['Nova',1,52000,'Lieutenant',false],['Captain',2,3643,'Midshipman',true]]);
+  assert.deepEqual(v.fixes.map(f=>[f.name,f.was,f.set,f.now]),[['Captain',12_000_000,3643,3643]]);
+  const row=cards.crewRows(10).find(r=>r.name==='Captain');assert.equal(row.lifetime,3643);assert.equal(row.rank,0);assert.equal(row.front.rank.name,'MIDSHIPMAN');assert.match(row.front.rank.place,/#2 ALL-TIME · 3,643 POINTS EARNED/);
+  // earning after the correction adds on top, and promotes from the corrected rank (no jump back to the old one)
+  members['twitch:9'].value+=2000;members['twitch:9'].balance+=2000;assert.equal(cards.ranksView().members[1].lifetime,5643);
+  const before=cards.ranksView().promotions.length;cards.tickRanks();const pr=cards.ranksView().promotions;assert.equal(pr.length,before+1);assert.equal(pr[0].name,'Captain');assert.equal(cards.ranksView().ranks[pr[0].to].name,'Acting Sub-Lieutenant');
+  // 0 leaves the account out of the ranks; undo brings the original back; it survives a restart
+  v=cards.correctLifetime('twitch:9',0);assert.deepEqual(v.members.map(m=>m.name),['Nova']);assert.equal(v.total,1);
+  await cards.saving;const again=await new Cards({dataDir:cards.dataDir,community:()=>({state:{members},standings:()=>[]})}).load();assert.deepEqual(again.ranksView().members.map(m=>m.name),['Nova']);
+  v=cards.correctLifetime('twitch:9',null);assert.equal(v.members[0].name,'Captain');assert.equal(v.fixes.length,0);
+  assert.throws(()=>cards.correctLifetime('twitch:404',5),/not in the points list/);assert.throws(()=>cards.correctLifetime('twitch:2',-1),/whole number/);assert.throws(()=>cards.correctLifetime('twitch:2',1.5),/whole number/);
+});

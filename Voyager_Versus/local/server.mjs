@@ -378,6 +378,7 @@ const server=http.createServer(async(req,res)=>{
       if(req.method!=='POST'||!req.headers['content-type']?.startsWith('application/json')){response(res,405,{message:'Method not allowed.'});return;}
       try{
         const input=await body(req,65536);
+        if(url.pathname==='/api/cards/lifetime'){const v=cards.correctLifetime(String(input?.key||''),input?.value??null);publicSite?.refreshCrew?.();response(res,200,{ok:true,...v});return;}
         if(url.pathname==='/api/cards/settings'){response(res,200,{ok:true,...cards.configure(input||{})});return;}
         if(url.pathname==='/api/cards/preview'){const item=cards.preview(input||{});response(res,200,{ok:true,id:item.id});return;}
         response(res,404,{message:'Not found.'});

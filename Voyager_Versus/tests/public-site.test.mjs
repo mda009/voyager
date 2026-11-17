@@ -160,7 +160,7 @@ test('Stream companion: live status, Dreadnought, ranks and medals are allow-lis
   const text=JSON.stringify(f);
   for(const banned of ['twitch:1','"login"','rewarded','<script>','Earned points at night','watchSeconds'])assert.ok(!text.includes(banned),banned+' must not be published');
   assert.equal(f.medals.catalogue[1].desc,'Secret medal. How to earn it is for you to discover.');assert.equal(f.medals.catalogue[1].icon,'');
-  assert.deepEqual(f.crew,{file:'crew.json',count:3});
+  assert.deepEqual(f.crew,{file:'crew.json',count:3,at:null});assert.equal(M.buildFeed({collected:{},settings:{},companion,crewCount:3,crewAt:1e12}).crew.at,1e12,'2.32.0: when a card last changed, so the site reloads at once');
   const offline=M.buildFeed({collected:{},settings:{},companion,online:false});assert.equal(offline.live.onAir,false);assert.equal(offline.dreadnought.phase,'idle');
   const hidden=M.buildFeed({collected:{},settings:{showNames:false},companion,crewCount:3});assert.equal(hidden.crew,undefined);assert.equal(hidden.ranks.top[0].name,M.initials('Nova'));
   const off=M.buildFeed({collected:{},settings:{sections:{ranks:false,medals:false,dreadnought:false,live:false,crew:false}},companion,crewCount:3});

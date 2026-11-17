@@ -6,7 +6,8 @@ import {join} from 'node:path';
 
 const FILE='public-site.json',FEED='public-feed.json',PROOFS='public-proofs.json',MAX_PROOFS=20;
 export const BRANCH='public-data';
-const MIN_UPLOAD_MS=60000,KEEPALIVE_MS=300000,COLLECT_STALE_MS=120000;
+// 2.32.0: members' cards (crew.json) are rebuilt every 2 minutes (was 10) and the feed says when, so the website reloads them at once.
+const CREW_MS=120000,MIN_UPLOAD_MS=60000,KEEPALIVE_MS=300000,COLLECT_STALE_MS=120000;
 
 export class PublicSite{
   constructor({dataDir,model,fetchImpl=globalThis.fetch,apiBase=process.env.VOYAGER_GITHUB_API||'https://api.github.com',now=Date.now}){
@@ -80,15 +81,18 @@ export class PublicSite{
   // 2.20.17 stream companion: live status, Dreadnought, ranks and medals in the feed; the crew lookup as crew.json (rebuilt every 10 minutes).
   setCompanion(fn){this.companionSource=fn;}
   setCrew(fn){this.crewSource=fn;}
+  refreshCrew(){this.crewAt=0;} // rebuild the cards on the next feed (a correction on the Ranks page, say)
   crewFile(){
     if(!this.crewSource||!this.model.buildCrew)return null;
-    if(!this.crewJson||this.now()-(this.crewAt||0)>=600000){let c=null;try{c=this.model.buildCrew(this.crewSource(),this.settings,this.now());}catch{}this.crewAt=this.now();this.crewCount=c?.members.length||0;this.crewJson=c?JSON.stringify(c):'';}
+    if(!this.crewJson||this.now()-(this.crewAt||0)>=CREW_MS){let c=null;try{c=this.model.buildCrew(this.crewSource(),this.settings,this.now());}catch{}this.crewAt=this.now();this.crewCount=c?.members.length||0;this.crewJson=c?JSON.stringify(c):'';
+      // The version only moves when a card actually changed, so an idle app does not make the website reload 2,000 cards.
+      const key=c?JSON.stringify(c.members):'';if(key!==this.crewKey){this.crewKey=key;this.crewVer=this.now();}}
     return this.crewJson||null;
   }
   rebuild(online=true){
     const v=this.versusSource?.()||{};
     const live=online&&this.now()-this.collectedAt<COLLECT_STALE_MS;
-    this.feed=this.model.buildFeed({collected:this.collected||{},settings:this.settings,pilots:v.pilots||[],versus:v.versus||null,winners:this.winners,online:live,now:this.now(),proofIds:new Set(Object.keys(this.proofs)),community:this.communitySource?.()||null,companion:(()=>{try{return this.companionSource?.()||null;}catch{return null;}})(),crewCount:(this.crewFile(),this.crewCount||0)});
+    this.feed=this.model.buildFeed({collected:this.collected||{},settings:this.settings,pilots:v.pilots||[],versus:v.versus||null,winners:this.winners,online:live,now:this.now(),proofIds:new Set(Object.keys(this.proofs)),community:this.communitySource?.()||null,companion:(()=>{try{return this.companionSource?.()||null;}catch{return null;}})(),crewCount:(this.crewFile(),this.crewCount||0),crewAt:this.crewVer||0});
     const comparable=JSON.stringify({...this.feed,generatedAt:0,proofs:this.proofsChangedAt||0});
     this.feedJson=JSON.stringify(this.feed);this.rebuiltAt=this.now();
     if(comparable!==this.comparable||this.now()-(this.writtenAt||0)>=60000){
