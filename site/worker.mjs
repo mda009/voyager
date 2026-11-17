@@ -136,8 +136,8 @@ async function api(req,env,url){
 }
 // ---------- viewer requests (2.24.0) ----------
 // The website posts a request here; the Voyager app reads the list (GET /api/requests) and decides what to accept.
-// Kept in one KV entry: the newest 100 from the last 12 hours. No free text: a card name and one of the streamer's options.
-const REQ_KEEP_MS=12*3600000,REQ_PER_NETWORK=4;
+// Kept in one KV entry: the newest 300 from the last 12 hours. 2.30.0: one request per OPTION per name and per device each stream. No free text: a card name and one of the streamer's options.
+const REQ_KEEP_MS=12*3600000,REQ_PER_NETWORK=40;
 async function requestList(env,now=Date.now()){const list=await env.PUSH.get('requests','json');return (Array.isArray(list)?list:[]).filter(r=>now-r.at<REQ_KEEP_MS);}
 export async function requestApi(req,env,url,fetcher=fetch,now=Date.now()){
   if(!env.PUSH)return json({message:'Requests are not set up on this site.'},503);
@@ -151,11 +151,11 @@ export async function requestApi(req,env,url,fetcher=fetch,now=Date.now()){
   const rq=feed?.requests;if(!rq?.open||now-(feed.generatedAt||0)>STALE_MS)return json({message:'Requests are closed right now — they open while the stream is live.'},409);
   if(!(rq.options||[]).some(o=>o.key===key))return json({message:'That is not on the request list any more.'},400);
   const round=Number(rq.round)||0,list=await requestList(env,now),who=name.toLowerCase();
-  if(list.some(r=>r.round===round&&(r.name.toLowerCase()===who||r.dev===dev)))return json({message:'You have already made your request for this stream.'},409);
+  if(list.some(r=>r.round===round&&r.key===key&&(r.name.toLowerCase()===who||r.dev===dev)))return json({message:'You have already asked for that this stream.'},409);
   const net=(await sha((req.headers.get('cf-connecting-ip')||'')+':'+new Date(now).toISOString().slice(0,10))).slice(0,16);
   if(list.filter(r=>r.net===net&&now-r.at<24*3600000).length>=REQ_PER_NETWORK)return json({message:'Too many requests from this network today.'},429);
-  const entry={id:(await sha(who+':'+round+':'+now)).slice(0,20),name,key,at:now,round,dev,net};
-  await env.PUSH.put('requests',JSON.stringify([...list,entry].slice(-100)));
+  const entry={id:(await sha(who+':'+round+':'+key+':'+now)).slice(0,20),name,key,at:now,round,dev,net};
+  await env.PUSH.put('requests',JSON.stringify([...list,entry].slice(-300)));
   return json({ok:true,id:entry.id,round});
 }
 export default {

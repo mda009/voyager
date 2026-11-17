@@ -461,20 +461,22 @@ $('ntf-test').onclick=async()=>{try{const r=await fetch('api/push/test',{method:
 $('ntf-prompt-on').onclick=()=>{go('notify');push.enable();};$('ntf-prompt-x').onclick=()=>{store.set('voyager-ntf-later','1');$('ntf-prompt').hidden=true;};
 push.init();
 
-// ---------- viewer requests (2.24.0): one request per person per stream ----------
+// ---------- viewer requests (2.24.0); 2.30.0: each option once per person per stream ----------
 function deviceId(){let d=store.get('voyager-device');if(!/^[a-f0-9]{32}$/.test(d||'')){d=[...crypto.getRandomValues(new Uint8Array(16))].map(b=>b.toString(16).padStart(2,'0')).join('');store.set('voyager-device',d);}return d;}
 let reqBusy=false;
 function renderRequests(){
+ // 2.30.0: each option can be asked for once per stream (was one request in total). What this device has asked is remembered per stream.
  const sec=$('requests');if(!sec)return;const rq=feed?.requests;sec.hidden=EMBED||!rq||!rq.options?.length;if(sec.hidden)return;
  const me=store.get('voyager-me'),meName=me&&crew?crew.find(m=>m.key===me)?.name:me;let mine=null;try{mine=JSON.parse(store.get('voyager-request')||'null');}catch{}
- if(mine&&mine.round!==rq.round)mine=null;const listed=(rq.recent||[]).find(r=>me&&r.name.toLowerCase()===me);
+ if(!mine||mine.round!==rq.round)mine={round:rq.round,keys:[]};if(!Array.isArray(mine.keys))mine.keys=mine.key?[mine.key]:[];
+ const listed=(rq.recent||[]).filter(r=>me&&r.name.toLowerCase()===me),asked=o=>mine.keys.includes(o.key)||listed.some(r=>r.label===o.label),left=rq.options.filter(o=>!asked(o)).length,granted=listed.filter(r=>r.done).length;
  $('req-state').textContent=rq.open?'Open':'Closed';
- $('req-lede').textContent=!rq.open?'Requests open while the stream is live. Come back when it is on air.':mine||listed?'Your request is in'+(listed?.done?' — and it has been granted ✓':'. One request per person each stream.'):!me?'Find your card first, then ask for what you would like to see on stream. One request each per stream.':'Ask for what you would like to see on stream'+(meName?', '+meName:'')+'. One request each per stream.';
+ $('req-lede').textContent=!rq.open?'Requests open while the stream is live. Come back when it is on air.':!me?'Find your card first, then ask for what you would like to see on stream. You can ask for each one once per stream.':!left?'You have asked for everything on the list this stream'+(granted?' — '+granted+' granted ✓':'.'):left<rq.options.length?'Sent'+(granted?' ('+granted+' granted ✓)':'')+'. You can still ask for the others, once each per stream.':'Ask for what you would like to see on stream'+(meName?', '+meName:'')+'. Each one once per stream.';
  const box=$('req-opts');box.textContent='';
- for(const o of rq.options){const b=el('button','',o.label);b.type='button';const isMine=(mine&&mine.key===o.key)||(listed&&listed.label===o.label);if(isMine)b.classList.add('mine');b.disabled=!rq.open||!!mine||!!listed||reqBusy;
+ for(const o of rq.options){const b=el('button','',o.label);b.type='button';const done=listed.some(r=>r.label===o.label&&r.done);if(asked(o)){b.classList.add('mine');b.append(el('small','',done?' ✓ granted':' ✓ sent'));}b.disabled=!rq.open||asked(o)||reqBusy;
   b.onclick=async()=>{if(!me){toast('Find your card first');go('crew');setTimeout(()=>$('crew-search')?.focus(),250);return;}
    reqBusy=true;renderRequests();try{const r=await fetch('api/request',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({name:meName||me,key:o.key,device:deviceId()})});const d=await r.json().catch(()=>({}));
-    if(r.ok||r.status===409&&/already/.test(d.message||'')){store.set('voyager-request',JSON.stringify({round:rq.round,key:o.key,at:Date.now()}));toast(r.ok?'Request sent — watch the stream':'You have already asked this stream');}else toast(d.message||'The request could not be sent');
+    if(r.ok||r.status===409&&/already/.test(d.message||'')){mine.keys.push(o.key);store.set('voyager-request',JSON.stringify({round:rq.round,keys:mine.keys,at:Date.now()}));toast(r.ok?o.label+' requested — watch the stream':'You have already asked for '+o.label+' this stream');}else toast(d.message||'The request could not be sent');
    }catch{toast('The request could not be sent');}reqBusy=false;renderRequests();};
   box.append(b);}
  const t=$('req-tally');t.textContent='';for(const x of rq.tally||[]){const sp=el('span','',x.label);sp.append(el('b','',String(x.count)));t.append(sp);}

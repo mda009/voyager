@@ -204,6 +204,28 @@ async function refresh(){
 }
 if(bar&&!demo){refresh();setInterval(()=>{if(!document.hidden)refresh();},30000);}
 
+// Viewer request alert (2.30.0): on every Voyager page, a gold pop-up and a chime when a viewer asks for something from the
+// website. Asks the host every 5 s for the latest request (a name and a label, no token). Click it to open Viewer requests.
+(function requestAlert(){
+ if(!hosted||demo||/Overlay|Panel|stage\.html/i.test(location.pathname))return;
+ const KEY='voyager-request-seen';let box=null,timer=0,ctx=null;
+ const seen=()=>{try{return localStorage.getItem(KEY)||'';}catch{return '';}},mark=k=>{try{localStorage.setItem(KEY,k);}catch{}};
+ function chime(){try{ctx=ctx||new (window.AudioContext||window.webkitAudioContext)();const t0=ctx.currentTime+.02;[[784,0],[1047,.11],[1319,.22]].forEach(([f,d])=>{const o=ctx.createOscillator(),g=ctx.createGain();o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(0,t0+d);g.gain.linearRampToValueAtTime(.14,t0+d+.02);g.gain.exponentialRampToValueAtTime(.001,t0+d+.7);o.connect(g).connect(ctx.destination);o.start(t0+d);o.stop(t0+d+.75);});}catch{}}
+ function show(l,waiting,sound){
+  if(!box){box=el('a',{href:'Voyager_Requests.html',role:'status'});box.style.cssText='position:fixed;right:18px;top:18px;z-index:99999;display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px;align-items:center;max-width:380px;padding:12px 16px 12px 12px;border-radius:12px;text-decoration:none;color:#eef4fb;background:linear-gradient(135deg,rgba(9,17,31,.97),rgba(14,28,46,.97));border:1px solid rgba(255,213,106,.5);border-top:3px solid #ffd56a;box-shadow:0 14px 36px rgba(0,0,0,.55),0 0 26px rgba(255,213,106,.2);transform:translateY(-140%);opacity:0;transition:transform .45s cubic-bezier(.2,1.4,.4,1),opacity .3s;font-family:"Segoe UI",sans-serif';document.body.append(box);}
+  box.textContent='';const ico=el('span');ico.textContent='📨';ico.style.cssText='font-size:26px;line-height:1';const t=el('span');
+  const k=el('span');k.textContent='VIEWER REQUEST'+(l.test?' · TEST':'');k.style.cssText='display:block;font:700 11px/1 Rajdhani,"Segoe UI",sans-serif;letter-spacing:.22em;color:#ffd56a';
+  const m=el('span');m.textContent=l.name+' asks for '+l.label;m.style.cssText='display:block;font:700 17px/1.2 Rajdhani,"Segoe UI",sans-serif;margin-top:4px;overflow-wrap:anywhere';
+  const n=el('span');n.textContent=(l.count>1?l.count+' asking for it · ':'')+(waiting>1?waiting+' waiting · ':'')+'click to open';n.style.cssText='display:block;font-size:12px;color:#a9bfd4;margin-top:3px';
+  t.append(k,m,n);box.append(ico,t);requestAnimationFrame(()=>{box.style.transform='none';box.style.opacity='1';});
+  clearTimeout(timer);timer=setTimeout(()=>{box.style.transform='translateY(-140%)';box.style.opacity='0';},12000);
+  if(sound)chime();
+  if(document.hidden){try{new Notification('Viewer request',{body:l.name+' asks for '+l.label,silent:true});}catch{}}
+ }
+ async function check(){try{const d=await local('/api/requests/latest'),l=d.last;if(!l)return;const k=l.at+':'+l.seq;if(k===seen())return;mark(k);if(d.enabled&&Date.now()-l.at<60000)show(l,d.waiting,d.sound);}catch{}}
+ check();setInterval(check,5000);
+})();
+
 // Jump anywhere
 let box,input,list,items=[],selected=0,lastFocus=null;
 function entries(){

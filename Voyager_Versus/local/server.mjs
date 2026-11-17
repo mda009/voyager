@@ -273,14 +273,18 @@ const server=http.createServer(async(req,res)=>{
       }catch(e){response(res,400,{message:e.message});return;}
       response(res,404,{message:'Not found.'});return;}
     if(url.pathname==='/api/requests/overlay'&&req.method==='GET'){res.setHeader('Cache-Control','no-store');response(res,200,requests.overlay());return;} // OBS alert: names and labels only
+    if(url.pathname==='/api/requests/latest'&&req.method==='GET'){res.setHeader('Cache-Control','no-store');response(res,200,requests.latest());return;} // the in-app alert: a name and a label
     if(url.pathname.startsWith('/api/requests')){
       if(!validToken(req)){response(res,403,{message:'Open Voyager Control › Viewer requests.'});return;}
       if(url.pathname==='/api/requests'&&req.method==='GET'){response(res,200,{...requests.view(),connected:bot.status.connected});return;}
+      if(url.pathname==='/api/requests/log'&&req.method==='GET'){response(res,200,{csv:requests.csv(),...requests.history({q:url.searchParams.get('q')||'',limit:2000})});return;}
       if(req.method!=='POST'||!req.headers['content-type']?.startsWith('application/json')){response(res,405,{message:'Method not allowed.'});return;}
       try{const input=await body(req,65536);
         if(url.pathname==='/api/requests/settings'){response(res,200,{ok:true,...requests.configure(input||{})});return;}
         if(url.pathname==='/api/requests/mark'){response(res,200,{ok:true,...requests.mark(String(input?.id||''),String(input?.status||''))});return;}
         if(url.pathname==='/api/requests/test'){response(res,200,{ok:true,...requests.test(String(input?.key||''))});return;}
+        if(url.pathname==='/api/requests/option'){response(res,200,{ok:true,...requests.toggle(String(input?.key||''),input?.enabled===true)});return;}
+        if(url.pathname==='/api/requests/log/clear'){response(res,200,{ok:true,...requests.clearLog()});return;}
         if(url.pathname==='/api/requests/clear'){response(res,200,{ok:true,...requests.clear()});return;}
         if(url.pathname==='/api/requests/check'){await requests.poll();response(res,200,{ok:true,...requests.view()});return;}
       }catch(e){response(res,400,{message:e.message});return;}

@@ -2,6 +2,16 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.30.0 (17 November 2026)
+
+**Viewer requests: each option once per stream, one-click switches, an animated alert and a log.**
+
+- **Each option once per person per stream.** A viewer can now ask for Bridge Quiz *and* the Dreadnought *and* Marbles in the same stream — once each — instead of one request in total. The website shows "✓ sent" (or "✓ granted") on the ones they have asked for and leaves the rest open. Still one per option per card name and per device, and only names on your crew list.
+- **Switch options on and off with one click.** Viewer requests now opens with a row of switches — Bridge Quiz, Dreadnought, Frenzy, Marbles, Voyager Versus and any you add — with how many are asking for each. Click to turn one off or on straight away, no Save; the website follows within a minute and a request for something switched off is turned away.
+- **New on-screen animation.** A paper plane flies in across the screen on a dotted trail, bursts into gold sparks at the top and the request card pops out of the burst: who asked, what for, and a badge with how many are asking. Same OBS source and address as before (1920 × 1080) — nothing to change in OBS.
+- **Alerts for you.** As well as the chat line, a gold pop-up now appears at the top right of whatever Voyager page you are on (click it to open Viewer requests), with a chime; if the Voyager window is hidden you get a Windows notification. The overlay plays the same chime (tick "Control audio via OBS" on the source to hear it on stream). Two new switches under Settings: **Alert me inside Voyager** and **Play a chime**.
+- **A log of every request.** A new Log card lists every request across streams — when, who, what, and whether it was granted, dismissed, cleared or left waiting — with a filter and **Save as spreadsheet (.csv)**. The newest 2,000 are kept on this PC; test alerts are not logged. "Clear this stream's requests" now empties the queue (everyone can ask again) but keeps the entries in the log.
+
 ## 2.29.0 (17 November 2026)
 
 **Ticketed giveaways on the website: who has entered, their tickets and the time bar.**

@@ -342,7 +342,7 @@ export function projectCompanion(raw,settings=DEFAULT_SETTINGS,online=true,crewC
   // 2.24.0 viewer requests: what can be asked for, whether asking is open, and (with names shown) who has asked this stream.
   if(show.requests&&raw.requests&&typeof raw.requests==='object'){const x=raw.requests,opts=list(x.options).slice(0,10).map(o=>({key:clean(o?.key,20).toLowerCase().replace(/[^a-z0-9]/g,''),label:clean(o?.label,30)})).filter(o=>o.key&&o.label);
     if(opts.length)out.requests={open:x.open===true,round:int(x.round,0,1e15)??0,options:opts,
-      recent:s.showNames?list(x.recent).slice(0,12).map(r=>({name:clean(r?.name,LIMITS.name),label:clean(r?.label,30),at:time(r?.at),done:r?.done===true})).filter(r=>r.name&&r.label):[],
+      recent:s.showNames?list(x.recent).slice(0,30).map(r=>({name:clean(r?.name,LIMITS.name),label:clean(r?.label,30),at:time(r?.at),done:r?.done===true})).filter(r=>r.name&&r.label):[],
       tally:list(x.tally).slice(0,10).map(t=>({label:clean(t?.label,30),count:int(t?.count,0,1e5)??0})).filter(t=>t.label&&t.count)};}
   if(show.crew&&s.showNames&&crewCount>0)out.crew={file:'crew.json',count:int(crewCount,0,1e5)??0};
   return out;

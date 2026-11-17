@@ -29,6 +29,20 @@
 .rq-form input[type=number],.rq-opt input[type=text]{height:36px;padding:0 10px;border:1px solid rgba(151,223,255,.18);background:rgba(8,15,24,.55);color:#e6eef7;font:14px 'Segoe UI',sans-serif;min-width:0}
 .rq-opt{display:grid;grid-template-columns:minmax(0,1fr) auto auto auto;gap:8px;align-items:center;margin-bottom:6px}
 .rq-opt label{display:flex;align-items:center;gap:6px;font-size:12px;color:#9ab0c5}
+/* 2.30.0: one-click option switches and the request log. */
+.rq-switches{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px}
+.rq-switch{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;align-items:center;padding:10px 12px;border:1px solid rgba(151,223,255,.16);background:rgba(8,15,24,.45);border-radius:12px;cursor:pointer;text-align:left;color:#e6eef7;font:700 16px/1.1 Rajdhani,'Segoe UI',sans-serif}
+.rq-switch small{grid-column:1/-1;font:500 12px/1.2 'Segoe UI',sans-serif;color:#8ea6bd}
+.rq-switch i{width:38px;height:20px;border-radius:10px;background:#2a3648;position:relative;transition:background .2s}
+.rq-switch i::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#8ea6bd;transition:transform .2s,background .2s}
+.rq-switch[aria-pressed=true]{border-color:rgba(127,240,181,.45)}.rq-switch[aria-pressed=true] i{background:#1d5a40}.rq-switch[aria-pressed=true] i::after{transform:translateX(18px);background:#7ff0b5}
+.rq-switch[aria-pressed=false]{opacity:.7}
+.rq-log{width:100%;border-collapse:collapse;font-size:13px;color:#c9d7e4}
+.rq-log th{position:sticky;top:0;background:#0d1826;text-align:left;font:700 11px/1 Rajdhani,'Segoe UI',sans-serif;letter-spacing:1.4px;color:#8ea6bd;text-transform:uppercase;padding:8px 10px}
+.rq-log td{padding:7px 10px;border-top:1px solid rgba(151,223,255,.08);white-space:nowrap}.rq-log td:nth-child(2){color:#e6eef7;font-weight:600}
+.rq-log td[data-s=done]{color:#7ff0b5}.rq-log td[data-s=dismissed],.rq-log td[data-s=cleared]{color:#8ea6bd}
+.rq-logwrap{max-height:420px;overflow:auto;border:1px solid rgba(151,223,255,.12);border-radius:10px}
+.rq-card input[type=search]{height:36px;padding:0 10px;border:1px solid rgba(151,223,255,.18);background:rgba(8,15,24,.55);color:#e6eef7;font:14px 'Segoe UI',sans-serif;min-width:0;flex:1 1 180px}
 @media(max-width:1100px){.rq-grid{grid-template-columns:1fr}}
 </style>
 </head>
@@ -36,18 +50,31 @@
 <div class="shell">
 <aside class="rail"><a class="brand" href="Voyager_Stream_Deck.html"><img class="logo-voyager" src="brand-assets/voyager.png" alt="Voyager membership program" width="68" height="68"><span>VOYAGER<small>MDA009 · MISSION CONTROL</small></span></a></aside>
 <main>
-<header class="top"><div><span class="eyebrow">GAMES &amp; EVENTS</span><h1>Viewer requests</h1></div><div class="toolbar"><span class="st-note">What viewers ask for from the companion website · one request each per stream</span><button type="button" id="check">Check now</button></div></header>
+<header class="top"><div><span class="eyebrow">GAMES &amp; EVENTS</span><h1>Viewer requests</h1></div><div class="toolbar"><span class="st-note">What viewers ask for from the companion website · each option once per person per stream</span><button type="button" id="check">Check now</button></div></header>
 <p class="st-notice" id="notice" hidden></p>
 <p class="st-notice" id="not-hosted" hidden>Open this page from the Voyager app (or START-VOYAGER-CONTROL.bat).</p>
 
 <div class="rq-grid">
+<div style="display:flex;flex-direction:column;gap:16px">
+<section class="card rq-card">
+<div class="card-heading"><div><span class="eyebrow">ON / OFF</span><h2>What viewers can ask for right now</h2></div><span class="st-pill" id="on-pill" data-state="wait">—</span></div>
+<div class="rq-switches" id="switches"></div>
+<p class="st-hint">Click one to switch it on or off straight away — no Save needed. The website follows within a minute, and a request for something you have switched off is turned away. Rename, add or remove options under Settings.</p>
+</section>
 <section class="card rq-card">
 <div class="card-heading"><div><span class="eyebrow">THIS STREAM</span><h2>Requests</h2></div><span class="st-pill" id="open-pill" data-state="wait">—</span></div>
 <div class="rq-tally" id="tally"></div>
 <ul class="rq-list" id="list"></ul>
 <div class="rq-row"><button type="button" id="test">Show a test alert</button><button type="button" id="clear">Clear this stream's requests</button></div>
-<p class="st-hint">A request arrives a few seconds after the viewer sends it. <b>Done</b> marks it as granted (the website shows a tick); <b>Dismiss</b> removes it from the count. Requests start over with each new stream, and when you press Reset per-stream counters.</p>
+<p class="st-hint">A request arrives a few seconds after the viewer sends it. Each viewer can ask for <b>each option once per stream</b>. <b>Done</b> marks it as granted (the website shows a tick); <b>Dismiss</b> removes it from the count. Requests start over with each new stream, and when you press Reset per-stream counters. Clearing lets everyone ask again; the entries stay in the log.</p>
 </section>
+<section class="card rq-card">
+<div class="card-heading"><div><span class="eyebrow">LOG</span><h2>Every request</h2></div><span class="st-pill" id="log-pill" data-state="wait">0</span></div>
+<div class="rq-row"><input type="search" id="log-q" placeholder="Filter by viewer or request" aria-label="Filter the request log"><button type="button" id="log-save">Save as spreadsheet (.csv)</button><button type="button" id="log-clear">Delete earlier streams</button></div>
+<div class="rq-logwrap"><table class="rq-log"><thead><tr><th>When</th><th>Viewer</th><th>Request</th><th>Outcome</th></tr></thead><tbody id="log"></tbody></table></div>
+<p class="st-hint">The newest 2,000 requests are kept on this PC across streams (test alerts are not logged). The spreadsheet has all of them.</p>
+</section>
+</div>
 
 <div style="display:flex;flex-direction:column;gap:16px">
 <section class="card rq-card">
@@ -56,7 +83,9 @@
 <label class="check" style="grid-column:1/-1"><input type="checkbox" name="enabled"> Viewers can make requests from the website</label>
 <label class="check" style="grid-column:1/-1"><input type="checkbox" name="onlyLive"> Only while the stream is live (chat seen in the last 10 minutes)</label>
 <label class="check"><input type="checkbox" name="chat"> Tell me in chat</label>
-<label class="check"><input type="checkbox" name="overlay"> Show the overlay alert</label>
+<label class="check"><input type="checkbox" name="overlay"> Show the overlay animation</label>
+<label class="check"><input type="checkbox" name="appAlert"> Alert me inside Voyager (pop-up on every page)</label>
+<label class="check"><input type="checkbox" name="sound"> Play a chime (overlay and Voyager)</label>
 <label>Alert stays on screen (seconds)<input type="number" name="overlaySeconds" min="4" max="60"></label>
 </form>
 <div><span class="eyebrow" style="display:block;margin-bottom:8px">WHAT THEY CAN ASK FOR</span><div id="options"></div></div>
@@ -65,16 +94,16 @@
 </section>
 <section class="card rq-card">
 <div class="card-heading"><div><span class="eyebrow">OBS</span><h2>The alert overlay</h2></div></div>
-<p class="st-hint">Add a Browser source, <b>1920 × 1080</b>, above your other sources, with this address. A gold card drops in at the top when a request arrives: who asked, what for, and the running count.</p>
+<p class="st-hint">Add a Browser source, <b>1920 × 1080</b>, above your other sources, with this address. When a request arrives a paper plane flies in across the screen and bursts into a gold card at the top: who asked, what for, and how many are asking. It plays a chime if that is switched on (in OBS, tick <b>Control audio via OBS</b> on the source to hear it on stream).</p>
 <div class="rq-row"><code id="overlay-url" style="font:13px ui-monospace,Consolas,monospace;color:#9fd4ff;background:rgba(151,223,255,.08);padding:6px 8px;border-radius:6px;word-break:break-all"></code><button type="button" id="copy-url">Copy address</button></div>
-<p class="st-hint">The website cannot prove who is typing, so a request carries the card name the viewer picked. Voyager only accepts names on your crew list, one request per name and per device each stream, a few per network per day, and only from your list above — there is no free text to moderate.</p>
+<p class="st-hint">The website cannot prove who is typing, so a request carries the card name the viewer picked. Voyager only accepts names on your crew list, one request per option per name and per device each stream, a cap per network per day, and only from your list above — there is no free text to moderate.</p>
 </section>
 </div>
 </div>
 </main>
 </div>
-<script src="requests-control.js?v=2.24.0"></script>
-<script src="voyager-shell.js?v=2.29.0"></script>
+<script src="requests-control.js?v=2.30.0"></script>
+<script src="voyager-shell.js?v=2.30.0"></script>
 <script src="voyager-navigation.js"></script>
 </body>
 </html>
