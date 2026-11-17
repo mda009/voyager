@@ -1,10 +1,13 @@
 // Voyager public website feed: the ONLY data that leaves this PC for the public site.
 // Everything is rebuilt field-by-field from an allow-list. Stream statistics (viewers,
 // followers, subscriptions, watch time, revenue), user IDs, chat, security data, audit
-// logs and per-viewer ticket balances are never included.
+// logs are never included. Since 2.29.0 a ticketed giveaway can list its ticket holders (display name, tickets, progress
+// toward the next ticket) when "Show viewer names" and the "Ticket holders" switch are on; ids, logins and watch totals stay private.
 
 export const SCHEMA=1;
-export const LIMITS={title:120,name:60,text:600,short:160,command:40,url:300,giveaways:8,winners:15,leaders:10,tiers:8,commands:12};
+export const LIMITS={title:120,name:60,text:600,short:160,command:40,url:300,giveaways:8,winners:15,leaders:10,tiers:8,commands:12,holders:150};
+// Ticketed giveaways: one ticket per 10 minutes watched; a holder counts as "earning now" if time was credited in the last 6 minutes.
+const TICKET_MS=600000,TICKET_SEEN_MS=360000;
 const PLATFORMS={twitch:'Twitch',youtube:'YouTube',kick:'Kick'};
 const GROUPS={blue:'Blue',silver:'Silver',gold:'Gold',platinum:'Platinum',vip:'Ruby VIP'};
 const GOALS=['silver','gold','platinum'];
@@ -16,7 +19,7 @@ export const DEFAULT_SETTINGS=Object.freeze({
   channelName:'MDA009',
   tagline:'Explore · Earn · Excel. Giveaways, points and Voyager Versus for the MDA009 community.',
   links:{twitch:'',youtube:'',kick:'',discord:'',website:''},
-  sections:{giveaways:true,winners:true,goals:true,points:true,pilots:true,versus:true,program:true,missions:true,season:true,live:true,dreadnought:true,ranks:true,medals:true,crew:true,activity:true,squadrons:true,log:true,intel:true,requests:true,quiz:true},
+  sections:{giveaways:true,winners:true,goals:true,points:true,pilots:true,versus:true,program:true,missions:true,season:true,live:true,dreadnought:true,ranks:true,medals:true,crew:true,activity:true,squadrons:true,log:true,intel:true,requests:true,quiz:true,tickets:true},
   showNames:true,
   leaderboardSize:10,
   commands:{impromptu:'!enter',tickets:'!entergiveaway',versus:'!versus'},
@@ -167,7 +170,21 @@ export function projectTicket(state,settings=DEFAULT_SETTINGS,now=Date.now()){
   else if(saved==='open'){status='open';label='Collecting tickets';}
   else return null;
   const users=Object.values(c.users&&typeof c.users==='object'?c.users:{});
+  // 2.29.0 ticket holders: who has entered, how many tickets each holds and how far each is toward the next one — the same
+  // time bar as the Ticket Giveaway page. Only with "Show viewer names" and the "Ticket holders" switch on. Display name,
+  // platform, ticket count and progress only: never an account id, login or total watch time.
+  let holders=null,holdersMore=0;
+  if(settings.showNames===true&&settings.sections?.tickets!==false){
+    const collecting=status==='open';
+    const rows=users.filter(u=>u&&!u.blocked&&clean(u.name||u.login,LIMITS.name)).map(u=>{
+      const credited=time(u.watchUpdatedAt)||0,on=collecting&&credited>0&&now-credited<TICKET_SEEN_MS&&now>=credited;
+      return {name:clean(u.name||u.login,LIMITS.name),platform:oneOf(u.platform,Object.keys(PLATFORMS),''),tickets:int(u.tickets,0)||0,
+        ms:(int(u.watchMs,0)||0)%TICKET_MS+(on?now-credited:0),on};
+    }).sort((x,y)=>y.tickets-x.tickets||x.name.localeCompare(y.name));
+    holders=rows.slice(0,LIMITS.holders);holdersMore=rows.length-holders.length;
+  }
   return {
+    rateMs:TICKET_MS,asOf:now,holders,holdersMore,
     id:'t'+hash(c.id||c.startedAt||'tickets'),kind:'tickets',
     title:clean(c.title,LIMITS.title)||'Voyager ticket giveaway',status,label,
     enter:status==='open'?settings.commands.tickets:'',
@@ -204,6 +221,9 @@ export function sanitizeGiveaway(g){
     enter:status==='open'?command(g.enter):'',eligibility:clean(g.eligibility,LIMITS.short),
     entrants:int(g.entrants,0,1e7)??0,tickets:kind==='tickets'?int(g.tickets,0,1e12)??0:null,
     startedAt:time(g.startedAt),closesAt:time(g.closesAt),winner:['winner','ended'].includes(status)?cleanWinner(g.winner):null,
+    ...(kind==='tickets'&&Array.isArray(g.holders)?{rateMs:TICKET_MS,asOf:time(g.asOf),holdersMore:int(g.holdersMore,0,1e7)??0,
+      holders:g.holders.slice(0,LIMITS.holders).map(h=>({name:clean(h?.name,LIMITS.name),platform:oneOf(h?.platform,Object.keys(PLATFORMS),''),tickets:int(h?.tickets,0,1e9)??0,
+        ms:int(h?.ms,0,TICKET_MS+TICKET_SEEN_MS)??0,on:status==='open'&&h?.on===true})).filter(h=>h.name)}:{}),
     proof:sanitizeProof(g.proof)};
 }
 // What the control page may send: giveaways and points only. Everything else is added by the host.
@@ -222,7 +242,8 @@ export function buildFeed({collected,settings,pilots=[],versus=null,winners=[],o
     channel:{name:s.channelName,tagline:s.tagline,links:Object.fromEntries(Object.entries(s.links).filter(([,v])=>v))},
     sections:{...show},giveaways:[],winners:[],goals:[],leaderboards:{points:[],pilots:[]},versus:null,program:null,missions:null,season:null};
   // The full proof is uploaded as its own file (proofs/<id>.json); the feed carries a short summary.
-  if(show.giveaways)feed.giveaways=c.giveaways.map(({proof,...g})=>({...g,winner:g.winner?{...g.winner,name:name(g.winner.name)}:null,
+  // Ticket holders are names, so the host drops them again here if names or the switch were turned off after the page collected them.
+  if(show.giveaways)feed.giveaways=c.giveaways.map(({proof,holders,holdersMore,rateMs,asOf,...g})=>({...g,...(holders&&s.showNames&&show.tickets?{holders,holdersMore,rateMs,asOf}:{}),winner:g.winner?{...g.winner,name:name(g.winner.name)}:null,
     fairDraw:proof?{id:g.id,commitment:proof.commitment,committedAt:proof.committedAt,size:proof.size}:null}));
   if(show.winners)feed.winners=list(winners).slice(0,LIMITS.winners).map(w=>({title:clean(w?.title,LIMITS.title),name:name(clean(w?.name,LIMITS.name)),platform:oneOf(w?.platform,Object.keys(PLATFORMS),''),at:time(w?.at),
     proof:typeof w?.gid==='string'&&proofIds.has(w.gid)?w.gid:null})).filter(w=>w.name&&w.at);

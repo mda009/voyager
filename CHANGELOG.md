@@ -2,6 +2,15 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.29.0 (17 November 2026)
+
+**Ticketed giveaways on the website: who has entered, their tickets and the time bar.**
+
+- **Ticket holders on the Live tab.** While a ticketed giveaway is running, its card on voyagercommand.com now lists everyone who has entered with their ticket count, ranked, with the same time bar you see on the Ticket Giveaway page: how far each viewer is toward their next ticket and how long is left. A green dot and bar mean time is being credited right now; grey means they are entered but not currently watching.
+- **The bars move.** The website is updated about once a minute, so in between the bars run on the viewer's own clock and roll over into a new ticket (the number pops) when the ten minutes are up; the next update corrects any drift. Bars pause when the stream is offline or the giveaway is paused, and show final counts once it closes.
+- **Find yourself.** A search box filters by name; tapping your name pins it to the top as YOU on that device. The top 10 show by default with "Show all".
+- **Your switch.** Public website › What to show › **Ticket holders** (on by default; needs Show viewer names). Only display name, platform, tickets and progress toward the next ticket are published — never account ids, logins or total watch time. Excluded accounts are left out. This replaces the earlier rule that ticket balances are never shown on the website; membership cards still do not show them.
+
 ## 2.28.0 (17 November 2026)
 
 - **Dreadnought victories pay giveaway tickets.** Every pilot who fought now earns **10 tickets for the active ticketed giveaway** instead of Voyager points, and the MVP earns **50 Voyager points and 10 more tickets**. Your saved settings are moved to these values once; all four amounts are on Dreadnought › The fight (victory tickets, MVP extra tickets, MVP points, and victory points, now 0).

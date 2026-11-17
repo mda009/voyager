@@ -182,3 +182,28 @@ test('Stream companion: live status, Dreadnought, ranks and medals are allow-lis
   const priv=M.buildCrew([{name:'Nova',record:{hours:300,months:14,subBest:6,private:true}}],{}).members[0][7];assert.deepEqual([priv[13],priv[14],priv[15],priv[24]],[0,0,0,1],'!voyager private hides hours and months');
   assert.equal(M.buildCrew([{name:'Nova',record:{hours:300}}],{sections:{activity:false}}).members[0][7].length,13,'Activity switch off');
 });
+
+test('2.29.0 ticket holders: names, tickets and progress to the next ticket; never ids, logins or watch totals',()=>{
+  const state={campaign:{id:'c9',title:'T',status:'open',startedAt:NOW-7200000,endsAt:NOW+3600000,platforms:['twitch'],draws:[],users:{
+    a:{key:'twitch:SECRET_USER_ID_9911',login:'secretlogin_77',name:'NebulaKnight',platform:'twitch',tickets:7,watchMs:7*600000+240000,watchUpdatedAt:NOW-60000},
+    b:{key:'kick:2',name:'AuroraFox',platform:'kick',tickets:12,watchMs:2*600000+30000,watchUpdatedAt:NOW-3600000},
+    c:{key:'twitch:3',name:'Blocked',platform:'twitch',tickets:99,blocked:true,watchMs:0}}}};
+  const s=M.normalizeSettings({});
+  const t=M.projectTicket(state,s,NOW);
+  assert.deepEqual(t.holders.map(h=>h.name),['AuroraFox','NebulaKnight']);
+  assert.deepEqual(t.holders[1],{name:'NebulaKnight',platform:'twitch',tickets:7,ms:300000,on:true}); // 4:00 banked + the minute since it was credited
+  assert.deepEqual(t.holders[0],{name:'AuroraFox',platform:'kick',tickets:12,ms:30000,on:false});
+  assert.equal(t.rateMs,600000);assert.equal(t.asOf,NOW);assert.equal(t.entrants,3);
+  const feed=M.buildFeed({collected:{giveaways:[t],points:{}},settings:s,now:NOW});
+  const g=feed.giveaways[0];assert.equal(g.holders.length,2);assert.equal(g.rateMs,600000);
+  assert.doesNotMatch(JSON.stringify(feed),/SECRET_USER_ID|secretlogin|watchMs|Blocked/);
+  // Off with names hidden, or with the switch off — both at the page and again at the host.
+  assert.equal(M.projectTicket(state,M.normalizeSettings({showNames:false}),NOW).holders,null);
+  assert.equal(M.projectTicket(state,M.normalizeSettings({sections:{tickets:false}}),NOW).holders,null);
+  for(const off of [{showNames:false},{sections:{tickets:false}}]){const f=M.buildFeed({collected:{giveaways:[t],points:{}},settings:M.normalizeSettings(off),now:NOW});assert.equal(f.giveaways[0].holders,undefined);assert.equal(f.giveaways[0].tickets,118);}
+  // A paused or closed giveaway shows final counts with nobody "earning".
+  const paused=M.projectTicket({campaign:{...state.campaign,status:'paused'}},s,NOW);assert.equal(paused.holders.every(h=>!h.on),true);assert.equal(paused.holders[1].ms,240000);
+  // Hostile input is cut down to the allow-list.
+  const c=M.sanitizeCollected({giveaways:[{id:'x',kind:'tickets',status:'open',title:'T',holders:[{name:'A<b>',platform:'evil',tickets:'5',ms:9e12,on:1,id:'SECRET'},{name:''}],holdersMore:-2}]});
+  assert.deepEqual(Object.keys(c.giveaways[0].holders[0]).sort(),['ms','name','on','platform','tickets']);assert.equal(c.giveaways[0].holders.length,1);assert.equal(c.giveaways[0].holders[0].on,false);
+});

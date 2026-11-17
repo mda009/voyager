@@ -67,6 +67,34 @@ h2{font:700 26px/1.1 var(--display);letter-spacing:.6px;margin:0 0 4px}
 .enter button{margin-left:auto;font:600 13px/1 var(--body);background:#173f2f;color:#c9f5df;border:1px solid #2f6b52;border-radius:8px;padding:8px 10px;cursor:pointer}
 .enter button:focus-visible,.tabs button:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
 .stats{display:flex;flex-wrap:wrap;gap:8px 18px;color:var(--muted);font-size:14px}
+/* 2.29.0 ticket holders: who has entered, their tickets, and the time bar to the next one (same bar as the Voyager app). */
+.tix{margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
+.tix-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin-bottom:10px}
+.tix-head h4{font:700 15px/1 var(--display);letter-spacing:1px;text-transform:uppercase;margin:0;color:var(--text)}
+.tix-head small{color:var(--muted);font-size:12px}
+.tix-head input{margin-left:auto;flex:1 1 150px;max-width:240px;min-width:0;height:36px;padding:0 10px;border:1px solid var(--line);border-radius:8px;background:rgba(8,15,24,.55);color:var(--text);font:14px var(--body)}
+.tix-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.tix-list li{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:4px 10px;align-items:center;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:rgba(8,15,24,.35);cursor:pointer}
+.tix-list li.me{border-color:#2f6b52;background:#0b2a1f}
+.tix-list li.none{display:block;cursor:default;color:var(--muted);text-align:center}
+.tix-list .rk{color:var(--faint);font:700 13px/1 var(--display);text-align:center;font-variant-numeric:tabular-nums}
+.tix-list .nm{min-width:0;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tix-list .nm small{font-weight:400;color:var(--muted);font-size:12px;margin-left:6px}
+.tix-list .nm .you{font:700 10px/1 var(--display);letter-spacing:1px;color:#7ff0b5;border:1px solid #2f6b52;border-radius:4px;padding:2px 5px;margin-left:6px}
+.tix-list .tk{text-align:right;font:700 20px/1 var(--display);font-variant-numeric:tabular-nums;color:var(--text)}
+.tix-list .tk small{display:block;font:600 10px/1 var(--display);letter-spacing:1px;color:var(--faint);margin-top:3px;text-transform:uppercase}
+.tix-list .tk.bump{animation:tixbump .9s ease-out}
+@keyframes tixbump{0%{color:#7ff0b5;transform:scale(1.35)}100%{transform:none}}
+.tix-bar{grid-column:2/-1;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.tix-bar i{flex:1;height:6px;border-radius:3px;background:rgba(151,223,255,.12);overflow:hidden;position:relative}
+.tix-bar i b{position:absolute;inset:0;transform-origin:left;transform:scaleX(0);background:linear-gradient(90deg,#3aa0d8,#97dfff);border-radius:3px;transition:transform 1s linear}
+.tix-list li[data-on="1"] .tix-bar i b{background:linear-gradient(90deg,#2fb97a,#7ff0b5)}
+.tix-list li[data-on="0"] .tix-bar i b{opacity:.55;transition:none}
+.tix-bar .dot{width:7px;height:7px;border-radius:50%;background:#51627a;flex:none}
+.tix-list li[data-on="1"] .tix-bar .dot{background:#7ff0b5;box-shadow:0 0 0 3px rgba(127,240,181,.18)}
+.tix-more{margin-top:8px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;color:var(--muted);font-size:12px}
+.tix-more button{font:600 13px/1 var(--body);background:transparent;color:var(--text);border:1px solid var(--line);border-radius:8px;padding:8px 10px;cursor:pointer}
+@media(prefers-reduced-motion:reduce){.tix-bar i b{transition:none}.tix-list .tk.bump{animation:none}}
 .stats b{color:var(--text);font-variant-numeric:tabular-nums}
 .winner{margin-top:12px;border-top:1px solid var(--line);padding-top:12px;display:flex;align-items:center;gap:10px}
 .winner small{display:block;color:var(--faint);font-size:12px;letter-spacing:1px;text-transform:uppercase}
@@ -705,7 +733,7 @@ const COMMANDS=[
   [['!squadron red','!squadron gold','!squadron blue'],'Joins a squadron for the weekly war. Your chat, missions, Dreadnought damage and Versus wins score for it.','Pick once; the war resets every Monday.',['Switch every 30 days']],
   [['!log <moment>'],'Logs a stream moment for the Captain\'s Log shown on stream and on this site.','When something worth remembering happens.',['3 per stream','1 minute between entries','No links']],
   [['!quiz'],'Repeats the current Bridge Quiz question (Star Citizen trivia and general knowledge). Answer by typing it in chat; the first correct answer wins 5 points.','While a quiz is up and you missed the question.',['While a quiz runs','5 points']]]],
- ['Giveaways','Entries happen in stream chat only. Ticket balances are never shown on this site.',[
+ ['Giveaways','Entries happen in stream chat only. While a ticketed giveaway is running, the Live tab lists who has entered, their tickets and a time bar to their next ticket.',[
   [['!enter','!ticket'],'Joins an open chat giveaway.','When MDA opens one on stream.',['Once per giveaway']],
   [['!entergiveaway','!entry'],'Registers you for a ticketed giveaway; you earn 1 ticket per 10 minutes watched live.','As soon as a ticketed giveaway is announced.',['Once per giveaway']],
   [['!tickets'],'Tells you how many tickets you hold in the current ticketed giveaway.','Before the draw.',['Ticketed giveaways only']]]],
@@ -743,7 +771,54 @@ function renderHeader(){
  if(fresh()){st.dataset.state='live';txt.textContent='Live info · updated '+ago(feed.generatedAt);off.hidden=true;}
  else{st.dataset.state='stale';txt.textContent='Last updated '+ago(feed.generatedAt);off.hidden=false;off.textContent='The stream tools are offline right now, so this is the latest information we have. Giveaways open and close during the stream; check back when the stream is live.';}
 }
+// 2.29.0 ticket holders. The feed arrives about once a minute, so the bars run on the viewer's clock in between: a holder who is
+// earning (time credited in the last few minutes) keeps filling, and rolls over into a new ticket, until the next update corrects it.
+const tix={q:'',all:{},me:(()=>{try{return localStorage.getItem('voyager-tix-me')||'';}catch{return '';}})()};
+const TIX_RUN_MS=360000,mmss=ms=>{const t=Math.max(0,Math.ceil(ms/1000));return Math.floor(t/60)+':'+String(t%60).padStart(2,'0');};
+function ticketHolders(g,live){
+ const rate=g.rateMs||600000,wrap=el('div','tix'),head=el('div','tix-head'),h=el('h4','','Ticket holders');
+ const earning=live&&g.status==='open'?g.holders.filter(x=>x.on).length:0;
+ head.append(h,el('small','',g.status==='open'?(live?fmt(earning)+' earning right now · 1 ticket per '+Math.round(rate/60000)+' min watched':'Stream is offline · bars paused'):'Final ticket counts'));
+ const input=el('input');input.type='search';input.placeholder='Find your name';input.value=tix.q;input.setAttribute('aria-label','Find your name in the ticket holders');input.dataset.tixSearch=g.id;
+ input.oninput=()=>{tix.q=input.value;fill();};head.append(input);wrap.append(head);
+ const ol=el('ol','tix-list'),more=el('div','tix-more');wrap.append(ol,more);
+ const key=x=>(x.platform+':'+x.name).toLowerCase();
+ function fill(){
+  const q=tix.q.trim().toLowerCase(),ranked=g.holders.map((x,i)=>({...x,rank:i+1}));
+  let rows=q?ranked.filter(x=>x.name.toLowerCase().includes(q)):ranked;
+  const mine=ranked.find(x=>key(x)===tix.me);
+  if(!q&&!tix.all[g.id]){rows=rows.slice(0,10);if(mine&&!rows.includes(mine))rows=[mine,...rows];}
+  ol.textContent='';
+  if(!rows.length)ol.append(el('li','none',g.holders.length?'No ticket holder matches “'+tix.q.trim()+'”. Names are as they appear in chat.':'Nobody has entered yet. Type '+(g.enter||'!entergiveaway')+' in chat to be first.'));
+  for(const x of rows){
+   const li=el('li',mine===x?'me':'');li.dataset.ms=x.ms;li.dataset.on=x.on&&live&&g.status==='open'?'1':'0';li.dataset.tickets=x.tickets;li.dataset.asof=g.asOf||0;li.dataset.rate=rate;li.dataset.final=g.status==='open'?'0':'1';
+   li.title=mine===x?'Tap to unpin':'Tap to pin this as you';li.onclick=()=>{tix.me=mine===x?'':key(x);try{tix.me?localStorage.setItem('voyager-tix-me',tix.me):localStorage.removeItem('voyager-tix-me');}catch{}fill();};
+   const nm=el('span','nm',x.name);if(PLATFORM[x.platform])nm.append(el('small','',PLATFORM[x.platform]));if(mine===x)nm.append(el('span','you','YOU'));
+   const tk=el('span','tk');tk.append(el('span','n',fmt(x.tickets)),el('small','',x.tickets===1?'ticket':'tickets'));
+   const bar=el('div','tix-bar'),track=el('i');track.append(el('b'));bar.append(el('span','dot'),track,el('span','t',''));
+   li.append(el('span','rk',String(x.rank)),nm,tk,bar);ol.append(li);
+  }
+  more.textContent='';
+  const total=g.holders.length+(g.holdersMore||0);
+  if(!q&&g.holders.length>10){const b=el('button','',tix.all[g.id]?'Show top 10':'Show all '+fmt(g.holders.length));b.type='button';b.onclick=()=>{tix.all[g.id]=!tix.all[g.id];fill();};more.append(b);}
+  if(g.holdersMore)more.append(el('span','','Top '+fmt(g.holders.length)+' of '+fmt(total)+' shown.'));
+  more.append(el('span','','Tap your name to pin it. Bars fill while you are watching live; updated about once a minute.'));
+  tickTix(true);
+ }
+ fill();return wrap;
+}
+function tickTix(first){
+ for(const li of document.querySelectorAll('.tix-list li[data-ms]')){
+  const rate=Number(li.dataset.rate)||600000,on=li.dataset.on==='1',base=Number(li.dataset.ms)||0;
+  const run=on?Math.min(TIX_RUN_MS,Math.max(0,Date.now()-Number(li.dataset.asof))):0,total=base+run,extra=Math.floor(total/rate),part=total%rate;
+  const n=li.querySelector('.tk .n'),shown=(Number(li.dataset.tickets)||0)+extra;
+  if(n.dataset.v!==String(shown)){if(n.dataset.v!==undefined&&!first){const tk=li.querySelector('.tk');tk.classList.remove('bump');void tk.offsetWidth;tk.classList.add('bump');}n.dataset.v=String(shown);n.textContent=fmt(shown);li.querySelector('.tk small').textContent=shown===1?'ticket':'tickets';}
+  li.querySelector('.tix-bar b').style.transform='scaleX('+(part/rate).toFixed(4)+')';
+  li.querySelector('.tix-bar .t').textContent=li.dataset.final==='1'?mmss(part)+' banked':on?mmss(rate-part)+' to next ticket':mmss(rate-part)+' to go · not watching';
+ }
+}
 function renderGiveaways(){
+ const tixFocus=document.activeElement?.dataset?.tixSearch||'';
  const box=$('giveaway-list');box.textContent='';
  const list=(feed.giveaways||[]);
  $('giveaways').hidden=feed.sections?.giveaways===false;
@@ -765,6 +840,7 @@ function renderGiveaways(){
   if(g.kind==='tickets'&&g.tickets!==null)stat('tickets in the pool',fmt(g.tickets));
   if(g.closesAt&&['open','paused'].includes(g.status)){const p=el('span','',left(g.closesAt));p.dataset.closes=g.closesAt;s.append(p);}
   c.append(s);
+  if(g.kind==='tickets'&&Array.isArray(g.holders))c.append(ticketHolders(g,live));
   if(g.status==='drawing')c.append(el('p','who','A winner is being drawn on stream. Tune in to see who it is!'));
   if(g.winner){const w=el('div','winner');const t=el('div');t.append(el('small','','Winner'),el('strong','',g.winner.name));w.append(t);if(PLATFORM[g.winner.platform])w.append(el('span','badge',PLATFORM[g.winner.platform]));c.append(w);}
   if(g.fairDraw){
@@ -774,6 +850,7 @@ function renderGiveaways(){
   }
   box.append(c);
  }
+ if(tixFocus){const i=box.querySelector('input[data-tix-search="'+tixFocus+'"]');if(i){i.focus();try{i.setSelectionRange(i.value.length,i.value.length);}catch{}}}
 }
 function renderGoals(){
  const goals=feed.goals||[],box=$('goal-list');$('goals').hidden=!goals.length;box.textContent='';
@@ -901,6 +978,7 @@ async function load(){
 // Countdowns tick every second without refetching.
 setInterval(()=>{
  for(const n of document.querySelectorAll('[data-closes]'))n.textContent=left(Number(n.dataset.closes));
+ tickTix();
  const d=$('versus-detail');if(d.dataset.until){const t=Number(d.dataset.until);if(t>Date.now())d.textContent='Next battle in '+left(t).replace(' left','');else{delete d.dataset.until;$('versus-state').textContent='Ready for battle';d.textContent='The arena is open. Start a battle from chat.';}}
 },1000);
 // 2.22.0: check every 20 s while something is on (Dreadnought, an open giveaway, a Versus battle), every minute otherwise.
