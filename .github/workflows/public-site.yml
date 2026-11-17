@@ -11,7 +11,7 @@ name: Public website
 on:
   push:
     branches: [main, master]
-    paths: ['site/**', 'brand-assets/**', '.github/workflows/public-site.yml']
+    paths: ['site/**', 'brand-assets/**', 'Voyager_Versus/local/intel-sources.mjs', '.github/workflows/public-site.yml']
   workflow_dispatch:
   workflow_call:
 permissions:

@@ -2,6 +2,17 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.31.0 (17 November 2026)
+
+**SC Intel: up-to-date news, patch notes, what is playable now, and a section for each active event.**
+
+- **Why the news was weeks old, and the fix.** SC Intel read the Star Citizen Wiki API, whose Comm-Link list runs days to weeks behind RSI and skips some posts (its newest was 2 November; patch notes were missing). News is now read from **RSI's own Comm-Link page first**, merged with the wiki list as back-up and ordered by Comm-Link number. Each source shows its own status on the SC Intel page.
+- **Patch notes.** A new Patch notes list: LIVE notes from RSI's Patch Notes page, PTU and Evocati notes from the Spectrum patch-notes forum, each linking to the full notes.
+- **Playable now.** The current LIVE build and, while one is ahead of LIVE, the PTU build — version, build number, wave and when it landed. If a source gets a version wrong you can type the right one under Settings.
+- **New chat command `!patch`** (also `!patchnotes`, `!version`, `!ptu`): the LIVE and PTU versions with a link to the notes.
+- **Event sections.** An event that is on gets its own section at the top of the website's SC Intel tab, and a tile on the Home tab. **IAE 2956** (13–27 November, free to play) is built in with the manufacturer of the day, what is next, the full schedule and the latest IAE posts. Other events (Invictus, CitizenCon, Luminalia, Pirate Week, Alien Week, Free Fly and more) get a section when a Comm-Link from the last ten days names them, and so do the Event / Free Fly rows in your own list.
+- **Refreshed every day, even when you are not streaming.** The website now keeps its own copy and re-reads the sources every six hours, whether or not Voyager is open on your PC; while Voyager runs it also refreshes every 20 minutes. The page shows whichever copy is newer. (Ships in the store, your deals and your own events still come from your PC.)
+
 ## 2.30.0 (17 November 2026)
 
 **Viewer requests: each option once per stream, one-click switches, an animated alert and a log.**

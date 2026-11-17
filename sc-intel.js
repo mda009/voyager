@@ -27,11 +27,20 @@ function renderDeals(){
 }
 function render(){
   if(!view)return;const s=view.settings;
-  if(!editing)fill({enabled:s.enabled,cycleSeconds:s.panel.cycleSeconds,cooldownSeconds:s.commands.cooldownSeconds,newsCount:s.panel.newsCount,shipsCount:s.panel.shipsCount,news:s.panel.news,sales:s.panel.sales,deals:s.panel.deals,events:s.panel.events,commands:s.commands.enabled});
+  if(!editing)fill({enabled:s.enabled,cycleSeconds:s.panel.cycleSeconds,cooldownSeconds:s.commands.cooldownSeconds,newsCount:s.panel.newsCount,shipsCount:s.panel.shipsCount,news:s.panel.news,sales:s.panel.sales,deals:s.panel.deals,events:s.panel.events,commands:s.commands.enabled,releaseLive:s.releases?.live||'',releasePtu:s.releases?.ptu||''});
   if(!deals){deals=structuredClone(view.deals).map(({active,...d})=>d);renderDeals();}
   // sources
   for(const [id,src] of [['st-news',view.news],['st-sales',view.sales]]){const b=$(id);b.dataset.ok=String(src.ok);b.children[1].textContent=src.ok===null?'Not fetched yet':src.ok?(id==='st-news'?src.items.length+' loaded':src.count+' ships'):'Could not fetch';b.children[2].textContent=(src.message||'')+(src.at?' · '+ago(src.at):'');}
   const bad=view.news.ok===false||view.sales.ok===false,pill=$('src-pill');pill.dataset.state=!s.enabled?'wait':bad?'error':view.news.ok&&view.sales.ok?'ok':'wait';pill.textContent=!s.enabled?'Off':bad?'A source failed':view.news.ok&&view.sales.ok?'Both sources OK':'Fetching…';
+  // 2.31.0: each source, the builds, patch notes and event sections
+  const so=$('sources');so.textContent='';for(const x of view.news.sources||[]){const li=el('li',x.ok?'ok':'bad');li.append(el('b','',x.label),el('small','',x.ok?x.count+' read':'not answering: '+x.message));so.append(li);}
+  const rl=$('releases');rl.textContent='';for(const r of view.releases||[]){const b=el('div','si-st');b.dataset.ok='true';b.append(el('small','',r.channel+(r.source==='manual'?' · typed by you':'')),el('b','','Alpha '+r.version),el('span','',[r.audience,r.build?'build '+r.build:'',r.at?ago(r.at):''].filter(Boolean).join(' · ')));rl.append(b);}
+  const rp=$('rel-pill');rp.dataset.state=(view.releases||[]).length?'ok':'wait';rp.textContent=(view.releases||[]).map(r=>r.channel+' '+r.version).join(' · ')||'Not known yet';
+  const pl=$('patches');pl.textContent='';if(!(view.patches||[]).length)pl.append(el('li','muted','No patch notes read yet.'));
+  for(const x of view.patches||[]){const li=el('li');const a=el('a','',x.title);a.href=x.url;a.target='_blank';a.rel='noopener';li.append(el('span','si-tag',x.channel||'PATCH'),a,el('span','r',x.when||''));pl.append(li);}
+  const sp=$('spots');sp.textContent='';const spots=view.spotlights||[];$('spot-pill').dataset.state=spots.length?'ok':'wait';$('spot-pill').textContent=spots.length?spots.length+' showing':'None right now';
+  if(!spots.length)sp.append(el('li','muted','No event is on. Add an Event row to your list to feature one.'));
+  for(const e of spots){const now=Date.now(),cur=(e.days||[]).find(d=>now>=d.start&&now<d.end);const li=el('li');li.append(el('span','si-tag',e.status==='live'?'ON NOW':e.status==='soon'?'SOON':'IN THE NEWS'),el('b','',e.name),el('span','r',[cur?'today: '+cur.label:'',e.end?'ends '+new Date(e.end).toLocaleDateString([],{day:'numeric',month:'short'}):''].filter(Boolean).join(' · ')));sp.append(li);}
   $('panel-pill').dataset.state=s.enabled?'ok':'wait';$('panel-pill').textContent=s.enabled?'Showing':'Off';
   $('panel-url').textContent=location.origin+'/control/Voyager_SC_Intel_Panel.html';
   // commands
@@ -52,7 +61,7 @@ function render(){
 }
 async function load(){try{view=await api('/api/intel');render();}catch(e){notice(e.message,true);}}
 $('settings-form').addEventListener('input',()=>{editing=true;});
-$('save-settings').onclick=async()=>{const f=$('settings-form').elements;try{view=await api('/api/intel/settings',{enabled:f.enabled.checked,panel:{cycleSeconds:Number(f.cycleSeconds.value),newsCount:Number(f.newsCount.value),shipsCount:Number(f.shipsCount.value),news:f.news.checked,sales:f.sales.checked,deals:f.deals.checked,events:f.events.checked},commands:{enabled:f.commands.checked,cooldownSeconds:Number(f.cooldownSeconds.value)}});editing=false;notice('Settings saved.');render();}catch(e){notice(e.message,true);}};
+$('save-settings').onclick=async()=>{const f=$('settings-form').elements;try{view=await api('/api/intel/settings',{enabled:f.enabled.checked,panel:{cycleSeconds:Number(f.cycleSeconds.value),newsCount:Number(f.newsCount.value),shipsCount:Number(f.shipsCount.value),news:f.news.checked,sales:f.sales.checked,deals:f.deals.checked,events:f.events.checked},commands:{enabled:f.commands.checked,cooldownSeconds:Number(f.cooldownSeconds.value)},releases:{live:f.releaseLive.value,ptu:f.releasePtu.value}});editing=false;notice('Settings saved.');render();}catch(e){notice(e.message,true);}};
 $('deals-save').onclick=async()=>{try{view=await api('/api/intel/deals',{deals});deals=null;notice('List saved — the panel and the commands use it now.');render();}catch(e){notice(e.message,true);}};
 $('deal-add').onclick=()=>{deals.push({kind:'ccu',title:'',detail:'',url:'',until:'',enabled:true});renderDeals();$('deals').querySelector('.si-deal:last-child input')?.focus();};
 $('refresh').onclick=async()=>{notice('Fetching…');try{view=await api('/api/intel/refresh',{});notice('Fetched · news: '+view.news.message+' · ships: '+view.sales.message,view.news.ok===false||view.sales.ok===false);render();}catch(e){notice(e.message,true);}};

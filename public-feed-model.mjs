@@ -332,9 +332,16 @@ export function projectCompanion(raw,settings=DEFAULT_SETTINGS,online=true,crewC
     const TAGS=['freefly','ccu','sale','event','patch','show','lore','news'],KINDS=['ccu','sale','event','freefly','note'],day=v=>typeof v==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(v)?v:'';
     const item=d=>({kind:oneOf(d?.kind,KINDS,'note'),title:clean(d?.title,80),detail:clean(d?.detail,160),url:safeUrl(d?.url||''),until:day(d?.until)});
     out.intel={at:time(x.at),commands:list(x.commands).slice(0,6).map(c=>clean(c,16)).filter(c=>/^![a-z]+$/.test(c)),
-      news:list(x.news).slice(0,8).map(n=>({title:clean(n?.title,140),url:rsi(n?.url),at:time(n?.at),tag:oneOf(n?.tag,TAGS,'news')})).filter(n=>n.title&&n.url),
+      news:list(x.news).slice(0,12).map(n=>({title:clean(n?.title,140),url:rsi(n?.url),at:time(n?.at),tag:oneOf(n?.tag,TAGS,'news')})).filter(n=>n.title&&n.url),
       sales:list(x.sales).slice(0,10).map(m=>({name:clean(m?.name,60),maker:clean(m?.maker,20),price:Number.isFinite(Number(m?.price))&&Number(m.price)>0?Math.round(Number(m.price)*100)/100:0,status:clean(m?.status,30),url:rsi(m?.url),image:img(m?.image)})).filter(m=>m.name&&m.price),salesTotal:int(x.salesTotal,0,1e4)??0,
-      deals:list(x.deals).slice(0,12).map(item).filter(d=>d.title),events:list(x.events).slice(0,12).map(item).filter(d=>d.title)};}
+      deals:list(x.deals).slice(0,12).map(item).filter(d=>d.title),events:list(x.events).slice(0,12).map(item).filter(d=>d.title),
+      // 2.31.0: what is playable now (LIVE / PTU builds), the newest patch notes, and a section per active event.
+      releases:list(x.releases).slice(0,3).filter(r=>['LIVE','PTU','EPTU'].includes(r?.channel)).map(r=>({channel:r.channel,version:clean(r.version,24),build:clean(r.build,12).replace(/\D/g,''),audience:clean(r.audience,30),at:time(r.at),url:rsi(r.url)})).filter(r=>r.version),
+      patches:list(x.patches).slice(0,8).map(p=>({title:clean(p?.title,140),url:rsi(p?.url),at:time(p?.at),version:clean(p?.version,24),channel:oneOf(p?.channel,['LIVE','PTU','EPTU','TECH'],''),audience:clean(p?.audience,30)})).filter(p=>p.title&&p.url),
+      spotlights:list(x.spotlights).slice(0,4).map(e=>({id:clean(e?.id,40).replace(/[^a-z0-9-]/gi,''),key:clean(e?.key,20).replace(/[^a-z]/gi,''),name:clean(e?.name,80),status:oneOf(e?.status,['live','soon','news'],'news'),start:time(e?.start),end:time(e?.end),
+        location:clean(e?.location,80),freefly:e?.freefly===true,url:safeUrl(e?.url||''),blurb:clean(e?.blurb,240),
+        days:list(e?.days).slice(0,20).map(d=>({label:clean(d?.label,80),note:clean(d?.note,80),start:time(d?.start),end:time(d?.end)})).filter(d=>d.label&&d.start&&d.end&&d.end>d.start),
+        news:list(e?.news).slice(0,4).map(n=>({title:clean(n?.title,140),url:rsi(n?.url),at:time(n?.at)})).filter(n=>n.title&&n.url)})).filter(e=>e.id&&e.name)};}
   // 2.26.1 Bridge Quiz leaderboard: correct answers and points awarded, all-time and this stream. Names, so only with viewer names shown.
   if(show.quiz&&s.showNames&&raw.quiz&&typeof raw.quiz==='object'){const row=(r,i)=>({rank:i+1,name:clean(r?.name,LIMITS.name),platform:oneOf(r?.platform,Object.keys(PLATFORMS),''),correct:int(r?.correct,0,1e6)??0,points:int(r?.points,0,1e9)??0});
     const all=list(raw.quiz.all).slice(0,LIMITS.leaders).map(row).filter(r=>r.name&&r.correct),stream=list(raw.quiz.stream).slice(0,LIMITS.leaders).map(row).filter(r=>r.name&&r.correct);

@@ -29,7 +29,7 @@ const TABS=[
  ['commands','Commands','M4 6h16v12H4z M7 10l3 2-3 2 M12 14h5'],
  ['guide','Guide','M4 4h7a3 3 0 0 1 3 3v13a2 2 0 0 0-2-2H4z M20 4h-7a3 3 0 0 0-3 3v13a2 2 0 0 1 2-2h8z']];
 const BAR=['home','live','crew','community','more'],PARENT={notify:'more',goal:'more',intel:'more',commands:'more',guide:'more'};
-const SUB_TEXT={notify:'Alerts when the stream goes live, the Dreadnought appears, a giveaway opens or you win',goal:'The community goal, giveaway goals and standings',intel:'Star Citizen news, ships in the store, deals and events',commands:'Every chat command and what it does',guide:'How Voyager works, and the member manual'};
+const SUB_TEXT={notify:'Alerts when the stream goes live, the Dreadnought appears, a giveaway opens or you win',goal:'The community goal, giveaway goals and standings',intel:'Star Citizen news, patch notes, live events, ships in the store and deals',commands:'Every chat command and what it does',guide:'How Voyager works, and the member manual'};
 const TAB_ALIAS={quiz:'community',medals:'community',winners:'community',boards:'community',leaderboards:'community',squad:'community',season:'goal',goals:'goal',dread:'live',giveaways:'live',missions:'live',arena:'live',ranks:'crew',find:'crew',program:'guide',manual:'guide',command:'commands',cmd:'commands',cmds:'commands',news:'intel',sales:'intel',ships:'intel',store:'intel',deals:'intel',events:'intel',sc:'intel',card:'crew',me:'crew'};
 const resolveTab=h=>TABS.some(([t])=>t===h)?h:TAB_ALIAS[h]||(document.getElementById(h)?.dataset?.tab)||null;
 let pendingCard='';{const m=location.hash.match(/^#card\/(.+)$/);if(m){try{pendingCard=decodeURIComponent(m[1]).toLowerCase();}catch{}}}
@@ -92,6 +92,7 @@ async function share(data){try{if(navigator.share){await navigator.share(data);r
 window.renderRightNow=function(){
  const box=document.getElementById('rightnow');if(!box||!feed)return;box.textContent='';
  const tile=(cls,title,sub,target,section)=>{const b=el('button',cls);b.type='button';const t=el('b');t.append(el('i'),document.createTextNode(title));b.append(t,el('small','',sub));b.onclick=()=>{go(target);if(section){const sec=document.getElementById(section);if(sec)setTimeout(()=>sec.scrollIntoView({behavior:'smooth',block:'start'}),80);}};box.append(b);};
+ try{const ev=(intelNow()?.spotlights||[]).find(e=>e.status!=='news');if(ev){const now=Date.now(),cur=(ev.days||[]).find(d=>now>=d.start&&now<d.end);tile('gold',ev.name+(ev.status==='live'?' is on':' starts soon'),[cur?'On the floor: '+cur.label:'',ev.freefly?'Free Fly':''].filter(Boolean).join(' · ')||'Event details','intel','intel');}}catch{}
  const s=feed.season;if(s&&s.active!==false&&s.name){const days=s.endsAt?Math.max(0,Math.ceil((s.endsAt-Date.now())/864e5)):0,next=(s.goals||[]).find(g=>!g.reached&&!g.missed),done=(s.goals||[]).filter(g=>g.reached).length;
   tile('gold',s.name,(s.endsAt?days+' days to go · ':'')+(next?next.title+' '+Math.min(100,Math.floor(next.total/next.target*100))+'%':done+' of '+(s.goals||[]).length+' goals reached'),'goal','season');}
  const open=(feed.giveaways||[]).filter(g=>g.status==='open');if(open.length&&feed.online&&Date.now()-feed.generatedAt<15*60000)tile('',open.length===1?'Giveaway open':open.length+' giveaways open',open[0].title+(open[0].eligibility?' · '+open[0].eligibility:''),'live','giveaways');
@@ -236,15 +237,50 @@ function irow(tag,tagKind,title,sub,right,rightSub,url,img){const li=el('li');
  if(img!==undefined){if(img){const i=el('img','ship-img');i.alt='';i.loading='lazy';i.src=img;i.onerror=()=>i.remove();li.append(i);}else li.style.gridTemplateColumns='minmax(0,1fr) auto';}else{li.append(el('span','itag '+tagKind,tag));}
  const t=el('div','t');const b=el('b');if(url){const a=el('a','',title);a.href=url;a.target='_blank';a.rel='noopener';b.append(a);}else b.textContent=title;t.append(b);if(sub)t.append(el('small','',sub));li.append(t);
  const r=el('div','r',right||'');if(rightSub)r.append(el('small','',rightSub));li.append(r);return li;}
+// 2.31.0: the website keeps its own copy of the news, patch notes and builds (api/intel, refreshed by the site every six hours
+// even when the stream is off); the app's copy arrives in the feed. The page shows whichever is newer, plus the event sections.
+let siteIntel=null,siteIntelAt=0;
+async function loadSiteIntel(){if(EMBED||Date.now()-siteIntelAt<10*60000)return;siteIntelAt=Date.now();
+ try{const r=await fetch('api/intel',{cache:'no-store'});if(!r.ok)return;const d=await r.json();if(d&&Array.isArray(d.news)&&d.news.length){siteIntel=d;try{renderIntel();window.renderRightNow?.();}catch{}}}catch{}}
+function intelNow(){
+ const f=feed?.intel;if(!f||feed.sections?.intel===false)return null;const w=siteIntel,now=Date.now(),newer=w&&(w.at||0)>(f.at||0);
+ const own=(f.spotlights||[]).filter(e=>String(e.id).startsWith('own-')),spots=(w?[...(w.spotlights||[]),...own]:f.spotlights||[])
+  .filter(e=>!e.end||e.end>now).map(e=>({...e,status:e.status==='news'?'news':e.start&&now<e.start?'soon':'live'}));
+ return {...f,at:Math.max(f.at||0,w?.at||0),news:newer?w.news:f.news,patches:newer?w.patches:f.patches||[],releases:newer?w.releases:f.releases||[],spotlights:spots};
+}
+const dm=t=>new Date(t).toLocaleDateString(undefined,{day:'numeric',month:'short'}),span=ms=>{const h=Math.max(0,Math.round(ms/3600000));return h<1?'under an hour':h<36?h+' hour'+(h===1?'':'s'):Math.round(h/24)+' days';};
+function spotCard(e){const now=Date.now(),c=el('article','spot');c.dataset.status=e.status;
+ const top=el('div','spot-top');top.append(el('span','spot-badge'+(e.status==='live'?' live':''),e.status==='live'?'On now':e.status==='soon'?'Starts in '+span(e.start-now):'In the news'));if(e.freefly)top.append(el('span','spot-badge fly','Free Fly · play free'));c.append(top);
+ c.append(el('h3','',e.name));if(e.location)c.append(el('p','where',e.location+(e.start&&e.end?' · '+dm(e.start)+' – '+dm(e.end):'')));else if(e.end&&!e.start)c.append(el('p','where','Until '+dm(e.end)));
+ if(e.blurb)c.append(el('p','blurb',e.blurb));
+ if(e.status==='live'&&e.start&&e.end){const p=el('div','spot-prog'),bar=el('i'),fill=el('b');fill.style.width=Math.min(100,Math.max(2,(now-e.start)/(e.end-e.start)*100)).toFixed(1)+'%';bar.append(fill);
+  const total=Math.ceil((e.end-e.start)/86400000),n=Math.min(total,Math.floor((now-e.start)/86400000)+1);p.append(el('span','','Day '+n+' of '+total),bar,el('span','','ends in '+span(e.end-now)));c.append(p);}
+ const days=e.days||[];if(days.length){const i=days.findIndex(d=>now>=d.start&&now<d.end),cur=days[i],next=i>=0?days[i+1]:days.find(d=>d.start>now);
+  if(cur||next){const b=el('div','spot-now');b.append(el('small','',cur?'On the show floor now':'First up'),el('b','',(cur||next).label));
+   if(cur)b.append(el('span','',next?'changes in '+span(cur.end-now):'until the close'));else b.append(el('span','','in '+span(next.start-now)));
+   const note=[(cur||next).note,cur&&next?'Next: '+next.label:''].filter(Boolean).join(' · ');if(note)b.append(el('em','',note));c.append(b);}
+  const ul=el('ul','spot-days');for(const d of days){const li=el('li',now>=d.end?'past':d===cur?'now':'');li.append(el('small','',dm(d.start)),el('span','',d.label));ul.append(li);}
+  const det=el('details'),sm=el('summary','','Full schedule ('+days.length+' days, your local dates)');sm.style.cssText='cursor:pointer;color:var(--muted);font-size:13px;margin-bottom:8px';det.append(sm,ul);if(innerWidth>760)det.open=true;c.append(det);}
+ if(e.news?.length){const ul=el('ul','spot-links');for(const n of e.news){const li=el('li'),a=el('a','',n.title);a.href=n.url;a.target='_blank';a.rel='noopener';li.append(a);if(n.at)li.append(el('small','',ago(n.at)));ul.append(li);}c.append(ul);}
+ if(e.url){const a=el('a','go',e.days?.length?'Schedule and details on RSI':'Details');a.href=e.url;a.target='_blank';a.rel='noopener';c.append(a);}
+ return c;}
 function renderIntel(){
- const x=feed.intel,sec=$('intel');sec.hidden=!x||(!x.news?.length&&!x.sales?.length&&!x.deals?.length&&!x.events?.length);if(sec.hidden)return;
+ const x=intelNow(),sec=$('intel');sec.hidden=!x||(!x.news?.length&&!x.sales?.length&&!x.deals?.length&&!x.events?.length&&!x.spotlights?.length&&!x.releases?.length);if(sec.hidden)return;
  $('intel-at').textContent=x.at?'Updated '+ago(x.at)+'.':'';
- const n=$('intel-news');n.textContent='';if(!x.news?.length)n.append(el('li','empty','No news loaded yet.'));for(const it of x.news||[])n.append(irow(ITAG[it.tag]||'NEWS',it.tag,it.title,'',ago(it.at).toUpperCase(),'',it.url));
+ const sp=$('intel-spot');sp.textContent='';for(const e of x.spotlights||[])sp.append(spotCard(e));
+ const rel=$('intel-rel');rel.textContent='';$('intel-rel-card').hidden=!x.releases?.length;
+ for(const r of x.releases||[]){const b=el(r.url?'a':'div',r.url?'':'r1');if(r.url){b.href=r.url;b.target='_blank';b.rel='noopener';}
+  b.append(el('span','ch '+r.channel,r.channel==='LIVE'?'LIVE · everyone':r.channel==='PTU'?'PTU · test servers':'EPTU · Evocati'),el('b','','Alpha '+r.version),
+   el('small','',[r.audience,r.build?'build '+r.build:'',r.at?(r.channel==='LIVE'?'released ':'updated ')+ago(r.at):''].filter(Boolean).join(' · ')||' '),el('small','',r.url?'Read the patch notes →':''));rel.append(b);}
+ const pn=$('intel-patches');pn.textContent='';$('intel-patch-card').hidden=!x.patches?.length;
+ for(const p of x.patches||[])pn.append(irow(p.channel||'PATCH',p.channel||'patch',p.title.replace(/^\s*\[[^\]]+\]\s*/,''),p.audience,p.at?ago(p.at).toUpperCase():'','',p.url));
+ const n=$('intel-news');n.textContent='';if(!x.news?.length)n.append(el('li','empty','No news loaded yet.'));for(const it of x.news||[])n.append(irow(ITAG[it.tag]||'NEWS',it.tag,it.title,'',it.at?ago(it.at).toUpperCase():'','',it.url));
  const s=$('intel-sales');s.textContent='';$('intel-sales-kind').textContent='In the pledge store'+(x.salesTotal?' · '+x.salesTotal+' ships':'');if(!x.sales?.length)s.append(el('li','empty','Ship list not loaded yet.'));
  for(const m of x.sales||[])s.append(irow('','',m.name,(m.maker||'')+(m.status?' · '+m.status.replace(/-/g,' '):''),'$'+(Math.round(m.price)===m.price?m.price:m.price.toFixed(2)),'PLEDGE',m.url,m.image||''));
  for(const [id,list] of [['deals',x.deals||[]],['events',x.events||[]]]){const card=$('intel-'+id+'-card'),ul=$('intel-'+id);ul.textContent='';card.hidden=!list.length;
   for(const d of list)ul.append(irow(IKIND[d.kind]||'NOTE',d.kind,d.title,d.detail,until(d.until).toUpperCase(),'',d.url));}
- const c=$('intel-cmds');c.textContent='';for(const [cmd,hint] of [['!news','latest Comm-Links'],['!sales','ships in the store'],['!deals','CCU & warbond deals'],['!events','events & Free Fly']])if(!x.commands?.length||x.commands.includes(cmd))c.append(copyChip(cmd,hint));
+ const c=$('intel-cmds');c.textContent='';for(const [cmd,hint] of [['!news','latest Comm-Links'],['!patch','game version & patch notes'],['!sales','ships in the store'],['!deals','CCU & warbond deals'],['!events','events & Free Fly']])if(!x.commands?.length||x.commands.includes(cmd))c.append(copyChip(cmd,hint));
+ loadSiteIntel();
 }
 function renderLog(){
  const l=feed.log,sec=$('logbook');sec.hidden=!l||!l.entries?.length;if(sec.hidden)return;

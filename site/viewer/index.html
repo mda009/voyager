@@ -352,6 +352,37 @@ nav.tabbar button:focus-visible{outline:2px solid var(--cyan);outline-offset:2px
 ol.logrows li{grid-template-columns:1fr auto}
 ol.logrows .quote{font-size:16px;color:var(--text)}
 /* SC Intel tab (2.21.15) */
+/* 2.31.0 SC Intel: event sections, playable-now builds and patch notes. */
+.spot{position:relative;overflow:hidden;border:1px solid rgba(255,213,106,.45);border-top:3px solid #ffd56a;border-radius:16px;padding:18px 18px 16px;margin:0 0 16px;background:radial-gradient(120% 140% at 0% 0%,rgba(255,213,106,.14),transparent 55%),linear-gradient(135deg,#101c30,#0b1626)}
+.spot[data-status=news]{border-color:var(--line-strong);border-top-color:var(--cyan);background:linear-gradient(135deg,#101c30,#0b1626)}
+.spot-top{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:8px}
+.spot-badge{font:700 11px/1 var(--display);letter-spacing:1.6px;padding:6px 9px;border-radius:6px;background:#3b3115;color:#ffe6a3;text-transform:uppercase}
+.spot-badge.live{background:#103a28;color:#7ff0b5}.spot-badge.live::before{content:'';display:inline-block;width:7px;height:7px;border-radius:50%;background:#7ff0b5;margin-right:6px;animation:spotpulse 1.6s ease-in-out infinite}
+.spot-badge.fly{background:#12304a;color:#97dfff}
+@keyframes spotpulse{50%{opacity:.35}}
+.spot h3{font:700 26px/1.1 var(--display);margin:0 0 4px;overflow-wrap:anywhere}
+.spot .where{color:var(--muted);font-size:13px;margin:0 0 8px}
+.spot .blurb{color:#c9d7e4;font-size:14px;line-height:1.5;margin:0 0 12px}
+.spot-prog{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted);margin-bottom:12px;font-variant-numeric:tabular-nums}
+.spot-prog i{flex:1;height:6px;border-radius:3px;background:rgba(255,213,106,.14);overflow:hidden}.spot-prog i b{display:block;height:100%;background:linear-gradient(90deg,#d9a93a,#ffd56a);border-radius:3px}
+.spot-now{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;align-items:center;border:1px solid rgba(255,213,106,.3);background:rgba(255,213,106,.07);border-radius:12px;padding:12px 14px;margin-bottom:12px}
+.spot-now small{grid-column:1/-1;font:700 11px/1 var(--display);letter-spacing:1.6px;color:#ffd56a;text-transform:uppercase}
+.spot-now b{font:700 20px/1.2 var(--display);color:var(--text);overflow-wrap:anywhere}.spot-now span{color:var(--muted);font-size:12px;text-align:right}
+.spot-now em{grid-column:1/-1;font-style:normal;color:var(--muted);font-size:13px}
+.spot-days{list-style:none;margin:0 0 12px;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:6px}
+.spot-days li{display:grid;grid-template-columns:58px minmax(0,1fr);gap:8px;align-items:baseline;padding:7px 10px;border:1px solid var(--line);border-radius:9px;font-size:13px;color:#c9d7e4}
+.spot-days li small{color:var(--faint);font:700 11px/1.2 var(--display);letter-spacing:.6px;text-transform:uppercase}
+.spot-days li.past{opacity:.45}.spot-days li.now{border-color:#ffd56a;background:rgba(255,213,106,.08);color:var(--text);font-weight:600}
+.spot-links{list-style:none;margin:0 0 12px;padding:0;display:flex;flex-direction:column;gap:4px;font-size:13px}
+.spot-links a{color:#9fd4ff;text-decoration:none}.spot-links a:hover{text-decoration:underline}.spot-links small{color:var(--faint);margin-left:6px}
+.spot .go{display:inline-block;font:700 14px/1 var(--display);letter-spacing:.5px;color:#0b1626;background:#ffd56a;border-radius:9px;padding:10px 14px;text-decoration:none}
+.rel{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-top:10px}
+.rel a,.rel div.r1{display:block;border:1px solid var(--line-strong);border-radius:12px;padding:12px 14px;text-decoration:none;color:var(--text);background:rgba(8,15,24,.35)}
+.rel a:hover{border-color:var(--cyan)}
+.rel .ch{font:700 11px/1 var(--display);letter-spacing:1.6px;padding:4px 7px;border-radius:5px;background:#103a28;color:#7ff0b5}.rel .ch.PTU,.rel .ch.EPTU{background:#3d2f12;color:#ffd27a}
+.rel b{display:block;font:700 24px/1.1 var(--display);margin:8px 0 4px}.rel small{display:block;color:var(--muted);font-size:12px;line-height:1.5}
+.itag.LIVE{background:#103a28;color:#7ff0b5}.itag.PTU,.itag.EPTU{background:#3d2f12;color:#ffd27a}
+@media(prefers-reduced-motion:reduce){.spot-badge.live::before{animation:none}}
 .intel-list li{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center}
 .intel-list li a{color:var(--text);text-decoration:none}.intel-list li a:hover{text-decoration:underline}
 .intel-list .t b{display:block;font-weight:600}.intel-list .t small{display:block;color:var(--muted);font-size:12px;margin-top:2px}
@@ -659,15 +690,18 @@ header.top{position:sticky;top:0;z-index:25;margin:0 -16px;padding:10px 16px;bac
 
 
  <section id="intel" class="intel" data-tab="intel" aria-labelledby="h-intel" hidden>
-  <h2 id="h-intel">SC Intel</h2><p class="lede">Star Citizen news, what is in the pledge store, deals and events — the same intel as the stream panel and the chat commands. <span id="intel-at"></span></p>
+  <h2 id="h-intel">SC Intel</h2><p class="lede">Star Citizen news, patch notes, what is playable now, the pledge store, deals and events. Checked several times a day. <span id="intel-at"></span></p>
+  <div id="intel-spot"></div>
+  <div class="card" id="intel-rel-card" hidden style="margin-bottom:16px"><span class="kind">Playable now</span><div class="rel" id="intel-rel"></div></div>
   <div class="two">
+   <div class="card" id="intel-patch-card" hidden><span class="kind">Patch notes</span><ul class="rows plain intel-list" id="intel-patches"></ul><p class="small" style="color:var(--muted)">LIVE notes from RSI's Patch Notes page; PTU and Evocati notes from Spectrum.</p></div>
    <div class="card"><span class="kind">Latest Comm-Links</span><ul class="rows plain intel-list" id="intel-news"></ul></div>
    <div class="card"><span class="kind" id="intel-sales-kind">In the pledge store</span><ul class="rows plain intel-list" id="intel-sales"></ul><p class="small" style="color:var(--muted)">Buyable right now, newest changes first — limited and concept sales show at the top. Prices in USD from the pledge store.</p></div>
    <div class="card" id="intel-deals-card" hidden><span class="kind">Deals &amp; upgrades</span><ul class="rows plain intel-list" id="intel-deals"></ul></div>
    <div class="card" id="intel-events-card" hidden><span class="kind">Events</span><ul class="rows plain intel-list" id="intel-events"></ul></div>
   </div>
   <div class="cmds" id="intel-cmds" aria-label="Chat commands to copy"></div>
-  <p class="lede small">Ask in chat and Voyager answers: !news, !sales, !deals, !events. News via api.star-citizen.wiki, ships via fleetyards.net — fan projects, not affiliated with Cloud Imperium Games.</p>
+  <p class="lede small">Ask in chat and Voyager answers: !news, !patch, !sales, !deals, !events. News and patch notes from robertsspaceindustries.com and Spectrum with api.star-citizen.wiki as back-up, ships via fleetyards.net. Voyager is a fan project, not affiliated with Cloud Imperium Games.</p>
  </section>
  <section id="commands" data-tab="commands" aria-labelledby="h-commands">
   <h2 id="h-commands">Chat commands</h2><p class="lede">Every Voyager command, what it does, when to use it and its limits. Type a command on its own at the start of a message. They work in Twitch, YouTube and Kick chat unless marked; tap a command to copy it.</p>
@@ -696,7 +730,7 @@ header.top{position:sticky;top:0;z-index:25;margin:0 -16px;padding:10px 16px;bac
  <footer><p id="updated">Updates every few minutes while the stream tools are running.</p><p><a href="manual.pdf" target="_blank" rel="noopener">Voyager member manual (PDF)</a></p><p>Voyager community site. Giveaway entry happens in stream chat only; this site never asks for passwords or payment.</p></footer>
 </div>
 <script src="fair-draw.js"></script>
-<script src="companion.js?v=2.30.0" defer></script>
+<script src="companion.js?v=2.31.0" defer></script>
 <script>
 (()=>{'use strict';
 // ?embed=1: shown inside another site. Report our height so the host page can size its frame.

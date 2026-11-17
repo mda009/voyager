@@ -29,6 +29,7 @@
 .si-list li b{color:#e6eef7}.si-list .r{margin-left:auto;color:#8ea6bd;font-size:12px;white-space:nowrap;display:flex;gap:6px;align-items:center}
 .si-list li.bad small{color:#ff9aa6}.si-list li.ok small{color:#7ff0b5}.si-list li small{color:#8ea6bd;font-size:12px}.si-list li.muted{color:#8ea6bd}
 .si-list a{color:#9fd4ff}
+.si-form input[type=text]{width:100%;box-sizing:border-box}
 .si-tag{font:700 9px/1 Rajdhani,'Segoe UI',sans-serif;letter-spacing:.14em;padding:4px 6px;border-radius:4px;background:rgba(151,223,255,.14);color:#97dfff;white-space:nowrap}
 .si-cmd{display:grid;grid-template-columns:110px minmax(0,1fr) auto;gap:10px;align-items:start;padding:10px 12px;border:1px solid rgba(151,223,255,.12);background:rgba(8,15,24,.35);border-radius:10px}
 .si-cmd code{font:700 14px ui-monospace,Consolas,monospace;color:#9fd4ff}.si-cmd .also{display:block;font-size:11px;color:#8ea6bd;margin-top:3px}
@@ -56,7 +57,8 @@
 <section class="card si-card">
 <div class="card-heading"><div><span class="eyebrow">1 · SOURCES</span><h2>What Voyager reads</h2></div><span class="st-pill" id="src-pill" data-state="wait">Checking…</span></div>
 <div class="si-src"><div class="si-st" id="st-news"><small>Comm-Links · news</small><b>—</b><span></span></div><div class="si-st" id="st-sales"><small>Pledge store · ships</small><b>—</b><span></span></div></div>
-<p class="st-hint">News comes from the <b>Star Citizen Wiki API</b> (newest Comm-Links, linking back to RSI) with RSI's own Comm-Link feed as the fallback, refreshed every 20 minutes. Ships in the store come from <b>Fleetyards</b> (everything buyable right now with its pledge price), refreshed every hour. The host on your PC does the reading; nothing is published anywhere. CCU and warbond discounts are not published by any API, so those go in your own list below.</p>
+<ul class="si-list" id="sources" style="max-height:none"></ul>
+<p class="st-hint">News now comes from <b>RSI's own Comm-Link page</b> first, merged with the <b>Star Citizen Wiki API</b> (which runs days to weeks behind on its own). Patch notes come from RSI's Patch Notes page and the Spectrum patch-notes forum; the current builds from those plus the Wiki API. Refreshed every 20 minutes while Voyager is running — and the website refreshes its own copy every six hours even when Voyager is closed. Ships in the store come from <b>Fleetyards</b> (everything buyable right now with its pledge price), refreshed every hour. The host on your PC does the reading; nothing is published anywhere. CCU and warbond discounts are not published by any API, so those go in your own list below.</p>
 <form class="si-form" id="settings-form" autocomplete="off">
 <label class="check" style="grid-column:1/-1"><input type="checkbox" name="enabled"> SC Intel is on (panel and chat commands)</label>
 <label>Seconds per panel section<input type="number" name="cycleSeconds" min="5" max="120"></label>
@@ -66,6 +68,8 @@
 <label class="check"><input type="checkbox" name="news"> Panel shows news</label><label class="check"><input type="checkbox" name="sales"> Panel shows ships in the store</label>
 <label class="check"><input type="checkbox" name="deals"> Panel shows deals &amp; upgrades</label><label class="check"><input type="checkbox" name="events"> Panel shows events</label>
 <label class="check" style="grid-column:1/-1"><input type="checkbox" name="commands"> Chat commands are on</label>
+<label>LIVE version (only to correct it)<input type="text" name="releaseLive" maxlength="24" placeholder="automatic"></label>
+<label>PTU version (only to correct it)<input type="text" name="releasePtu" maxlength="24" placeholder="automatic"></label>
 </form>
 <div class="si-row"><button type="button" class="primary" id="save-settings">Save settings</button></div>
 </section>
@@ -94,6 +98,17 @@
 </section>
 
 <section class="card si-card">
+<div class="card-heading"><div><span class="eyebrow">GAME VERSION</span><h2>Playable now &amp; patch notes</h2></div><span class="st-pill" id="rel-pill" data-state="wait">—</span></div>
+<div class="si-src" id="releases"></div>
+<ul class="si-list" id="patches"></ul>
+<p class="st-hint">Shown on the website's SC Intel tab and answered by <b>!patch</b>. A PTU build is listed only while it is ahead of LIVE. If a version is wrong, type the right one under Settings.</p>
+</section>
+<section class="card si-card">
+<div class="card-heading"><div><span class="eyebrow">EVENTS</span><h2>Event sections on the website</h2></div><span class="st-pill" id="spot-pill" data-state="wait">—</span></div>
+<ul class="si-list" id="spots"></ul>
+<p class="st-hint">An event gets its own section at the top of the website's SC Intel tab while it is on: events with known dates (IAE 2956, 13–27 Nov, with the manufacturer of the day), any event named in a Comm-Link from the last ten days, and the Event / Free Fly rows in your own list.</p>
+</section>
+<section class="card si-card">
 <div class="card-heading"><div><span class="eyebrow">5 · LATEST</span><h2>Comm-Links</h2></div></div>
 <ul class="si-list" id="news"></ul>
 </section>
@@ -106,8 +121,8 @@
 </div>
 </main>
 </div>
-<script src="sc-intel.js?v=2.21.15"></script>
-<script src="voyager-shell.js?v=2.30.0"></script>
+<script src="sc-intel.js?v=2.31.0"></script>
+<script src="voyager-shell.js?v=2.31.0"></script>
 <script src="voyager-navigation.js"></script>
 </body>
 </html>

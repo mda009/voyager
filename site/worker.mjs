@@ -13,6 +13,9 @@
    Free-plan limits: a Worker invocation may make 50 outside requests, so sends go out 40 at a time and the Worker calls
    itself (service binding SELF) for the next batch; without that binding the rest follows on the next cron ticks. */
 
+// SC Intel sources and parsers, shared with the Voyager app (bundled into the Worker by wrangler at deploy).
+import {gather,buildReleases,spotlights} from '../Voyager_Versus/local/intel-sources.mjs';
+
 export const TOPICS={live:'l',dread:'d',giveaway:'g',win:'w'};
 const BATCH=40,MAX_SUBS=5000,STALE_MS=5*60000,LIVE_COOLDOWN_MS=3*3600000,DREAD_COOLDOWN_MS=8*60000;
 const PUSH_HOSTS=/(^|\.)(fcm\.googleapis\.com|push\.apple\.com|push\.services\.mozilla\.com|notify\.windows\.com)$/i;
@@ -134,6 +137,29 @@ async function api(req,env,url){
   }
   return json({message:'Not found.'},404);
 }
+// ---------- SC Intel (2.31.0) ----------
+// The website's own copy of the Star Citizen news, patch notes, game versions and event sections, refreshed here every six
+// hours whether or not the streamer's PC is on (the app also sends its copy in the feed; the page shows whichever is newer).
+const INTEL_MS=6*3600000,INTEL_RETRY_MS=3600000,INTEL_UA='Mozilla/5.0 (compatible; Voyager/2.31.0; +https://voyagercommand.com)';
+export async function intelTick(env,fetcher=fetch,now=Date.now()){
+  const rec=await env.PUSH.get('intel','json');if(rec&&now-(rec.tried||0)<(rec.ok===false?INTEL_RETRY_MS:INTEL_MS))return {skipped:'fresh'};
+  const get=async(url,accept)=>{const r=await fetcher(url,{headers:{'user-agent':INTEL_UA,accept}});if(!r.ok)throw new Error('HTTP '+r.status);return r;};
+  const g=await gather({now,fetchText:async url=>(await get(url,'text/html, application/xml')).text(),fetchJson:async url=>(await get(url,'application/json')).json(),
+    postJson:async(url,body)=>{const r=await fetcher(url,{method:'POST',headers:{'user-agent':INTEL_UA,accept:'application/json','content-type':'application/json'},body:JSON.stringify(body)});if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}});
+  if(!g.newsOk){await env.PUSH.put('intel',JSON.stringify({...(rec||{}),tried:now,ok:false,status:g.status}));return {failed:true};}
+  const patches=g.patches.length?g.patches:rec?.patchRows||[],versions=g.versions.length?g.versions:rec?.versions||[];
+  await env.PUSH.put('intel',JSON.stringify({at:now,tried:now,ok:true,status:g.status,source:g.source,patchRows:patches,versions,
+    news:g.news.slice(0,12).map(n=>({title:n.title,url:n.url,at:n.at,tag:n.tag})),
+    patches:patches.slice(0,8).map(p=>({title:p.title,url:p.url,at:p.at,version:p.version,channel:p.channel,audience:p.audience})),
+    releases:buildReleases({patches,versions,now}).map(({source,...r})=>r)}));
+  return {refreshed:true,news:g.news.length};
+}
+export async function intelApi(env,now=Date.now()){
+  const rec=env.PUSH?await env.PUSH.get('intel','json'):null;if(!rec?.news?.length)return json({message:'No intel yet.'},404);
+  // Event sections are worked out when asked, so "today on the show floor" and "ends in" stay right between refreshes.
+  return new Response(JSON.stringify({at:rec.at,source:rec.source||'',news:rec.news,patches:rec.patches||[],releases:rec.releases||[],spotlights:spotlights({news:rec.news,now})}),{headers:{'content-type':'application/json; charset=utf-8','cache-control':'public, max-age=300'}});
+}
+
 // ---------- viewer requests (2.24.0) ----------
 // The website posts a request here; the Voyager app reads the list (GET /api/requests) and decides what to accept.
 // Kept in one KV entry: the newest 300 from the last 12 hours. 2.30.0: one request per OPTION per name and per device each stream. No free text: a card name and one of the streamer's options.
@@ -159,6 +185,6 @@ export async function requestApi(req,env,url,fetcher=fetch,now=Date.now()){
   return json({ok:true,id:entry.id,round});
 }
 export default {
-  async fetch(req,env){const url=new URL(req.url);if(url.pathname==='/api/request'||url.pathname==='/api/requests')return requestApi(req,env,url).catch(()=>json({message:'Requests are unavailable right now.'},500));if(url.pathname.startsWith('/api/push/'))return api(req,env,url).catch(e=>json({message:'Notifications are unavailable right now.'},500));return env.ASSETS.fetch(req);},
-  async scheduled(event,env,ctx){ctx.waitUntil(tick(env).catch(()=>{}));}
+  async fetch(req,env){const url=new URL(req.url);if(url.pathname==='/api/intel'&&req.method==='GET')return intelApi(env).catch(()=>json({message:'Intel is unavailable right now.'},500));if(url.pathname==='/api/request'||url.pathname==='/api/requests')return requestApi(req,env,url).catch(()=>json({message:'Requests are unavailable right now.'},500));if(url.pathname.startsWith('/api/push/'))return api(req,env,url).catch(e=>json({message:'Notifications are unavailable right now.'},500));return env.ASSETS.fetch(req);},
+  async scheduled(event,env,ctx){ctx.waitUntil(tick(env).catch(()=>{}));if(new Date().getUTCMinutes()%10===3)ctx.waitUntil(intelTick(env).catch(()=>{}));}
 };
