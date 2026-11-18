@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Voyager • Keep the higher tier on a resub</title>
+<style>body{margin:0;background:#09111c;color:#dfeafa;font:17px/1.65 'Segoe UI',Arial,sans-serif}main{max-width:900px;margin:48px auto;padding:0 24px 60px}h1{font-size:40px;line-height:1.15}h2{margin-top:32px}a{color:#9cd3ff}li{margin:12px 0}code{background:#18293e;padding:3px 5px;border-radius:4px}aside{border:1px solid #38516f;border-radius:12px;padding:18px 24px;background:#112137}small{color:#aebfd4}table{border-collapse:collapse;width:100%}td,th{text-align:left;padding:10px;border-bottom:1px solid #38516f}</style>
+<link rel="stylesheet" href="voyager-brand.css"></head><body class="voyager-guide"><main>
+<p>MDA009 / VOYAGER CONTROL</p><h1>A resub keeps the higher tier.</h1>
+<p>Until now, a Twitch <strong>Tier 2</strong> sub or resub always ran <code>SILVER FAST TRACK</code>, and a <strong>Tier 3</strong> sub or resub always ran <code>GOLD FAST TRACK</code>. Each one finishes by buying that membership, and the purchase removes the member from every other tier group. So a Gold or Platinum member who resubscribed at Tier 2 was moved <em>down</em> to Silver, and a Platinum member who resubscribed at Tier 3 was moved down to Gold.</p>
+<p>This update makes each fast track check first. If the member is already in a higher Voyager tier, the fast track stops before it changes anything.</p>
+<table><tr><th>Sub or resub</th><th>Member is already</th><th>What happens now</th></tr>
+<tr><td>Tier 2 (Silver fast track)</td><td>Gold or Platinum</td><td>Nothing changes. They stay Gold or Platinum.</td></tr>
+<tr><td>Tier 3 (Gold fast track)</td><td>Platinum</td><td>Nothing changes. They stay Platinum.</td></tr>
+<tr><td>Tier 2 or Tier 3</td><td>The same tier or lower</td><td>Exactly as before.</td></tr></table>
+<aside><strong>What "nothing changes" covers.</strong><p>When the fast track stops, it also skips its points credit, the purchase, the transfer to the giveaway bucket, the "has purchased" chat line and the upgrade animation, because the member is not buying a tier. The normal sub and resub points from your Currency System, the Fleet alert and the membership card are separate and still happen.</p></aside>
+<h2>Install in Streamer.bot (one import)</h2>
+<ol><li>In Streamer.bot click <strong>Import</strong> and drag in <a href="Voyager_Fast_Track_Keep_Tier_Update.sb">Voyager_Fast_Track_Keep_Tier_Update.sb</a>. It should list exactly two actions: <strong>SILVER FAST TRACK</strong> and <strong>GOLD FAST TRACK</strong>.</li>
+<li>Click <strong>Import</strong> and accept replacing the two existing actions. Their triggers (Twitch Sub and Resub, Tier 2 and Tier 3) are the same as before.</li>
+<li>Nothing else is touched: no code, no commands, no timers, no balances, no groups.</li></ol>
+<aside><strong>If you have edited either fast track yourself</strong> since Voyager's Points update, the import replaces your edits. In that case add the check by hand instead (below).</aside>
+<h2>Or add it by hand</h2>
+<ol><li>Open <strong>SILVER FAST TRACK</strong>. Add sub-action <strong>Core › Groups › User in Group</strong>: user <code>%user%</code>, group <code>GOLD GROUP</code>. Drag it to the top.</li>
+<li>Under it add <strong>Core › Logic › If/Else</strong>: <code>%inGroup%</code> <strong>Equals</strong> <code>True</code>. Inside the <strong>true</strong> branch add <strong>Core › Logic › Break</strong>.</li>
+<li>Repeat both steps for <code>PLATINUM GROUP</code>, so the action starts with four sub-actions before "Set argument voyagerPurchaseOrigin".</li>
+<li>Open <strong>GOLD FAST TRACK</strong> and do the same once, for <code>PLATINUM GROUP</code> only.</li></ol>
+<h2>Check it</h2>
+<ol><li>Pick a test account that is in <strong>PLATINUM GROUP</strong>. Right-click the <strong>SILVER FAST TRACK</strong> action's Twitch Resub trigger and choose <strong>Test Trigger</strong> with that account's name as the user.</li>
+<li>In <strong>Action History</strong> the run should show the group check and then stop. The account should still be in PLATINUM GROUP only, with the same points.</li>
+<li>Repeat with an account in <strong>BLUE GROUP</strong>: it should be fast-tracked to Silver as before.</li></ol>
+<h2>Members already moved down</h2>
+<p>This update stops it happening again; it does not put anyone back. For a member who was moved down by an earlier resub, open <strong>Voyager Points › Member controls</strong>, choose the member, set their tier group back and apply.</p>
+</main></body></html>

@@ -2,6 +2,16 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.35.2 (18 November 2026)
+
+**A sub or resub keeps the member's higher Voyager tier.**
+
+- **Cause.** A Twitch Tier 2 sub or resub always ran SILVER FAST TRACK, and Tier 3 always ran GOLD FAST TRACK. Each ends by buying that membership, which removes the member from every other tier group. A Gold or Platinum member who resubscribed at Tier 2 was moved down to Silver; a Platinum member who resubscribed at Tier 3 was moved down to Gold.
+- **Fix.** Both fast tracks now check first: Silver fast track stops if the member is already Gold or Platinum, Gold fast track stops if the member is already Platinum. Stopping also skips the fast-track credit, purchase, bucket transfer, "has purchased" chat line and upgrade animation. Normal sub and resub points, the Fleet alert and the membership card are unchanged. Members in the same or a lower tier are fast-tracked exactly as before.
+- **This needs one import in Streamer.bot:** `Voyager_Fast_Track_Keep_Tier_Update.sb` (replaces only SILVER FAST TRACK and GOLD FAST TRACK). Steps, a by-hand alternative and a test are in `FAST_TRACK_KEEP_TIER_SETUP.html` (Help › Keep the higher tier on a resub). Updating the desktop app alone does not change Streamer.bot.
+- Members already moved down are not put back automatically: use Voyager Points › Member controls.
+- `Voyager_Points_Tracking_Update.sb` carries the same check, so a fresh install has it too.
+
 ## 2.35.1 (18 November 2026)
 
 **Lifetime points now include what a member held before tracking started, and no longer fall when points are spent.**
