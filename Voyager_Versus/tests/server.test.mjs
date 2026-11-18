@@ -88,3 +88,10 @@ test('Bundled Voyager Control and the game share one host without exposing game 
     assert.equal((await fetch(base+'/api/admin',{headers:{'Sec-Fetch-Site':'cross-site'}})).status,403);
   }finally{if(child.exitCode===null){child.kill('SIGTERM');await new Promise(r=>child.once('exit',r));}await rm(dir,{recursive:true,force:true});}
 });
+
+test('2.38.1 the game overlays carry a build number that the release bump keeps in step, and the host hides a game from its own source while the stage shows it',async()=>{
+  const {readFile}=await import('node:fs/promises');const root=new URL('../../',import.meta.url),version=JSON.parse(await readFile(new URL('package.json',root),'utf8')).version;
+  for(const f of ['Voyager_Bounty_Overlay.html','Voyager_Prospect_Overlay.html']){const s=await readFile(new URL(f,root),'utf8');assert.ok(s.includes("const BUILD='"+version+"'"),f+' BUILD must be '+version);assert.match(s,/d\.version!==BUILD/);}
+  const srv=await readFile(new URL('Voyager_Versus/local/server.mjs',root),'utf8');assert.match(srv,/up&&!fromStage\(req\)\?\{serverAt:o\.serverAt,hunt:null,stage:true/);assert.match(srv,/up&&!fromStage\(req\)\?\{serverAt:o\.serverAt,run:null,stage:true/);
+  assert.ok(/[?&]stage=1(&|$)/.test('http://127.0.0.1:8740/control/Voyager_Bounty_Overlay.html?stage=1&quality=balanced'));assert.ok(!/[?&]stage=1(&|$)/.test('http://127.0.0.1:8740/control/Voyager_Bounty_Overlay.html'));
+});

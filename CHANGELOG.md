@@ -2,6 +2,16 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.38.1 (18 November 2026)
+
+**Fix: Prospect Run and Bounty Hunt on the stage now leave your scene visible in the corner.**
+
+- **What went wrong.** In your OBS scene the games' own sources ("Voyager - Prospect" and "Voyager - Bounty") sit above the stage source and are full-screen with a solid background. In 2.38.0 they were meant to hide themselves while the stage showed the game, but that rule lived inside the overlay page, and OBS was still running the copy it had cached before the update. So the game's own source stayed on top and covered the whole stage, including the picture-in-picture corner where your scene had been moved.
+- **Fix.** Voyager itself now decides: while the stage is showing a game, it sends that game only to the copy inside the stage and nothing to the game's own source. That works whatever copy of the page OBS has cached and wherever the source sits in the scene, so your game group (with the camera inside it) is visible in the bottom-right corner exactly as with the Dreadnought.
+- Both game overlays now also reload themselves after a Voyager update, like the stage page does, so OBS does not keep an old copy.
+- The Dreadnought and Versus stage were not changed by 2.38.0 or by this fix.
+- With the takeover switched off for a game (Dreadnought › Stage takeover), that game plays full-screen on its own source as before.
+
 ## 2.38.0 (18 November 2026)
 
 **Prospect Run and Bounty Hunt now play on the game stage, the same takeover as the Dreadnought.**
