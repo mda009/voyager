@@ -144,7 +144,7 @@ test('Settings validate grade targets; switched-off medals are not awarded; sett
   const got=m.evaluate().map(a=>a.medal);assert.ok(!got.includes('watch'));assert.ok(got.includes('subs'));
   await m.flush();await m.saving;
   const saved=JSON.parse(await readFile(join(dir,'medals.json'),'utf8'));assert.deepEqual(saved.settings.off,['watch']);
-  assert.equal(MEDALS.filter(x=>x.grades).length,30);
+  assert.equal(MEDALS.filter(x=>x.grades).length,32);
 });
 
 test('Twitch watch streaks: a shared streak becomes the viewer\'s stream streak, plays the comet once, and the day count does not add to it (2.20.70)',async()=>{
@@ -183,4 +183,14 @@ test('2.33.0 Prospect Run feeds Rock Breaker, Gun Runner, Long Hauler and the se
   assert.deepEqual([lyra.pruns,lyra.rocks,lyra.pirates,lyra.golds,lyra.scratch],[2,undefined,undefined,1,1],'on the crew, but only credited for what she did');
   m.primed=false;const got=m.evaluate().filter(a=>a.key==='twitch:1').map(a=>a.medal);assert.ok(got.includes('hauler'),'one Gold haul is Bronze Long Hauler');assert.ok(got.includes('scratch'));assert.ok(!got.includes('rockbreaker'),'needs three rocks');
   assert.ok(TYPES.prospectRuns.counter==='pruns'&&TYPES.prospectGold.counter==='golds'&&TYPES.prospectRocks.medal==='rockbreaker');
+});
+
+test('2.37.0 Bounty Hunt medals: captures count for Bounty Hunter, MVPs for Dead Reckoning, and a last-second capture is a secret medal',async()=>{
+  const {m}=await make();m.state.backfilled=true;
+  const crewList=[{key:'twitch:1',name:'Nova',platform:'twitch',tracks:9,mvp:true},{key:'youtube:2',name:'Lyra',platform:'youtube',tracks:2,mvp:false}];
+  m.observeBounty({outcome:'captured',secondsLeft:8,practice:false,crewList});m.observeBounty({outcome:'escaped',secondsLeft:0,crewList});m.observeBounty({outcome:'captured',secondsLeft:50,practice:true,crewList});
+  const nova=m.state.viewers['twitch:1'].c,lyra=m.state.viewers['youtube:2'].c;
+  assert.deepEqual([nova.bhunts,nova.bcaps,nova.gmvp,nova.lastsecond],[2,1,1,1]);assert.deepEqual([lyra.bhunts,lyra.bcaps,lyra.gmvp,lyra.lastsecond],[2,1,undefined,1],'practice hunts are not counted');
+  m.primed=false;const got=m.evaluate().filter(a=>a.key==='twitch:1').map(a=>a.medal);assert.ok(got.includes('reckoning'),'one MVP is Bronze Dead Reckoning');assert.ok(got.includes('lastsecond'));assert.ok(!got.includes('bountyhunter'),'three captures are needed for Bounty Hunter');
+  assert.ok(TYPES.bountyHunts.counter==='bhunts'&&TYPES.bountyCaptures.medal==='bountyhunter');
 });

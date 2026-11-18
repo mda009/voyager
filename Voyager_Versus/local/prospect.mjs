@@ -15,13 +15,13 @@ import {randomUUID} from 'node:crypto';
 
 export const COMMANDS=['mine','fire','sell'];
 export const PROSPECT_DEFAULTS={enabled:true,announce:true,practice:false,contractSeconds:20,mineSeconds:60,haulSeconds:60,sellSeconds:30,cooldownSeconds:120,
-  ticketsGold:8,ticketsSilver:5,ticketsBronze:3,ticketsFail:1,scoreGold:260,scoreSilver:180};
+  ticketsGold:8,ticketsSilver:5,ticketsBronze:3,ticketsFail:1,mvpTickets:2,scoreGold:260,scoreSilver:180};
 // The rock holds 220 CU. Window = where the laser breaks rock. One command per person every 6 s (chat-safe, like the Dreadnought preset).
 // Laser charge heads for 1.15 × the share of miners who typed !mine in the last 10 s, so the window needs about half to
 // two-thirds of the miners keeping it up: not everyone at once.
 export const RULES={ore:220,window:[.55,.78],pace:6000,peak:1.15,active:10000,rate:.2,overLoss:.015,overCap:.6,spool:10000,grace:4000,cargoLoss:.006,cargoCap:.3,escapeLoss:.15,result:20000};
-const LIMITS={contractSeconds:[5,60],mineSeconds:[30,120],haulSeconds:[30,120],sellSeconds:[15,60],cooldownSeconds:[0,3600],ticketsGold:[0,100],ticketsSilver:[0,100],ticketsBronze:[0,100],ticketsFail:[0,100],scoreGold:[1,400],scoreSilver:[1,400]};
-const LABELS={contractSeconds:'Contract card seconds',mineSeconds:'Mining seconds',haulSeconds:'Hauling seconds',sellSeconds:'Selling seconds',cooldownSeconds:'Cooldown between runs',ticketsGold:'Tickets for Gold',ticketsSilver:'Tickets for Silver',ticketsBronze:'Tickets for Bronze',ticketsFail:'Tickets when the cargo is lost',scoreGold:'Haul score for Gold',scoreSilver:'Haul score for Silver'};
+const LIMITS={contractSeconds:[5,60],mineSeconds:[30,120],haulSeconds:[30,120],sellSeconds:[15,60],cooldownSeconds:[0,3600],ticketsGold:[0,100],ticketsSilver:[0,100],ticketsBronze:[0,100],ticketsFail:[0,100],mvpTickets:[0,100],scoreGold:[1,400],scoreSilver:[1,400]};
+const LABELS={contractSeconds:'Contract card seconds',mineSeconds:'Mining seconds',haulSeconds:'Hauling seconds',sellSeconds:'Selling seconds',cooldownSeconds:'Cooldown between runs',ticketsGold:'Tickets for Gold',ticketsSilver:'Tickets for Silver',ticketsBronze:'Tickets for Bronze',ticketsFail:'Tickets when the cargo is lost',mvpTickets:'Extra tickets for the MVP',scoreGold:'Haul score for Gold',scoreSilver:'Haul score for Silver'};
 const GRADE={gold:'Gold haul',silver:'Silver haul',bronze:'Bronze haul',fail:'Cargo lost'};
 const clean=(v,max)=>String(v??'').replace(/[\u0000-\u001f\u007f]/g,' ').replace(/\s+/g,' ').trim().slice(0,max);
 const cl=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
@@ -59,7 +59,9 @@ export class ProspectRun{
   }
   stop(){if(!this.run)return this.view();this.run=null;this.lastEndedAt=0;if(this.settings.announce)this.say('⛏ Prospect Run called off.');return this.view();}
   member(chat){const key=this.key(chat);if(!key)return null;const r=this.run;let m=r.crew.get(key);
-    if(!m){if(r.crew.size>=2000)return null;m={key,name:clean(chat.name||chat.login,60)||'Crew',login:clean(chat.login,60).toLowerCase(),platform:String(key).split(':')[0],mine:0,fire:0,sell:false,last:0};r.crew.set(key,m);}return m;}
+    if(!m){if(r.crew.size>=2000)return null;m={key,name:clean(chat.name||chat.login,60)||'Crew',login:clean(chat.login,60).toLowerCase(),platform:String(key).split(':')[0],mine:0,fire:0,sell:false,last:0,acts:0,n:r.crew.size};r.crew.set(key,m);}return m;}
+  // 2.37.0 MVP: the crew member with the most commands that counted (mining, firing and the sell vote). First aboard wins a tie.
+  leaders(limit=5){return [...this.run.crew.values()].filter(m=>m.acts>0).sort((a,b)=>b.acts-a.acts||a.n-b.n).slice(0,limit).map(m=>({key:m.key,name:m.name,platform:m.platform,acts:m.acts}));}
   chat(chat){
     const r=this.run;if(!r||r.phase==='result')return null;const word=clean(chat?.text,40).toLowerCase().split(' ')[0],cmd=word.startsWith('!')?word.slice(1):'';if(!COMMANDS.includes(cmd))return null;
     const m=this.member(chat);if(!m)return null;const now=this.now();
@@ -70,7 +72,7 @@ export class ProspectRun{
     else{if(now-m.last<RULES.pace)return {ok:true,counted:false,wait:RULES.pace-(now-m.last)};m.last=now;
       if(cmd==='mine'){m.mine++;m.mineAt=now;}
       else{m.fire++;r.pirate.hp=Math.max(0,r.pirate.hp-1);}}
-    r.feed.push({name:m.name,cmd:'!'+cmd,at:now});if(r.feed.length>12)r.feed.shift();
+    m.acts++;r.feed.push({name:m.name,cmd:'!'+cmd,at:now});if(r.feed.length>12)r.feed.shift();
     return {ok:true,counted:true,cmd};
   }
   // Called every 100 ms or so by the host.
@@ -115,23 +117,23 @@ export class ProspectRun{
   }
   finish(now){
     const r=this.run,s=this.settings,score=Math.round(r.cargo*(r.price||0)),grade=r.cargo<=0||score<=0?'fail':score>=s.scoreGold?'gold':score>=s.scoreSilver?'silver':'bronze';
-    const each=r.practice?0:{gold:s.ticketsGold,silver:s.ticketsSilver,bronze:s.ticketsBronze,fail:s.ticketsFail}[grade],crew=[...r.crew.values()];
-    r.result={grade,title:GRADE[grade],score,ore:r.ore,lost:r.lost,cargo:r.cargo,price:r.price||0,crew:crew.length,tickets:each,practice:r.practice,cracked:r.cracked,pirate:r.killedAt?'destroyed':r.pirate?'escaped':'none',clean:grade==='gold'&&r.lost===0&&r.over===0};
+    const each=r.practice?0:{gold:s.ticketsGold,silver:s.ticketsSilver,bronze:s.ticketsBronze,fail:s.ticketsFail}[grade],crew=[...r.crew.values()],top=this.leaders(1)[0]||null,extra=r.practice||grade==='fail'?0:s.mvpTickets;
+    r.result={mvp:top?{name:top.name,platform:top.platform,acts:top.acts}:null,mvpTickets:extra,grade,title:GRADE[grade],score,ore:r.ore,lost:r.lost,cargo:r.cargo,price:r.price||0,crew:crew.length,tickets:each,practice:r.practice,cracked:r.cracked,pirate:r.killedAt?'destroyed':r.pirate?'escaped':'none',clean:grade==='gold'&&r.lost===0&&r.over===0};
     r.phase='result';r.phaseAt=now;r.phaseEndsAt=now+RULES.result;
     if(!r.practice){
       const st=this.stats;st.runs++;st[grade]++;st.best=Math.max(st.best,score);st.delivered+=r.cargo;
       this.history.unshift({id:r.id,at:now,...r.result});this.history=this.history.slice(0,20);void this.persist();
-      if(each>0&&crew.length)try{this.onTickets({id:'prospect-'+r.id,reason:'Prospect Run: '+GRADE[grade],grants:crew.map(m=>({key:m.key,name:m.name,login:m.login,tickets:each}))});}catch{}
-      try{this.onResult({id:r.id,...r.result,crewList:crew.map(m=>({key:m.key,name:m.name,platform:m.platform,mine:m.mine,fire:m.fire,sell:m.sell}))});}catch{}
+      if((each>0||extra>0)&&crew.length)try{this.onTickets({id:'prospect-'+r.id,reason:'Prospect Run: '+GRADE[grade],grants:crew.map(m=>({key:m.key,name:m.name,login:m.login,tickets:each+(top&&m.key===top.key?extra:0)})).filter(g=>g.tickets>0)});}catch{}
+      try{this.onResult({id:r.id,...r.result,crewList:crew.map(m=>({key:m.key,name:m.name,platform:m.platform,mine:m.mine,fire:m.fire,sell:m.sell,mvp:!!top&&m.key===top.key}))});}catch{}
     }
     if(s.announce)this.say('⛏ PROSPECT RUN OVER: '+GRADE[grade].toUpperCase()+(grade==='fail'?'.':' · '+r.cargo+' CU sold at ×'+r.result.price.toFixed(2)+' = haul score '+score+'.')+
-      (r.practice?' Practice run, no tickets.':each>0&&crew.length?' Everyone who flew ('+crew.length+') earns '+each+' giveaway ticket'+(each===1?'':'s')+'.':''));
+      (r.practice?' Practice run, no tickets.':each>0&&crew.length?' Everyone who flew ('+crew.length+') earns '+each+' giveaway ticket'+(each===1?'':'s')+(extra>0&&top?', and the MVP '+top.name+' '+extra+' more.':'.'):'')+(top&&!(extra>0&&each>0&&!r.practice)?' MVP: '+top.name+'.':''));
     return 'result';
   }
   // What the overlay draws. No names beyond the chat feed's display names.
   overlay(){
     const r=this.run,now=this.now();if(!r||!this.settings.enabled)return {serverAt:now,run:null};const s=this.settings;
-    return {serverAt:now,run:{id:r.id,practice:r.practice,phase:r.phase,phaseAt:r.phaseAt,phaseEndsAt:r.phaseEndsAt,crew:r.crew.size,feed:r.feed.slice(-8).map(f=>({name:f.name,cmd:f.cmd})),
+    return {serverAt:now,run:{id:r.id,practice:r.practice,phase:r.phase,phaseAt:r.phaseAt,phaseEndsAt:r.phaseEndsAt,crew:r.crew.size,feed:r.feed.slice(-8).map(f=>({name:f.name,cmd:f.cmd})),leaders:this.leaders(5).map(({key,...x})=>x),mvpTickets:s.mvpTickets,
       charge:Math.round(r.charge*1000)/1000,window:RULES.window,crack:Math.round(r.crack*1000)/1000,cracked:r.cracked,crackedAt:r.crackedAt,ore:r.ore,oreMax:RULES.ore,over:r.over>0,
       cargo:r.cargo,lost:r.lost,spool:r.phase==='haul'?cl((now-r.phaseAt)/RULES.spool):0,pirate:r.pirate?{hp:r.pirate.hp,max:r.pirate.max}:null,interdictedAt:r.interdictedAt,killedAt:r.killedAt,
       price:r.price,series:r.series,votes:r.votes.size,need:r.need,soldAt:r.soldAt,result:r.result,tickets:{gold:s.ticketsGold,silver:s.ticketsSilver,bronze:s.ticketsBronze}}};

@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Voyager • OBS Prospect Run</title><link rel="icon" href="brand-assets/voyager.png">
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Voyager • OBS Prospect Run</title><link rel="stylesheet" href="voyager-game-hud.css?v=2.37.0"><link rel="icon" href="brand-assets/voyager.png">
 <style>
 /* Voyager Prospect Run stage (2.33.0): an OBS browser source, 1920 × 1080 (any 16:9 size works). Invisible until a run is
    started from Voyager Control › Prospect Run. Reads /api/prospect/overlay from the local host twice a second and draws the
@@ -11,76 +11,30 @@ html,body{margin:0;height:100%;overflow:hidden;background:transparent;color:var(
 #stage.on{opacity:1}
 #cv{position:absolute;inset:0;width:1280px;height:720px}
 .glass{position:absolute;background:linear-gradient(135deg,rgba(9,17,31,.84),rgba(14,28,46,.76) 60%,rgba(10,20,36,.84));border:1px solid rgba(167,216,255,.26);border-top:2px solid var(--cyan);border-radius:12px;box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 14px 34px rgba(0,0,0,.45);text-shadow:0 1px 3px rgba(0,0,0,.6)}
-#top{left:24px;top:22px;width:520px;padding:12px 16px 14px}
-#top small{font:700 12px/1 var(--d);letter-spacing:.24em;color:var(--cyan)}
-#top b{display:block;font:700 30px/1.05 var(--d);margin-top:5px}
-#top span{display:block;font-size:14px;color:#b9cbdc;margin-top:4px;min-height:20px}
-#clock{position:absolute;left:0;right:0;bottom:0;height:3px;background:var(--cyan);transform-origin:left}
-#crew{right:24px;top:22px;width:300px;padding:12px 14px}
-#crew small,#feed small{font:700 11px/1 var(--d);letter-spacing:.22em;color:var(--muted)}
-.roles{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
-.role{border:1px solid rgba(167,216,255,.16);border-radius:8px;padding:6px 8px;background:rgba(8,15,24,.4)}
-.role b{font:700 20px/1 var(--d);font-variant-numeric:tabular-nums}.role span{display:block;font:700 10px/1 var(--d);letter-spacing:.16em;margin-top:3px}
-.role.m span{color:var(--orange)}.role.h span{color:var(--cyan)}.role.s span{color:var(--green)}.role.e span{color:var(--red)}
-.role.hot{border-color:var(--gold);box-shadow:0 0 0 1px rgba(255,213,106,.3)}
-#feed{right:24px;top:204px;width:300px;padding:12px 14px;height:250px;overflow:hidden}
-#lines{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:5px}
-#lines li{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#lines li.new{animation:in .35s ease-out}
-#lines li b{color:#fff;font-weight:600}#lines li i{font-style:normal;font-weight:600}
-@keyframes in{from{opacity:0;transform:translateX(14px)}}
-#hint{left:24px;bottom:22px;padding:10px 14px;display:flex;gap:8px;align-items:center;max-width:820px;flex-wrap:wrap}
-#hint span{font-size:13px;color:#b9cbdc}
-.chip{font:700 15px/1 var(--d);letter-spacing:.04em;padding:6px 9px;border-radius:6px;background:rgba(151,223,255,.14);color:var(--cyan);border:1px solid rgba(151,223,255,.3)}
 /* phase widgets */
 .w{opacity:0;transition:opacity .4s;pointer-events:none}.w.on{opacity:1}
-#gauge{left:24px;top:150px;width:520px;padding:12px 16px}
+#gauge{left:27px;top:262px;width:520px;padding:12px 16px}
 #gauge .row,#haul .row{display:flex;justify-content:space-between;font:700 12px/1 var(--d);letter-spacing:.18em;color:var(--muted)}
 .track{position:relative;height:22px;border-radius:6px;margin-top:8px;background:linear-gradient(90deg,#16304a 0 58%,#17543c 58% 78%,#5a2028 78% 100%);border:1px solid rgba(167,216,255,.2);overflow:hidden}
 .track::after{content:'OPTIMAL';position:absolute;left:58%;width:20%;top:0;bottom:0;display:flex;align-items:center;justify-content:center;font:700 9px/1 var(--d);letter-spacing:.12em;color:rgba(127,240,181,.85)}
 #needle{position:absolute;top:-2px;bottom:-2px;width:4px;margin-left:-2px;background:#fff;box-shadow:0 0 10px #fff;border-radius:2px}
 .bar{height:8px;border-radius:4px;background:rgba(151,223,255,.12);overflow:hidden;margin-top:8px}.bar i{display:block;height:100%;width:0;background:var(--green);border-radius:4px}
 #gmsg{font:700 20px/1 var(--d);margin-top:10px;min-height:20px;letter-spacing:.04em}
-#haul{left:24px;top:150px;width:520px;padding:12px 16px}
+#haul{left:27px;top:262px;width:520px;padding:12px 16px}
 .route{display:flex;align-items:center;gap:0;margin-top:10px}
 .node{width:14px;height:14px;border-radius:50%;border:2px solid var(--faint);background:#0b1626;flex:none}.node.on{border-color:var(--cyan);background:var(--cyan);box-shadow:0 0 10px var(--cyan)}
 .leg{flex:1;height:3px;background:rgba(151,223,255,.16);position:relative}.leg i{position:absolute;inset:0;background:var(--cyan);transform-origin:left;transform:scaleX(0)}
 .names{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:6px}
-#vote{left:24px;top:290px;width:520px;padding:12px 16px}
+#vote{left:27px;top:398px;width:520px;padding:12px 16px}
 .vs{display:grid;grid-template-columns:90px 1fr 44px;gap:8px;align-items:center;margin-top:8px;font:700 15px/1 var(--d)}
 .vs .bar{margin:0;height:12px}.vs .bar i{background:var(--cyan)}.vs:last-child .bar i{background:var(--gold)}
-#sell{left:24px;top:150px;width:520px;padding:12px 16px}
+#sell{left:27px;top:262px;width:520px;padding:12px 16px}
 #price{font:700 54px/1 var(--d);font-variant-numeric:tabular-nums;margin-top:6px}
 #sold{font:700 20px/1.2 var(--d);color:var(--gold);min-height:24px;margin-top:8px}
-#pay{left:50%;top:50%;width:900px;margin:-250px 0 0 -450px;padding:20px 24px;border-top-color:var(--gold)}
-#pay h2{font:700 44px/1 var(--d);margin:6px 0 2px;color:var(--gold);letter-spacing:.03em}
-#pay .sub{color:#b9cbdc;font-size:15px}
-.cols{display:grid;grid-template-columns:1.1fr 1fr;gap:18px;margin-top:14px}
-.stat{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
-.stat div{border:1px solid rgba(167,216,255,.16);border-radius:8px;padding:8px 10px;background:rgba(8,15,24,.4)}
-.stat b{display:block;font:700 24px/1 var(--d);font-variant-numeric:tabular-nums}.stat span{font:700 10px/1 var(--d);letter-spacing:.16em;color:var(--muted)}
-.tix{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:5px;font-size:14px}
-.tix li{display:flex;justify-content:space-between;gap:10px;padding:6px 10px;border:1px solid rgba(167,216,255,.12);border-radius:8px;background:rgba(8,15,24,.35)}
-.tix li b{font:700 16px/1.2 var(--d);color:var(--gold);white-space:nowrap}
-.tix li.all{border-color:rgba(255,213,106,.45);background:rgba(255,213,106,.08)}
-.medal{display:grid;grid-template-columns:54px 1fr;gap:12px;align-items:center;border:1px solid rgba(255,213,106,.4);border-radius:10px;padding:10px 12px;background:rgba(255,213,106,.07);transform:scale(.6);opacity:0}
-.medal.pop{animation:slam .6s cubic-bezier(.2,1.6,.4,1) forwards}
-@keyframes slam{to{transform:scale(1);opacity:1}}
-.medal svg{width:54px;height:54px}.medal small{font:700 10px/1 var(--d);letter-spacing:.2em;color:var(--gold)}.medal b{display:block;font:700 20px/1.1 var(--d);margin-top:3px}.medal span{font-size:12px;color:#b9cbdc}
-.msn{margin-top:10px;font-size:13px;color:#b9cbdc}.msn .bar i{background:var(--cyan)}
 
-#score{font:700 86px/1 var(--d);color:var(--gold);font-variant-numeric:tabular-nums}
-#pay .big small{font:700 12px/1 var(--d);letter-spacing:.24em;color:var(--muted)}
-#pay .big span{display:block;color:#b9cbdc;font-size:15px;margin-top:6px}
-#pay[data-grade=fail]{border-top-color:var(--red)}#pay[data-grade=fail] h2,#pay[data-grade=fail] #score{color:var(--red)}
-#pay[data-grade=silver] h2,#pay[data-grade=silver] #score{color:#dbe6f2}#pay[data-grade=bronze] h2,#pay[data-grade=bronze] #score{color:#e7b07a}
 </style></head>
 <body><div id="stage">
   <canvas id="cv" width="1280" height="720"></canvas>
-  <div class="glass" id="top"><small id="ph">PROSPECT RUN</small><b id="title">Contract accepted</b><span id="sub"></span><i id="clock"></i></div>
-  <div class="glass" id="crew"><small>CONTRACT · HALCYON EXCHANGE</small><b style="display:block;font:700 22px/1.1 var(--d);margin-top:6px">Haul Lumenite</b>
-    <div class="roles"><div class="role h"><b id="crewn">0</b><span>CREW FLYING</span></div><div class="role m"><b id="tgold">8</b><span id="tgoldl">TICKETS FOR GOLD</span></div></div></div>
-  <div class="glass" id="feed"><small>CHAT</small><ul id="lines"></ul></div>
   <div class="glass w" id="gauge"><div class="row"><span>LASER CHARGE</span><span id="ore">LUMENITE 0 CU</span></div><div class="track"><i id="needle"></i></div>
     <div class="row" style="margin-top:10px"><span>ROCK INTEGRITY BROKEN</span><span id="holdn">0%</span></div><div class="bar"><i id="hold"></i></div><div id="gmsg"></div></div>
   <div class="glass w" id="haul"><div class="row"><span>ROUTE</span><span id="cargo">CARGO 0 CU</span></div>
@@ -90,12 +44,17 @@ html,body{margin:0;height:100%;overflow:hidden;background:transparent;color:var(
     <div class="vs"><span id="va">Spool</span><div class="bar"><i id="vab"></i></div><span id="van">0%</span></div><div class="vs"><span id="vb">Cargo</span><div class="bar"><i id="vbb"></i></div><span id="vbn">100%</span></div></div>
   <div class="glass w" id="sell"><div class="row" style="display:flex;justify-content:space-between;font:700 12px/1 var(--d);letter-spacing:.18em;color:var(--muted)"><span>EXCHANGE TERMINAL · LUMENITE PRICE</span><span id="sv"></span></div>
     <div id="price">×1.00</div><canvas id="chart" width="488" height="120" style="display:block;width:100%;margin-top:6px"></canvas><div class="bar"><i id="svb" style="background:var(--gold)"></i></div><div id="sold"></div></div>
-  <div class="glass w" id="pay"><small style="font:700 12px/1 var(--d);letter-spacing:.24em;color:var(--gold)" id="paytag">RUN COMPLETE</small><h2 id="grade">GOLD HAUL</h2><div class="sub" id="paysub"></div>
-    <div class="cols"><div>
-      <div class="stat"><div><b id="s-ore">0</b><span>MINED</span></div><div><b id="s-lost">0</b><span>LOST</span></div><div><b id="s-cargo">0</b><span>DELIVERED</span></div><div><b id="s-crew">0</b><span>CREW</span></div></div>
-      <ul class="tix"><li class="all"><span id="tx-who">Everyone who flew</span><b id="tx-n">+0 TICKETS</b></li><li><span>Added to the active ticketed giveaway</span><b id="tx-total">0 TOTAL</b></li><li><span id="tx-rates"></span><b id="tx-grade"></b></li></ul>
-    </div><div class="big"><small>HAUL SCORE</small><div id="score">0</div><span id="scoreline"></span></div></div></div>
-  <div class="glass" id="hint"></div>
+  <div class="gh" id="gh" style="--u:.6667;--accent:#ffb060;--accent-line:rgba(255,176,96,.5);--accent-glow:rgba(255,160,70,.28)">
+   <div class="gh-plate" id="plate" hidden><div class="eyebrow" id="ph">PROSPECT RUN</div><div class="name" id="title"></div><div class="gh-bar" id="pbar"><i></i><span id="pbartext"></span></div><div class="gh-tags" id="tags"></div></div>
+   <div class="gh-clock" id="pclock" hidden><small>TIME LEFT</small><b id="clocktime">1:00</b></div>
+   <div class="gh-fleet" id="fleet" hidden><div class="head"><img src="brand-assets/voyager.png" alt=""><div>VOYAGER CREW<b id="crewn">0 crew</b></div></div><div class="gh-line"><span id="cargol">LUMENITE</span><b id="cargon">0 CU</b><i id="tgold"></i></div><ol class="gh-leaders" id="leaders"></ol></div>
+   <div class="gh-feed" id="lines" style="width:calc(var(--u)*520px)"></div>
+   <div class="gh-legend" id="legend" hidden><div class="l1" id="lg-mine"><b>!mine</b><small>PHASE 1 · WORK THE LASER</small></div><div class="l2" id="lg-fire"><b>!fire</b><small>PHASE 2 · SHOOT THE PIRATE</small></div><div class="l3" id="lg-sell"><b>!sell</b><small>PHASE 3 · VOTE TO SELL</small></div></div>
+   <div class="gh-card lobby" id="lobby" hidden><div class="eyebrow">⛏ CONTRACT POSTED</div><h1>Prospect Run</h1><p id="lobbysub">Haul Lumenite from the Marrow Belt to Halcyon Exchange</p><div class="big" id="lobbytime">20</div><p><span class="cmd">!mine</span><span class="cmd">!fire</span><span class="cmd">!sell</span></p><p id="lobbycount">0 crew aboard</p></div>
+   <div class="gh-card" id="result" hidden><div class="eyebrow" id="resulteyebrow">HAUL REPORT</div><h1 id="resulttitle"></h1><div class="mvp" id="resultmvp" hidden><i>MVP</i><span id="mvpname"></span><small id="mvpline"></small></div><p id="resultline"></p><div class="stats" id="resultstats"></div></div>
+   <div class="gh-banner" id="banner"></div><div class="gh-flash" id="flash"></div>
+   <div class="gh-preview" id="preview-tag" hidden>PREVIEW</div>
+  </div>
 </div>
 <script src="fleet-assets/surface-data.js"></script>
 <script type="module">
@@ -238,31 +197,55 @@ function world(pi,p,dt,now){
   r.camera.position.x=-22+Math.sin(t*.25)*3;r.camera.position.y=36+Math.cos(t*.2)*1.5;r.camera.lookAt(0,-2,0);
   r.renderer.render(r.scene,r.camera);
 }
+// 2.37.0: the same on-screen language as the Dreadnought (voyager-game-hud.css): lobby splash, nameplate and bar, clock,
+// crew panel with the MVP, feed, legend, banners and the result card. The phase widgets and the 3D scene are unchanged.
+function banner(text){const b=$('banner');b.textContent=text;b.classList.remove('go');void b.offsetWidth;b.classList.add('go');}
+function flash(){const f=$('flash');f.classList.remove('go');void f.offsetWidth;f.classList.add('go');}
+const mmss=ms=>{const x=Math.max(0,Math.ceil(ms/1000));return Math.floor(x/60)+':'+String(x%60).padStart(2,'0');};
+let leadKey='',tagKey='';
 function hud(pi,p){
-  const s=S;
+  const s=S,now=Date.now()+offset,T=(id,v)=>setText($(id),v);
   if(s.phase!==phase||s.id!==runId){
-    runId=s.id;fired={};
+    const was=s.id===runId?phase:'';runId=s.id;fired={};
     phase=s.phase;if(R){for(const q of R.P)q.l=0;R.pp.fill(9999);R.flash.visible=false;}
-    setText($('ph'),(pi>0&&pi<4?'PROSPECT RUN · PHASE '+pi+' OF 3':'PROSPECT RUN')+(s.practice?' · PRACTICE':''));setText($('title'),TITLE[phase][0]);setText($('sub'),TITLE[phase][1]);
-    const h=$('hint');h.textContent='';for(const c of HINT[phase][0]){const b=document.createElement('b');b.className='chip';b.textContent=c;h.append(b);}const sp=document.createElement('span');sp.textContent=s.practice&&phase==='result'?'Practice run: no tickets':HINT[phase][1];h.append(sp);
-    for(const [id,on] of [['gauge',pi===1],['haul',pi===2],['vote',pi===2],['sell',pi===3],['pay',pi===4]])$(id).classList.toggle('on',on);
-    for(const id of ['feed','crew','top'])$(id).style.opacity=pi===4?0:1;
-    if(pi===4&&s.result){const x=s.result,pay=$('pay');pay.dataset.grade=x.grade;setText($('grade'),x.title.toUpperCase());setText($('paytag'),x.practice?'PRACTICE RUN COMPLETE':'RUN COMPLETE');
-      setText($('paysub'),x.grade==='fail'?(x.ore?'The cargo never reached the exchange':'The rock held: no ore mined'):x.cargo+' CU delivered at ×'+x.price.toFixed(2)+(x.pirate==='destroyed'?' · pirate destroyed':x.pirate==='escaped'?' · the pirate got away':''));
-      setText($('s-ore'),String(x.ore));setText($('s-lost'),x.lost?'−'+x.lost:'0');setText($('s-cargo'),String(x.cargo));setText($('s-crew'),String(x.crew));
-      setText($('tx-who'),'Everyone who flew ('+x.crew+')');setText($('tx-n'),x.practice?'PRACTICE':'+'+x.tickets+' TICKET'+(x.tickets===1?'':'S'));setText($('tx-total'),x.practice?'NONE':(x.tickets*x.crew)+' TOTAL');
-      setText($('tx-rates'),'Gold pays '+s.tickets.gold+' · Silver '+s.tickets.silver+' · Bronze '+s.tickets.bronze);setText($('tx-grade'),x.grade==='fail'?'LOST':x.grade.toUpperCase());
-      setText($('score'),String(x.score));setText($('scoreline'),x.grade==='fail'?'Nothing sold this time':x.cargo+' CU × '+x.price.toFixed(2));}
+    T('ph','⛏ PROSPECT RUN'+(pi>0&&pi<4?' · PHASE '+pi+' OF 3':'')+(s.practice?' · PRACTICE':''));T('title',TITLE[phase][0]);
+    for(const [id,on] of [['gauge',pi===1],['haul',pi===2],['vote',pi===2],['sell',pi===3]])$(id).classList.toggle('on',on);
+    $('lobby').hidden=pi!==0;for(const id of ['plate','pclock','fleet','legend'])$(id).hidden=pi===0||pi===4;$('lines').hidden=pi===4;
+    for(const [id,k] of [['lg-mine',1],['lg-fire',2],['lg-sell',3]]){$(id).classList.toggle('live',pi===k);$(id).classList.toggle('dim',pi!==k&&pi>0&&pi<4);}
+    if(was&&pi>0&&pi<4)banner('PHASE '+pi+' · '+TITLE[phase][0].toUpperCase());
+    const card=$('result');card.hidden=pi!==4||!s.result;
+    if(pi===4&&s.result){const x=s.result,win=x.grade!=='fail';card.className='gh-card '+(win?'win':'lost');if(win)flash();
+      T('resulteyebrow',(x.practice?'PRACTICE · ':'')+(win?'★ RUN COMPLETE':'☠ CARGO LOST'));T('resulttitle',x.title);
+      $('resultmvp').hidden=!x.mvp;if(x.mvp){T('mvpname',x.mvp.name);T('mvpline',x.mvp.acts+' COMMAND'+(x.mvp.acts===1?'':'S')+(x.mvpTickets?' · +'+x.mvpTickets+' TICKET'+(x.mvpTickets===1?'':'S'):''));}
+      T('resultline',x.practice?'Practice run: no tickets. '+(win?x.cargo+' CU sold at ×'+x.price.toFixed(2)+'.':'Nothing reached the exchange.'):x.tickets?'Everyone who flew earns '+x.tickets+' giveaway ticket'+(x.tickets===1?'':'s')+(win?' · '+x.cargo+' CU sold at ×'+x.price.toFixed(2):' for taking part'):win?x.cargo+' CU sold at ×'+x.price.toFixed(2):x.ore?'The cargo never reached the exchange.':'The rock held: no ore mined.');
+      const st=$('resultstats');st.textContent='';for(const [label,value] of [['CREW',x.crew],['MINED',x.ore+' CU'],['DELIVERED',x.cargo+' CU'],['HAUL SCORE',x.score]]){const d=document.createElement('div'),b=document.createElement('b');b.textContent=String(value);d.append(b,label);st.append(d);}}
   }
-  $('clock').style.transform='scaleX('+(1-p)+')';
-  const fk=(s.feed||[]).map(f=>f.name+f.cmd).join('|')+s.feed?.length;if(fk!==feedKey){feedKey=fk;const ul=$('lines');ul.textContent='';for(const e of s.feed||[]){const li=document.createElement('li'),b=document.createElement('b'),i=document.createElement('i');b.textContent=e.name;i.textContent=' '+e.cmd;i.style.color=CMD[e.cmd]||'#97dfff';li.append(b,i);ul.append(li);}if(ul.lastChild)ul.lastChild.className='new';}
-  setText($('crewn'),String(s.crew));setText($('tgold'),s.practice?'0':String(s.tickets.gold));setText($('tgoldl'),s.practice?'PRACTICE RUN':'TICKETS FOR GOLD');
+  const left=s.phaseEndsAt-now,n=s.crew;
+  if(pi===0){T('lobbytime',String(Math.max(0,Math.ceil(left/1000))));T('lobbycount',n+' crew aboard'+(s.practice?' · practice run':''));$('preview-tag').hidden=s.id!=='preview';return;}
+  // one-off banners for the big moments
+  if(pi===1&&s.cracked&&!fired.bCrack){fired.bCrack=1;banner('ROCK CRACKED');flash();}
+  if(pi===2&&s.pirate&&!s.killedAt&&!fired.bInt){fired.bInt=1;banner('INTERDICTED · !FIRE');}
+  if(pi===2&&s.killedAt&&!fired.bKill){fired.bKill=1;banner('PIRATE DESTROYED');flash();}
+  if(pi===3&&s.soldAt&&!fired.bSold){fired.bSold=1;banner('SOLD · ×'+(s.price||1).toFixed(2));}
+  // the bar is the phase's objective: rock broken, pirate hull (or jump drive), votes to sell
+  const bar=$('pbar'),fill=bar.firstElementChild;let k=0,text='',hot=false;
+  if(pi===1){k=s.cracked?1:s.crack;text=s.cracked?'ROCK CRACKED':'ROCK BROKEN '+Math.round(s.crack*100)+'%';}
+  else if(pi===2){if(s.pirate&&!s.killedAt){k=s.pirate.hp/s.pirate.max;text='PIRATE HULL '+s.pirate.hp+' / '+s.pirate.max;hot=true;}else if(s.killedAt){k=0;text='PIRATE DESTROYED';hot=true;}else{k=s.spool||0;text='JUMP DRIVE '+Math.round((s.spool||0)*100)+'%';}}
+  else if(pi===3){k=s.soldAt?1:cl(s.votes/Math.max(1,s.need));text=s.soldAt?'SOLD':s.votes+' OF '+s.need+' VOTES TO SELL';}
+  bar.classList.toggle('hot',hot);fill.style.transform='scaleX('+cl(k)+')';T('pbartext',text);
+  const tk=[phase,s.practice,s.over,s.tickets?.gold].join('|');if(tk!==tagKey){tagKey=tk;const G=$('tags');G.textContent='';const add=(t,c)=>{const b=document.createElement('b');b.textContent=t;if(c)b.className=c;G.append(b);};
+    add(TITLE[phase][1].toUpperCase());if(s.practice)add('PRACTICE · NO TICKETS','cy');else add('GOLD HAUL = '+s.tickets.gold+' TICKETS EACH','gd');if(s.over&&pi===1)add('OVERCHARGED','rage');}
+  $('pclock').classList.toggle('low',left<10000);T('clocktime',mmss(left));
+  T('crewn',n+' crew');T('cargol',pi===1?'LUMENITE MINED':'CARGO');T('cargon',(pi===1?s.ore:s.cargo)+' CU');T('tgold',pi>=2&&s.lost?'−'+s.lost+' LOST':'');
+  const lk=JSON.stringify(s.leaders||[]);if(lk!==leadKey){leadKey=lk;const ol=$('leaders');ol.textContent='';(s.leaders||[]).forEach((m,i)=>{const li=document.createElement('li'),r=document.createElement('span');r.className='r';r.textContent=String(i+1);const dot=document.createElement('span');dot.className='p '+m.platform;const nm=document.createElement('span');nm.className='n';nm.textContent=m.name;const d=document.createElement('span');d.className='d';d.textContent=String(m.acts);if(i===0)li.className='mvp';li.append(r,dot,nm,d);ol.append(li);});}
+  const fk=(s.feed||[]).map(f=>f.name+f.cmd).join('|')+s.feed?.length;if(fk!==feedKey){feedKey=fk;const box=$('lines');box.textContent='';(s.feed||[]).slice(-4).reverse().forEach((e,i)=>{const d=document.createElement('div');d.style.borderLeftColor=CMD[e.cmd]||'#72d8ff';if(i)d.style.animation='none';d.textContent=e.name+'  '+e.cmd;box.append(d);});}
+  $('preview-tag').hidden=s.id!=='preview';
 }
 function frame(nowPerf){
   const dt=Math.max(0,Math.min(.05,(nowPerf-last)/1000));last=nowPerf;t+=dt;
   const stage=$('stage');stage.classList.toggle('on',!!S||preview);
   if(S&&R){const now=Date.now()+offset,pi=PHASES.indexOf(S.phase),p=cl((now-S.phaseAt)/Math.max(1,S.phaseEndsAt-S.phaseAt));charge=lerp(charge,S.charge,.12);hud(pi,p);world(pi,p,dt,now);}
-  else if(preview&&R){if(!S){S={id:'preview',phase:'contract',phaseAt:Date.now(),phaseEndsAt:Date.now()+3600000,crew:0,feed:[],tickets:{gold:8,silver:5,bronze:3},window:[.55,.78]};}}
+  else if(preview&&R){if(!S){S={id:'preview',phase:'contract',phaseAt:Date.now(),phaseEndsAt:Date.now()+3600000,crew:0,feed:[],leaders:[],tickets:{gold:8,silver:5,bronze:3},window:[.55,.78]};}}
   requestAnimationFrame(frame);
 }
 async function poll(){try{const d=await(await fetch('/api/prospect/overlay',{cache:'no-store'})).json();offset=d.serverAt-Date.now();if(d.run)S=d.run;else if(S&&S.id!=='preview'){S=null;phase='';}}catch{}setTimeout(poll,400);}

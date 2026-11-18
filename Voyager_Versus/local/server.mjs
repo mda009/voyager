@@ -31,6 +31,7 @@ import {Intel} from './intel.mjs';
 import {Requests} from './requests.mjs';
 import {Doorframe} from './doorframe.mjs';
 import {ProspectRun} from './prospect.mjs';
+import {BountyHunt} from './bounty.mjs';
 import {Raffle} from './raffle.mjs';
 import {TicketGranter} from './tickets.mjs';
 let VERSION='unknown';try{VERSION=JSON.parse(await readFile(new URL('../package.json',import.meta.url),'utf8')).version;}catch{}
@@ -157,6 +158,7 @@ const bot=new StreamerBot({onOtherChat:chat=>{
   try{intel.chat(chat);}catch{}
   try{doorframe.chat(chat);}catch{}
   try{prospect.chat(chat);}catch{}
+  try{bounty.chat(chat);}catch{}
   try{raffle.chat(chat);}catch{}
   // Kick and YouTube (2.20.8): same direct commands as Twitch, except Voyager Versus (Twitch only).
   const word=chat.text.trim().toLowerCase().split(/\s+/)[0];
@@ -170,6 +172,8 @@ const bot=new StreamerBot({onOtherChat:chat=>{
 onTickets:p=>{try{ticketGranter.resolve(p);}catch{}},
 onStats:p=>{try{const m=p?.metrics?.twitch?.subscriptions;if(p?.ok!==false&&m&&m.value!==null&&m.value!==undefined)community?.twitchSubs({value:m.value,at:Number(p.serverAt)||Date.now()});}catch{}},onWatchStreak:w=>{try{const r=medals.syncStreak(w);if(r)console.log('[streak] '+r.name+' shared a Twitch watch streak of '+r.streak+(r.before!==r.streak?' (Voyager had '+r.before+')':''));}catch{}},onMedals:ev=>{if(ev.type==='voyager.medals.data')medals.ingestExport(ev);else medals.command(ev);},onBoss:ev=>{
   if(ev.kind==='call'&&!['lobby','result'].includes(game.phase)){game.note('Finish the Versus battle before calling the Dreadnought.','system');return;}
+  // 2.37.0: cheers and gifted subs during a Bounty Hunt fire scanner pulses and launch wingmen (the Dreadnought ignores them when it is not here).
+  if((ev.kind==='bits'||ev.kind==='gift')&&bounty.active()&&!boss.active()){try{bounty.support(ev);}catch{}return;}
   boss.receive(ev);
 },onChat:chat=>{
   lastChatAt=Date.now();if(/^!/.test(String(chat.text||'')))try{moments.commandSeen();}catch{}
@@ -179,6 +183,7 @@ onStats:p=>{try{const m=p?.metrics?.twitch?.subscriptions;if(p?.ok!==false&&m&&m
   try{intel.chat({...chat,platform:chat.platform||'twitch'});}catch{}
   try{doorframe.chat({...chat,platform:chat.platform||'twitch'});}catch{}
   try{prospect.chat({...chat,platform:chat.platform||'twitch'});}catch{}
+  try{bounty.chat({...chat,platform:chat.platform||'twitch'});}catch{}
   try{raffle.chat({...chat,platform:chat.platform||'twitch'});}catch{}
   // Dreadnought (2.20.3): Twitch !join and !fire also work straight from chat, so a missing Streamer.bot command trigger
   // can't stop the fight. The action's copy of the same message is ignored (already boarded / !fire cooldown).
@@ -220,7 +225,7 @@ publicSite?.setCompanion(()=>{
     dreadnought:{...d,history:boss.history.slice(0,6)},
     ranks:{ladder:rv.ranks,top:rv.members.slice(0,25),promotions:rv.promotions},
     medals:{catalogue:cat,honour:medals.leaderboard(10),recent:medals.state.recent.slice(0,12)},
-    intel:intel.share(),requests:(()=>{const r=requests.share();if(r&&!prospect.settings.enabled)r.options=(r.options||[]).filter(o=>o.key!=='prospect');return r;})(),raffle:raffle.share(),prospect:prospect.share(), // game off: viewers cannot ask for it either
+    intel:intel.share(),requests:(()=>{const r=requests.share();if(r&&!prospect.settings.enabled)r.options=(r.options||[]).filter(o=>o.key!=='prospect');return r;})(),raffle:raffle.share(),prospect:prospect.share(),bounty:bounty.share(), // game off: viewers cannot ask for it either
     quiz:(()=>{const b=engage.quizBoard(10);return {all:b.all,stream:b.stream};})()};
 });
 publicSite?.setCrew(()=>cards.crewRows(2000));
@@ -240,6 +245,9 @@ const doorframe=await new Doorframe({dataDir,key:chat=>engage.key(chat),stream:(
   say:text=>runActionResult('Voyager - Medals',{medalSay:String(text).slice(0,450),medalSayPlatform:''})}).load();
 // 2.33.0 Prospect Run: mine, haul, sell — the crew game only the streamer can start. Pays giveaway tickets; feeds Voyager Medals.
 const prospect=await new ProspectRun({dataDir,key:chat=>engage.key(chat),onTickets:g=>{ticketGranter.grant(g);},onResult:r=>{try{medals.observeProspect(r);}catch{}},
+  say:text=>runActionResult('Voyager - Medals',{medalSay:String(text).slice(0,450),medalSayPlatform:''})}).load();
+// 2.37.0 Bounty Hunt: chat closes a search ring on a wanted ship. !track is free; cheers and gifted subs help the whole crew.
+const bounty=await new BountyHunt({dataDir,key:chat=>engage.key(chat),onTickets:g=>{ticketGranter.grant(g);},onResult:r=>{try{medals.observeBounty(r);}catch{}},
   say:text=>runActionResult('Voyager - Medals',{medalSay:String(text).slice(0,450),medalSayPlatform:''})}).load();
 // 2.34.0 Raffle: ten minutes to join with !raffle, a random ticket each, up to five winners who get giveaway tickets. Only the streamer can start one.
 const raffle=await new Raffle({dataDir,key:chat=>engage.key(chat),onTickets:g=>{ticketGranter.grant(g);},
@@ -297,6 +305,19 @@ const server=http.createServer(async(req,res)=>{
         if(url.pathname==='/api/prospect/settings'){response(res,200,{ok:true,...prospect.configure(input||{})});return;}
         if(url.pathname==='/api/prospect/start'){response(res,200,{ok:true,...prospect.start({practice:input?.practice===true})});return;}
         if(url.pathname==='/api/prospect/stop'){response(res,200,{ok:true,...prospect.stop()});return;}
+        response(res,404,{message:'Not found.'});
+      }catch(e){response(res,400,{message:e.message||'That did not work.'});}
+      return;
+    }
+    if(url.pathname==='/api/bounty/overlay'&&req.method==='GET'){res.setHeader('Cache-Control','no-store');response(res,200,bounty.overlay());return;} // OBS overlay
+    if(url.pathname.startsWith('/api/bounty')){
+      if(!validToken(req)){response(res,403,{message:'Open Voyager Control › Bounty Hunt.'});return;} // only the streamer can start a hunt
+      if(url.pathname==='/api/bounty'&&req.method==='GET'){response(res,200,{...bounty.view(),ticketGrants:ticketGranter.view(),ticketAction:await actionStatus('Voyager - Ticket Giveaway'),connected:bot.status.connected});return;}
+      if(req.method!=='POST'||!req.headers['content-type']?.startsWith('application/json')){response(res,405,{message:'Method not allowed.'});return;}
+      try{const input=await body(req,8192);
+        if(url.pathname==='/api/bounty/settings'){response(res,200,{ok:true,...bounty.configure(input||{})});return;}
+        if(url.pathname==='/api/bounty/start'){if(boss.active())throw new Error('Finish the Dreadnought fight first.');if(prospect.run)throw new Error('Finish the Prospect Run first.');response(res,200,{ok:true,...bounty.start({practice:input?.practice===true})});return;}
+        if(url.pathname==='/api/bounty/stop'){response(res,200,{ok:true,...bounty.stop()});return;}
         response(res,404,{message:'Not found.'});
       }catch(e){response(res,400,{message:e.message||'That did not work.'});}
       return;
@@ -583,6 +604,7 @@ let ticks=0,lastStatsAsk=0,lastPointsAsk=0;const timer=setInterval(()=>{
   if(ticks%300===7)void intel.tick().catch(()=>{});
   try{doorframe.tick();}catch{}
   try{prospect.tick();}catch{}
+  try{bounty.tick();}catch{}
   try{raffle.tick();}catch{}
   if(ticks%100===33)void requests.poll().catch(()=>{}); // every 10 s
   if(ticks%10===5)void rotation.tick({stageUp:!!stage.mode(...stageState()),connected:bot.status.connected}).catch(()=>{});

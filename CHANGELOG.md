@@ -2,6 +2,24 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.37.0 (18 November 2026)
+
+**Bounty Hunt, and Prospect Run restyled to match the Dreadnought. Both now name an MVP.**
+
+- **New game: Bounty Hunt** (Games & events › Bounty Hunt). Only you can start it. A wanted ship is hiding in a sector and chat has four minutes to close a search ring onto it before it jumps away. Three ways to help, the same shape as the Dreadnought:
+  - **Free:** `!track` (or `!hunt`) joins the hunt and tightens the ring, once every 8 seconds per person.
+  - **Cheers:** Bits and Super Chats of 100 or more fire a scanner pulse that tightens the ring faster, capped per cheer.
+  - **Gift subs:** each gifted sub launches a wingman that keeps tightening the ring until the hunt ends.
+- **Tickets:** on a capture, every hunter who typed `!track` at least once gets 5 tickets for the active ticketed giveaway, and the **MVP 2 more** (both adjustable). If the target jumps, nobody is paid. Cheers and gifts help the whole crew but do not earn tickets by themselves, cannot land the final fix, and by default do not count toward MVP (the MVP is the hunter with the most `!track` counts; there is a switch if you want paid help to count).
+- **The hunt scales itself:** the ring needs 10 fixes plus 8 for every hunter.
+- **On screen, in the Dreadnought's style** (one OBS Browser source, 1920 × 1080, `/control/Voyager_Bounty_Overlay.html`): a wanted splash with a countdown to join, the target's nameplate with a position-fix bar, the clock, a hunters panel with the top five and an MVP tag, the feed, the three-way command legend, banners for scanner pulses and wingmen, the capture with lock-on brackets and a flash, and a result card that names the MVP. `?preview=1` plays a sample hunt.
+- **Prospect Run restyled to match.** The contract card is now a Dreadnought-style splash with a countdown; the phase has a nameplate and an objective bar (rock broken, pirate hull, votes to sell); there is a clock, a crew panel with the top five and an MVP tag, a feed, a legend that lights the current command, banners (Rock cracked, Interdicted, Pirate destroyed, Sold) and a result card with the MVP. The 3D scene and the mining, hauling and selling gauges are unchanged.
+- **Prospect Run MVP:** the crew member with the most commands that counted gets 2 extra tickets (new setting; 0 turns it off). Prospect Run is still free-only.
+- **Medals:** Bounty Hunter (captures helped), Dead Reckoning (MVP of a Bounty Hunt or a Prospect Run) and one secret. **Missions:** join Bounty Hunts, help capture a bounty.
+- **Website:** a Bounty Hunt card on the Live tab while a hunt is on, a Home tile, and `!track` in the command list.
+- Practice hunt, call it off, on/off switch, recent hunts and the ticket-grant status are on the Bounty Hunt page. A hunt cannot be started while a Dreadnought fight or a Prospect Run is under way.
+- Not yet run with real chat, cheers or gifted subs: do a practice hunt first. The member manual PDF has not been updated for this release.
+
 ## 2.36.0 (18 November 2026)
 
 **Update any member's lifetime points.**

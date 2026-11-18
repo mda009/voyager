@@ -1,0 +1,132 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Voyager • OBS Bounty Hunt</title><link rel="icon" href="brand-assets/voyager.png">
+<link rel="stylesheet" href="voyager-game-hud.css?v=2.37.0">
+<style>
+/* Voyager Bounty Hunt stage (2.37.0): an OBS browser source, 1920 × 1080 (any 16:9 size works). Invisible until a hunt is
+   started from Voyager Control › Bounty Hunt. Reads /api/bounty/overlay from the local host and draws the sector map (the
+   search ring closing on the hidden target, hunter ships, scanner pulses, wingmen) under the same HUD as the Dreadnought:
+   lobby splash, nameplate and bar, clock, fleet panel with the MVP, feed, legend, banners and the result card.
+   ?preview=1 plays a simulated hunt for placing the source; ?backdrop=0 leaves the background transparent. */
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:transparent}
+#stage{position:absolute;left:0;top:0;width:1920px;height:1080px;transform-origin:0 0;opacity:0;transition:opacity .8s;overflow:hidden}
+#stage.on{opacity:1}
+#cv{position:absolute;inset:0;width:1920px;height:1080px}
+</style></head>
+<body><div id="stage">
+ <canvas id="cv" width="1920" height="1080"></canvas>
+ <div class="gh" id="hud">
+  <div class="gh-plate" id="plate" hidden><div class="eyebrow">⚠ WANTED · BOUNTY POSTED</div><div class="name" id="name"></div><div class="gh-bar" id="fix"><i></i><u style="left:50%"></u><u style="left:80%"></u><span id="fixtext"></span></div><div class="gh-tags" id="tags"></div></div>
+  <div class="gh-clock" id="clock" hidden><small>JUMPS IN</small><b id="clocktime">4:00</b></div>
+  <div class="gh-fleet" id="fleet" hidden><div class="head"><img src="brand-assets/voyager.png" alt=""><div>VOYAGER HUNTERS<b id="count">0 hunters</b></div></div><div class="gh-line"><span>POSITION FIX</span><b id="fixnum">0%</b><i id="wing"></i></div><ol class="gh-leaders" id="leaders"></ol></div>
+  <div class="gh-feed" id="feed"></div>
+  <div class="gh-legend" id="legend" hidden><div class="l1"><b>!track</b><small>FREE · TIGHTEN THE RING</small></div><div class="l2"><b>CHEERS</b><small>BITS · SUPER CHATS · SCANNER PULSE</small></div><div class="l3"><b>GIFT SUBS</b><small>LAUNCH WINGMEN</small></div></div>
+  <div class="gh-card lobby" id="lobby" hidden><div class="eyebrow">⚠ BOUNTY POSTED</div><h1 id="lobbytitle"></h1><p id="lobbysub"></p><div class="big" id="lobbytime">30</div><p><span class="cmd">!track</span> to join the hunt</p><p id="lobbycount">0 hunters signed on</p></div>
+  <div class="gh-card" id="result" hidden><div class="eyebrow" id="resulteyebrow">HUNT REPORT</div><h1 id="resulttitle"></h1><div class="mvp" id="resultmvp" hidden><i>MVP</i><span id="mvpname"></span><small id="mvpline"></small></div><p id="resultline"></p><div class="stats" id="resultstats"></div></div>
+  <div class="gh-banner" id="banner"></div><div class="gh-flash" id="flash"></div>
+  <div class="gh-preview" id="preview-tag" hidden>PREVIEW · SIMULATED CHAT</div>
+ </div>
+</div>
+<script>
+(()=>{'use strict';
+const $=id=>document.getElementById(id),cv=$('cv'),g=cv.getContext('2d'),q=new URLSearchParams(location.search),preview=q.has('preview'),backdrop=q.get('backdrop')!=='0',W=1920,H=1080;
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+let S=null,offset=0,phase='',huntId='',seen=0,resultAt=0,feedKey='',leadKey='';
+const pulses=[],pings=new Map(),sparks=[],labels=new Map(),born=new Map();
+const stars=Array.from({length:220},(_,i)=>({x:(i*397)%W,y:(i*653)%H,r:.7+(i%5)*.4,p:i*.7}));
+const setText=(id,v)=>{const e=$(id);if(e.textContent!==v)e.textContent=v;};
+const cl=(x,a=0,b=1)=>Math.max(a,Math.min(b,x)),fmt=n=>Number(n).toLocaleString('en');
+const mmss=ms=>{const t=Math.max(0,Math.ceil(ms/1000));return Math.floor(t/60)+':'+String(t%60).padStart(2,'0');};
+function banner(text){const b=$('banner');b.textContent=text;b.classList.remove('go');void b.offsetWidth;b.classList.add('go');}
+function flash(){const f=$('flash');f.classList.remove('go');void f.offsetWidth;f.classList.add('go');}
+function feed(text,cls){const d=document.createElement('div');d.className=cls||'';d.textContent=text;const f=$('feed');f.prepend(d);while(f.children.length>5)f.lastChild.remove();}
+// ---- geometry: the target sits right of centre; the ring starts wide and off to one side, and closes onto it ----
+function geo(h){const tx=1010+Math.cos(h.angle)*230,ty=590+Math.sin(h.angle)*110,k=cl(h.fix),e=1-Math.pow(1-k,1.6),ox=-Math.cos(h.angle+.9)*330,oy=-Math.sin(h.angle+.9)*170;
+  return {tx,ty,x:tx+ox*(1-e),y:ty+oy*(1-e),r:430-(430-52)*e};}
+function ship(x,y,a,size,col){g.save();g.translate(x,y);g.rotate(a);g.fillStyle=col;g.shadowColor=col;g.shadowBlur=16;g.beginPath();g.moveTo(size,0);g.lineTo(-size*.7,size*.6);g.lineTo(-size*.35,0);g.lineTo(-size*.7,-size*.6);g.closePath();g.fill();g.restore();}
+function events(h,now){
+  for(const e of h.events||[]){if(e.seq<=seen)continue;seen=e.seq;
+    if(e.kind==='track'){pings.set(e.name,now);labels.set(e.name,now);}
+    else if(e.kind==='join'){labels.set(e.name,now);feed(e.name+' joined the hunt','join');}
+    else if(e.kind==='scan'){pulses.push({name:e.name,at:now});labels.set(e.name,now);feed('⚡ '+e.name+' cheered '+fmt(e.amount)+' · scanner pulse','bits');banner('SCANNER PULSE · '+e.name.toUpperCase());}
+    else if(e.kind==='wing'){feed('★ '+e.name+' gifted '+e.amount+' sub'+(e.amount===1?'':'s')+' · wingm'+(e.amount===1?'an':'en')+' launched','gift');banner('WINGMEN LAUNCHED · '+e.name.toUpperCase());}}
+}
+function hud(h,now){
+  if(h.id!==huntId){huntId=h.id;phase='';$('feed').textContent='';pulses.length=0;pings.clear();labels.clear();born.clear();sparks.length=0;const qs=(h.events||[]).map(e=>e.seq);seen=!qs.length?seen:h.phase==='lobby'?Math.min(...qs)-1:Math.max(...qs);} // joining mid-hunt: do not replay what already happened
+  if(h.phase!==phase){const was=phase;phase=h.phase;
+    $('lobby').hidden=phase!=='lobby';for(const id of ['plate','clock','fleet','legend'])$(id).hidden=phase==='lobby';$('result').hidden=true;
+    if(phase==='hunt'&&was)banner('THE HUNT IS ON');
+    if(phase==='result'){resultAt=now;const r=h.result||{};if(r.outcome==='captured'){flash();banner('TARGET ACQUIRED');const p=geo({...h,fix:1});for(let i=0;i<90;i++){const a=Math.random()*6.28,v=3+Math.random()*10;sparks.push({x:p.tx,y:p.ty,vx:Math.cos(a)*v,vy:Math.sin(a)*v,l:1,c:i%3?'#f2cd73':'#72d8ff'});}}
+      else if(r.outcome==='escaped')banner('TARGET JUMPED');}}
+  events(h,now);
+  const left=h.phaseEndsAt-now,n=h.hunters;
+  if(phase==='lobby'){setText('lobbytitle',h.target.name);setText('lobbysub',h.target.ship+' · last seen in '+h.target.zone+(h.practice?' · practice hunt':''));setText('lobbytime',String(Math.max(0,Math.ceil(left/1000))));setText('lobbycount',n+' hunter'+(n===1?'':'s')+' signed on');return;}
+  setText('name',h.target.name);const pct=Math.floor(cl(h.fix)*100);$('fix').firstElementChild.style.transform='scaleX('+cl(h.fix)+')';setText('fixtext','POSITION FIX '+pct+'%');setText('fixnum',pct+'%');
+  setText('count',n+' hunter'+(n===1?'':'s'));setText('wing',h.wingmen?h.wingmen+' WINGM'+(h.wingmen===1?'AN':'EN'):'');
+  const low=phase==='hunt'&&left<30000;$('clock').classList.toggle('low',low);setText('clocktime',phase==='hunt'?mmss(left):mmss((h.result?.secondsLeft||0)*1000));
+  const tk=[h.target.ship,h.target.zone,h.practice,low,h.wingmen].join('|');if($('tags').dataset.k!==tk){$('tags').dataset.k=tk;const T=$('tags');T.textContent='';const add=(t,c)=>{const b=document.createElement('b');b.textContent=t;if(c)b.className=c;T.append(b);};
+    add(h.target.ship.toUpperCase()+' · '+h.target.zone.toUpperCase());if(h.practice)add('PRACTICE · NO TICKETS','cy');else add('REWARD '+h.tickets+' TICKET'+(h.tickets===1?'':'S')+' EACH','gd');if(low)add('JUMP IMMINENT','rage');}
+  const lk=JSON.stringify(h.leaders||[]);if(lk!==leadKey){leadKey=lk;const ol=$('leaders');ol.textContent='';(h.leaders||[]).forEach((p,i)=>{const li=document.createElement('li'),r=document.createElement('span');r.className='r';r.textContent=String(i+1);const dot=document.createElement('span');dot.className='p '+p.platform;const nm=document.createElement('span');nm.className='n';nm.textContent=p.name;const d=document.createElement('span');d.className='d';d.textContent=p.score?fmt(p.score):'READY';if(i===0&&p.score>0)li.className='mvp';li.append(r,dot,nm,d);ol.append(li);});}
+  // The result card follows the capture (or the escape) animation.
+  if(phase==='result'&&h.result&&$('result').hidden&&now-resultAt>(h.result.outcome==='captured'?2800:h.result.outcome==='escaped'?1500:300)){
+    const r=h.result,win=r.outcome==='captured',card=$('result');card.className='gh-card '+(win?'win':'lost');
+    setText('resulteyebrow',win?'★ BOUNTY CLAIMED':r.outcome==='empty'?'NO HUNTERS':'☠ TARGET LOST');setText('resulttitle',win?r.target+' captured':r.outcome==='empty'?'The bounty stays open':r.target+' escaped');
+    $('resultmvp').hidden=!(win&&r.mvp);if(r.mvp){setText('mvpname',r.mvp.name);setText('mvpline',r.mvp.tracks+' TRACK'+(r.mvp.tracks===1?'':'S')+(r.mvpTickets?' · +'+r.mvpTickets+' TICKET'+(r.mvpTickets===1?'':'S'):''));}
+    setText('resultline',win?(r.practice?'Practice hunt: no tickets. Great work, hunters.':r.tickets?'Every hunter who tracked earns '+r.tickets+' giveaway ticket'+(r.tickets===1?'':'s'):'Great work, hunters'):r.outcome==='empty'?'Nobody took the bounty this time.':'The fix reached '+r.fix+'%. No tickets are awarded.');
+    const st=$('resultstats');st.textContent='';for(const [label,value] of [['HUNTERS',r.hunters],['!TRACK FIXES',fmt(r.tracks)],['GIFTED SUBS',r.gifts],[win?'TIME TO SPARE':'POSITION FIX',win?mmss(r.secondsLeft*1000):r.fix+'%']]){const x=document.createElement('div'),b=document.createElement('b');b.textContent=String(value);x.append(b,label);st.append(x);}
+    card.hidden=false;for(const id of ['plate','clock','fleet','legend'])$(id).hidden=true;$('feed').textContent='';}
+}
+function draw(h,now,dt){
+  g.clearRect(0,0,W,H);
+  if(backdrop){const bg=g.createRadialGradient(620,260,0,960,540,1300);bg.addColorStop(0,'#14233a');bg.addColorStop(1,'#04070d');g.fillStyle=bg;g.fillRect(0,0,W,H);}
+  for(const st of stars){g.globalAlpha=.3+.35*Math.sin(now/900+st.p);g.fillStyle='#cfe6ff';g.beginPath();g.arc(st.x,st.y,st.r,0,6.28);g.fill();}g.globalAlpha=1;
+  g.strokeStyle='rgba(114,216,255,.06)';g.lineWidth=1;for(let x=120;x<W;x+=120){g.beginPath();g.moveTo(x,0);g.lineTo(x,H);g.stroke();}for(let y=120;y<H;y+=120){g.beginPath();g.moveTo(0,y);g.lineTo(W,y);g.stroke();}
+  if(!h||h.phase==='lobby')return;
+  if(h.phase==='result'&&!$('result').hidden)return; // the result card has the screen
+  const p=geo(h),res=h.phase==='result',out=h.result?.outcome,since=now-resultAt,tt=now/1000;
+  // the search ring and its radar sweep
+  const fade=res?Math.max(0,1-since/700):1;if(fade>0){g.globalAlpha=fade;
+    const gr=g.createRadialGradient(p.x,p.y,0,p.x,p.y,p.r);gr.addColorStop(0,'rgba(242,205,115,.02)');gr.addColorStop(1,'rgba(242,205,115,.11)');g.fillStyle=gr;g.beginPath();g.arc(p.x,p.y,p.r,0,6.28);g.fill();
+    g.strokeStyle='rgba(242,205,115,.9)';g.lineWidth=3;g.setLineDash([18,12]);g.lineDashOffset=-now/40;g.beginPath();g.arc(p.x,p.y,p.r,0,6.28);g.stroke();g.setLineDash([]);
+    const sw=now/700;if(g.createConicGradient){const cone=g.createConicGradient(sw-1.1,p.x,p.y);cone.addColorStop(0,'rgba(114,216,255,0)');cone.addColorStop(.175,'rgba(114,216,255,.18)');cone.addColorStop(.176,'rgba(114,216,255,0)');g.fillStyle=cone;g.beginPath();g.arc(p.x,p.y,p.r,0,6.28);g.fill();}
+    g.strokeStyle='rgba(114,216,255,.6)';g.lineWidth=2;g.beginPath();g.moveTo(p.x,p.y);g.lineTo(p.x+Math.cos(sw)*p.r,p.y+Math.sin(sw)*p.r);g.stroke();g.globalAlpha=1;}
+  // hunters ride the ring; a ping and a name show who just tracked
+  const spin=reduce?0:1,pos=new Map();
+  for(const s of h.ships||[]){if(!born.has(s.n))born.set(s.n,now);const a=s.n*2.39996+tt*(.22+(s.n%5)*.05)*spin,k=cl((now-born.get(s.n))/900),rr=p.r+(1-k)*520,x=p.x+Math.cos(a)*rr,y=p.y+Math.sin(a)*rr;pos.set(s.name,{x,y});
+    ship(x,y,a+1.57,14,'#72d8ff');
+    const pg=pings.get(s.name);if(pg&&now-pg<700){const kk=(now-pg)/700;g.strokeStyle='rgba(114,216,255,'+(1-kk)+')';g.lineWidth=2;g.beginPath();g.arc(x,y,12+kk*46,0,6.28);g.stroke();g.beginPath();g.moveTo(x,y);g.lineTo(x+(p.x-x)*.4,y+(p.y-y)*.4);g.stroke();}
+    const lb=labels.get(s.name);if(lb&&now-lb<2400){g.globalAlpha=cl((2400-(now-lb))/500);g.font='700 22px Rajdhani,sans-serif';g.textAlign='center';g.lineWidth=4;g.strokeStyle='rgba(4,8,14,.8)';g.strokeText(s.name,x,y-24);g.fillStyle='#edf6ff';g.fillText(s.name,x,y-24);g.globalAlpha=1;}}
+  for(let i=0;i<(h.wingmen||0);i++){const a=-(i*1.9+tt*(.55+(i%4)*.06)*spin),rr=p.r+64+(i%3)*18;ship(p.x+Math.cos(a)*rr,p.y+Math.sin(a)*rr,a-1.57,11,'#7ff0b5');}
+  // scanner pulses sweep out from the cheerer's ship
+  for(let i=pulses.length-1;i>=0;i--){const u=pulses[i],k=(now-u.at)/1600;if(k>=1){pulses.splice(i,1);continue;}const o=pos.get(u.name)||{x:p.x,y:p.y};g.strokeStyle='rgba(255,154,74,'+(1-k)+')';g.lineWidth=7*(1-k)+1;g.beginPath();g.arc(o.x,o.y,k*780,0,6.28);g.stroke();}
+  // the target: hidden until it is caught, or streaking away
+  if(res&&out==='captured'){const k=cl(since/900);ship(p.tx,p.ty,-.6,30,'#ff4d5e');g.strokeStyle='#f2cd73';g.lineWidth=5;const d=130-76*k;
+    for(const [sx,sy] of [[-1,-1],[1,-1],[1,1],[-1,1]]){g.beginPath();g.moveTo(p.tx+sx*d,p.ty+sy*(d-36));g.lineTo(p.tx+sx*d,p.ty+sy*d);g.lineTo(p.tx+sx*(d-36),p.ty+sy*d);g.stroke();}}
+  if(res&&out==='escaped'){const k=cl(since/1000),x=p.tx+k*k*1500,y=p.ty-k*k*520;if(k<1){g.strokeStyle='rgba(255,77,94,'+(1-k)+')';g.lineWidth=9;g.beginPath();g.moveTo(p.tx,p.ty);g.lineTo(x,y);g.stroke();ship(x,y,-.35,30,'#ff4d5e');}}
+  for(let i=sparks.length-1;i>=0;i--){const s=sparks[i];s.x+=s.vx;s.y+=s.vy;s.vy+=.12;s.l-=dt*.6;if(s.l<=0){sparks.splice(i,1);continue;}g.globalAlpha=s.l;g.fillStyle=s.c;g.beginPath();g.arc(s.x,s.y,4,0,6.28);g.fill();}g.globalAlpha=1;
+}
+// ---- ?preview=1: a simulated hunt on a loop, so the source can be placed and sized ----
+const DEMO=['StarboundAce','NebulaRunner','OrbitKeeper','AuroraPilot','NovaCaptain','CometRider','LunarScout','VoidWalker','AetherFox','StellarEcho','IonWarden','QuasarLane'];
+let demo=null;
+function sim(now){
+  if(!demo||now>demo.end){const t=now;demo={id:'preview'+t,t0:t,end:t+6000+38000+13000,events:[],seq:seen,tracks:DEMO.map(()=>0),joined:0,wing:0,next:t+500,scan:false,gift:false};}
+  const d=demo,e=now-d.t0,ph=e<6000?'lobby':e<44000?'hunt':'result',he=cl((e-6000)/38000);
+  if(now>=d.next&&ph!=='result'){d.next=now+(ph==='lobby'?900:420);if(d.joined<DEMO.length&&(ph==='lobby'?d.joined<5:Math.random()<.25)){d.events.push({seq:++d.seq,kind:'join',name:DEMO[d.joined],amount:0});d.joined++;}
+    else if(ph==='hunt'&&d.joined){const i=Math.floor(Math.pow(Math.random(),1.6)*d.joined);d.tracks[i]++;d.events.push({seq:++d.seq,kind:'track',name:DEMO[i],amount:d.tracks[i]});}
+    if(ph==='hunt'&&!d.scan&&he>.3){d.scan=true;d.events.push({seq:++d.seq,kind:'scan',name:DEMO[1],amount:500});}
+    if(ph==='hunt'&&!d.gift&&he>.55){d.gift=true;d.wing=3;d.events.push({seq:++d.seq,kind:'wing',name:DEMO[2],amount:3});}}
+  const lead=DEMO.slice(0,d.joined).map((name,i)=>({name,platform:['twitch','youtube','kick'][i%3],tracks:d.tracks[i],score:d.tracks[i]})).sort((a,b)=>b.score-a.score),target={name:'“Nine-Tails” Marrow',ship:'Marauder gunship',zone:'the Kessel Drift'};
+  const base={id:d.id,practice:false,target,angle:.6,hunters:d.joined,wingmen:d.wing,pace:8000,leaders:lead.slice(0,5),ships:DEMO.slice(0,d.joined).map((name,n)=>({n,name,platform:'twitch'})),events:d.events.slice(-16),tickets:5,mvpTickets:2,result:null};
+  if(ph==='lobby')return {...base,phase:'lobby',phaseAt:d.t0,phaseEndsAt:d.t0+6000,fix:0};
+  if(ph==='hunt')return {...base,phase:'hunt',phaseAt:d.t0+6000,phaseEndsAt:d.t0+6000+240000*(1-he)+(now-d.t0-6000),fix:Math.min(.995,he*1.02)};
+  return {...base,phase:'result',phaseAt:d.t0+44000,phaseEndsAt:d.end,fix:1,result:{outcome:'captured',target:target.name,hunters:d.joined,tracks:d.tracks.reduce((a,b)=>a+b,0),bits:500,gifts:3,fix:100,secondsLeft:47,tickets:5,mvpTickets:2,practice:false,mvp:lead[0]?{name:lead[0].name,platform:lead[0].platform,tracks:lead[0].tracks}:null,finalFix:lead[0]?.name||''}};
+}
+let lastT=0;
+function frame(t){const dt=Math.min(.05,Math.max(0,(t-lastT)/1000));lastT=t;const now=Date.now()+offset;
+  if(preview&&(!S||String(S.id).startsWith('preview')))S=sim(now);
+  $('stage').classList.toggle('on',!!S);$('preview-tag').hidden=!(preview&&S&&String(S.id).startsWith('preview'));
+  if(S){hud(S,now);draw(S,now,dt);}
+  requestAnimationFrame(frame);}
+async function poll(){try{const d=await(await fetch('/api/bounty/overlay',{cache:'no-store'})).json();offset=d.serverAt-Date.now();if(d.hunt)S=d.hunt;else if(S&&!String(S.id).startsWith('preview')){S=null;phase='';huntId='';}}catch{}setTimeout(poll,400);}
+const fit=()=>{$('stage').style.transform='scale('+Math.min(innerWidth/1920,innerHeight/1080)+')';};addEventListener('resize',fit);fit();
+poll();requestAnimationFrame(frame);
+})();
+</script></body></html>

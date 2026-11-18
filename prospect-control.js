@@ -10,7 +10,7 @@ async function api(path,body){
   const d=await r.json().catch(()=>({}));if(!r.ok||d.ok===false)throw new Error(d.message||'Voyager answered '+r.status);return d;
 }
 const ago=t=>{const s=Math.round((Date.now()-t)/1000);return s<60?'just now':s<3600?Math.round(s/60)+' min ago':s<86400?Math.round(s/3600)+' h ago':new Date(t).toLocaleDateString([],{day:'numeric',month:'short'});};
-const NUMS=['ticketsGold','ticketsSilver','ticketsBronze','ticketsFail','scoreGold','scoreSilver','contractSeconds','mineSeconds','haulSeconds','sellSeconds','cooldownSeconds'];
+const NUMS=['ticketsGold','ticketsSilver','ticketsBronze','ticketsFail','mvpTickets','scoreGold','scoreSilver','contractSeconds','mineSeconds','haulSeconds','sellSeconds','cooldownSeconds'];
 function fill(){const f=$('settings-form'),s=view.settings;f.announce.checked=s.announce;for(const k of NUMS)f[k].value=s[k];}
 function render(){
   const r=view.run,s=view.settings,left=Math.ceil((view.cooldownLeft||0)/1000),pill=$('state-pill');
@@ -24,7 +24,7 @@ function render(){
   else if(r.phase==='mine')now.append(el('b','',r.cracked?'Rock cracked':'Charge '+Math.round(r.charge*100)+'%'),document.createTextNode(' · rock '+Math.round(r.crack*100)+'% broken · '+r.ore+' CU so far · '+r.crew+' aboard'+(r.over?' · ore has been lost to overcharge':'')));
   else if(r.phase==='haul')now.append(el('b','',r.pirate?(r.killedAt?'Pirate destroyed':'Pirate '+r.pirate.hp+' / '+r.pirate.max):'Jump drive spooling'),document.createTextNode(' · cargo '+r.cargo+' CU'+(r.lost?' ('+r.lost+' lost)':'')));
   else if(r.phase==='sell')now.append(el('b','','×'+(r.price||1).toFixed(2)),document.createTextNode(' · '+r.votes+' of '+r.need+' votes to sell · cargo '+r.cargo+' CU'+(r.soldAt?' · SOLD':'')));
-  else if(r.result)now.append(el('b','',r.result.title),document.createTextNode(' · haul score '+r.result.score+' · '+(r.result.practice?'practice run, no tickets':r.result.tickets+' ticket'+(r.result.tickets===1?'':'s')+' each for '+r.result.crew+' crew')));
+  else if(r.result)now.append(el('b','',r.result.title),document.createTextNode(' · haul score '+r.result.score+' · '+(r.result.practice?'practice run, no tickets':r.result.tickets+' ticket'+(r.result.tickets===1?'':'s')+' each for '+r.result.crew+' crew')+(r.result.mvp?' · MVP '+r.result.mvp.name:'')));
   const st=$('stats'),x=view.stats;st.textContent='';for(const [k,v] of [['Runs',x.runs],['Gold',x.gold],['Silver',x.silver],['Bronze',x.bronze],['Cargo lost',x.fail],['Best score',x.best],['CU delivered',x.delivered]]){const d=el('div','pr-st');d.append(el('small','',k),el('b','',String(v)));st.append(d);}
   const h=$('history');h.textContent='';if(!view.history.length)h.append(el('li','muted','No runs yet. A practice run is a good first try.'));
   for(const g of view.history){const li=el('li');li.append(el('span','',g.title+' · score '+g.score+' · '+g.cargo+' CU at ×'+Number(g.price).toFixed(2)+' · '+g.crew+' crew · '+g.tickets+' ticket'+(g.tickets===1?'':'s')+' each'),el('small','',ago(g.at)));h.append(li);}

@@ -585,6 +585,11 @@ header.top{position:sticky;top:0;z-index:25;margin:0 -16px;padding:10px 16px;bac
   <div class="card dread" id="raffle-card"></div>
  </section>
 
+ <section id="bounty" data-tab="live" aria-labelledby="h-bounty" hidden>
+  <h2 id="h-bounty">Bounty Hunt</h2><p class="lede">A crew hunt in chat: close the search ring on a wanted ship before it jumps. Every hunter who tracks earns giveaway tickets on a capture.</p>
+  <div class="card dread" id="bounty-card"></div>
+ </section>
+
  <section id="prospect" data-tab="live" aria-labelledby="h-prospect" hidden>
   <h2 id="h-prospect">Prospect Run</h2><p class="lede">A crew contract in chat: mine the rock, jump the cargo home, sell at the peak. Everyone who flies earns giveaway tickets.</p>
   <div class="card dread" id="prospect-card"></div>
@@ -741,7 +746,7 @@ header.top{position:sticky;top:0;z-index:25;margin:0 -16px;padding:10px 16px;bac
  <footer><p id="updated">Updates every few minutes while the stream tools are running.</p><p><a href="manual.pdf" target="_blank" rel="noopener">Voyager member manual (PDF)</a></p><p>Voyager community site. Giveaway entry happens in stream chat only; this site never asks for passwords or payment.</p></footer>
 </div>
 <script src="fair-draw.js"></script>
-<script src="companion.js?v=2.35.0" defer></script>
+<script src="companion.js?v=2.37.0" defer></script>
 <script>
 (()=>{'use strict';
 // ?embed=1: shown inside another site. Report our height so the host page can size its frame.
@@ -789,6 +794,8 @@ const COMMANDS=[
   [['!shoot'],'Cannons: a second free attack for half of !fire\'s damage, on its own cooldown — use both.','During the fight, alongside !fire.',['Short cooldown','Half damage','During the fight']]]],
  ['Raffle','A quick raffle MDA opens during the stream. One ticket each with a random number; up to 5 winning tickets are drawn on stream and each winner gets giveaway tickets.',[
   [['!join','!raffle'],'While a raffle is open, gives you a raffle ticket with a random four-digit number. Chat confirms your number and it shows on the raffle panel.','While a raffle is open (10 minutes).',['One ticket each','All platforms','Free']]]],
+ ['Bounty Hunt','A crew hunt MDA starts: a wanted ship is hiding and chat closes a search ring on it before it jumps. Every hunter who tracked earns giveaway tickets on a capture, and the MVP a few more.',[
+  [['!track','!hunt'],'Joins the hunt, then tightens the search ring each time it counts. Cheers fire a scanner pulse and gifted subs launch wingmen that help the whole crew, but only !track earns tickets.','From the moment the bounty is posted until the target is caught or jumps.',['8 seconds','Free','All platforms']]]],
  ['Prospect Run','A crew contract MDA starts: mine the rock, jump the cargo home through a pirate interdiction, sell it at the peak. Type any of the three during a run and you are on the crew. Everyone who flew earns giveaway tickets: 8 for a Gold haul, 5 for Silver, 3 for Bronze.',[
   [['!mine'],'Phase 1: keeps your laser on the rock for 10 seconds. About half the miners at a time holds the charge in the green window; everyone at once overcharges it and loses ore.','While the rock is being mined. Take turns rather than spamming.',['6 seconds','Mining phase']],
   [['!fire'],'Phase 2: hits the pirate that pulls the freighter out of the jump. The longer it lives, the more cargo is shot loose.','As soon as the interdiction alarm shows.',['6 seconds','Hauling phase']],
@@ -998,7 +1005,8 @@ const MISSION_TEXT={streamDays:(n)=>'Earn points on '+n+' different stream day'+
  watchHours:(n,p)=>'Watch '+n+' hour'+(n===1?'':'s')+' live'+(ON[p]||'')+' this week',chatMessages:(n,p)=>'Send '+fmt(n)+' chat messages'+(ON[p]||'')+' this week',streamStreak:(n)=>'Share a Twitch watch streak of '+n+' streams in chat',
  dreadFights:(n)=>'Join '+(n===1?'a Dreadnought fight':n+' Dreadnought fights')+' this week (!join)',dreadVictory:(n)=>'Be in the fleet for '+(n===1?'a Dreadnought victory':n+' Dreadnought victories')+' this week',
  dreadDamage:(n)=>'Deal '+fmt(n)+' damage to the Dreadnought this week',dreadMvp:(n)=>'Finish '+(n===1?'a Dreadnought fight':n+' fights')+' as MVP this week',torpedo:(n)=>'Fire '+(n===1?'a torpedo':n+' torpedoes')+' (gift a sub during a Dreadnought fight)',
- prospectRuns:(n)=>'Fly '+(n===1?'a Prospect Run':n+' Prospect Runs')+' this week (!mine, !fire, !sell)',prospectGold:(n)=>'Be on the crew for '+(n===1?'a Gold haul':n+' Gold hauls')+' this week',prospectRocks:(n)=>'Help crack the rock on '+(n===1?'a Prospect Run':n+' Prospect Runs')+' this week (!mine)'};
+ prospectRuns:(n)=>'Fly '+(n===1?'a Prospect Run':n+' Prospect Runs')+' this week (!mine, !fire, !sell)',prospectGold:(n)=>'Be on the crew for '+(n===1?'a Gold haul':n+' Gold hauls')+' this week',prospectRocks:(n)=>'Help crack the rock on '+(n===1?'a Prospect Run':n+' Prospect Runs')+' this week (!mine)',
+ bountyHunts:(n)=>'Join '+(n===1?'a Bounty Hunt':n+' Bounty Hunts')+' this week (!track)',bountyCaptures:(n)=>'Help capture '+(n===1?'a bounty':n+' bounties')+' this week (!track)'};
 const GOAL_TEXT={support:'subs, renewals and gifted subs',subs:'subs and renewals',gifts:'gifted subs',activeSubs:'Twitch active subscribers',points:'Voyager points earned by the crew',versus:'Voyager Versus wins'};
 function renderMissions(){
  const m=feed.missions,box=$('mission-list');box.textContent='';$('missions').hidden=!m||!m.list?.length;if(!m)return;

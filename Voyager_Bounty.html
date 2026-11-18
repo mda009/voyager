@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Voyager • Bounty Hunt</title>
+<link rel="icon" href="brand-assets/voyager.png">
+<link rel="stylesheet" href="stream-command.css">
+<link rel="stylesheet" href="voyager-brand.css">
+<link rel="stylesheet" href="settings.css?v=2.18">
+<link rel="stylesheet" href="community.css?v=2.20.48">
+<link rel="stylesheet" href="voyager-glass.css?v=2.21.0">
+<style>
+/* Prospect Run (2.33.0): mine, haul, sell — the crew game only you can start. */
+.pr-grid{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:16px;align-items:start}
+.pr-card{padding:18px 22px;display:flex;flex-direction:column;gap:12px}
+.pr-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.pr-frame{position:relative;width:100%;aspect-ratio:16/9;border:1px solid rgba(151,223,255,.18);border-radius:12px;background:radial-gradient(circle at 30% 20%,#1b2d4a,#070c15 70%);overflow:hidden}
+.pr-frame iframe{position:absolute;left:0;top:0;width:1280px;height:720px;max-width:none;border:0;transform-origin:0 0;display:block}
+.pr-now{padding:12px 14px;border:1px solid rgba(151,223,255,.14);background:rgba(8,15,24,.45);border-radius:12px;font-size:14px;color:#c9d7e4}
+.pr-now b{color:#ffd56a}
+.pr-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px}
+.pr-st{display:flex;flex-direction:column;gap:4px;padding:12px 14px;border:1px solid rgba(151,223,255,.14);background:rgba(8,15,24,.45);border-radius:12px}
+.pr-st small{font:700 11px/1 Rajdhani,'Segoe UI',sans-serif;letter-spacing:1.6px;color:#8ea6bd;text-transform:uppercase}
+.pr-st b{font:700 22px/1.1 Rajdhani,'Segoe UI',sans-serif;color:#e6eef7}
+.pr-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.pr-form label{display:flex;flex-direction:column;gap:5px;font-size:12px;color:#9ab0c5}
+.pr-form .check{flex-direction:row;align-items:center;gap:8px;font-size:13px;color:#c9d7e4;grid-column:1/-1}
+.pr-form h3{grid-column:1/-1;margin:6px 0 0;font:700 13px/1 Rajdhani,'Segoe UI',sans-serif;letter-spacing:1.6px;color:#8ea6bd;text-transform:uppercase}
+.pr-form input[type=number]{height:36px;padding:0 10px;border:1px solid rgba(151,223,255,.18);background:rgba(8,15,24,.55);color:#e6eef7;font:14px 'Segoe UI',sans-serif;min-width:0}
+.pr-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.pr-step{padding:10px 12px;border:1px solid rgba(151,223,255,.14);background:rgba(8,15,24,.4);border-radius:10px;font-size:13px;color:#c9d7e4;line-height:1.45}
+.pr-step code{display:block;font:700 16px ui-monospace,Consolas,monospace;color:#9fd4ff;margin-bottom:4px}
+.pr-step[data-on=true]{border-color:#ffd56a;background:rgba(255,213,106,.08)}
+.pr-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.pr-list li{display:flex;justify-content:space-between;gap:10px;padding:8px 10px;border:1px solid rgba(151,223,255,.1);background:rgba(8,15,24,.35);font-size:13px;color:#c9d7e4}
+.pr-list small{color:#8ea6bd;white-space:nowrap}.pr-list li.muted{color:#8ea6bd}
+/* 2.33.1: the on/off switch in the header */
+.pr-power{display:inline-flex;align-items:center;gap:8px}
+.pr-power i{width:34px;height:18px;border-radius:9px;background:#2a3648;position:relative;transition:background .2s}
+.pr-power i::after{content:'';position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#8ea6bd;transition:transform .2s,background .2s}
+.pr-power[aria-pressed=true]{border-color:rgba(127,240,181,.5)}.pr-power[aria-pressed=true] i{background:#1d5a40}.pr-power[aria-pressed=true] i::after{transform:translateX(16px);background:#7ff0b5}
+@media(max-width:1100px){.pr-grid{grid-template-columns:1fr}.pr-steps{grid-template-columns:1fr}}
+</style>
+</head>
+<body class="voyager-console voyager-settings voyager-community">
+<div class="shell">
+<aside class="rail"><a class="brand" href="Voyager_Stream_Deck.html"><img class="logo-voyager" src="brand-assets/voyager.png" alt="Voyager membership program" width="68" height="68"><span>VOYAGER<small>MDA009 · MISSION CONTROL</small></span></a></aside>
+<main>
+<header class="top"><div><span class="eyebrow">GAMES &amp; EVENTS</span><h1>Bounty Hunt</h1></div><div class="toolbar"><span class="st-note">Only you can start it · chat plays with !track</span><button type="button" id="power" class="pr-power" aria-pressed="true" title="Turn the game on or off"><i></i><span>Game on</span></button><button type="button" id="practice">Practice hunt (no tickets)</button><button type="button" class="primary" id="start">Start a hunt</button><button type="button" id="stop" hidden>Call it off</button></div></header>
+<p class="st-notice" id="notice" hidden></p>
+<p class="st-notice" id="not-hosted" hidden>Open this page from the Voyager app (or START-VOYAGER-CONTROL.bat).</p>
+
+<div class="pr-grid">
+<div style="display:flex;flex-direction:column;gap:16px">
+<section class="card pr-card">
+<div class="card-heading"><div><span class="eyebrow">ON STREAM</span><h2>The hunt</h2></div><span class="st-pill" id="state-pill" data-state="wait">—</span></div>
+<div class="pr-frame" id="frame"><iframe id="preview" title="Bounty Hunt overlay preview" src="Voyager_Bounty_Overlay.html?preview=1" style="width:1920px;height:1080px"></iframe></div>
+<div class="pr-now" id="now">Press <b>Start a hunt</b>. A wanted splash appears and chat has 30 seconds to join with !track.</div>
+<div class="pr-steps"><div class="pr-step" id="st-free"><code>!track</code>Free. Joins the hunt, then tightens the search ring each time it counts (once every 8 seconds per person). Only !track earns tickets, and only a !track can land the final fix.</div>
+<div class="pr-step" id="st-bits"><code>Cheers</code>Bits and Super Chats (100 or more) fire a scanner pulse that tightens the ring faster, capped per cheer. It helps the whole crew.</div>
+<div class="pr-step" id="st-gift"><code>Gift subs</code>Each gifted sub launches a wingman that keeps tightening the ring by itself until the hunt ends.</div></div>
+<p class="st-hint">Add it in OBS once: Browser source, <b>1920 × 1080</b> (any 16:9 size works), at this address. It is invisible until you start a hunt, and viewers cannot start one. The on-screen display follows the Dreadnought: lobby splash, nameplate and bar, clock, hunter panel with the MVP, feed, banners and the result card.</p>
+<div class="pr-row"><code id="overlay-url" style="font:13px ui-monospace,Consolas,monospace;color:#9fd4ff;background:rgba(151,223,255,.08);padding:6px 8px;border-radius:6px;word-break:break-all"></code><button type="button" id="copy-url">Copy address</button></div>
+</section>
+<section class="card pr-card">
+<div class="card-heading"><div><span class="eyebrow">LOG</span><h2>Recent hunts</h2></div></div>
+<div class="pr-stats" id="stats"></div>
+<ul class="pr-list" id="history"></ul>
+</section>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:16px">
+<section class="card pr-card">
+<div class="card-heading"><div><span class="eyebrow">REWARD</span><h2>Giveaway tickets</h2></div><span class="st-pill" id="tix-pill" data-state="wait">—</span></div>
+<p class="st-hint" id="tix-note">On a capture, every hunter who typed <b>!track</b> at least once gets the same number of tickets for the <b>active ticketed giveaway</b>, and the MVP a few more. Cheering or gifting alone earns no tickets. Tickets need a ticketed giveaway that is collecting and <b>Voyager - Ticket Giveaway v1.5</b> in Streamer.bot (the same as Dreadnought victories). If the target jumps, nobody is paid.</p>
+<ul class="pr-list" id="grants"></ul>
+</section>
+<section class="card pr-card">
+<div class="card-heading"><div><span class="eyebrow">SETTINGS</span><h2>How a hunt pays and how long it takes</h2></div></div>
+<form class="pr-form" id="settings-form" autocomplete="off">
+<label class="check"><input type="checkbox" name="announce"> Say the bounty, the start, the one-minute call and the result in chat</label>
+<label class="check"><input type="checkbox" name="mvpFreeOnly"> MVP is the hunter with the most !track counts (cheers and gifts do not count toward MVP)</label>
+<h3>Tickets on a capture</h3>
+<label>Each hunter who tracked<input type="number" name="tickets" min="0" max="100"></label>
+<label>Extra for the MVP<input type="number" name="mvpTickets" min="0" max="100"></label>
+<h3>Timing in seconds</h3>
+<label>Time to join before the hunt<input type="number" name="lobbySeconds" min="10" max="120"></label>
+<label>The hunt (ends early on a capture)<input type="number" name="huntSeconds" min="60" max="600"></label>
+<label>Cooldown between hunts<input type="number" name="cooldownSeconds" min="0" max="3600"></label>
+</form>
+<div class="pr-row"><button type="button" class="primary" id="save">Save settings</button></div>
+<p class="st-hint">The hunt scales itself: the ring needs 10 fixes plus 8 for every hunter, so a bigger crew has more to do. Medals: Bounty Hunter, Dead Reckoning (MVPs) and one secret. Missions: two Bounty Hunt types under Community › Missions.</p>
+</section>
+</div>
+</div>
+</main>
+</div>
+<script src="bounty-control.js?v=2.37.0"></script>
+<script src="voyager-shell.js?v=2.37.0"></script>
+<script src="voyager-navigation.js"></script>
+</body>
+</html>
