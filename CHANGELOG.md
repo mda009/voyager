@@ -2,6 +2,17 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.36.0 (18 November 2026)
+
+**Update any member's lifetime points.**
+
+- **Ranks › Update lifetime points** (button at the top of the Ranks page, or **Update** beside a name in the roster). Find anyone in the points list by typing two or more letters of their name: the search covers every member on Twitch, YouTube and Kick, including members beyond the first 1,000 in the roster and members with no lifetime points yet.
+- **Three ways to change the total:** *Set the total to*, *Add*, or *Take off*. Before you save, the page shows the old total, the new total and the naval rank it gives. After saving it confirms the rank and all-time place.
+- Points the member earns afterwards keep adding on top of the figure you set. **Only lifetime points change: the member's balance to spend is not touched.**
+- Everyone you have changed is listed under **Set by you**, with **Undo** to put them back on their counted lifetime points. Up to 5,000 members can be set by hand (was 200).
+- This builds on the corrections added in 2.32.0; corrections you already made are kept.
+- The membership card on stream and the website follow within a couple of minutes.
+
 ## 2.35.2 (18 November 2026)
 
 **A sub or resub keeps the member's higher Voyager tier.**

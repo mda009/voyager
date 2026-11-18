@@ -172,7 +172,7 @@ export class Cards{
     if(!this.state.fixes)this.state.fixes={};
     if(value===null||value===undefined||value===''){delete this.state.fixes[key];}
     else{const n=Number(value);if(!Number.isInteger(n)||n<0||n>1e12)throw new Error('Lifetime points must be a whole number, 0 or more.');
-      if(!this.state.fixes[key]&&Object.keys(this.state.fixes).length>=200)throw new Error('Up to 200 corrections.');
+      if(!this.state.fixes[key]&&Object.keys(this.state.fixes).length>=5000)throw new Error('Up to 5,000 members can have their lifetime points set by hand.');
       this.state.fixes[key]={set:n,from:num(m.value),at:this.now(),name:clean(m.name||m.login||key,60),was:lifetimeOf(m)};}
     // The rank Voyager remembers follows the correction, so nobody is "promoted" back up to where they were.
     const {rows,place}=this.board(),row=rows.find(r=>r.key===key);if(row)this.state.ranks[key]=this.rankOf(row.value,place.get(key));else delete this.state.ranks[key];
@@ -429,6 +429,18 @@ export class Cards{
     const rows=list=>(list||[]).map(x=>[x.label,x.value]);
     return {statsEyebrow:card.c.statsEyebrow,dread:rows(card.d.dread),versus:rows(card.d.versus),missions:rows(card.d.missions),community:(card.d.community||[]).map(x=>[x.label,x.value,x.sub||'']),
       badgesEyebrow:card.c.badgesEyebrow,badges:(card.d.badges||[]).map(b=>[b.name,b.sub,b.op==='1'?1:0]),alsoEarned:card.c.alsoEarned};
+  }
+  // 2.36.0 "Update lifetime points": find any member by name (not only the roster's top 1,000, and including members with
+  // no lifetime points yet) and report one member's lifetime, balance, rank and place.
+  memberLife(key){
+    const m=this.community()?.state?.members?.[key];if(!m)return null;const {place}=this.board(),life=this.lifeOf(key,m),pl=place.get(key)||0;
+    return {key,name:clean(m.name||m.login||key,60),login:String(m.login||'').toLowerCase(),platform:key.split(':')[0],tier:m.tier||this.state.members[key]?.tier||'blue',lifetime:life,balance:Number.isFinite(m.balance)?m.balance:null,fixed:!!this.state.fixes?.[key],place:pl,rank:this.rankOf(life,pl)};
+  }
+  findMembers(query,limit=12){
+    const q=clean(query,60).toLowerCase().replace(/^@/,'');if(q.length<2)return [];const members=this.community()?.state?.members||{},hits=[];
+    for(const [key,m] of Object.entries(members)){if(BUCKETS.has(m.login))continue;const n=String(m.name||'').toLowerCase(),l=String(m.login||'').toLowerCase();
+      if(n.includes(q)||l.includes(q))hits.push({key,score:(n===q||l===q?0:n.startsWith(q)||l.startsWith(q)?1:2)});}
+    return hits.map(h=>({...this.memberLife(h.key),score:h.score})).sort((a,b)=>a.score-b.score||b.lifetime-a.lifetime||a.name.localeCompare(b.name)).slice(0,limit).map(({score,...r})=>r);
   }
   // 2.20.13: the Ranks page in Voyager Control. Everyone with lifetime points, their rank, all-time place and progress.
   ranksView(limit=1000){

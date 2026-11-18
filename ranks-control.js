@@ -39,7 +39,7 @@ function roster(){
     else{const bar=el('i'),fill=el('em');fill.style.width=(m.progress*100)+'%';bar.append(fill);
       nx.append(bar,el('small','',m.gated?'Needs top '+view.ranks[m.next].top+' all-time for '+view.ranks[m.next].name:fmt(m.need)+' to '+view.ranks[m.next].name));}
     const life=el('td','n hide-sm',fmt(m.lifetime)+(m.fixed?' ✎':''));if(m.fixed)life.title='Corrected by you';
-    const fx=el('button','link','Correct');fx.type='button';fx.style.cssText='margin-left:8px;font-size:12px';fx.onclick=()=>openFix(m);who.append(fx);
+    const fx=el('button','link','Update');fx.title='Update lifetime points';fx.type='button';fx.style.cssText='margin-left:8px;font-size:12px';fx.onclick=()=>openFix(m);who.append(fx);
     tr.append(el('td','n',String(m.place)),who,rk,life,nx);T.append(tr);
   }
   if(!rows.length){const tr=el('tr'),td=el('td','rk-empty',view.total?'Nobody matches.':'No lifetime points yet. Ranks appear once the Points Ledger has synced (Points & members).');td.colSpan=5;tr.append(td);T.append(tr);}
@@ -66,20 +66,40 @@ function render(){
   for(const p of view.promotions.slice(0,15)){const li=el('li');li.append(insignia(p.to,true));const t=el('span');t.append(el('b','',p.name),document.createTextNode(' → '+view.ranks[p.to].name));li.append(t,el('span','r',ago(p.at)));L.append(li);}
   if(!view.promotions.length)L.append(el('li','','No promotions yet. They are checked about once a minute while Voyager runs.'));
 }
-// 2.32.0 lifetime corrections
-let fixing=null;
-function openFix(m){fixing=m;editing=true;$('fix-form').hidden=false;$('fix-name').textContent=m.name+' · '+(PLATFORM[m.platform]||m.platform);
-  $('fix-info').textContent='Lifetime '+fmt(m.lifetime)+' · '+view.ranks[m.rank].name+(m.balance!==null?' · balance now '+fmt(m.balance):'');$('fix-value').value=m.balance!==null?m.balance:m.lifetime;$('fix-balance').disabled=m.balance===null;
-  $('fix-card').scrollIntoView({behavior:'smooth',block:'center'});$('fix-value').focus();}
+// Lifetime points: set, add to or take from any member's total (2.32.0 corrections; 2.36.0 search, add and take off).
+let fixing=null,findTimer=0,findSeq=0;
+const fixMode=()=>document.querySelector('input[name="fix-mode"]:checked').value;
+// The naval rank a lifetime total would give. Ranks limited to the top few all-time are only shown as "needs top N".
+function rankFor(life){const pts=view.settings.rankPoints;let i=0,gate=null;for(let k=0;k<view.ranks.length;k++){if(life<pts[k])break;if(view.ranks[k].top){gate=gate||view.ranks[k];continue;}i=k;}return {i,gate};}
+function fixTarget(){if(!fixing)return null;const raw=$('fix-value').value.trim(),n=Number(raw);if(raw===''||!Number.isInteger(n)||n<0)return null;const m=fixMode();return m==='set'?n:m==='add'?fixing.lifetime+n:Math.max(0,fixing.lifetime-n);}
+function fixPreview(){const box=$('fix-result'),t=fixTarget(),m=fixMode();$('fix-label').textContent=m==='set'?'Lifetime points should be':m==='add'?'Points to add':'Points to take off';
+  box.textContent='';box.classList.toggle('bad',t===null);if(t===null){box.textContent='Type a whole number, 0 or more.';return;}
+  const r=rankFor(t);box.append(document.createTextNode(fmt(fixing.lifetime)+' → '),el('b','',fmt(t)),document.createTextNode(' lifetime points · '+(t===0?'left out of the ranks':view.ranks[r.i].name+(r.gate?' (or higher: '+r.gate.name+' needs top '+r.gate.top+' all-time)':''))+(fixing.balance!==null?' · balance stays '+fmt(fixing.balance):'')));}
+function openFix(m){fixing=m;editing=true;$('fix-form').hidden=false;$('fix-hits').textContent='';$('fix-search').value='';$('fix-name').textContent=m.name+' · '+(PLATFORM[m.platform]||m.platform);
+  $('fix-info').textContent='Lifetime '+fmt(m.lifetime)+' · '+(m.lifetime?view.ranks[m.rank].name:'not in the ranks yet')+(m.balance!==null?' · balance '+fmt(m.balance):'')+(m.fixed?' · already set by you':'');
+  document.querySelector('input[name="fix-mode"][value="set"]').checked=true;$('fix-value').value=m.lifetime;$('fix-balance').disabled=m.balance===null;fixPreview();
+  $('fix-card').scrollIntoView({behavior:'smooth',block:'center'});$('fix-value').focus();$('fix-value').select();}
 function closeFix(){fixing=null;editing=false;$('fix-form').hidden=true;}
-async function saveFix(key,value,text){try{const v=await api('/api/cards/lifetime',{key,value});view={...view,...v};closeFix();notice(text+' Cards on stream and the website follow within a couple of minutes.');render();}catch(e){notice(e.message,true);}}
-$('fix-save').onclick=()=>{if(!fixing)return;const n=Number($('fix-value').value);if(!Number.isInteger(n)||n<0){notice('Type a whole number, 0 or more.',true);return;}saveFix(fixing.key,n,fixing.name+"'s lifetime points are now "+fmt(n)+'.');};
-$('fix-balance').onclick=()=>{if(fixing&&fixing.balance!==null)$('fix-value').value=fixing.balance;};
+async function saveFix(key,value,text){try{const v=await api('/api/cards/lifetime',{key,value});const {member,...rest}=v;view={...view,...rest};closeFix();
+  notice(text+(member&&value!==null&&member.lifetime?' Rank: '+view.ranks[member.rank].name+(member.place?' · #'+fmt(member.place)+' all-time':'')+'.':'')+' Cards on stream and the website follow within a couple of minutes.');render();}catch(e){notice(e.message,true);}}
+$('fix-save').onclick=()=>{if(!fixing)return;const t=fixTarget();if(t===null){notice('Type a whole number, 0 or more.',true);return;}saveFix(fixing.key,t,fixing.name+"'s lifetime points are now "+fmt(t)+' (were '+fmt(fixing.lifetime)+').');};
+$('fix-balance').onclick=()=>{if(fixing&&fixing.balance!==null){document.querySelector('input[name="fix-mode"][value="set"]').checked=true;$('fix-value').value=fixing.balance;fixPreview();}};
 $('fix-zero').onclick=()=>{if(fixing)saveFix(fixing.key,0,fixing.name+' is left out of the ranks.');};
 $('fix-cancel').onclick=closeFix;
-function fixes(){const L=$('fixes'),list=view.fixes||[];L.textContent='';const pill=$('fix-pill');pill.dataset.state=list.length?'ok':'wait';pill.textContent=list.length?list.length+' in place':'None';
+$('fix-value').addEventListener('input',fixPreview);for(const r of document.querySelectorAll('input[name="fix-mode"]'))r.addEventListener('change',()=>{if(fixMode()!=='set')$('fix-value').value='';else if(fixing)$('fix-value').value=fixing.lifetime;fixPreview();$('fix-value').focus();});
+$('fix-value').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('fix-save').click();}});
+// Find anyone in the points list, not only the roster's first 1,000.
+async function findMembers(){const q=$('fix-search').value.trim(),L=$('fix-hits'),seq=++findSeq;if(q.length<2){L.textContent='';return;}
+  try{const d=await api('/api/cards/lifetime/find?q='+encodeURIComponent(q));if(seq!==findSeq)return;L.textContent='';
+    if(!d.members.length){const li=el('li');li.append(el('span','','Nobody in the points list matches "'+q+'".'));L.append(li);return;}
+    for(const m of d.members){const li=el('li'),b=el('button');b.type='button';const t=el('span');t.append(el('b','',m.name),document.createTextNode(' · '+(PLATFORM[m.platform]||m.platform)));
+      b.append(t,el('span','r',fmt(m.lifetime)+' lifetime'+(m.balance!==null?' · balance '+fmt(m.balance):'')+(m.fixed?' ✎':'')));b.onclick=()=>openFix(m);li.append(b);L.append(li);}
+  }catch(e){if(seq===findSeq)notice(e.message,true);}}
+$('fix-open').onclick=()=>{$('fix-card').scrollIntoView({behavior:'smooth',block:'center'});$('fix-search').focus();};
+$('fix-search').addEventListener('input',()=>{clearTimeout(findTimer);findTimer=setTimeout(findMembers,250);});
+function fixes(){const L=$('fixes'),list=view.fixes||[];L.textContent='';const pill=$('fix-pill');pill.dataset.state=list.length?'ok':'wait';pill.textContent=list.length?list.length+' set by you':'None set';if(!list.length){const li=el('li');li.append(el('span','','Nobody yet. Everyone is on their counted lifetime points.'));L.append(li);}
   for(const f of list){const li=el('li');const t=el('span');t.append(el('b','',f.name),document.createTextNode(' · '+(PLATFORM[f.platform]||f.platform)+' · was '+fmt(f.was)+', set to '+fmt(f.set)+(f.now!==f.set?', now '+fmt(f.now):'')+(f.set===0&&!f.now?' (left out of ranks)':'')));
-    const b=el('button','link','Undo');b.type='button';b.onclick=()=>saveFix(f.key,null,'Correction removed for '+f.name+'.');li.append(t,el('span','r',ago(f.at)),b);L.append(li);}}
+    const b=el('button','link','Undo');b.type='button';b.onclick=()=>saveFix(f.key,null,f.name+' is back on their counted lifetime points.');li.append(t,el('span','r',ago(f.at)),b);L.append(li);}}
 async function load(){try{view=await api('/api/cards/ranks');render();}catch(e){notice(e.message,true);}}
 $('settings').addEventListener('focusin',()=>{editing=true;});$('settings').addEventListener('change',()=>{editing=true;});
 $('search').addEventListener('input',()=>{shown=PAGE;roster();});$('filter').addEventListener('change',()=>{shown=PAGE;render();});$('platform').addEventListener('change',()=>{shown=PAGE;roster();});

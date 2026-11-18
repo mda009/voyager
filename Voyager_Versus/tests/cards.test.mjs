@@ -227,3 +227,14 @@ test('2.35.1 the first reading with opening balances records the higher ranks wi
   m['twitch:1'].open=5000000;assert.deepEqual(cards.tickRanks(),[]);assert.equal((cards.state.promotions||[]).length,before);
   assert.ok(cards.state.ranks['twitch:1']>=1,'the higher rank is recorded');
 });
+
+test('2.36.0 update lifetime points: find any member by name, set a total, and points earned afterwards add on top',async()=>{
+  const {cards}=await make();const m=cards.community().state.members;
+  m['kick:7']={name:'QuietOne',login:'quietone',platform:'kick',value:0,balance:0};m['twitch:8']={name:'Novalis',login:'novalis',platform:'twitch',value:10,balance:10};
+  assert.deepEqual(cards.findMembers('n'),[],'needs two letters');
+  assert.deepEqual(cards.findMembers('nova').map(x=>x.name),['Nova','Novalis'],'exact match first');
+  const q=cards.findMembers('@QUIET')[0];assert.equal(q.key,'kick:7');assert.equal(q.lifetime,0,'members with no lifetime points are found too');
+  cards.correctLifetime('kick:7',60000);const after=cards.memberLife('kick:7');assert.equal(after.lifetime,60000);assert.equal(after.fixed,true);assert.equal(after.place,1);assert.ok(after.rank>=cards.memberLife('twitch:1').rank);
+  m['kick:7'].value=250;assert.equal(cards.memberLife('kick:7').lifetime,60250,'later earnings add on');assert.equal(cards.memberLife('kick:7').balance,0,'the balance is not touched');
+  cards.correctLifetime('kick:7',null);assert.equal(cards.memberLife('kick:7').lifetime,250);assert.equal(cards.memberLife('nobody:1'),null);
+});
