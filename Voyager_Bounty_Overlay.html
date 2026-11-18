@@ -27,7 +27,7 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:transparent
 </div>
 <script>
 (()=>{'use strict';
-const BUILD='2.38.2'; // when Voyager is updated the page reloads itself under a new address, so OBS does not keep a cached copy
+const BUILD='2.39.0'; // when Voyager is updated the page reloads itself under a new address, so OBS does not keep a cached copy
 const $=id=>document.getElementById(id),cv=$('cv'),g=cv.getContext('2d'),q=new URLSearchParams(location.search),preview=q.has('preview'),stageIn=q.get('stage')==='1',backdrop=q.get('backdrop')!=='0',W=1920,H=1080;
 const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
 let aside=false,S=null,offset=0,phase='',huntId='',seen=0,resultAt=0,feedKey='',leadKey='';

@@ -120,3 +120,9 @@ test('2.38.0 Prospect Run and Bounty Hunt take over the stage like the Dreadnoug
   st.configure({games:{prospect:false}});assert.equal(st.mode(idle,lobby,{prospect:{id:'r2',phase:'mine'}}),'');assert.equal(st.mode(idle,lobby,{bounty:{id:'h2',phase:'hunt'}}),'bounty');assert.equal(st.settings.games.bounty,true);
   st.configure({games:{bounty:false}});st.force(60,'bounty');assert.equal(st.mode(idle,lobby,{}),'bounty');assert.equal(st.overlay(idle,lobby,{}).splashOn,true,'a test showing plays the splash');
 });
+
+test('2.39.0 during Prospect Run and Bounty Hunt the top-left column is the game leaderboard HUD; other takeovers keep the chosen panel',async()=>{
+  const st=await new Stage({dataDir:await dir(),now:()=>1000}).load();st.configure({slots:{left:'leaderboard',right:'chat',bottomLeft:'squadron'}});const idle={phase:'idle'},lobby={phase:'lobby'};
+  assert.equal(st.overlay(idle,lobby,{bounty:{id:'h',phase:'hunt'}}).slots.left,'dread');assert.equal(st.overlay(idle,lobby,{prospect:{id:'r',phase:'mine'}}).slots.left,'dread');
+  assert.equal(st.overlay(idle,lobby,{bounty:{id:'h',phase:'hunt'}}).slots.right,'chat');assert.equal(st.overlay({phase:'battle'},lobby,{}).slots.left,'leaderboard');
+});

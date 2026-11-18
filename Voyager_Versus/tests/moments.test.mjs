@@ -87,3 +87,12 @@ test('crew surge bonus (2.20.79): bits and gifted subs during a surge owe the ex
   await m.saving;const again=await new Moments({dataDir:m.dataDir,now:()=>0}).load();assert.equal(again.bonuses.length,3,'bonuses persist');
   assert.throws(()=>m.configure({surge:{multiplier:9}}),/multiplier/);
 });
+
+test('2.39.0 the HUD carries the game leaderboard for Prospect Run and Bounty Hunt, and the Dreadnought comes first',async()=>{
+  const {mkdtemp}=await import('node:fs/promises');const {tmpdir}=await import('node:os');const {join}=await import('node:path');const {Moments}=await import('../local/moments.mjs');
+  let boss=null,game={kind:'bounty',title:'Position fix 40%',pct:40,leaders:[{name:'Nova',value:5}]};
+  const m=await new Moments({dataDir:await mkdtemp(join(tmpdir(),'voyager-mom-')),boss:()=>boss,game:()=>game}).load();
+  assert.deepEqual(m.overlay().game,game);assert.equal(m.overlay().dread,null);
+  boss={phase:'battle',hp:50,maxHp:100,leaders:[]};assert.equal(m.overlay().game,null);assert.equal(m.overlay().dread.phase,'battle');
+  boss=null;game=null;assert.equal(m.overlay().game,null);
+});

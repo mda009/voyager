@@ -58,7 +58,7 @@ export function normalizeSettings(raw,base=DEFAULTS){
   return s;
 }
 export class Moments{
-  constructor({dataDir,now=()=>Date.now(),boss=()=>null,medals=()=>[],promotions=()=>[],medalToasts=()=>[],medalIcon=()=>''}={}){
+  constructor({dataDir,now=()=>Date.now(),boss=()=>null,game=()=>null,medals=()=>[],promotions=()=>[],medalToasts=()=>[],medalIcon=()=>''}={}){this.gameView=game;
     Object.assign(this,{dataDir,now,bossView:boss,medalsRecent:medals,promotionsList:promotions,medalToasts,medalIcon});
     this.settings=structuredClone(DEFAULTS);this.events=[];this.seq=0;this.seenFleet=new Set();this.fleetPrimed=false;this.medalSeen=0;this.medalPrimed=false;this.promoSeen=0;this.promoPrimed=false;
     this.supports=[];this.surgeUntil=0;this.surgeCount=0;this.surgeStartedAt=0;this.bonuses=[];this.goals=null;this.goalsAt=0;this.lastBossPhase='';this.lastBossId='';this.lastCommandAt=0;this.revision=0;this.saving=Promise.resolve();
@@ -127,7 +127,7 @@ export class Moments{
   overlay(){const now=this.now(),s=this.settings,b=this.bossView();
     const dread=b&&b.phase&&b.phase!=='idle'?{phase:b.phase,hp:b.hp,maxHp:b.maxHp,startedAt:b.startedAt,endsAt:b.endsAt,lobbyEndsAt:b.lobbyEndsAt,outcome:b.outcome||'',speed:b.speed||'',bonus:b.bonus||0,elapsed:b.elapsed||0,endedAt:b.endedAt||0,shield:!!b.shield,goals:b.goals,leaders:(b.leaders||[]).slice(0,5),pilots:b.pilots||0,name:b.name,demo:!!b.demo}:null;
     return {serverAt:now,revision:this.revision,elements:s.elements,hints:s.hints,hintSeconds:s.hintSeconds,hintsQuietUntil:this.lastCommandAt?this.lastCommandAt+s.hintQuietMinutes*60000:0,
-      layout:s.layout,surge:this.surge(),dread,next:this.nextCelebration(),promoMin:s.promoMin,promoSeconds:s.promoSeconds,toastSeconds:s.toastSeconds,goalsStripTop:s.goalsStripTop,pointsSeconds:s.pointsSeconds,streakSeconds:s.streakSeconds,
+      layout:s.layout,surge:this.surge(),dread,game:dread?null:(()=>{try{return this.gameView()||null;}catch{return null;}})(),next:this.nextCelebration(),promoMin:s.promoMin,promoSeconds:s.promoSeconds,toastSeconds:s.toastSeconds,goalsStripTop:s.goalsStripTop,pointsSeconds:s.pointsSeconds,streakSeconds:s.streakSeconds,
       events:this.events.filter(e=>now-e.at<=s.tickerMinutes*60000).slice(0,s.tickerCount),toasts:s.elements.toast?(this.medalToasts()||[]).filter(t=>now-t.at<5*60000).slice(-10).map(t=>({...t,icon:this.medalIcon(t.medal)||''})):[]};}
   view(){return {settings:this.settings,defaults:DEFAULTS,elements:ELEMENTS,layoutDefaults:LAYOUT_DEFAULTS,markerInfo:MARKERS,ranks:RANK_NAMES,revision:this.revision,surge:this.surge(),next:this.nextCelebration(),goalsAt:this.goalsAt,events:this.events.slice(0,20),dread:this.bossView()?.phase||'idle'};}
 }

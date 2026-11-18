@@ -237,7 +237,26 @@ const rewards=new RewardDispatcher({store:economy,bot,onCredit:r=>{game.note(`${
 const announcements=new AvailabilityAnnouncer({store:economy,bot,game,action:()=>rewards.ready?rewards.action:null});
 const matchChat=new MatchChat({directory:dataDir,game,bot,action:()=>rewards.ready?rewards.action:null,protocol:()=>rewards.chatProtocol,reward:id=>economy.data.rewards.find(r=>r.id===id)});
 // On-screen moments (2.20.64): ticker, surge, hints, next-celebration chip, promotion ceremony, Dreadnought HUD.
-const moments=await new Moments({dataDir,boss:()=>boss.overlay(),medals:()=>medals.state.recent,promotions:()=>cards.state.promotions,medalToasts:()=>medals.state.toasts,medalIcon:id=>MEDAL_ICONS[id]||''}).load();
+// 2.39.0: the leaderboard panel for Prospect Run and Bounty Hunt (the stage's top-left HUD slot, drawn like the Dreadnought's damage HUD):
+// what the crew is working on, how far along it is, and who has done the most, with the MVP on top.
+function gameHud(){
+  const now=Date.now(),left=t=>{const s=Math.max(0,Math.ceil((t-now)/1000));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');};
+  const h=bounty.hunt;if(h&&bounty.settings.enabled){const pct=Math.floor(Math.min(1,h.fix)*100),n=h.hunters.size,r=h.result;
+    return {kind:'bounty',tone:'gold',eyebrow:'BOUNTY HUNT · '+(h.phase==='lobby'?'BOUNTY POSTED':h.phase==='hunt'?'LIVE':'RESULT'),
+      title:h.phase==='lobby'?'Hunt starts in '+left(h.phaseEndsAt):h.phase==='hunt'?'Position fix '+pct+'% · '+left(h.phaseEndsAt)+' left':r?.outcome==='captured'?h.target.name+' captured':'The target jumped',
+      pct:h.phase==='result'?(r?.fix??pct):pct,unit:'TRK',count:n,leaders:bounty.leaders(8).map(x=>({name:x.name,platform:x.platform,value:x.score})),
+      empty:h.phase==='lobby'?n+' hunter'+(n===1?'':'s')+' signed on · type !track':'No tracks yet · type !track',practice:h.practice};}
+  const p=prospect.run;if(p&&prospect.settings.enabled){const n=p.crew.size,r=p.result;let pct=0,title='';
+    if(p.phase==='contract'){title='Mining starts in '+left(p.phaseEndsAt);}
+    else if(p.phase==='mine'){pct=Math.round((p.cracked?1:p.crack)*100);title=(p.cracked?'Rock cracked':'Rock broken '+pct+'%')+' · '+left(p.phaseEndsAt)+' left';}
+    else if(p.phase==='haul'){pct=p.pirate?Math.round(100*(1-p.pirate.hp/p.pirate.max)):0;title=(p.killedAt?'Pirate destroyed':p.pirate?'Pirate hull '+p.pirate.hp+' / '+p.pirate.max:'Jump drive spooling')+' · '+left(p.phaseEndsAt)+' left';}
+    else if(p.phase==='sell'){pct=Math.round(100*Math.min(1,p.votes.size/Math.max(1,p.need)));title=(p.soldAt?'Sold at ×'+(p.price||1).toFixed(2):p.votes.size+' of '+p.need+' votes to sell')+' · '+left(p.phaseEndsAt)+' left';}
+    else{pct=100;title=r?r.title+(r.grade==='fail'?'':' · haul score '+r.score):'Run over';}
+    return {kind:'prospect',tone:'blue',eyebrow:'PROSPECT RUN · '+({contract:'CONTRACT',mine:'PHASE 1 · MINE',haul:'PHASE 2 · HAUL',sell:'PHASE 3 · SELL',result:'RESULT'})[p.phase],title,pct,unit:'CMD',count:n,
+      leaders:prospect.leaders(8).map(x=>({name:x.name,platform:x.platform,value:x.acts})),empty:p.phase==='contract'?n+' crew aboard · type !mine, !fire or !sell':'No commands counted yet',practice:p.practice};}
+  return null;
+}
+const moments=await new Moments({dataDir,game:()=>gameHud(),boss:()=>boss.overlay(),medals:()=>medals.state.recent,promotions:()=>cards.state.promotions,medalToasts:()=>medals.state.toasts,medalIcon:id=>MEDAL_ICONS[id]||''}).load();
 game.onEvent=event=>{matchChat.capture(event);try{moments.versus(event);}catch{}};
 if(community)community.extraPayables=()=>[...moments.bonusPayables(),...stage.bonusPayables()];
 // 2.21.12: points owed are paid by the host itself through the Points Ledger as soon as they are owed (Missions › Points owed can switch it off).

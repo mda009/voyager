@@ -2,6 +2,18 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.39.0 (18 November 2026)
+
+**A leaderboard panel top-left for Prospect Run and Bounty Hunt, like the Dreadnought's.**
+
+- While the stage shows a Prospect Run or a Bounty Hunt, the **top-left column** is now a live leaderboard panel in the same style as the Dreadnought damage HUD:
+  - the game and what is happening now (for example "Position fix 62% · 2:14 left", or "Pirate hull 7 / 15 · 0:32 left");
+  - a progress bar for the current objective (position fix; rock broken, pirate hull or votes to sell);
+  - the top eight players with a bar each and their count (`!track` counts for Bounty Hunt, commands that counted for Prospect Run), with the **MVP** tag on the leader.
+- It appears by itself in the top-left column for these two games, whatever panel you chose there for the Dreadnought. If the HUD is also in your bottom stack, it shows the game there too.
+- The Dreadnought damage HUD is unchanged; when the Dreadnought is called it takes the HUD back.
+- The small crew panel inside each game's own display (top five and MVP) is still there.
+
 ## 2.38.2 (18 November 2026)
 
 **A clear warning when your scene cannot move into the stage corner.**

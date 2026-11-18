@@ -45,7 +45,18 @@ function renderHints(on){const el=$('hints'),hints=data?.hints||[];const quiet=d
   [...dots.children].forEach((i,k)=>i.classList.toggle('on',k===hintI%hints.length));el.classList.add('on');}
 function renderSurge(on){const el=$('surge'),s=data?.surge;if(!on||!s?.active||now()>=s.until){el.classList.remove('on');return;}
   const dur=Math.max(1,s.until-s.startedAt),left=s.until-now();$('surge-count').textContent=s.bonus?'×'+s.bonus:'×'+s.count;$('surge-label').textContent=(s.label||'CREW SURGE')+(s.bonus?' · BITS & GIFTS ×'+s.bonus:'');$('surge-sub').textContent=s.count+' SUPPORTS · '+mmss(left)+' LEFT'+(s.bonusOwed?' · +'+s.bonusOwed.toLocaleString()+' BONUS PTS':'');$('surge-bar').style.width=Math.max(0,Math.min(100,left/dur*100))+'%';el.classList.add('on');}
-function renderDread(on){const el=$('dread'),b=data?.dread;if(!on||!b||b.phase==='idle'||b.phase==='done'||(b.phase==='result'&&now()-(b.endedAt||dreadSeenResultAt||now())>20000)){el.classList.remove('on');return;}
+// 2.39.0: inside the stage the same HUD is the leaderboard panel for Prospect Run and Bounty Hunt.
+function renderGame(el,g){
+  el.classList.toggle('lobby',g.tone==='gold');el.classList.toggle('shield',g.tone==='blue');el.classList.add('game');
+  $('dread-eyebrow').textContent=g.eyebrow+(g.practice?' · PRACTICE':'');$('dread-title').textContent=g.title;
+  const pct=Math.max(0,Math.min(100,Number(g.pct)||0));$('dread-hull').style.width=pct+'%';$('dread-pct').textContent=pct+'%';$('dread-leg').hidden=true;$('dread-hero').hidden=true;
+  const rows=$('dread-rows'),leaders=(g.leaders||[]).slice(0,8),top=leaders[0]?.value||1;rows.replaceChildren();
+  if(!leaders.length){const tr=node('tr'),td=node('td',g.empty||'Waiting for the crew','empty');td.colSpan=3;tr.append(td);rows.append(tr);}
+  leaders.forEach((p,i)=>{const tr=node('tr'),n=node('td',String(i+1).padStart(2,'0'),'n'),name=node('td',p.name),v=node('td',undefined,'v');if(i===0&&p.value>0){const m=node('em','MVP');m.style.cssText='font:700 10px/1 Rajdhani;font-style:normal;letter-spacing:.14em;color:#07101c;background:#ffd56a;padding:2px 5px;border-radius:3px;margin-left:7px;vertical-align:1px';name.append(m);}
+    const bar=node('div',undefined,'dmg'),fill=node('i');fill.style.width=Math.round(100*p.value/top)+'%';bar.append(fill);name.append(bar);v.append(document.createTextNode(Number(p.value).toLocaleString()),node('small',g.unit||''));tr.append(n,name,v);rows.append(tr);});
+  el.classList.add('on');}
+function renderDread(on){const el=$('dread'),b=data?.dread;if(on&&!b&&data?.game&&stageMode==='dread'){renderGame(el,data.game);return;}el.classList.remove('game');
+if(!on||!b||b.phase==='idle'||b.phase==='done'||(b.phase==='result'&&now()-(b.endedAt||dreadSeenResultAt||now())>20000)){el.classList.remove('on');return;}
   if(b.phase==='result'&&!dreadSeenResultAt)dreadSeenResultAt=now();if(b.phase!=='result')dreadSeenResultAt=0;
   const pct=b.maxHp?Math.max(0,Math.min(100,Math.round(100*b.hp/b.maxHp))):100;el.classList.toggle('lobby',b.phase==='lobby');el.classList.toggle('shield',!!b.shield);
   const live=b.phase==='battle'||b.phase==='fight',elapsed=live?now()-(b.startedAt||now()):b.phase==='result'?(b.elapsed||0):0; // 2.20.88: boss phase is 'battle'; elapsed arrives in ms
