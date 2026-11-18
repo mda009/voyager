@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Voyager • Prospect Run</title>
+<link rel="icon" href="brand-assets/voyager.png">
+<link rel="stylesheet" href="stream-command.css">
+<link rel="stylesheet" href="voyager-brand.css">
+<link rel="stylesheet" href="settings.css?v=2.18">
+<link rel="stylesheet" href="community.css?v=2.20.48">
+<link rel="stylesheet" href="voyager-glass.css?v=2.21.0">
+<style>
+/* Prospect Run (2.33.0): mine, haul, sell — the crew game only you can start. */
+.pr-grid{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:16px;align-items:start}
+.pr-card{padding:18px 22px;display:flex;flex-direction:column;gap:12px}
+.pr-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.pr-frame{position:relative;width:100%;aspect-ratio:16/9;border:1px solid rgba(151,223,255,.18);border-radius:12px;background:radial-gradient(circle at 30% 20%,#1b2d4a,#070c15 70%);overflow:hidden}
+.pr-frame iframe{position:absolute;left:0;top:0;width:1280px;height:720px;max-width:none;border:0;transform-origin:0 0;display:block}
+.pr-now{padding:12px 14px;border:1px solid rgba(151,223,255,.14);background:rgba(8,15,24,.45);border-radius:12px;font-size:14px;color:#c9d7e4}
+.pr-now b{color:#ffd56a}
+.pr-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px}
+.pr-st{display:flex;flex-direction:column;gap:4px;padding:12px 14px;border:1px solid rgba(151,223,255,.14);background:rgba(8,15,24,.45);border-radius:12px}
+.pr-st small{font:700 11px/1 Rajdhani,'Segoe UI',sans-serif;letter-spacing:1.6px;color:#8ea6bd;text-transform:uppercase}
+.pr-st b{font:700 22px/1.1 Rajdhani,'Segoe UI',sans-serif;color:#e6eef7}
+.pr-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.pr-form label{display:flex;flex-direction:column;gap:5px;font-size:12px;color:#9ab0c5}
+.pr-form .check{flex-direction:row;align-items:center;gap:8px;font-size:13px;color:#c9d7e4;grid-column:1/-1}
+.pr-form h3{grid-column:1/-1;margin:6px 0 0;font:700 13px/1 Rajdhani,'Segoe UI',sans-serif;letter-spacing:1.6px;color:#8ea6bd;text-transform:uppercase}
+.pr-form input[type=number]{height:36px;padding:0 10px;border:1px solid rgba(151,223,255,.18);background:rgba(8,15,24,.55);color:#e6eef7;font:14px 'Segoe UI',sans-serif;min-width:0}
+.pr-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.pr-step{padding:10px 12px;border:1px solid rgba(151,223,255,.14);background:rgba(8,15,24,.4);border-radius:10px;font-size:13px;color:#c9d7e4;line-height:1.45}
+.pr-step code{display:block;font:700 16px ui-monospace,Consolas,monospace;color:#9fd4ff;margin-bottom:4px}
+.pr-step[data-on=true]{border-color:#ffd56a;background:rgba(255,213,106,.08)}
+.pr-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.pr-list li{display:flex;justify-content:space-between;gap:10px;padding:8px 10px;border:1px solid rgba(151,223,255,.1);background:rgba(8,15,24,.35);font-size:13px;color:#c9d7e4}
+.pr-list small{color:#8ea6bd;white-space:nowrap}.pr-list li.muted{color:#8ea6bd}
+@media(max-width:1100px){.pr-grid{grid-template-columns:1fr}.pr-steps{grid-template-columns:1fr}}
+</style>
+</head>
+<body class="voyager-console voyager-settings voyager-community">
+<div class="shell">
+<aside class="rail"><a class="brand" href="Voyager_Stream_Deck.html"><img class="logo-voyager" src="brand-assets/voyager.png" alt="Voyager membership program" width="68" height="68"><span>VOYAGER<small>MDA009 · MISSION CONTROL</small></span></a></aside>
+<main>
+<header class="top"><div><span class="eyebrow">GAMES &amp; EVENTS</span><h1>Prospect Run</h1></div><div class="toolbar"><span class="st-note">Only you can start it · chat plays with !mine !fire !sell</span><button type="button" id="practice">Practice run (no tickets)</button><button type="button" class="primary" id="start">Start a run</button><button type="button" id="stop" hidden>Call it off</button></div></header>
+<p class="st-notice" id="notice" hidden></p>
+<p class="st-notice" id="not-hosted" hidden>Open this page from the Voyager app (or START-VOYAGER-CONTROL.bat).</p>
+
+<div class="pr-grid">
+<div style="display:flex;flex-direction:column;gap:16px">
+<section class="card pr-card">
+<div class="card-heading"><div><span class="eyebrow">ON STREAM</span><h2>The run</h2></div><span class="st-pill" id="state-pill" data-state="wait">—</span></div>
+<div class="pr-frame" id="frame"><iframe id="preview" title="Prospect Run overlay preview" src="Voyager_Prospect_Overlay.html?preview=1"></iframe></div>
+<div class="pr-now" id="now">Press <b>Start a run</b>. A contract card appears and anyone who types a command during the run is on the crew.</div>
+<div class="pr-steps"><div class="pr-step" id="st-mine"><code>!mine</code>Phase 1. Keeps a miner's laser on for 10 seconds. About half the miners at a time holds the charge in the green window; everyone at once overcharges it and loses ore.</div>
+<div class="pr-step" id="st-haul"><code>!fire</code>Phase 2. Pirates pull the freighter out of the jump. Every hit counts; the longer the pirate lives, the more cargo is shot loose.</div>
+<div class="pr-step" id="st-sell"><code>!sell</code>Phase 3. The price swings. The cargo sells the moment half the crew (20 at most) has typed it.</div></div>
+<p class="st-hint">Add it in OBS once: Browser source, <b>1920 × 1080</b> (any 16:9 size works), at this address. It is invisible until you start a run, and viewers cannot start one — not from chat and not from the website. Each person's command counts once every 6 seconds, so chat stays inside the platforms' limits.</p>
+<div class="pr-row"><code id="overlay-url" style="font:13px ui-monospace,Consolas,monospace;color:#9fd4ff;background:rgba(151,223,255,.08);padding:6px 8px;border-radius:6px;word-break:break-all"></code><button type="button" id="copy-url">Copy address</button></div>
+</section>
+<section class="card pr-card">
+<div class="card-heading"><div><span class="eyebrow">LOG</span><h2>Recent runs</h2></div></div>
+<div class="pr-stats" id="stats"></div>
+<ul class="pr-list" id="history"></ul>
+</section>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:16px">
+<section class="card pr-card">
+<div class="card-heading"><div><span class="eyebrow">REWARD</span><h2>Giveaway tickets</h2></div><span class="st-pill" id="tix-pill" data-state="wait">—</span></div>
+<p class="st-hint" id="tix-note">Everyone who typed at least one command during a run gets the same number of tickets for the <b>active ticketed giveaway</b>, set by the grade. Cheers and gifted subs do nothing here, so tickets never depend on paying. Tickets need a ticketed giveaway that is collecting and <b>Voyager - Ticket Giveaway v1.5</b> in Streamer.bot (the same as Dreadnought victories).</p>
+<ul class="pr-list" id="grants"></ul>
+</section>
+<section class="card pr-card">
+<div class="card-heading"><div><span class="eyebrow">SETTINGS</span><h2>How a run pays and how long it takes</h2></div></div>
+<form class="pr-form" id="settings-form" autocomplete="off">
+<label class="check"><input type="checkbox" name="enabled"> Prospect Run is on</label>
+<label class="check"><input type="checkbox" name="announce"> Say each phase in chat (about six lines a run)</label>
+<h3>Tickets for everyone who flew</h3>
+<label>Gold haul<input type="number" name="ticketsGold" min="0" max="100"></label>
+<label>Silver haul<input type="number" name="ticketsSilver" min="0" max="100"></label>
+<label>Bronze haul<input type="number" name="ticketsBronze" min="0" max="100"></label>
+<label>Cargo lost (for taking part)<input type="number" name="ticketsFail" min="0" max="100"></label>
+<h3>Haul score needed (cargo delivered × sale price; a perfect run is about 300)</h3>
+<label>Gold from<input type="number" name="scoreGold" min="1" max="400"></label>
+<label>Silver from<input type="number" name="scoreSilver" min="1" max="400"></label>
+<h3>Timing in seconds</h3>
+<label>Contract card<input type="number" name="contractSeconds" min="5" max="60"></label>
+<label>Mining (ends early when the rock cracks)<input type="number" name="mineSeconds" min="30" max="120"></label>
+<label>Hauling (ends early when the pirate dies)<input type="number" name="haulSeconds" min="30" max="120"></label>
+<label>Selling<input type="number" name="sellSeconds" min="15" max="60"></label>
+<label>Cooldown between runs<input type="number" name="cooldownSeconds" min="0" max="3600"></label>
+</form>
+<div class="pr-row"><button type="button" class="primary" id="save">Save settings</button></div>
+<p class="st-hint">Medals: Rock Breaker, Gun Runner, Long Hauler and one secret. Missions: three Prospect Run types under Community › Missions. Viewers can ask for a run from the website (Viewer requests).</p>
+</section>
+</div>
+</div>
+</main>
+</div>
+<script src="prospect-control.js?v=2.33.0"></script>
+<script src="voyager-shell.js?v=2.33.0"></script>
+<script src="voyager-navigation.js"></script>
+</body>
+</html>

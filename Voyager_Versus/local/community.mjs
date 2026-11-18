@@ -23,7 +23,11 @@ export const TYPES={
   dreadVictory:{label:'Win against the Dreadnought',unit:'victories',medal:'slayer',counter:'slayer',max:20},
   dreadDamage:{label:'Deal Dreadnought damage',unit:'damage',medal:'topgun',counter:'damage',max:100000},
   dreadMvp:{label:'Finish a fight as top damage (MVP)',unit:'MVPs',medal:'topgun',counter:'topgun',max:10},
-  torpedo:{label:'Fire a torpedo (gift a sub in a fight)',unit:'torpedoes',medal:'torpedo',counter:'torpedo',max:20,support:false}
+  torpedo:{label:'Fire a torpedo (gift a sub in a fight)',unit:'torpedoes',medal:'torpedo',counter:'torpedo',max:20,support:false},
+  // 2.33.0 Prospect Run
+  prospectRuns:{label:'Fly Prospect Runs',unit:'runs',medal:'hauler',counter:'pruns',max:20},
+  prospectGold:{label:'Fly a Gold haul on a Prospect Run',unit:'Gold hauls',medal:'hauler',counter:'golds',max:10},
+  prospectRocks:{label:'Help crack the rock on a Prospect Run',unit:'rocks',medal:'rockbreaker',counter:'rocks',max:20}
 };
 // Which medal each mission type works toward (shown in Voyager Control, on stream and on the public site).
 export const MISSION_MEDALS={streamDays:'regular',earnPoints:'points',versusWins:'versus',subscribe:'subs',giftSubs:'gifter',loyalSub:'substreak',

@@ -2,6 +2,22 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.33.0 (18 November 2026)
+
+**Prospect Run: a mining and hauling crew game that pays giveaway tickets. Website and member manual brought up to date.**
+
+- **Prospect Run** (new tab under Games & events). You press **Start a run**; a contract card appears and anyone who types a command during the run is on the crew. Three phases, one command each:
+  - **Mine · `!mine`** keeps that viewer's laser on the rock for 10 seconds, and the charge cools by itself. About half the miners at a time holds it in the green window until the rock breaks; everyone at once overcharges it and ore is lost.
+  - **Haul · `!fire`** the jump drive spools, then a pirate pulls the freighter out of the jump. Every hit counts; the longer the pirate lives, the more cargo is shot loose.
+  - **Sell · `!sell`** the price swings; the cargo sells the moment half the crew (20 at most) has typed it.
+- **Tickets.** Cargo delivered × sale price is the haul score. Everyone who flew gets the same tickets for the active ticketed giveaway: **8 for Gold, 5 for Silver, 3 for Bronze, 1 if the cargo is lost** (all settings). Tickets go out the way Dreadnought victory tickets do, so it needs Ticket Giveaway v1.5 in Streamer.bot and a ticketed giveaway that is collecting. Cheers and gifted subs do nothing in this game.
+- **On stream.** A new OBS source, `Voyager_Prospect_Overlay.html` (1920 × 1080; address on the Prospect Run page and in Screen & overlays). It uses your Fleet Alerts ships: the tender hauls, lancers mine, fighters escort, a raider attacks. Invisible until a run starts.
+- **Practice run** button: plays the whole thing with nothing paid or counted. A cooldown (2 minutes by default) stops back-to-back runs, and each person's command counts once every 6 seconds so chat stays inside the platforms' limits.
+- **Medals:** Rock Breaker, Gun Runner and Long Hauler (Bronze to Legend) and the secret Not a Scratch. **Missions:** three new types (fly runs, fly a Gold haul, help crack the rock). **Viewer requests:** Prospect Run is added to the list viewers can ask for.
+- **Website.** The Live tab shows a run while it is on, with the command for the current phase, and Home gets a tile. The Commands page gains Prospect Run and Star Citizen intel (`!news !patch !sales !deals !events`), and the Dreadnought entry now says victories pay tickets.
+- **Member manual** revised 18 November (26 pages): a new Prospect Run page, Dreadnought rewards as tickets, 35 medals, tickets from playing, and the website's requests, notifications, SC Intel and ticket-holder list. The manual's sources are now kept in the repository (`tools/manual`).
+- **In-app guide** lists Prospect Run, Doorframe, Viewer requests, SC Intel and the Ranks correction.
+
 ## 2.32.0 (17 November 2026)
 
 **Members' cards update on the website straight away, and lifetime points can be corrected.**

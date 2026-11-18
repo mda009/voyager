@@ -51,7 +51,7 @@ function icon(path){const i=svg('svg',{viewBox:'0 0 24 24',fill:'none',stroke:'c
 function renderTabs(){
  const bar=$('tabbar');bar.textContent='';bar.setAttribute('role','tablist');
  const ok=TABS.filter(([t])=>available(t)).map(([t])=>t);if(wanted&&ok.includes(wanted)){tab=wanted;if(feed)wanted=null;}if(!ok.includes(tab))tab=ok.includes('home')?'home':ok[0]||'home';
- const lit=PARENT[tab]||tab,busy=feed&&(feed.live?.onAir||['lobby','battle'].includes(feed.dreadnought?.phase));
+ const lit=PARENT[tab]||tab,busy=feed&&(feed.live?.onAir||['lobby','battle'].includes(feed.dreadnought?.phase)||!!feed.prospect);
  markSeen(tab);
  for(const [t,label,path] of TABS.filter(([t])=>BAR.includes(t)&&ok.includes(t))){
   const b=el('button');b.type='button';b.setAttribute('role','tab');b.setAttribute('aria-selected',String(t===lit));b.setAttribute('aria-controls',sectionsOf(t)[0]?.id||'');
@@ -96,6 +96,7 @@ window.renderRightNow=function(){
  const s=feed.season;if(s&&s.active!==false&&s.name){const days=s.endsAt?Math.max(0,Math.ceil((s.endsAt-Date.now())/864e5)):0,next=(s.goals||[]).find(g=>!g.reached&&!g.missed),done=(s.goals||[]).filter(g=>g.reached).length;
   tile('gold',s.name,(s.endsAt?days+' days to go · ':'')+(next?next.title+' '+Math.min(100,Math.floor(next.total/next.target*100))+'%':done+' of '+(s.goals||[]).length+' goals reached'),'goal','season');}
  const open=(feed.giveaways||[]).filter(g=>g.status==='open');if(open.length&&feed.online&&Date.now()-feed.generatedAt<15*60000)tile('',open.length===1?'Giveaway open':open.length+' giveaways open',open[0].title+(open[0].eligibility?' · '+open[0].eligibility:''),'live','giveaways');
+ {const pr=feed.prospect;if(pr&&pr.phase!=='result')tile('gold','Prospect Run is on',({contract:'Type !mine, !fire or !sell to join',mine:'Type !mine now',haul:'Type !fire when pirates hit',sell:'Type !sell at the peak'})[pr.phase],'live','prospect');}
  const d=feed.dreadnought;if(d&&['lobby','battle'].includes(d.phase))tile('red',d.phase==='lobby'?'Dreadnought boarding':'Dreadnought fight',d.phase==='lobby'?'Type !join now':'Type !fire to attack','live','dread');
  const m=feed.missions;if(m&&(m.list||[]).length&&box.children.length<3)tile('',(m.list||[]).length+' missions this week','Finish one to earn Voyager points','live','missions');
  if(feed.requests?.open&&feed.requests.options?.length&&box.children.length<4)tile('gold','Make a request','Ask for '+feed.requests.options.slice(0,3).map(o=>o.label).join(', ')+(feed.requests.options.length>3?'…':''),'live','requests');
@@ -104,7 +105,7 @@ window.renderRightNow=function(){
 const st=document.createElement('style');st.textContent='section.off{display:none!important}'+(EMBED?' nav.tabbar{position:static!important;padding:0!important;background:none!important;border:0!important;margin-top:10px!important}.embed .wrap{padding-bottom:24px!important}':'');document.head.append(st);
 
 // ---------- now / on air ----------
-const COMMANDS=[['!report','report for duty'],['!voyager','your card on stream'],['!medals','your medals'],['!squadron','pick a team'],['!log','log a moment'],['!join','board the Dreadnought fight'],['!fire','attack'],['!enter','join a chat giveaway']];
+const COMMANDS=[['!report','report for duty'],['!voyager','your card on stream'],['!medals','your medals'],['!squadron','pick a team'],['!log','log a moment'],['!join','board the Dreadnought fight'],['!fire','attack'],['!mine','Prospect Run: work the laser'],['!sell','Prospect Run: sell the cargo'],['!enter','join a chat giveaway']];
 function copyChip(cmd,hint){const b=el('button','chip');b.type='button';b.append(el('code','',cmd),el('small','',hint));
  b.onclick=async()=>{try{await navigator.clipboard.writeText(cmd);b.classList.add('copied');const s=b.querySelector('small'),was=s.textContent;s.textContent='copied';setTimeout(()=>{b.classList.remove('copied');s.textContent=was;},1400);}catch{}};return b;}
 function renderNow(){
@@ -119,6 +120,21 @@ function left(t){const s=Math.max(0,Math.round((t-Date.now())/1000));const m=Mat
 function who(p){const w=el('span','name');if(PLATFORM[p.platform]){const d=el('i','dot '+p.platform);d.setAttribute('aria-hidden','true');w.append(d);}w.append(el('span','',p.name));return w;}
 
 // ---------- the Dreadnought ----------
+// 2.33.0 Prospect Run: shown on the Live tab only while a run is on.
+function renderProspect(){
+ const p=feed.prospect,sec=$('prospect');if(!sec)return;sec.hidden=!p;if(!p)return;const card=$('prospect-card');card.textContent='';
+ const NAME={contract:'Contract accepted',mine:'Phase 1 · Mining',haul:'Phase 2 · Hauling',sell:'Phase 3 · Selling',result:'Run over'},top=el('div','gw-top');
+ top.append(el('span','kind','Crew contract'+(p.practice?' · practice':'')),el('span','badge '+(p.phase==='result'?'':'s-drawing'),p.phase==='result'?'Just ended':'On now'));card.append(top);
+ card.append(el('div','phase battle',NAME[p.phase]));
+ const say=t=>card.append(el('p','who',t)),cm=el('div','cmds');
+ if(p.phase==='contract'){say('A run is starting. Type any of the three commands in chat to fly with the crew ('+fmt(p.crew)+' aboard).');cm.append(copyChip('!mine','phase 1'),copyChip('!fire','phase 2'),copyChip('!sell','phase 3'));}
+ else if(p.phase==='mine'){say('Type !mine to keep your laser on the rock. About half the miners at a time holds the charge in the green; everyone at once overcharges it. '+fmt(p.ore)+' CU mined so far.');cm.append(copyChip('!mine','work the laser'));}
+ else if(p.phase==='haul'){say('The freighter is jumping home with '+fmt(p.cargo)+' CU. When pirates pull it out of the jump, type !fire to drive them off before they shoot cargo loose.');cm.append(copyChip('!fire','shoot the pirate'));}
+ else if(p.phase==='sell'){say(fmt(p.cargo)+' CU reached the exchange and the price is moving'+(p.price?' (×'+p.price.toFixed(2)+' a moment ago)':'')+'. Type !sell when it is high: the cargo sells once enough of the crew agrees.');cm.append(copyChip('!sell','vote to sell'));}
+ else if(p.result){const r=p.result;say(r.title+(r.grade==='fail'?'.':' · '+fmt(r.cargo)+' CU delivered · haul score '+fmt(r.score)+'.')+(p.practice?' Practice run: no tickets.':r.tickets?' Everyone who flew ('+fmt(r.crew)+') earned '+r.tickets+' giveaway ticket'+(r.tickets===1?'':'s')+'.':''));}
+ if(cm.children.length)card.append(cm);
+ if(p.phase!=='result')card.append(el('p','lede small','This page updates about once a minute; the action is on stream. Each command counts once every 6 seconds.'));
+}
 function renderDread(){
  const d=feed.dreadnought,sec=$('dread');sec.hidden=!d;if(!d)return;
  const card=$('dread-card');card.textContent='';
@@ -544,7 +560,7 @@ function renderWatch(){
 // ---------- feed ----------
 addEventListener('voyager:feed',e=>{
  feed=e.detail;
- try{renderNow();}catch{}try{renderHome();}catch{}try{renderWatch();}catch{}try{renderRequests();}catch{}try{push.render();}catch{}try{renderDread();}catch{}try{renderRanks();}catch{}try{renderMedals();}catch{}try{renderSquad();}catch{}try{renderLog();}catch{}try{renderIntel();}catch{}
+ try{renderNow();}catch{}try{renderHome();}catch{}try{renderWatch();}catch{}try{renderRequests();}catch{}try{push.render();}catch{}try{renderDread();}catch{}try{renderProspect();}catch{}try{renderRanks();}catch{}try{renderMedals();}catch{}try{renderSquad();}catch{}try{renderLog();}catch{}try{renderIntel();}catch{}
  $('arena').hidden=$('versus').hidden;
  $('find').hidden=!feed.crew;
  renderTabs();

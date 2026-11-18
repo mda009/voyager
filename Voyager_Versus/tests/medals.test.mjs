@@ -5,6 +5,7 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {Medals,MEDALS,normalizeMedalSettings,STARS} from '../local/medals.mjs';
 import {BossFight} from '../local/boss.mjs';
+import {TYPES} from '../local/community.mjs';
 
 const DAY=86400000,HOUR=3600000;
 async function make(){
@@ -143,7 +144,7 @@ test('Settings validate grade targets; switched-off medals are not awarded; sett
   const got=m.evaluate().map(a=>a.medal);assert.ok(!got.includes('watch'));assert.ok(got.includes('subs'));
   await m.flush();await m.saving;
   const saved=JSON.parse(await readFile(join(dir,'medals.json'),'utf8'));assert.deepEqual(saved.settings.off,['watch']);
-  assert.equal(MEDALS.filter(x=>x.grades).length,27);
+  assert.equal(MEDALS.filter(x=>x.grades).length,30);
 });
 
 test('Twitch watch streaks: a shared streak becomes the viewer\'s stream streak, plays the comet once, and the day count does not add to it (2.20.70)',async()=>{
@@ -169,4 +170,17 @@ test('Upgrading to 2.21.3 clears streaks Voyager counted itself; Twitch-shared o
   const again=await new (m.constructor)({dataDir:m.dataDir,now:m.now}).load();
   assert.equal(again.state.viewers['twitch:a'].c.streak,0);assert.equal(again.state.viewers['twitch:a'].c.bestStreak,0);assert.equal(again.state.viewers['twitch:a'].c.days,30,'streams attended kept');
   assert.equal(again.state.viewers['twitch:b'].c.streak,4,'a Twitch-shared streak is kept');assert.equal(again.state.twitchStreaksOnly,true);
+});
+
+test('2.33.0 Prospect Run feeds Rock Breaker, Gun Runner, Long Hauler and the secret Not a Scratch; practice runs do not count',async()=>{
+  const {m}=await make();m.state.backfilled=true;
+  const crewList=[{key:'twitch:1',name:'Nova',platform:'twitch',mine:3,fire:2,sell:true},{key:'kick:2',name:'Lyra',platform:'kick',mine:0,fire:0,sell:true}];
+  m.observeProspect({id:'p1',grade:'gold',clean:true,cracked:true,pirate:'destroyed',crewList});
+  m.observeProspect({id:'p2',grade:'bronze',clean:false,cracked:false,pirate:'escaped',crewList});
+  m.observeProspect({id:'p3',grade:'gold',clean:true,cracked:true,pirate:'destroyed',practice:true,crewList});
+  const nova=m.state.viewers['twitch:1'].c,lyra=m.state.viewers['kick:2'].c;
+  assert.deepEqual([nova.pruns,nova.rocks,nova.pirates,nova.golds,nova.scratch],[2,1,1,1,1]);
+  assert.deepEqual([lyra.pruns,lyra.rocks,lyra.pirates,lyra.golds,lyra.scratch],[2,undefined,undefined,1,1],'on the crew, but only credited for what she did');
+  m.primed=false;const got=m.evaluate().filter(a=>a.key==='twitch:1').map(a=>a.medal);assert.ok(got.includes('hauler'),'one Gold haul is Bronze Long Hauler');assert.ok(got.includes('scratch'));assert.ok(!got.includes('rockbreaker'),'needs three rocks');
+  assert.ok(TYPES.prospectRuns.counter==='pruns'&&TYPES.prospectGold.counter==='golds'&&TYPES.prospectRocks.medal==='rockbreaker');
 });
