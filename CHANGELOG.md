@@ -2,6 +2,18 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.35.0 (18 November 2026)
+
+**Lifetime points and balance shown separately on the points leaderboards.**
+
+- **Two numbers, clearly labelled.** *Lifetime points* are everything a member has ever earned; they set the naval rank and never go down when points are spent. *Balance* is what the member has left to spend. The leaderboards used to show only the balance next to a rank earned on lifetime points, which is why a high rank could sit beside a small number.
+- **Website:** the Voyager points leaderboard is now ranked by lifetime points, with each member's balance underneath and a short explanation below the list. The Ranks top officers list shows the balance for the leaders too, and "your card" on the Home tab shows Balance beside Lifetime points when the Activity section is published.
+- **OBS Voyager points leaders panel** (and the same panel on the Dreadnought stage): ranked by lifetime points, with `BAL` and the balance under each number. The column header reads LIFETIME · BALANCE. Lifetime comes from Voyager on this PC; if that is not available the panel falls back to the balance-only list as before.
+- **Voyager app:** the Voyager points list on the Command Center Leaderboards page shows lifetime and balance the same way.
+- **Rank progression** was already worked out from lifetime points (with any correction made on the Ranks page) and that is unchanged; nothing uses the balance for ranks. An account whose lifetime figure is inflated by test points still needs its correction on the Ranks page.
+- Balances are only sent for members who can appear on a ten-row board; everyone else's stay on this PC.
+- Fixed: the leaderboard panel preview with sample names stopped with an error.
+
 ## 2.34.1 (18 November 2026)
 
 **Raffle: the command is now `!join`.**

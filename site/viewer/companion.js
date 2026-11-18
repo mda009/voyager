@@ -236,7 +236,7 @@ function renderRanks(){
  const lad=$('ladder');lad.textContent='';
  (r.ladder||[]).forEach((x,i)=>{const li=el('li',i>=7?'flag':'');const nm=el('div');nm.append(el('b','',x.name),el('small','',x.abbr+(x.top?' · top '+x.top+' all-time':'')));
   const pts=el('div','pts',i?fmt(x.points):'Start');pts.append(el('small','',fmt(x.holders)+' crew'));li.append(insignia(i),nm,pts);lad.append(li);});
- const off=$('officers');off.textContent='';for(const x of r.top||[]){const li=el('li');li.style.gridTemplateColumns='34px 1fr auto';const n=who(x);const v=el('span','value');v.append(r.ladder?.[x.rank]?.name||'',el('small','',fmt(x.lifetime)+' pts'));li.append(el('span','rank',x.place),n,v);off.append(li);}
+ const off=$('officers');off.textContent='';for(const x of r.top||[]){const li=el('li');li.style.gridTemplateColumns='34px 1fr auto';const n=who(x);const v=el('span','value');v.append(r.ladder?.[x.rank]?.name||'',el('small','',fmt(x.lifetime)+' lifetime'));if(x.balance!=null)v.append(el('small','bal','balance '+fmt(x.balance)));li.append(el('span','rank',x.place),n,v);off.append(li);}
  if(!(r.top||[]).length)off.append(el('li','empty','No ranks yet.'));
  const pr=$('promotions');pr.textContent='';$('promo-card').hidden=!(r.promotions||[]).length;
  for(const x of r.promotions||[]){const li=el('li');li.style.gridTemplateColumns='62px 1fr auto';const info=el('div');info.append(who(x),el('div','when','Promoted to '+(r.ladder?.[x.rank]?.name||'')));li.append(insignia(x.rank),info,el('span','when',ago(x.at)));pr.append(li);}
@@ -326,7 +326,7 @@ async function loadCrew(force=false){
  if(crewLoading)return crewLoading;
  $('crew-note').textContent='Loading the crew list…';
  crewLoading=(async()=>{try{const r=await fetch(crewUrl()+'?t='+(ver||Math.floor(Date.now()/300000)),{cache:'no-store'});if(!r.ok)throw new Error();const d=await r.json();if(d?.schema!==1||!Array.isArray(d.members))throw new Error();
-  crew=d.members.map(m=>({name:String(m[0]),platform:m[1],tier:m[2],rank:m[3]|0,place:m[4]|0,lifetime:Number(m[5])||0,medals:Array.isArray(m[6])?m[6]:[],record:Array.isArray(m[7])?m[7]:null,front:m[8]&&typeof m[8]==='object'?m[8]:null,back:m[9]&&typeof m[9]==='object'?m[9]:null,key:String(m[0]).toLowerCase()}));crewAt=Date.now();crewVer=ver;
+  crew=d.members.map(m=>({name:String(m[0]),platform:m[1],tier:m[2],rank:m[3]|0,place:m[4]|0,lifetime:Number(m[5])||0,medals:Array.isArray(m[6])?m[6]:[],record:Array.isArray(m[7])?m[7]:null,front:m[8]&&typeof m[8]==='object'?m[8]:null,back:m[9]&&typeof m[9]==='object'?m[9]:null,balance:typeof m[10]==='number'?m[10]:null,key:String(m[0]).toLowerCase()}));crewAt=Date.now();crewVer=ver;
   $('crew-note').textContent=fmt(crew.length)+' crew members · updated '+ago(d.generatedAt)+'. Not listed? Earn some Voyager points on stream and check back.';
   search();
   if(pendingCard){const pm=crew.find(m=>m.key===pendingCard);pendingCard='';if(pm)show(pm,false);else toast('That card is not on the crew list');}
@@ -443,7 +443,7 @@ function renderHome(){
  if(me){const [title,c1,c2]=TIER[me.tier]||TIER.blue,rank=feed.ranks?.ladder?.[me.rank]?.name||'';
   const b=el('button','me-card');b.type='button';b.style.setProperty('--t',c1);b.style.setProperty('--t2',c2);const t=el('div');t.append(el('b','',me.name),el('small','',title+(rank?' · '+rank:'')+(PLATFORM[me.platform]?' · '+PLATFORM[me.platform]:'')));
   b.append(el('span','badge',(title[0]||'V')),t,el('span','go','›'));b.onclick=()=>go('crew');
-  const st=el('div','me-stats');for(const [k,v] of [['Lifetime points',fmt(me.lifetime)],['Crew place',me.place?'#'+fmt(me.place):'—'],['Medals',fmt(me.medals.length)]]){const d=el('div');d.append(el('small','',k),el('b','',v));st.append(d);}
+  const st=el('div','me-stats');for(const [k,v] of [['Lifetime points',fmt(me.lifetime)],...(me.balance!=null?[['Balance',fmt(me.balance)]]:[]),['Crew place',me.place?'#'+fmt(me.place):'—'],['Medals',fmt(me.medals.length)]]){const d=el('div');d.append(el('small','',k),el('b','',v));st.append(d);}
   box.append(b,st);const txt=sinceLast(me);if(txt){since.textContent=txt;since.hidden=false;}}
  else if(saved&&feed.crew&&!crew){box.append(el('div','sk sk-block'));loadCrew();}
  else if(feed.crew){const c=el('div','me-cta');const btn=el('button','','Find my card');btn.type='button';btn.onclick=()=>{go('crew');setTimeout(()=>$('crew-search')?.focus(),250);};c.append(el('span','','Find your name once and your tier, rank, points and medals live here.'),btn);box.append(c);}

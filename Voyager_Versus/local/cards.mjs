@@ -399,7 +399,7 @@ export class Cards{
     const all=this.ranksView(Infinity).members,picked=all.slice(0,limit),seen=new Set(picked.map(m=>m.key));
     for(const m of all.slice(limit))if(m.platform!=='twitch'||m.tier!=='blue'){picked.push(m);seen.add(m.key);}
     return picked.map(m=>{const v=viewers[m.key],c=v?.c||{},login=String(members[m.key]?.login||'').toLowerCase(),p=m.platform==='twitch'?pilots.get(login):null,sr=season.get(m.key);
-      return {name:m.name,platform:m.platform,tier:m.tier,rank:m.rank,place:m.place,lifetime:m.lifetime,
+      return {name:m.name,platform:m.platform,tier:m.tier,rank:m.rank,place:m.place,lifetime:m.lifetime,balance:m.balance,
         medals:Object.entries(v?.m||{}).sort((a,b)=>b[1].g-a[1].g||b[1].at-a[1].at).map(([id,e])=>[id,e.g]),
         // 2.20.18: the back of the card (service record). Games, missions, season and wins only: never watch time, subs, gifts or Bits.
         record:{honour:v&&this.medals?this.medals.honour(v):0,fights:c.fights||0,victories:c.slayer||0,mvp:c.topgun||0,damage:c.damage||0,
@@ -440,8 +440,11 @@ export class Cards{
   // 2.20.63: what the OBS leaderboard panel reads to show each leader's naval rank and member tier (local only, no balances).
   rankOverlay(){
     const {rows,place}=this.board(),members=this.community()?.state?.members||{},on=this.state.settings.ranks;
-    const out=rows.slice(0,3000).map(r=>{const m=members[r.key]||{},i=this.rankOf(r.value,place.get(r.key));
-      return {key:r.key,login:String(m.login||'').toLowerCase(),platform:r.key.split(':')[0],tier:TIER_ORDER.includes(m.tier)?m.tier:this.state.members[r.key]?.tier||'blue',rank:on?{abbr:RANKS[i].abbr,name:RANKS[i].name}:null,place:place.get(r.key)||0};});
+    // 2.35.0: points only for members who can appear on a ten-row panel (top 10 overall and per platform); nobody else's are sent.
+    const seen={all:0};
+    const out=rows.slice(0,3000).map(r=>{const m=members[r.key]||{},i=this.rankOf(r.value,place.get(r.key)),pf=r.key.split(':')[0];seen[pf]=(seen[pf]||0)+1;seen.all++;const onBoard=seen.all<=10||seen[pf]<=10;
+      return {key:r.key,login:String(m.login||'').toLowerCase(),name:clean(m.name||m.login||'',60),platform:r.key.split(':')[0],tier:TIER_ORDER.includes(m.tier)?m.tier:this.state.members[r.key]?.tier||'blue',rank:on?{abbr:RANKS[i].abbr,name:RANKS[i].name}:null,place:place.get(r.key)||0,
+        ...(onBoard?{lifetime:r.value,balance:Number.isFinite(m.balance)?m.balance:null}:{})};}); // 2.35.0: lifetime (ranks) and balance (to spend), shown separately on the leader panels
     for(const [key,m] of Object.entries(this.state.members))if(!members[key]&&m.tier)out.push({key,login:String(m.login||'').toLowerCase(),platform:key.split(':')[0],tier:m.tier,rank:null,place:0});
     return {serverAt:this.now(),ranks:on,members:out};
   }

@@ -249,6 +249,10 @@ export function buildFeed({collected,settings,pilots=[],versus=null,winners=[],o
     proof:typeof w?.gid==='string'&&proofIds.has(w.gid)?w.gid:null})).filter(w=>w.name&&w.at);
   if(show.goals)feed.goals=c.points.goals;
   if(show.points)feed.leaderboards.points=c.points.leaders.slice(0,s.leaderboardSize).map((l,i)=>({rank:i+1,name:name(l.name),platform:l.platform,value:l.value}));
+  // 2.35.0: when the host knows lifetime points, the points board is ranked by lifetime (what naval ranks use) and carries
+  // the balance (what can be spent) beside it. `value` stays the ranking number for older copies of the page.
+  if(show.points){const top=list(companion?.ranks?.top).map(x=>({n:clean(x?.name,LIMITS.name),platform:oneOf(x?.platform,Object.keys(PLATFORMS),''),lifetime:int(x?.lifetime,0,1e12)??0,balance:Number.isFinite(Number(x?.balance))&&x?.balance!==null?int(x.balance,0,1e12):null})).filter(x=>x.n&&x.lifetime>0);
+    if(top.length)feed.leaderboards.points=top.slice(0,s.leaderboardSize).map((x,i)=>({rank:i+1,name:name(x.n),platform:x.platform,value:x.lifetime,lifetime:x.lifetime,balance:x.balance}));}
   if(show.pilots)feed.leaderboards.pilots=projectPilots(pilots,s.leaderboardSize).map((p,i)=>({rank:i+1,...p,name:name(p.name)}));
   if(show.versus&&versus){const st=oneOf(versus.status,VERSUS,'offline');feed.versus={status:st,cooldownUntil:st==='cooldown'?time(versus.cooldownUntil):null,command:s.commands.versus,winnerPoints:int(versus.winnerPoints,0,1e6)};}
   // Missions and seasons (2.13): counts and top-10 standings only; names follow "Show viewer names".
@@ -320,7 +324,7 @@ export function projectCompanion(raw,settings=DEFAULT_SETTINGS,online=true,crewC
       history:list(d.history).slice(0,6).map(h=>({outcome:oneOf(h?.outcome,['victory','escaped'],'escaped'),endedAt:time(h?.endedAt),pilots:int(h?.pilots,0,1e5)??0,mvp:h?.mvp?{...person(h.mvp),damage:int(h.mvp.damage,0,1e9)??0}:null})).filter(h=>h.endedAt)};}
   if(show.ranks&&raw.ranks){const r=raw.ranks;
     out.ranks={ladder:list(r.ladder).slice(0,RANK_COUNT).map(x=>({id:clean(x?.id,8),name:clean(x?.name,30),abbr:clean(x?.abbr,6),points:int(x?.points,0,1e12)??0,top:int(x?.top,0,100)??0,holders:int(x?.holders,0,1e7)??0})).filter(x=>x.name),
-      top:list(r.top).slice(0,25).map((x,i)=>({place:i+1,...person(x),rank:int(x?.rank,0,RANK_COUNT-1)??0,lifetime:int(x?.lifetime,0,1e12)??0})).filter(x=>x.name),
+      top:list(r.top).slice(0,25).map((x,i)=>({place:i+1,...person(x),rank:int(x?.rank,0,RANK_COUNT-1)??0,lifetime:int(x?.lifetime,0,1e12)??0,balance:show.points&&i<LIMITS.leaders&&Number.isFinite(Number(x?.balance))&&x?.balance!==null?int(x.balance,0,1e12):null})).filter(x=>x.name),
       promotions:list(r.promotions).slice(0,12).map(x=>({...person(x),rank:int(x?.rank,0,RANK_COUNT-1)??0,at:time(x?.at)})).filter(x=>x.name&&x.at)};}
   if(show.medals&&raw.medals){const m=raw.medals;
     out.medals={catalogue:list(m.catalogue).filter(x=>medalId(x?.id)).slice(0,40).map(x=>({id:x.id,name:clean(x.name,30),cat:oneOf(x.cat,MEDAL_CATS,'community'),kind:oneOf(x.kind,['count','rank','special','secret'],'count'),unit:clean(x.unit,30),icon:typeof x.icon==='string'&&/^[MLHVCSQTAZmlhvcsqtaz0-9 .,-]{1,600}$/.test(x.icon)?x.icon:'',
@@ -391,6 +395,7 @@ export function buildCrew(rows,settings=DEFAULT_SETTINGS,now=Date.now(),limit=20
   const s=normalizeSettings(settings);if(!s.sections.crew||!s.showNames)return null;
   const members=list(rows).slice(0,limit).map(r=>{const n=clean(r?.name,LIMITS.name);if(!n)return null;
     return [n,oneOf(r.platform,Object.keys(PLATFORMS),''),oneOf(r.tier,TIERS_ALL,'blue'),int(r.rank,0,RANK_COUNT-1)??0,int(r.place,0,1e6)??0,int(r.lifetime,0,1e12)??0,
-      list(r.medals).filter(m=>medalId(m?.[0])).slice(0,40).map(m=>[m[0],int(m[1],0,3)??0]),record(r.record,s.sections.activity),front(r.front,s.sections.activity),back(r.back,s.sections.activity)];}).filter(Boolean);
+      list(r.medals).filter(m=>medalId(m?.[0])).slice(0,40).map(m=>[m[0],int(m[1],0,3)??0]),record(r.record,s.sections.activity),front(r.front,s.sections.activity),back(r.back,s.sections.activity),
+      ...(s.sections.activity&&r.balance!==null&&r.balance!==undefined&&Number.isFinite(Number(r.balance))?[int(r.balance,0,1e12)]:[])];}).filter(Boolean);
   return {schema:1,generatedAt:now,members};
 }

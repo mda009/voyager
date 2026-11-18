@@ -207,3 +207,14 @@ test('2.29.0 ticket holders: names, tickets and progress to the next ticket; nev
   const c=M.sanitizeCollected({giveaways:[{id:'x',kind:'tickets',status:'open',title:'T',holders:[{name:'A<b>',platform:'evil',tickets:'5',ms:9e12,on:1,id:'SECRET'},{name:''}],holdersMore:-2}]});
   assert.deepEqual(Object.keys(c.giveaways[0].holders[0]).sort(),['ms','name','on','platform','tickets']);assert.equal(c.giveaways[0].holders.length,1);assert.equal(c.giveaways[0].holders[0].on,false);
 });
+
+test('2.35.0 points board: ranked by lifetime points with the balance beside it; balance-only list when the host has no lifetime data',async()=>{
+  const {buildFeed,DEFAULT_SETTINGS}=await import('../../public-feed-model.mjs');
+  const collected={giveaways:[],points:{available:true,leaders:[{name:'Spender',platform:'twitch',value:900},{name:'Saver',platform:'kick',value:5000}],goals:[]},sources:{}};
+  const companion={ranks:{ladder:[],top:[{name:'Spender',platform:'twitch',rank:3,lifetime:80000,balance:900},{name:'Saver',platform:'kick',rank:1,lifetime:6000,balance:5000},{name:'NoBalance',platform:'youtube',rank:0,lifetime:10,balance:null}],promotions:[]}};
+  const f=buildFeed({collected,settings:DEFAULT_SETTINGS,companion});
+  assert.deepEqual(f.leaderboards.points.map(r=>[r.rank,r.name,r.lifetime,r.balance,r.value]),[[1,'Spender',80000,900,80000],[2,'Saver',6000,5000,6000],[3,'NoBalance',10,null,10]]);
+  assert.equal(f.ranks.top[0].balance,900);
+  const old=buildFeed({collected,settings:DEFAULT_SETTINGS});
+  assert.deepEqual(old.leaderboards.points.map(r=>[r.name,r.value,r.lifetime]),[['Spender',900,undefined],['Saver',5000,undefined]]);
+});

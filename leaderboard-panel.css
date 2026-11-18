@@ -4,3 +4,5 @@
 
 #ticket-animation{position:absolute;inset:0;width:100%;height:100%;border:0;pointer-events:none;background:transparent}
 .leaderboard-overlay #panel[data-kind=tickets] #title{font-size:19px;line-height:1.15;letter-spacing:0}
+/* 2.35.0 points board: lifetime points over the balance */
+.leader-score.two{max-width:104px}.leader-score.two b{font-size:14px;line-height:15px}.leader-score.two small{line-height:9px}.leader-score.two small.bal{color:#ffd56a;font-size:10px;line-height:12px;letter-spacing:.3px;margin-top:1px}

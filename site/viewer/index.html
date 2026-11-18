@@ -124,7 +124,7 @@ li:nth-child(1) .rank{color:#f2cd73}li:nth-child(2) .rank{color:#d4dfeb}li:nth-c
 .name{display:flex;align-items:center;gap:8px;min-width:0}
 .name span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .value{font-variant-numeric:tabular-nums;font-weight:700;text-align:right}
-.value small{display:block;color:var(--faint);font-weight:400;font-size:12px}
+.value small{display:block;color:var(--faint);font-weight:400;font-size:12px}.value small.bal{color:var(--gold,#ffd56a)}
 .tabs{display:flex;gap:6px;margin-bottom:10px}
 .tabs button{font:700 14px/1 var(--display);letter-spacing:1px;text-transform:uppercase;background:transparent;color:var(--muted);border:1px solid var(--line);border-radius:8px;padding:9px 12px;cursor:pointer}
 .tabs button[aria-selected=true]{background:#17304f;color:var(--text);border-color:var(--line-strong)}
@@ -406,7 +406,7 @@ button,a,.chip{touch-action:manipulation}
 .me-card b{display:block;font:700 20px/1.1 var(--display);letter-spacing:.4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .me-card small{display:block;color:var(--muted);font-size:13px;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .me-card .go{color:var(--muted);font-size:22px}
-.me-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.me-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr));gap:8px}
 .me-stats div{padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:#0b1626}
 .me-stats small{display:block;font:700 10px/1 var(--display);letter-spacing:1.4px;color:#8abbd8;text-transform:uppercase}
 .me-stats b{display:block;font:700 20px/1.2 var(--display);margin-top:5px;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -652,6 +652,7 @@ header.top{position:sticky;top:0;z-index:25;margin:0 -16px;padding:10px 16px;bac
    <div class="card">
     <div class="tabs" role="tablist" id="tabs"></div>
     <ol class="rows" id="leader-list" role="tabpanel"></ol>
+    <p class="lede" id="leader-hint" style="margin:10px 4px 0;font-size:13px" hidden>Ranked by lifetime points: everything a member has ever earned, which is what sets their naval rank and never goes down when points are spent. Balance is what they have left to spend.</p>
    </div>
   </div>
  </section>
@@ -740,7 +741,7 @@ header.top{position:sticky;top:0;z-index:25;margin:0 -16px;padding:10px 16px;bac
  <footer><p id="updated">Updates every few minutes while the stream tools are running.</p><p><a href="manual.pdf" target="_blank" rel="noopener">Voyager member manual (PDF)</a></p><p>Voyager community site. Giveaway entry happens in stream chat only; this site never asks for passwords or payment.</p></footer>
 </div>
 <script src="fair-draw.js"></script>
-<script src="companion.js?v=2.34.1" defer></script>
+<script src="companion.js?v=2.35.0" defer></script>
 <script>
 (()=>{'use strict';
 // ?embed=1: shown inside another site. Report our height so the host page can size its frame.
@@ -934,11 +935,11 @@ function renderLeaders(){
  if(!available.includes(tab))tab=available[0]||'points';
  for(const k of available){const b=el('button','',names[k]);b.type='button';b.setAttribute('role','tab');b.setAttribute('aria-selected',String(k===tab));b.onclick=()=>{tab=k;renderLeaders();};tabs.append(b);}
  tabs.parentElement.hidden=!available.length;
- const list=$('leader-list');list.textContent='';
+ const list=$('leader-list');list.textContent='';$('leader-hint').hidden=!(tab==='points'&&(boards.points[0]||{}).lifetime!=null);
  for(const r of boards[tab]||[]){
   const li=el('li');const n=platformTag(r.platform);n.append(el('span','',r.name));
   const val=el('span','value');
-  if(tab==='points'){val.append(fmt(r.value),el('small','','points'));}
+  if(tab==='points'){if(r.lifetime!=null){val.append(fmt(r.lifetime),el('small','','lifetime points'));if(r.balance!=null)val.append(el('small','bal','balance '+fmt(r.balance)));}else val.append(fmt(r.value),el('small','','points'));}
   else if(tab==='quiz'||tab==='quizStream'){val.append(fmt(r.correct)+' correct',el('small','',fmt(r.points)+' points awarded'));}
   else{val.append(fmt(r.wins)+' W',el('small','',r.losses+' L · '+r.battles+' battles'));}
   li.append(el('span','rank',r.rank),n,val);list.append(li);
