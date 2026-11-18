@@ -38,7 +38,7 @@ function render(){
   if(!editing)fill();
 }
 async function load(){if(!hosted){$('not-hosted').hidden=false;return;}try{view=await api('/api/prospect');render();}catch(e){notice(e.message,true);}}
-async function act(path,body,done){try{view={...view,...await api(path,body)};if(done)notice(done);render();}catch(e){notice(e.message,true);}}
+async function act(path,body,done){try{view={...view,...await api(path,body)};if(done){const off=/\/start$/.test(path)&&view.connected===false;notice(done+(off?' Streamer.bot is NOT connected: chat commands will not be heard, your scene will not move into the stage corner and no tickets can be given. Start Streamer.bot, then call this off and start again.':''),off);}render();}catch(e){notice(e.message,true);}}
 $('start').onclick=()=>act('/api/prospect/start',{},'Run started. The contract card is on screen.');
 $('practice').onclick=()=>act('/api/prospect/start',{practice:true},'Practice run started: nothing is paid or counted.');
 $('power').onclick=()=>{const on=!view.settings.enabled;act('/api/prospect/settings',{enabled:on},on?'Prospect Run is on.':'Prospect Run is off'+(view.run?' and the run was called off':'')+'. Viewers cannot ask for it from the website while it is off.');};
