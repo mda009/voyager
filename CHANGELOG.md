@@ -2,6 +2,12 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.33.1 (18 November 2026)
+
+**Prospect Run: an on/off switch.**
+
+- The Prospect Run page now has a **Game on / Game off** switch in the header, next to Start a run. One click, no Save. While it is off the game cannot be started, `!mine`, `!fire` and `!sell` do nothing, the overlay stays hidden and Prospect Run disappears from the list viewers can request on the website. Switching it off during a run calls the run off and pays nothing. (It replaces the tick box that was under Settings.)
+
 ## 2.33.0 (18 November 2026)
 
 **Prospect Run: a mining and hauling crew game that pays giveaway tickets. Website and member manual brought up to date.**

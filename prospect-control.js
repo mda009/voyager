@@ -11,14 +11,15 @@ async function api(path,body){
 }
 const ago=t=>{const s=Math.round((Date.now()-t)/1000);return s<60?'just now':s<3600?Math.round(s/60)+' min ago':s<86400?Math.round(s/3600)+' h ago':new Date(t).toLocaleDateString([],{day:'numeric',month:'short'});};
 const NUMS=['ticketsGold','ticketsSilver','ticketsBronze','ticketsFail','scoreGold','scoreSilver','contractSeconds','mineSeconds','haulSeconds','sellSeconds','cooldownSeconds'];
-function fill(){const f=$('settings-form'),s=view.settings;f.enabled.checked=s.enabled;f.announce.checked=s.announce;for(const k of NUMS)f[k].value=s[k];}
+function fill(){const f=$('settings-form'),s=view.settings;f.announce.checked=s.announce;for(const k of NUMS)f[k].value=s[k];}
 function render(){
   const r=view.run,s=view.settings,left=Math.ceil((view.cooldownLeft||0)/1000),pill=$('state-pill');
   pill.dataset.state=r?'ok':s.enabled?'wait':'error';pill.textContent=r?(r.practice?'Practice · ':'')+({contract:'Contract',mine:'Mining',haul:'Hauling',sell:'Selling',result:'Payout'}[r.phase]):!s.enabled?'Off':left?'Cooling down '+left+'s':'Ready';
+  const pw=$('power');pw.setAttribute('aria-pressed',String(s.enabled));pw.lastChild.textContent=s.enabled?'Game on':'Game off';
   $('start').hidden=$('practice').hidden=!!r;$('stop').hidden=!r;$('start').disabled=$('practice').disabled=!s.enabled||left>0;
   for(const [id,ph] of [['st-mine','mine'],['st-haul','haul'],['st-sell','sell']])$(id).dataset.on=String(!!r&&r.phase===ph);
   const now=$('now');now.textContent='';
-  if(!r)now.append(document.createTextNode(s.enabled?(left?'Cooling down: '+left+' seconds until the next run.':'Press Start a run. A contract card appears and anyone who types a command during the run is on the crew.'):'Prospect Run is switched off under Settings.'));
+  if(!r)now.append(document.createTextNode(s.enabled?(left?'Cooling down: '+left+' seconds until the next run.':'Press Start a run. A contract card appears and anyone who types a command during the run is on the crew.'):'Prospect Run is switched off. Chat commands do nothing, the overlay stays hidden and viewers cannot ask for it from the website. Press Game off in the header to turn it back on.'));
   else if(r.phase==='contract')now.append(el('b','',r.crew+' aboard'),document.createTextNode(' · the contract card is up; mining starts in '+Math.max(0,Math.ceil((r.phaseEndsAt-view.serverAt)/1000))+' s.'));
   else if(r.phase==='mine')now.append(el('b','',r.cracked?'Rock cracked':'Charge '+Math.round(r.charge*100)+'%'),document.createTextNode(' · rock '+Math.round(r.crack*100)+'% broken · '+r.ore+' CU so far · '+r.crew+' aboard'+(r.over?' · ore has been lost to overcharge':'')));
   else if(r.phase==='haul')now.append(el('b','',r.pirate?(r.killedAt?'Pirate destroyed':'Pirate '+r.pirate.hp+' / '+r.pirate.max):'Jump drive spooling'),document.createTextNode(' · cargo '+r.cargo+' CU'+(r.lost?' ('+r.lost+' lost)':'')));
@@ -40,9 +41,10 @@ async function load(){if(!hosted){$('not-hosted').hidden=false;return;}try{view=
 async function act(path,body,done){try{view={...view,...await api(path,body)};if(done)notice(done);render();}catch(e){notice(e.message,true);}}
 $('start').onclick=()=>act('/api/prospect/start',{},'Run started. The contract card is on screen.');
 $('practice').onclick=()=>act('/api/prospect/start',{practice:true},'Practice run started: nothing is paid or counted.');
+$('power').onclick=()=>{const on=!view.settings.enabled;act('/api/prospect/settings',{enabled:on},on?'Prospect Run is on.':'Prospect Run is off'+(view.run?' and the run was called off':'')+'. Viewers cannot ask for it from the website while it is off.');};
 $('stop').onclick=()=>act('/api/prospect/stop',{},'Run called off. Nothing was paid.');
 $('settings-form').addEventListener('input',()=>{editing=true;});
-$('save').onclick=async()=>{const f=$('settings-form'),b={enabled:f.enabled.checked,announce:f.announce.checked};for(const k of NUMS)b[k]=Number(f[k].value);try{view={...view,...await api('/api/prospect/settings',b)};editing=false;notice('Settings saved.');render();}catch(e){notice(e.message,true);}};
+$('save').onclick=async()=>{const f=$('settings-form'),b={announce:f.announce.checked};for(const k of NUMS)b[k]=Number(f[k].value);try{view={...view,...await api('/api/prospect/settings',b)};editing=false;notice('Settings saved.');render();}catch(e){notice(e.message,true);}};
 $('copy-url').onclick=async()=>{try{await navigator.clipboard.writeText($('overlay-url').textContent);notice('Address copied. Paste it into an OBS Browser source, 1920 × 1080.');}catch{notice('Select the address and copy it.',true);}};
 const fit=()=>{const f=$('frame');$('preview').style.transform='scale('+(f.clientWidth/1280)+')';};new ResizeObserver(fit).observe($('frame'));fit();
 load();setInterval(()=>{if(!document.hidden)load();},1500);

@@ -54,7 +54,7 @@ test('practice runs pay nothing and are not counted; cooldown, stop and settings
   const {g,grants,results,run,at}=await make({cooldownSeconds:120});
   g.start({practice:true});g.chat(msg('Ace','!mine'));run(20000);run(60000);run(20000);assert.equal(grants.length,0);assert.equal(results.length,0);assert.equal(g.view().stats.runs,0);
   assert.throws(()=>g.start(),/Cooling down: 120 seconds/);at(120000);g.start();assert.equal(g.view().running,true);g.stop();assert.equal(g.view().running,false);g.start();g.stop();
-  g.configure({enabled:false});assert.throws(()=>g.start(),/Turn Prospect Run on/);
+  g.start();assert.equal(g.view().running,true);g.configure({enabled:false});assert.equal(g.view().running,false,'2.33.1: switching the game off calls off the run');assert.equal(g.chat(msg('Ace','!mine')),null);assert.equal(g.overlay().run,null);assert.throws(()=>g.start(),/Turn Prospect Run on/);g.configure({enabled:true});g.start();g.stop();g.configure({enabled:false});
   assert.throws(()=>normalizeProspectSettings({ticketsGold:101}),/Tickets for Gold must be 0 to 100/);assert.throws(()=>normalizeProspectSettings({scoreSilver:300}),/Silver score must be lower/);
   assert.equal(normalizeProspectSettings({mineSeconds:45}).mineSeconds,45);
 });

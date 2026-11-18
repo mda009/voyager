@@ -35,6 +35,11 @@
 .pr-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
 .pr-list li{display:flex;justify-content:space-between;gap:10px;padding:8px 10px;border:1px solid rgba(151,223,255,.1);background:rgba(8,15,24,.35);font-size:13px;color:#c9d7e4}
 .pr-list small{color:#8ea6bd;white-space:nowrap}.pr-list li.muted{color:#8ea6bd}
+/* 2.33.1: the on/off switch in the header */
+.pr-power{display:inline-flex;align-items:center;gap:8px}
+.pr-power i{width:34px;height:18px;border-radius:9px;background:#2a3648;position:relative;transition:background .2s}
+.pr-power i::after{content:'';position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#8ea6bd;transition:transform .2s,background .2s}
+.pr-power[aria-pressed=true]{border-color:rgba(127,240,181,.5)}.pr-power[aria-pressed=true] i{background:#1d5a40}.pr-power[aria-pressed=true] i::after{transform:translateX(16px);background:#7ff0b5}
 @media(max-width:1100px){.pr-grid{grid-template-columns:1fr}.pr-steps{grid-template-columns:1fr}}
 </style>
 </head>
@@ -42,7 +47,7 @@
 <div class="shell">
 <aside class="rail"><a class="brand" href="Voyager_Stream_Deck.html"><img class="logo-voyager" src="brand-assets/voyager.png" alt="Voyager membership program" width="68" height="68"><span>VOYAGER<small>MDA009 · MISSION CONTROL</small></span></a></aside>
 <main>
-<header class="top"><div><span class="eyebrow">GAMES &amp; EVENTS</span><h1>Prospect Run</h1></div><div class="toolbar"><span class="st-note">Only you can start it · chat plays with !mine !fire !sell</span><button type="button" id="practice">Practice run (no tickets)</button><button type="button" class="primary" id="start">Start a run</button><button type="button" id="stop" hidden>Call it off</button></div></header>
+<header class="top"><div><span class="eyebrow">GAMES &amp; EVENTS</span><h1>Prospect Run</h1></div><div class="toolbar"><span class="st-note">Only you can start it · chat plays with !mine !fire !sell</span><button type="button" id="power" class="pr-power" aria-pressed="true" title="Turn the game on or off"><i></i><span>Game on</span></button><button type="button" id="practice">Practice run (no tickets)</button><button type="button" class="primary" id="start">Start a run</button><button type="button" id="stop" hidden>Call it off</button></div></header>
 <p class="st-notice" id="notice" hidden></p>
 <p class="st-notice" id="not-hosted" hidden>Open this page from the Voyager app (or START-VOYAGER-CONTROL.bat).</p>
 
@@ -74,7 +79,6 @@
 <section class="card pr-card">
 <div class="card-heading"><div><span class="eyebrow">SETTINGS</span><h2>How a run pays and how long it takes</h2></div></div>
 <form class="pr-form" id="settings-form" autocomplete="off">
-<label class="check"><input type="checkbox" name="enabled"> Prospect Run is on</label>
 <label class="check"><input type="checkbox" name="announce"> Say each phase in chat (about six lines a run)</label>
 <h3>Tickets for everyone who flew</h3>
 <label>Gold haul<input type="number" name="ticketsGold" min="0" max="100"></label>
@@ -98,8 +102,8 @@
 </div>
 </main>
 </div>
-<script src="prospect-control.js?v=2.33.0"></script>
-<script src="voyager-shell.js?v=2.33.0"></script>
+<script src="prospect-control.js?v=2.33.1"></script>
+<script src="voyager-shell.js?v=2.33.1"></script>
 <script src="voyager-navigation.js"></script>
 </body>
 </html>

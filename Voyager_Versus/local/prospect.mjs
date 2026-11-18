@@ -44,7 +44,8 @@ export class ProspectRun{
   }
   async load(){try{const raw=JSON.parse(await readFile(this.file,'utf8'));this.settings=normalizeProspectSettings(raw.settings||{});this.stats={...this.stats,...(raw.stats||{})};this.history=Array.isArray(raw.history)?raw.history.slice(0,20):[];}catch{}return this;}
   async persist(){try{await mkdir(this.dataDir,{recursive:true});const tmp=this.file+'.tmp';await writeFile(tmp,JSON.stringify({schema:1,settings:this.settings,stats:this.stats,history:this.history},null,1));await rename(tmp,this.file);}catch{}}
-  configure(raw={}){this.settings=normalizeProspectSettings({...this.settings,...raw});void this.persist();return this.view();}
+  // Switching the game off also calls off a run that is under way (nothing is paid).
+  configure(raw={}){this.settings=normalizeProspectSettings({...this.settings,...raw});if(!this.settings.enabled&&this.run)this.stop();void this.persist();return this.view();}
   cooldownLeft(now=this.now()){return Math.max(0,this.lastEndedAt+this.settings.cooldownSeconds*1000-now);}
   start({practice=false}={}){
     const s=this.settings,now=this.now();
