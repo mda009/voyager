@@ -31,6 +31,7 @@ import {Intel} from './intel.mjs';
 import {Requests} from './requests.mjs';
 import {Doorframe} from './doorframe.mjs';
 import {ProspectRun} from './prospect.mjs';
+import {Raffle} from './raffle.mjs';
 import {TicketGranter} from './tickets.mjs';
 let VERSION='unknown';try{VERSION=JSON.parse(await readFile(new URL('../package.json',import.meta.url),'utf8')).version;}catch{}
 const major=Number(process.versions.node.split('.')[0]);
@@ -156,6 +157,7 @@ const bot=new StreamerBot({onOtherChat:chat=>{
   try{intel.chat(chat);}catch{}
   try{doorframe.chat(chat);}catch{}
   try{prospect.chat(chat);}catch{}
+  try{raffle.chat(chat);}catch{}
   // Kick and YouTube (2.20.8): same direct commands as Twitch, except Voyager Versus (Twitch only).
   const word=chat.text.trim().toLowerCase().split(/\s+/)[0];
   if(word==='!voyager'){voyagerCommand(chat);return;}
@@ -177,6 +179,7 @@ onStats:p=>{try{const m=p?.metrics?.twitch?.subscriptions;if(p?.ok!==false&&m&&m
   try{intel.chat({...chat,platform:chat.platform||'twitch'});}catch{}
   try{doorframe.chat({...chat,platform:chat.platform||'twitch'});}catch{}
   try{prospect.chat({...chat,platform:chat.platform||'twitch'});}catch{}
+  try{raffle.chat({...chat,platform:chat.platform||'twitch'});}catch{}
   // Dreadnought (2.20.3): Twitch !join and !fire also work straight from chat, so a missing Streamer.bot command trigger
   // can't stop the fight. The action's copy of the same message is ignored (already boarded / !fire cooldown).
   const word=chat.text.trim().toLowerCase().split(/\s+/)[0];
@@ -217,7 +220,7 @@ publicSite?.setCompanion(()=>{
     dreadnought:{...d,history:boss.history.slice(0,6)},
     ranks:{ladder:rv.ranks,top:rv.members.slice(0,25),promotions:rv.promotions},
     medals:{catalogue:cat,honour:medals.leaderboard(10),recent:medals.state.recent.slice(0,12)},
-    intel:intel.share(),requests:(()=>{const r=requests.share();if(r&&!prospect.settings.enabled)r.options=(r.options||[]).filter(o=>o.key!=='prospect');return r;})(),prospect:prospect.share(), // game off: viewers cannot ask for it either
+    intel:intel.share(),requests:(()=>{const r=requests.share();if(r&&!prospect.settings.enabled)r.options=(r.options||[]).filter(o=>o.key!=='prospect');return r;})(),raffle:raffle.share(),prospect:prospect.share(), // game off: viewers cannot ask for it either
     quiz:(()=>{const b=engage.quizBoard(10);return {all:b.all,stream:b.stream};})()};
 });
 publicSite?.setCrew(()=>cards.crewRows(2000));
@@ -237,6 +240,9 @@ const doorframe=await new Doorframe({dataDir,key:chat=>engage.key(chat),stream:(
   say:text=>runActionResult('Voyager - Medals',{medalSay:String(text).slice(0,450),medalSayPlatform:''})}).load();
 // 2.33.0 Prospect Run: mine, haul, sell — the crew game only the streamer can start. Pays giveaway tickets; feeds Voyager Medals.
 const prospect=await new ProspectRun({dataDir,key:chat=>engage.key(chat),onTickets:g=>{ticketGranter.grant(g);},onResult:r=>{try{medals.observeProspect(r);}catch{}},
+  say:text=>runActionResult('Voyager - Medals',{medalSay:String(text).slice(0,450),medalSayPlatform:''})}).load();
+// 2.34.0 Raffle: ten minutes to join with !raffle, a random ticket each, up to five winners who get giveaway tickets. Only the streamer can start one.
+const raffle=await new Raffle({dataDir,key:chat=>engage.key(chat),onTickets:g=>{ticketGranter.grant(g);},
   say:text=>runActionResult('Voyager - Medals',{medalSay:String(text).slice(0,450),medalSayPlatform:''})}).load();
 // 2.24.0 viewer requests from the companion website: read from the site's Worker, checked here, shown on an overlay and in chat.
 const requests=await new Requests({dataDir,siteUrl:()=>publicSite?.view?.().siteUrl||'',round:()=>engage?.state?.stream?.id||0,onAir:()=>Date.now()-lastChatAt<10*60000,
@@ -268,6 +274,20 @@ const server=http.createServer(async(req,res)=>{
     if(url.pathname==='/api/sources'&&req.method==='GET'){if(!validToken(req)){response(res,403,{message:'Open the local control panel.'});return;}response(res,200,{origin:'http://127.0.0.1:'+port,sources:sources.list(),...sources.summary()});return;}
     if(url.pathname==='/api/shutdown'&&req.method==='POST'){if(!validToken(req)||!req.headers['content-type']?.startsWith('application/json')){response(res,403,{message:'Open the local control panel.'});return;}response(res,200,{ok:true,message:'Saving and stopping Voyager.'});setImmediate(()=>void stop());return;}
     if(url.pathname==='/api/system'&&req.method==='GET'){if(!validToken(req)){response(res,403,{message:'Open the local control panel.'});return;}let writable=true;try{const probe=join(dataDir,'.write-test');await writeFile(probe,'ok');await unlink(probe);}catch{writable=false;}response(res,200,{version:VERSION,node:process.versions.node,platform:process.platform,dataDir,dataWritable:writable,importedFrom,legacyDataPresent:await hasJson(legacyDataDir)&&legacyDataDir!==dataDir,controlBundled:hasControl});return;}
+    if(url.pathname==='/api/raffle/overlay'&&req.method==='GET'){res.setHeader('Cache-Control','no-store');response(res,200,raffle.overlay());return;} // OBS panel and overlay: display names and ticket numbers
+    if(url.pathname.startsWith('/api/raffle')){
+      if(!validToken(req)){response(res,403,{message:'Open Voyager Control › Raffle.'});return;} // only the streamer can start a raffle
+      if(url.pathname==='/api/raffle'&&req.method==='GET'){response(res,200,{...raffle.view(),ticketGrants:ticketGranter.view(),ticketAction:await actionStatus('Voyager - Ticket Giveaway'),connected:bot.status.connected});return;}
+      if(req.method!=='POST'||!req.headers['content-type']?.startsWith('application/json')){response(res,405,{message:'Method not allowed.'});return;}
+      try{const input=await body(req,8192);
+        if(url.pathname==='/api/raffle/settings'){response(res,200,{ok:true,...raffle.configure(input||{})});return;}
+        if(url.pathname==='/api/raffle/start'){response(res,200,{ok:true,...raffle.start()});return;}
+        if(url.pathname==='/api/raffle/close'){response(res,200,{ok:true,...raffle.closeNow()});return;}
+        if(url.pathname==='/api/raffle/cancel'){response(res,200,{ok:true,...raffle.cancel()});return;}
+        response(res,404,{message:'Not found.'});
+      }catch(e){response(res,400,{message:e.message||'That did not work.'});}
+      return;
+    }
     if(url.pathname==='/api/prospect/overlay'&&req.method==='GET'){res.setHeader('Cache-Control','no-store');response(res,200,prospect.overlay());return;} // OBS overlay
     if(url.pathname.startsWith('/api/prospect')){
       if(!validToken(req)){response(res,403,{message:'Open Voyager Control › Prospect Run.'});return;} // only the streamer can start a run
@@ -562,6 +582,7 @@ let ticks=0,lastStatsAsk=0,lastPointsAsk=0;const timer=setInterval(()=>{
   if(ticks%300===7)void intel.tick().catch(()=>{});
   try{doorframe.tick();}catch{}
   try{prospect.tick();}catch{}
+  try{raffle.tick();}catch{}
   if(ticks%100===33)void requests.poll().catch(()=>{}); // every 10 s
   if(ticks%10===5)void rotation.tick({stageUp:!!stage.mode(...stageState()),connected:bot.status.connected}).catch(()=>{});
   if(ticks%20===0)try{moments.tick();}catch{}

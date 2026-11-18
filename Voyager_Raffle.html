@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Voyager • Raffle</title>
+<link rel="icon" href="brand-assets/voyager.png">
+<link rel="stylesheet" href="stream-command.css">
+<link rel="stylesheet" href="voyager-brand.css">
+<link rel="stylesheet" href="settings.css?v=2.18">
+<link rel="stylesheet" href="community.css?v=2.20.48">
+<link rel="stylesheet" href="voyager-glass.css?v=2.21.0">
+<style>
+/* Raffle (2.34.0): ten minutes to join, a random ticket each, up to five winners. */
+.rf-grid{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:16px;align-items:start}
+.rf-card{padding:18px 22px;display:flex;flex-direction:column;gap:12px}
+.rf-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.rf-frames{display:grid;grid-template-columns:minmax(0,1.9fr) minmax(0,1fr);gap:10px;align-items:start}
+.rf-frame{position:relative;width:100%;border:1px solid rgba(151,223,255,.18);border-radius:12px;background:radial-gradient(circle at 30% 20%,#1b2d4a,#070c15 70%);overflow:hidden}
+.rf-frame iframe{color-scheme:light;position:absolute;left:0;top:0;max-width:none;border:0;transform-origin:0 0;display:block}
+#frame{aspect-ratio:16/9}#frame iframe{width:1920px;height:1080px}#pframe{aspect-ratio:460/640}#pframe iframe{width:460px;height:640px}
+.rf-now{padding:12px 14px;border:1px solid rgba(151,223,255,.14);background:rgba(8,15,24,.45);border-radius:12px;font-size:14px;color:#c9d7e4}
+.rf-now b{color:#ffd56a}
+.rf-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px}
+.rf-st{display:flex;flex-direction:column;gap:4px;padding:12px 14px;border:1px solid rgba(151,223,255,.14);background:rgba(8,15,24,.45);border-radius:12px}
+.rf-st small{font:700 11px/1 Rajdhani,'Segoe UI',sans-serif;letter-spacing:1.6px;color:#8ea6bd;text-transform:uppercase}
+.rf-st b{font:700 22px/1.1 Rajdhani,'Segoe UI',sans-serif;color:#e6eef7}
+.rf-form{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.rf-form label{display:flex;flex-direction:column;gap:5px;font-size:12px;color:#9ab0c5}
+.rf-form .check{flex-direction:row;align-items:center;gap:8px;font-size:13px;color:#c9d7e4;grid-column:1/-1}
+.rf-form input[type=number]{height:36px;padding:0 10px;border:1px solid rgba(151,223,255,.18);background:rgba(8,15,24,.55);color:#e6eef7;font:14px 'Segoe UI',sans-serif;min-width:0}
+.rf-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;max-height:340px;overflow:auto}
+.rf-list li{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:7px 10px;border:1px solid rgba(151,223,255,.1);background:rgba(8,15,24,.35);font-size:13px;color:#c9d7e4}
+.rf-list small{color:#8ea6bd;white-space:nowrap}.rf-list li.muted{color:#8ea6bd}.rf-list li.win{border-color:rgba(255,213,106,.45);color:#ffe6a3}
+.rf-tk{font:700 13px ui-monospace,Consolas,monospace;color:#1b1405;background:linear-gradient(180deg,#ffe9a8,#f2bd3d);border-radius:5px;padding:3px 7px;margin-right:8px}
+.rf-power{display:inline-flex;align-items:center;gap:8px}
+.rf-power i{width:34px;height:18px;border-radius:9px;background:#2a3648;position:relative;transition:background .2s}
+.rf-power i::after{content:'';position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#8ea6bd;transition:transform .2s,background .2s}
+.rf-power[aria-pressed=true]{border-color:rgba(127,240,181,.5)}.rf-power[aria-pressed=true] i{background:#1d5a40}.rf-power[aria-pressed=true] i::after{transform:translateX(16px);background:#7ff0b5}
+.rf-url{font:13px ui-monospace,Consolas,monospace;color:#9fd4ff;background:rgba(151,223,255,.08);padding:6px 8px;border-radius:6px;word-break:break-all}
+@media(max-width:1100px){.rf-grid{grid-template-columns:1fr}.rf-form{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body class="voyager-console voyager-settings voyager-community">
+<div class="shell">
+<aside class="rail"><a class="brand" href="Voyager_Stream_Deck.html"><img class="logo-voyager" src="brand-assets/voyager.png" alt="Voyager membership program" width="68" height="68"><span>VOYAGER<small>MDA009 · MISSION CONTROL</small></span></a></aside>
+<main>
+<header class="top"><div><span class="eyebrow">GAMES &amp; EVENTS</span><h1>Raffle</h1></div><div class="toolbar"><span class="st-note">Only you can start it · viewers join with !raffle</span><button type="button" id="power" class="rf-power" aria-pressed="true" title="Turn the raffle on or off"><i></i><span>Raffle on</span></button><button type="button" class="primary" id="start">Start a raffle</button><button type="button" id="close" hidden>Close entries and draw now</button><button type="button" id="cancel" hidden>Call it off</button></div></header>
+<p class="st-notice" id="notice" hidden></p>
+<p class="st-notice" id="not-hosted" hidden>Open this page from the Voyager app (or START-VOYAGER-CONTROL.bat).</p>
+
+<div class="rf-grid">
+<div style="display:flex;flex-direction:column;gap:16px">
+<section class="card rf-card">
+<div class="card-heading"><div><span class="eyebrow">ON STREAM</span><h2>The raffle</h2></div><span class="st-pill" id="state-pill" data-state="wait">—</span></div>
+<div class="rf-frames"><div class="rf-frame" id="frame"><iframe id="preview" title="Raffle animations preview" src="Voyager_Raffle_Overlay.html"></iframe></div><div class="rf-frame" id="pframe"><iframe id="ppreview" title="Raffle panel preview" src="Voyager_Raffle_Panel.html?always=1"></iframe></div></div>
+<div class="rf-now" id="now">Press <b>Start a raffle</b>. It opens for the minutes you set; everyone who types !raffle gets one ticket with a random number.</div>
+<p class="st-hint">Two OBS Browser sources, added once. Both are invisible until you start a raffle, and viewers cannot start one.</p>
+<div class="rf-row"><b style="font-size:13px;color:#c9d7e4;min-width:150px">Animations · 1920 × 1080</b><code class="rf-url" id="overlay-url"></code><button type="button" data-copy="overlay-url">Copy</button></div>
+<div class="rf-row"><b style="font-size:13px;color:#c9d7e4;min-width:150px">Panel · 460 × 640</b><code class="rf-url" id="panel-url"></code><button type="button" data-copy="panel-url">Copy</button></div>
+<p class="st-hint">The animations source plays the opening ticket, a "you are in" stub for each new entry and the draw. The panel shows the time left to join, how many are in and the newest tickets, then the winners; it leaves 30 seconds after the raffle ends.</p>
+</section>
+<section class="card rf-card">
+<div class="card-heading"><div><span class="eyebrow">ENTRIES</span><h2 id="ent-title">Tickets handed out</h2></div><span class="st-pill" id="ent-pill" data-state="wait">0</span></div>
+<ul class="rf-list" id="entries"></ul>
+</section>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:16px">
+<section class="card rf-card">
+<div class="card-heading"><div><span class="eyebrow">SETTINGS</span><h2>How a raffle runs</h2></div></div>
+<form class="rf-form" id="settings-form" autocomplete="off">
+<label>Minutes to join<input type="number" name="minutes" min="1" max="60"></label>
+<label>Winners (up to 5)<input type="number" name="winners" min="1" max="5"></label>
+<label>Giveaway tickets each<input type="number" name="prize" min="0" max="100"></label>
+<label class="check"><input type="checkbox" name="confirm"> Confirm each entry in chat with the ticket number (a few names per line, every 8 seconds)</label>
+<label class="check"><input type="checkbox" name="announce"> Say the opening, the 5-minute and 1-minute calls and the close in chat</label>
+</form>
+<div class="rf-row"><button type="button" class="primary" id="save">Save settings</button></div>
+<p class="st-hint">Entry is free and everyone gets exactly one ticket; subs, gifts, Bits and points change nothing. The draw uses your PC's secure random numbers. Winners are always announced in chat.</p>
+</section>
+<section class="card rf-card">
+<div class="card-heading"><div><span class="eyebrow">PRIZE</span><h2>Giveaway tickets for the winners</h2></div><span class="st-pill" id="tix-pill" data-state="wait">—</span></div>
+<p class="st-hint">Each winner is given the tickets above for the <b>active ticketed giveaway</b>, the same way Dreadnought victories pay. That needs a ticketed giveaway that is collecting and <b>Voyager - Ticket Giveaway v1.5</b> in Streamer.bot. With none running the raffle still plays, but no tickets are given. Set the prize to 0 to run a raffle for something you hand out yourself.</p>
+<ul class="rf-list" id="grants"></ul>
+</section>
+<section class="card rf-card">
+<div class="card-heading"><div><span class="eyebrow">LOG</span><h2>Recent raffles</h2></div></div>
+<div class="rf-stats" id="stats"></div>
+<ul class="rf-list" id="history"></ul>
+</section>
+</div>
+</div>
+</main>
+</div>
+<script src="raffle-control.js?v=2.34.0"></script>
+<script src="voyager-shell.js?v=2.34.0"></script>
+<script src="voyager-navigation.js"></script>
+</body>
+</html>

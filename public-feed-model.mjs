@@ -305,6 +305,10 @@ export function projectCompanion(raw,settings=DEFAULT_SETTINGS,online=true,crewC
   const s=normalizeSettings(settings),show=s.sections,name=n=>s.showNames?n:initials(n),out={};
   const person=p=>{const n=clean(p?.name,LIMITS.name);return n?{name:name(n),platform:oneOf(p?.platform,Object.keys(PLATFORMS),'')}:null;};
   if(show.live)out.live={onAir:online&&raw.live?.onAir===true};
+  // 2.34.0 Raffle: open or drawing, time left, how many are in, and the winners once they have been shown on stream (names only with Show viewer names).
+  if(show.live&&online&&raw.raffle&&typeof raw.raffle==='object'){const r=raw.raffle;
+    out.raffle={phase:oneOf(r.phase,['intro','open','drawing','result'],'open'),endsAt:time(r.endsAt),count:int(r.count,0,1e5)??0,want:int(r.want,1,5)??1,prize:int(r.prize,0,100)??0,
+      winners:settings.showNames===false?[]:list(r.winners).slice(0,5).map(w=>({name:clean(w?.name,LIMITS.name),platform:oneOf(w?.platform,Object.keys(PLATFORMS),''),ticket:int(w?.ticket,0,9999)??0})).filter(w=>w.name)};}
   // 2.33.0 Prospect Run: only while a run is on (the same switch as the on-air badge). Phase and the numbers on screen; no names.
   if(show.live&&online&&raw.prospect&&typeof raw.prospect==='object'){const p=raw.prospect,r=p.result&&typeof p.result==='object'?p.result:null,num2=v=>{const n=Number(v);return Number.isFinite(n)&&n>=0&&n<=10?Math.round(n*100)/100:0;};
     out.prospect={phase:oneOf(p.phase,['contract','mine','haul','sell','result'],'contract'),phaseEndsAt:time(p.phaseEndsAt),crew:int(p.crew,0,1e5)??0,ore:int(p.ore,0,1e4)??0,cargo:int(p.cargo,0,1e4)??0,price:num2(p.price),practice:p.practice===true,

@@ -580,6 +580,11 @@ header.top{position:sticky;top:0;z-index:25;margin:0 -16px;padding:10px 16px;bac
   <div class="more-list" id="more-list"></div>
  </section>
 
+ <section id="raffle" data-tab="live" aria-labelledby="h-raffle" hidden>
+  <h2 id="h-raffle">Raffle</h2><p class="lede">A quick raffle in stream chat. Type !raffle for a ticket with a random number; winning tickets are drawn on stream.</p>
+  <div class="card dread" id="raffle-card"></div>
+ </section>
+
  <section id="prospect" data-tab="live" aria-labelledby="h-prospect" hidden>
   <h2 id="h-prospect">Prospect Run</h2><p class="lede">A crew contract in chat: mine the rock, jump the cargo home, sell at the peak. Everyone who flies earns giveaway tickets.</p>
   <div class="card dread" id="prospect-card"></div>
@@ -735,7 +740,7 @@ header.top{position:sticky;top:0;z-index:25;margin:0 -16px;padding:10px 16px;bac
  <footer><p id="updated">Updates every few minutes while the stream tools are running.</p><p><a href="manual.pdf" target="_blank" rel="noopener">Voyager member manual (PDF)</a></p><p>Voyager community site. Giveaway entry happens in stream chat only; this site never asks for passwords or payment.</p></footer>
 </div>
 <script src="fair-draw.js"></script>
-<script src="companion.js?v=2.33.0" defer></script>
+<script src="companion.js?v=2.34.0" defer></script>
 <script>
 (()=>{'use strict';
 // ?embed=1: shown inside another site. Report our height so the host page can size its frame.
@@ -781,6 +786,8 @@ const COMMANDS=[
   [['!join'],'Boards the fleet while the Dreadnought approaches.','In the 60 seconds after it is called (late joiners add less hull).',['60-second window']],
   [['!fire'],'Lasers: attacks the Dreadnought for 25–50 damage, 6% chance of a triple-damage critical.','During the fight, as often as your reload bar allows. Cheers, gifted subs and chat charge the Comms Relay for extra damage.',['Short cooldown','During the fight']],
   [['!shoot'],'Cannons: a second free attack for half of !fire\'s damage, on its own cooldown — use both.','During the fight, alongside !fire.',['Short cooldown','Half damage','During the fight']]]],
+ ['Raffle','A quick raffle MDA opens during the stream. One ticket each with a random number; up to 5 winning tickets are drawn on stream and each winner gets giveaway tickets.',[
+  [['!raffle','!joinraffle'],'Gives you a raffle ticket with a random four-digit number. Chat confirms your number and it shows on the raffle panel.','While a raffle is open (10 minutes).',['One ticket each','All platforms','Free']]]],
  ['Prospect Run','A crew contract MDA starts: mine the rock, jump the cargo home through a pirate interdiction, sell it at the peak. Type any of the three during a run and you are on the crew. Everyone who flew earns giveaway tickets: 8 for a Gold haul, 5 for Silver, 3 for Bronze.',[
   [['!mine'],'Phase 1: keeps your laser on the rock for 10 seconds. About half the miners at a time holds the charge in the green window; everyone at once overcharges it and loses ore.','While the rock is being mined. Take turns rather than spamming.',['6 seconds','Mining phase']],
   [['!fire'],'Phase 2: hits the pirate that pulls the freighter out of the jump. The longer it lives, the more cargo is shot loose.','As soon as the interdiction alarm shows.',['6 seconds','Hauling phase']],

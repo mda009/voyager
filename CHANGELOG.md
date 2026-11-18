@@ -2,6 +2,19 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.34.0 (18 November 2026)
+
+**Raffle: ten minutes to join, a random ticket each, up to five winners.**
+
+- New **Raffle** page under Games & events. Press **Start a raffle** and it opens for 10 minutes (1 to 60 in settings). Only you can start one. Viewers type `!raffle` (or `!joinraffle`) on Twitch, YouTube or Kick and get **one ticket with a random four-digit number**. Entry is free and everyone gets exactly one ticket; subs, gifts, Bits and points change nothing.
+- **Entries are confirmed twice:** a "you are in" ticket stub with the viewer's name and number slides onto the screen, and chat gets the numbers a few names per line every 8 seconds (so a busy chat is not flooded). Typing `!raffle` again repeats your number rather than giving a second ticket. Chat confirmations can be turned off.
+- **On-screen animations** (one OBS Browser source, 1920 × 1080, `/control/Voyager_Raffle_Overlay.html`): a gold ticket swings in with confetti when the raffle opens, entry stubs stack bottom-left, a countdown appears for the last 10 seconds, then each winning ticket is drawn digit by digit on a number drum before the name bursts out, and a winners board closes the raffle.
+- **Raffle panel** (a second OBS Browser source, 460 × 640, `/control/Voyager_Raffle_Panel.html`), in the style of the Bridge Quiz panel: time left to join with a progress bar, how many tickets are in the draw, the newest tickets, then the winners. It shows itself when a raffle starts and leaves 30 seconds after it ends.
+- **Up to 5 winners, 10 giveaway tickets each** (both adjustable; 1 to 5 winners, 0 to 100 tickets). Nobody can win twice in one raffle; with fewer entries than winners, everyone who entered wins. The tickets go to the **active ticketed giveaway** the same way Dreadnought victories pay, so that needs a collecting ticketed giveaway and Voyager - Ticket Giveaway v1.5 in Streamer.bot. Set the prize to 0 to raffle something you hand out yourself.
+- The page has **Close entries and draw now**, **Call it off** (nobody wins, nothing is paid), a **Raffle on / off** switch, the live list of entries, the ticket-grant status and a log of recent raffles. Chat is told at the opening, at 5 minutes and 1 minute left, at the close, and the winners are always announced.
+- **Website:** the Live tab shows the open raffle with its countdown and entry count, then the winners; `!raffle` is in the command list.
+- The draw uses the PC's secure random number generator. Not yet run with real chat: do one test raffle off stream first.
+
 ## 2.33.1 (18 November 2026)
 
 **Prospect Run: an on/off switch.**

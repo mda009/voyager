@@ -24,6 +24,8 @@ const DESTINATIONS=[
   tabs:[['Voyager_Versus.html','Versus']]},
  {id:'give',label:'Giveaways',ico:'✦',group:'Games & events',help:'START_HERE.html',keys:'giveaway draw winner pool chat members ticket tickets watchtime weighted entrants board',
   tabs:[['Giveaway_Control.html','Chat & members'],['Voyager_Ticket_Giveaway.html','Ticketed'],['Voyager_Entrant_Board.html','Entrant board ↗',{blank:true}]]},
+ {id:'raffle',label:'Raffle',ico:'🎟',group:'Games & events',live:true,help:'Voyager_Guide.html',keys:'raffle ticket tickets random draw winners 10 minutes join !raffle panel entries giveaway prize',
+  tabs:[['Voyager_Raffle.html','Raffle']]},
  {id:'prospect',label:'Prospect Run',ico:'⛏',group:'Games & events',live:true,help:'Voyager_Guide.html',keys:'prospect run mining hauling haul mine ore lumenite cargo pirate interdiction jump sell exchange tickets giveaway crew contract !mine !fire !sell star citizen',
   tabs:[['Voyager_Prospect.html','Prospect Run']]},
  {id:'doorframe',label:'Doorframe',ico:'▯',group:'Games & events',live:true,help:'Voyager_Guide.html',keys:'doorframe door game clumsy platform boots bonk bones duck hop squeeze obstacle cat coffee table',

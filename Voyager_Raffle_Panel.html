@@ -1,0 +1,77 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Voyager • OBS Raffle Panel</title><link rel="icon" href="brand-assets/voyager.png">
+<style>
+/* Voyager raffle panel (2.34.0): an OBS browser source — 460 × 640 recommended, any size works. Same on-air glass and the same
+   show/hide logic as the Bridge Quiz leaderboard: it comes on screen by itself when a raffle starts, shows the time left to
+   join, how many are in and the newest tickets, then the winners, and leaves 30 seconds after the raffle ends.
+   ?always=1 keeps it on screen · ?hold=60 changes the 30 seconds · ?rows=6..12. */
+@font-face{font-family:Rajdhani;src:url(brand-assets/Rajdhani-700.ttf);font-weight:700}@font-face{font-family:Rajdhani;src:url(brand-assets/Rajdhani-600.ttf);font-weight:600}
+:root{--accent:#a7d8ff;--ink:#eef4fb;--mute:#8faac1;--gold:#ffd56a;--green:#7ff0b5;--d:Rajdhani,'Segoe UI',sans-serif;--t:Inter,'Segoe UI',Arial,sans-serif}
+html,body{margin:0;background:transparent;height:100%;overflow:hidden;font-family:var(--t);color:var(--ink);text-shadow:0 1px 3px #0009}
+#panel{position:absolute;left:12px;right:12px;top:12px;display:flex;flex-direction:column;border-radius:12px;padding:14px 16px 12px;box-sizing:border-box;overflow:hidden;
+  background:linear-gradient(135deg,rgba(9,17,31,.82),rgba(14,28,46,.74) 60%,rgba(10,20,36,.80));border:1px solid rgba(255,213,106,.3);border-top:2px solid var(--gold);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 16px 40px rgba(0,0,0,.45),0 0 28px rgba(255,213,106,.10);-webkit-backdrop-filter:blur(12px) saturate(1.25);backdrop-filter:blur(12px) saturate(1.25);
+  opacity:0;transform:translateY(-14px);transition:opacity .5s,transform .5s cubic-bezier(.2,.8,.2,1);pointer-events:none}
+#panel.on{opacity:1;transform:none}
+.top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.brand{display:flex;align-items:center;gap:8px;font:700 11px/1 var(--d);letter-spacing:.24em;color:var(--gold)}.brand img{width:22px;height:22px}
+.live{font:700 10px/1 var(--d);letter-spacing:.16em;padding:5px 8px;border-radius:999px;background:rgba(127,240,181,.16);color:var(--green)}
+.live[data-s=drawing]{background:rgba(255,213,106,.18);color:var(--gold)}.live[data-s=result]{background:rgba(167,216,255,.16);color:var(--accent)}
+.clock{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 14px;align-items:end;margin:12px 0 4px}
+#time{font:700 62px/.9 var(--d);letter-spacing:.01em;color:#fff;font-variant-numeric:tabular-nums}
+#time.last{color:var(--gold);animation:pulse 1s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.55}}
+.meta{padding-bottom:4px}.meta small{display:block;font:700 10px/1 var(--d);letter-spacing:.2em;color:var(--mute)}.meta b{display:block;font:700 22px/1.1 var(--d);margin-top:4px}.meta b span{color:var(--gold)}
+.bar{grid-column:1/-1;height:5px;border-radius:3px;background:rgba(255,213,106,.14);overflow:hidden}.bar i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#d9a93a,#ffd56a);transform-origin:left}
+.cmd{margin:10px 0 8px;padding:8px 10px;border:1px dashed rgba(255,213,106,.45);border-radius:8px;font:600 13px/1.3 var(--t);color:#d8e4f0;display:flex;align-items:center;gap:8px}
+.cmd b{font:700 18px/1 var(--d);letter-spacing:.04em;color:var(--gold);background:rgba(255,213,106,.12);padding:5px 8px;border-radius:6px}
+.head{display:flex;justify-content:space-between;font:700 9px/1 var(--d);letter-spacing:.16em;color:var(--mute);text-transform:uppercase;padding:0 2px 6px}
+.rows{display:flex;flex-direction:column;gap:5px}
+.row{display:grid;grid-template-columns:74px minmax(0,1fr) auto;gap:10px;align-items:center;padding:6px 8px;border:1px solid rgba(167,216,255,.10);background:rgba(8,15,24,.35);border-radius:8px;min-height:30px}
+.row.new{animation:in .45s cubic-bezier(.2,1.3,.4,1) both}
+@keyframes in{from{opacity:0;transform:translateX(-18px) scale(.96)}to{opacity:1;transform:none}}
+.tk{font:700 16px/1 var(--d);letter-spacing:.06em;color:#1b1405;background:linear-gradient(180deg,#ffe9a8,#f2bd3d);border-radius:5px;padding:5px 0;text-align:center;text-shadow:none;position:relative;font-variant-numeric:tabular-nums}
+.tk::before,.tk::after{content:'';position:absolute;top:50%;width:8px;height:8px;margin-top:-4px;border-radius:50%;background:#0e1a2b}.tk::before{left:-4px}.tk::after{right:-4px}
+.who{min-width:0;font:600 15px/1.2 var(--t);color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row small{font:600 9px/1 var(--d);letter-spacing:.12em;color:var(--mute);text-transform:uppercase}
+.row.win{border-color:rgba(255,213,106,.5);background:linear-gradient(90deg,rgba(255,213,106,.16),rgba(8,15,24,.35) 75%)}.row.win small{color:var(--gold)}
+.none{padding:14px 8px;color:var(--mute);font:500 13px/1.4 var(--t);text-align:center}
+.foot{margin-top:9px;padding-top:8px;border-top:1px solid rgba(167,216,255,.14);font:600 10px/1.3 var(--d);letter-spacing:.14em;color:var(--mute);text-transform:uppercase}
+.foot b{color:var(--gold)}
+</style></head>
+<body><section id="panel" aria-live="polite">
+<div class="top"><span class="brand"><img src="brand-assets/voyager.png" alt="">VOYAGER RAFFLE</span><span class="live" id="live">OPEN</span></div>
+<div class="clock"><div id="time">10:00</div><div class="meta"><small id="tl">LEFT TO JOIN</small><b><span id="count">0</span> <i id="countl" style="font-style:normal">tickets</i></b></div><div class="bar"><i id="bar"></i></div></div>
+<div class="cmd" id="cmd"><b>!raffle</b><span id="cmdt">One ticket each, with a random number.</span></div>
+<div class="head"><span id="h1">Newest tickets</span><span id="h2"></span></div>
+<div class="rows" id="rows"></div>
+<div class="foot" id="foot"></div>
+</section>
+<script>
+(()=>{'use strict';const $=id=>document.getElementById(id),q=new URLSearchParams(location.search),always=q.has('always'),hold=Math.max(0,Math.min(600,Number(q.get('hold'))||30))*1000,ROWS=Math.max(6,Math.min(12,Number(q.get('rows'))||8));
+const el=(t,c,x)=>{const n=document.createElement(t);if(c)n.className=c;if(x!==undefined)n.textContent=x;return n;};
+let d=null,offset=0,endedAt=0,last=null,seen=new Set(),listKey='',wasOn=false;
+const mmss=ms=>{const t=Math.max(0,Math.ceil(ms/1000));return Math.floor(t/60)+':'+String(t%60).padStart(2,'0');};
+function rows(list,win,prize){const key=(win?'w':'e')+list.map(x=>x.ticket).join(',');if(key===listKey)return;listKey=key;const box=$('rows');box.textContent='';
+  if(!list.length)box.append(el('div','none',win?'Drawing the first ticket…':'No tickets yet. Be the first: type !raffle in chat.'));
+  for(const e of list.slice(0,ROWS)){const r=el('div','row'+(win?' win':'')),isNew=!seen.has((win?'w':'')+e.ticket);if(isNew){r.classList.add('new');seen.add((win?'w':'')+e.ticket);}
+    r.append(el('span','tk','#'+e.ticket),el('span','who',e.name),el('small','',win?(prize?'+'+prize+' tickets':'winner'):(e.seq?'no. '+e.seq:'')));box.append(r);}}
+function frame(){const now=Date.now()+offset,r=d&&d.raffle,panel=$('panel');
+  const on=always||!!r||(endedAt&&now-endedAt<hold);panel.classList.toggle('on',on);
+  if(r){const open=r.phase==='intro'||r.phase==='open',left=r.endsAt-now,total=r.endsAt-r.opensAt;
+    $('live').dataset.s=open?'open':r.phase;$('live').textContent=open?'OPEN':r.phase==='drawing'?'DRAWING':'WINNERS';
+    $('time').textContent=open?mmss(left):r.phase==='drawing'?(r.winners.length+1>r.total?r.total:r.winners.length+1)+' / '+r.total:String(r.winners.length);$('time').classList.toggle('last',open&&left<=30000);
+    $('tl').textContent=open?'LEFT TO JOIN':r.phase==='drawing'?'WINNING TICKET':r.winners.length===1?'WINNER':'WINNERS';$('count').textContent=String(r.count);$('countl').textContent=r.count===1?'ticket in the draw':'tickets in the draw';
+    $('bar').style.transform='scaleX('+(open?Math.max(0,Math.min(1,left/total)):0)+')';
+    $('cmd').style.display=open?'':'none';$('h1').textContent=open?'Newest tickets':'Winning tickets';$('h2').textContent=open&&r.count>ROWS?'+'+(r.count-ROWS)+' more':'';
+    rows(open?r.recent:r.winners,!open,r.prize);
+    $('foot').textContent='';$('foot').append(document.createTextNode((r.want===1?'1 winner':'Up to '+r.want+' winners')+(r.prize?' · ':'')),...(r.prize?[el('b','',r.prize+' giveaway tickets'),document.createTextNode(' each')]:[]));
+    last={winners:r.winners,prize:r.prize,count:r.count};wasOn=true;}
+  else if(on){const L=(d&&d.last)||null,w=last&&last.winners.length?last.winners:L?L.winners:[],prize=last?last.prize:L?L.prize:0,count=last?last.count:L?L.entries:0;
+    $('live').dataset.s='result';$('live').textContent=w.length?'WINNERS':'STANDING BY';$('time').textContent=w.length?String(w.length):'—';$('time').classList.remove('last');$('tl').textContent=w.length===1?'WINNER':w.length?'WINNERS':'NO RAFFLE RUNNING';
+    $('count').textContent=String(count);$('countl').textContent=count===1?'ticket in the draw':'tickets in the draw';$('bar').style.transform='scaleX(0)';$('cmd').style.display='none';$('h1').textContent=w.length?'Winning tickets':'Last raffle';$('h2').textContent='';
+    if(w.length)rows(w,true,prize);else{listKey='';$('rows').textContent='';$('rows').append(el('div','none','The panel appears by itself when a raffle starts.'));}
+    $('foot').textContent=w.length&&prize?'Each winner gets '+prize+' giveaway tickets':'';}
+  requestAnimationFrame(frame);}
+async function poll(){try{const n=await(await fetch('/api/raffle/overlay',{cache:'no-store'})).json();offset=n.serverAt-Date.now();if(d&&d.raffle&&!n.raffle)endedAt=Date.now()+offset;if(n.raffle&&(!d||!d.raffle||d.raffle.id!==n.raffle.id)){seen=new Set();listKey='';last=null;}d=n;}catch{}setTimeout(poll,1000);}
+poll();requestAnimationFrame(frame);})();
+</script></body></html>
