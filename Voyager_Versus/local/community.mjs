@@ -177,12 +177,15 @@ export class Community{
       const value=metric(m);if(value===null)continue;
       const prev=s.members[key];
       const balance=Number(m.points);
-      s.members[key]={name:clean(m.name||m.login,60)||key,login:clean(m.login,60).toLowerCase(),platform:key.split(':')[0],value,...(Number.isFinite(balance)&&balance>=0?{balance}:{}),...(['blue','silver','gold','platinum'].includes(m.tier)?{tier:m.tier}:{}),...(m.vip===true?{vip:true}:{}),...(m.emerald===true?{emerald:true}:{}),seen:now};
+      // 2.35.1: the balance the member already held when the Points Ledger started counting. Lifetime points are that plus
+      // everything counted in since, so spending never lowers them. Kept from the last reading that carried it.
+      const opening=m.opening===null||m.opening===undefined?NaN:Number(m.opening),open=Number.isFinite(opening)&&opening>=0?opening:prev?.open;
+      s.members[key]={name:clean(m.name||m.login,60)||key,login:clean(m.login,60).toLowerCase(),platform:key.split(':')[0],value,...(Number.isFinite(balance)&&balance>=0?{balance}:{}),...(Number.isFinite(open)?{open}:{}),...(['blue','silver','gold','platinum'].includes(m.tier)?{tier:m.tier}:{}),...(m.vip===true?{vip:true}:{}),...(m.emerald===true?{emerald:true}:{}),seen:now};
       if(s.week.baseline[key]===undefined){s.week.baseline[key]=value;changed=true;}
       // 2.20.71: the ledger lists every member with points, so a member first seen while a goal runs is new: all their points count.
       if(s.season.baseline[key]===undefined){s.season.baseline[key]=!prev&&s.season.active&&s.season.startedAt<now?0:value;changed=true;}
       if(prev&&value>prev.value){const d=s.week.days[key]||(s.week.days[key]=[]);if(!d.includes(today)){d.push(today);changed=true;}gained.push({key,name:s.members[key].name,platform:s.members[key].platform,amount:value-prev.value,total:value,balance:s.members[key].balance});}
-      if(!prev||prev.value!==value)changed=true;
+      if(!prev||prev.value!==value||prev.open!==s.members[key].open)changed=true;
     }
     s.membersAt=now;
     this.notePilots();this.noteMedals();

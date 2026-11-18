@@ -2,6 +2,16 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.35.1 (18 November 2026)
+
+**Lifetime points now include what a member held before tracking started, and no longer fall when points are spent.**
+
+- **What was wrong.** Lifetime points were taken as the larger of two numbers: the points the Points Ledger has counted in since it started, and the current balance. For anyone who already had points when the ledger started, that meant lifetime was just their balance: points they had since spent were missing, and spending more would have lowered their lifetime points and could have lowered their rank.
+- **Now:** lifetime points = the balance the member held when the Points Ledger started counting + every point counted in since. The opening balance is already recorded by the ledger in Streamer.bot; Voyager now reads it. Spending never lowers the total. Members with no recorded opening balance keep the old rule (never less than their balance).
+- Members who have spent points since tracking started will see their lifetime points rise, and some will move up a rank. The first reading records those ranks **quietly**: no burst of promotion lines in chat or card pop-ups.
+- Points spent *before* the ledger started were never recorded anywhere and cannot be recovered. Use **Ranks › Correct** to set a member's lifetime points by hand where you know the figure.
+- Corrections already made on the Ranks page are kept as they are.
+
 ## 2.35.0 (18 November 2026)
 
 **Lifetime points and balance shown separately on the points leaderboards.**

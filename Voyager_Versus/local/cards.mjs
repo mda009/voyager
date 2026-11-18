@@ -39,7 +39,9 @@ const fmt=n=>Math.round(num(n)).toLocaleString('en');
 const KEY=/^(twitch|youtube|kick):[^\s]{1,128}$/;
 // 2.20.15: lifetime points are what Voyager has seen earned, but never less than the points someone holds right now
 // (balances from before Voyager started counting were earned too).
-const lifetimeOf=m=>m?Math.max(num(m.value),num(m.balance)):0;
+// 2.35.1: lifetime = the balance held when the Points Ledger started counting (open) + everything counted in since (value).
+// Before this it was only the larger of counted-in and the balance, which missed points already spent and fell when points were spent.
+const lifetimeOf=m=>m?Math.max(num(m.value)+num(m.open),num(m.balance)):0;
 // Medal grade metals for the card's medal row.
 const GRADE_LOOK=[
   {metal:'linear-gradient(180deg,#ffe6cc 0%,#f0a868 30%,#a5582a 52%,#6e3510 60%,#d68a4c 84%,#ffd9b0 100%)',ink:'#fff3e6',tag:'#f0b07a'},
@@ -194,9 +196,12 @@ export class Cards{
     const s=this.state.settings;if(!s.ranks||!s.enabled)return [];
     const {rows,place}=this.board();if(!rows.length)return [];
     const members=this.community()?.state?.members||{},out=[];
+    // 2.35.1: the first reading that carries opening balances raises many lifetime totals at once. Record those ranks quietly
+    // (no chat lines, no card pop-ups); promotions earned after that are announced as usual.
+    const quiet=!this.state.openPrimed&&Object.values(members).some(m=>Number.isFinite(m?.open));if(quiet)this.state.openPrimed=true;
     for(const r of rows){
       const i=this.rankOf(r.value,place.get(r.key)),was=this.state.ranks[r.key];
-      if(this.state.ranksPrimed&&was!==undefined&&i>was)out.push({key:r.key,from:was,to:i});
+      if(this.state.ranksPrimed&&!quiet&&was!==undefined&&i>was)out.push({key:r.key,from:was,to:i});
       if(was===undefined||i>was)this.state.ranks[r.key]=i;
     }
     this.state.ranksPrimed=true;

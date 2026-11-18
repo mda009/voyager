@@ -211,3 +211,19 @@ test('2.32.0 lifetime corrections: test points taken back no longer hold a rank;
   v=cards.correctLifetime('twitch:9',null);assert.equal(v.members[0].name,'Captain');assert.equal(v.fixes.length,0);
   assert.throws(()=>cards.correctLifetime('twitch:404',5),/not in the points list/);assert.throws(()=>cards.correctLifetime('twitch:2',-1),/whole number/);assert.throws(()=>cards.correctLifetime('twitch:2',1.5),/whole number/);
 });
+
+test('2.35.1 lifetime points = opening balance when the ledger started + everything counted in since; spending never lowers them',async()=>{
+  const {cards}=await make();const m=cards.community().state.members;
+  m['twitch:9']={name:'Stax',login:'stax',platform:'twitch',value:9835,balance:33470,open:31000}; // held 31,000 at the start, earned 9,835, spent 7,365
+  const row=()=>cards.ranksView().members.find(x=>x.key==='twitch:9');
+  assert.equal(row().lifetime,40835);assert.equal(row().balance,33470);
+  m['twitch:9'].balance=1000;assert.equal(row().lifetime,40835,'spending the balance does not lower lifetime points');
+  delete m['twitch:9'].open;m['twitch:9'].balance=33470;assert.equal(row().lifetime,33470,'no opening balance known: never less than the balance held');
+});
+
+test('2.35.1 the first reading with opening balances records the higher ranks without announcing a flood of promotions',async()=>{
+  const {cards}=await make();const m=cards.community().state.members;
+  cards.tickRanks();const before=(cards.state.promotions||[]).length;
+  m['twitch:1'].open=5000000;assert.deepEqual(cards.tickRanks(),[]);assert.equal((cards.state.promotions||[]).length,before);
+  assert.ok(cards.state.ranks['twitch:1']>=1,'the higher rank is recorded');
+});
