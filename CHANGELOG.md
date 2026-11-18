@@ -2,6 +2,14 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.38.2 (18 November 2026)
+
+**A clear warning when your scene cannot move into the stage corner.**
+
+- Moving your scene (the GAME group) into the bottom-right corner is done by Streamer.bot, through the "Voyager - Dreadnought Stage" action. When Voyager is not connected to Streamer.bot the stage still appears, but your scene stays full-size behind it, so the corner window shows a cropped piece of it. That is what happened on 18 November: the stage card's last cue read "failed: Voyager is not connected to Streamer.bot".
+- The stage test buttons (Dreadnought, Versus, Prospect Run, Bounty Hunt) now say this in red straight away, with what to do: start Streamer.bot, wait for the Streamer.bot light to turn green, show the stage again. The same warning appears if the scene or game source is not named, or the action is missing or disabled.
+- Starting a Prospect Run or a Bounty Hunt while Streamer.bot is disconnected now warns that chat commands will not be heard, the scene will not move and no tickets can be given.
+
 ## 2.38.1 (18 November 2026)
 
 **Fix: Prospect Run and Bounty Hunt on the stage now leave your scene visible in the corner.**
