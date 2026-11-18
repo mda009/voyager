@@ -1,4 +1,4 @@
-/* Voyager Raffle (2.34.0): a ten-minute raffle only the streamer can start. Everyone who types !raffle is given one raffle
+/* Voyager Raffle (2.34.0): a ten-minute raffle only the streamer can start. Everyone who types !join is given one raffle
    ticket with a random four-digit number. The panel shows the time left and the entries; chat confirms each entry (in
    batches, so chat is not flooded). When the time is up, up to five winning tickets are drawn one by one on screen and each
    winner is given giveaway tickets (10 by default) for the active ticketed giveaway through onTickets.
@@ -11,7 +11,7 @@ export const RAFFLE_DEFAULTS={enabled:true,announce:true,confirm:true,minutes:10
 const LIMITS={minutes:[1,60],winners:[1,5],prize:[0,100]},LABELS={minutes:'Minutes to join',winners:'Winners',prize:'Giveaway tickets per winner'};
 // Screen timing: the opening animation, each winner's reveal, and how long the winners stay up.
 export const TIMING={intro:7000,reveal:7000,result:25000,confirmEvery:8000};
-export const WORDS=['!raffle','!joinraffle'];
+export const WORDS=['!join','!raffle','!joinraffle'];
 const clean=(v,max)=>String(v??'').replace(/[\u0000-\u001f\u007f]/g,' ').replace(/\s+/g,' ').trim().slice(0,max);
 
 export function normalizeRaffleSettings(raw={},base=RAFFLE_DEFAULTS){
@@ -34,7 +34,7 @@ export class Raffle{
     const s=this.settings,now=this.now();if(!s.enabled)throw new Error('Turn the raffle on first.');if(this.raffle)throw new Error('A raffle is already running.');
     this.raffle={id:randomUUID().slice(0,8),startedAt:now,phase:'intro',phaseAt:now,opensAt:now+TIMING.intro,endsAt:now+TIMING.intro+s.minutes*60000,minutes:s.minutes,want:s.winners,prize:s.prize,
       entries:new Map(),numbers:new Set(),pending:[],confirmAt:0,told:{},winners:[],revealAt:0,doneAt:0};
-    if(s.announce)this.say('🎟 RAFFLE! Open for '+s.minutes+' minute'+(s.minutes===1?'':'s')+'. Type !raffle to get your ticket: one each, with a random number. Up to '+s.winners+' winner'+(s.winners===1?'':'s')+(s.prize?', '+s.prize+' giveaway tickets each':'')+'.');
+    if(s.announce)this.say('🎟 RAFFLE! Open for '+s.minutes+' minute'+(s.minutes===1?'':'s')+'. Type !join to get your ticket: one each, with a random number. Up to '+s.winners+' winner'+(s.winners===1?'':'s')+(s.prize?', '+s.prize+' giveaway tickets each':'')+'.');
     return this.view();
   }
   cancel(){if(!this.raffle)return this.view();this.raffle=null;if(this.settings.announce)this.say('🎟 The raffle was called off. Nobody wins this one.');return this.view();}
@@ -59,7 +59,7 @@ export class Raffle{
         for(const e of batch){const part='@'+e.name+' #'+e.ticket;if((line+part).length>380)break;line+=(shown?' · ':'')+part;shown++;}
         this.say(line+(batch.length>shown?' · and '+(batch.length-shown)+' more (see the panel)':'')+'.');}
       const left=r.endsAt-now;
-      for(const [mark,text] of [[300000,'5 minutes'],[60000,'1 minute']])if(r.minutes*60000>mark&&left<=mark&&left>0&&!r.told[mark]){r.told[mark]=1;tell('🎟 '+text+' left to join the raffle: type !raffle. '+r.entries.size+' in so far.');}
+      for(const [mark,text] of [[300000,'5 minutes'],[60000,'1 minute']])if(r.minutes*60000>mark&&left<=mark&&left>0&&!r.told[mark]){r.told[mark]=1;tell('🎟 '+text+' left to join the raffle: type !join. '+r.entries.size+' in so far.');}
       if(now<r.endsAt)return null;
       // Time is up: draw the winning tickets now (the screen reveals them one at a time).
       const pool=[...r.entries.values()],n=Math.min(r.want,pool.length);for(let i=0;i<n;i++){const j=this.pick(pool.length);r.winners.push(pool.splice(j,1)[0]);}

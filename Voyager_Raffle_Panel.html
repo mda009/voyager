@@ -41,7 +41,7 @@ html,body{margin:0;background:transparent;height:100%;overflow:hidden;font-famil
 <body><section id="panel" aria-live="polite">
 <div class="top"><span class="brand"><img src="brand-assets/voyager.png" alt="">VOYAGER RAFFLE</span><span class="live" id="live">OPEN</span></div>
 <div class="clock"><div id="time">10:00</div><div class="meta"><small id="tl">LEFT TO JOIN</small><b><span id="count">0</span> <i id="countl" style="font-style:normal">tickets</i></b></div><div class="bar"><i id="bar"></i></div></div>
-<div class="cmd" id="cmd"><b>!raffle</b><span id="cmdt">One ticket each, with a random number.</span></div>
+<div class="cmd" id="cmd"><b>!join</b><span id="cmdt">One ticket each, with a random number.</span></div>
 <div class="head"><span id="h1">Newest tickets</span><span id="h2"></span></div>
 <div class="rows" id="rows"></div>
 <div class="foot" id="foot"></div>
@@ -52,7 +52,7 @@ const el=(t,c,x)=>{const n=document.createElement(t);if(c)n.className=c;if(x!==u
 let d=null,offset=0,endedAt=0,last=null,seen=new Set(),listKey='',wasOn=false;
 const mmss=ms=>{const t=Math.max(0,Math.ceil(ms/1000));return Math.floor(t/60)+':'+String(t%60).padStart(2,'0');};
 function rows(list,win,prize){const key=(win?'w':'e')+list.map(x=>x.ticket).join(',');if(key===listKey)return;listKey=key;const box=$('rows');box.textContent='';
-  if(!list.length)box.append(el('div','none',win?'Drawing the first ticket…':'No tickets yet. Be the first: type !raffle in chat.'));
+  if(!list.length)box.append(el('div','none',win?'Drawing the first ticket…':'No tickets yet. Be the first: type !join in chat.'));
   for(const e of list.slice(0,ROWS)){const r=el('div','row'+(win?' win':'')),isNew=!seen.has((win?'w':'')+e.ticket);if(isNew){r.classList.add('new');seen.add((win?'w':'')+e.ticket);}
     r.append(el('span','tk','#'+e.ticket),el('span','who',e.name),el('small','',win?(prize?'+'+prize+' tickets':'winner'):(e.seq?'no. '+e.seq:'')));box.append(r);}}
 function frame(){const now=Date.now()+offset,r=d&&d.raffle,panel=$('panel');

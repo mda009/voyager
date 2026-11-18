@@ -45,7 +45,7 @@
 <div class="shell">
 <aside class="rail"><a class="brand" href="Voyager_Stream_Deck.html"><img class="logo-voyager" src="brand-assets/voyager.png" alt="Voyager membership program" width="68" height="68"><span>VOYAGER<small>MDA009 · MISSION CONTROL</small></span></a></aside>
 <main>
-<header class="top"><div><span class="eyebrow">GAMES &amp; EVENTS</span><h1>Raffle</h1></div><div class="toolbar"><span class="st-note">Only you can start it · viewers join with !raffle</span><button type="button" id="power" class="rf-power" aria-pressed="true" title="Turn the raffle on or off"><i></i><span>Raffle on</span></button><button type="button" class="primary" id="start">Start a raffle</button><button type="button" id="close" hidden>Close entries and draw now</button><button type="button" id="cancel" hidden>Call it off</button></div></header>
+<header class="top"><div><span class="eyebrow">GAMES &amp; EVENTS</span><h1>Raffle</h1></div><div class="toolbar"><span class="st-note">Only you can start it · viewers join with !join</span><button type="button" id="power" class="rf-power" aria-pressed="true" title="Turn the raffle on or off"><i></i><span>Raffle on</span></button><button type="button" class="primary" id="start">Start a raffle</button><button type="button" id="close" hidden>Close entries and draw now</button><button type="button" id="cancel" hidden>Call it off</button></div></header>
 <p class="st-notice" id="notice" hidden></p>
 <p class="st-notice" id="not-hosted" hidden>Open this page from the Voyager app (or START-VOYAGER-CONTROL.bat).</p>
 
@@ -54,7 +54,7 @@
 <section class="card rf-card">
 <div class="card-heading"><div><span class="eyebrow">ON STREAM</span><h2>The raffle</h2></div><span class="st-pill" id="state-pill" data-state="wait">—</span></div>
 <div class="rf-frames"><div class="rf-frame" id="frame"><iframe id="preview" title="Raffle animations preview" src="Voyager_Raffle_Overlay.html"></iframe></div><div class="rf-frame" id="pframe"><iframe id="ppreview" title="Raffle panel preview" src="Voyager_Raffle_Panel.html?always=1"></iframe></div></div>
-<div class="rf-now" id="now">Press <b>Start a raffle</b>. It opens for the minutes you set; everyone who types !raffle gets one ticket with a random number.</div>
+<div class="rf-now" id="now">Press <b>Start a raffle</b>. It opens for the minutes you set; everyone who types !join gets one ticket with a random number.</div>
 <p class="st-hint">Two OBS Browser sources, added once. Both are invisible until you start a raffle, and viewers cannot start one.</p>
 <div class="rf-row"><b style="font-size:13px;color:#c9d7e4;min-width:150px">Animations · 1920 × 1080</b><code class="rf-url" id="overlay-url"></code><button type="button" data-copy="overlay-url">Copy</button></div>
 <div class="rf-row"><b style="font-size:13px;color:#c9d7e4;min-width:150px">Panel · 460 × 640</b><code class="rf-url" id="panel-url"></code><button type="button" data-copy="panel-url">Copy</button></div>
@@ -93,8 +93,8 @@
 </div>
 </main>
 </div>
-<script src="raffle-control.js?v=2.34.0"></script>
-<script src="voyager-shell.js?v=2.34.0"></script>
+<script src="raffle-control.js?v=2.34.1"></script>
+<script src="voyager-shell.js?v=2.34.1"></script>
 <script src="voyager-navigation.js"></script>
 </body>
 </html>

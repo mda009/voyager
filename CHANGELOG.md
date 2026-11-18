@@ -2,6 +2,14 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.34.1 (18 November 2026)
+
+**Raffle: the command is now `!join`.**
+
+- While a raffle is open, viewers type **`!join`** to get their ticket. The opening ticket, the panel, the chat announcements, the control page and the website all say `!join`. `!raffle` and `!joinraffle` still work, so nobody who types the old word is left out.
+- `!join` only enters the raffle while one is open; at any other time it does nothing for the raffle.
+- `!join` is also how chat boards a Dreadnought. If a raffle is open while a Dreadnought lobby is open, one `!join` does both: the viewer boards the fleet and gets a raffle ticket.
+
 ## 2.34.0 (18 November 2026)
 
 **Raffle: ten minutes to join, a random ticket each, up to five winners.**

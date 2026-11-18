@@ -96,7 +96,7 @@ window.renderRightNow=function(){
  const s=feed.season;if(s&&s.active!==false&&s.name){const days=s.endsAt?Math.max(0,Math.ceil((s.endsAt-Date.now())/864e5)):0,next=(s.goals||[]).find(g=>!g.reached&&!g.missed),done=(s.goals||[]).filter(g=>g.reached).length;
   tile('gold',s.name,(s.endsAt?days+' days to go · ':'')+(next?next.title+' '+Math.min(100,Math.floor(next.total/next.target*100))+'%':done+' of '+(s.goals||[]).length+' goals reached'),'goal','season');}
  const open=(feed.giveaways||[]).filter(g=>g.status==='open');if(open.length&&feed.online&&Date.now()-feed.generatedAt<15*60000)tile('',open.length===1?'Giveaway open':open.length+' giveaways open',open[0].title+(open[0].eligibility?' · '+open[0].eligibility:''),'live','giveaways');
- {const rf=feed.raffle;if(rf&&(rf.phase==='open'||rf.phase==='intro'))tile('gold','Raffle is open','Type !raffle in chat · '+fmt(rf.count)+' in','live','raffle');}
+ {const rf=feed.raffle;if(rf&&(rf.phase==='open'||rf.phase==='intro'))tile('gold','Raffle is open','Type !join in chat · '+fmt(rf.count)+' in','live','raffle');}
  {const pr=feed.prospect;if(pr&&pr.phase!=='result')tile('gold','Prospect Run is on',({contract:'Type !mine, !fire or !sell to join',mine:'Type !mine now',haul:'Type !fire when pirates hit',sell:'Type !sell at the peak'})[pr.phase],'live','prospect');}
  const d=feed.dreadnought;if(d&&['lobby','battle'].includes(d.phase))tile('red',d.phase==='lobby'?'Dreadnought boarding':'Dreadnought fight',d.phase==='lobby'?'Type !join now':'Type !fire to attack','live','dread');
  const m=feed.missions;if(m&&(m.list||[]).length&&box.children.length<3)tile('',(m.list||[]).length+' missions this week','Finish one to earn Voyager points','live','missions');
@@ -125,8 +125,8 @@ function who(p){const w=el('span','name');if(PLATFORM[p.platform]){const d=el('i
 function renderRaffle(){
  const r=feed.raffle,sec=$('raffle');if(!sec)return;sec.hidden=!r;if(!r)return;const card=$('raffle-card');card.textContent='';
  const open=r.phase==='open'||r.phase==='intro',top=el('div','gw-top');top.append(el('span','kind','Raffle · '+(r.want===1?'1 winner':'up to '+r.want+' winners')+(r.prize?' · '+r.prize+' giveaway tickets each':'')),el('span','badge '+(open?'s-open':r.phase==='drawing'?'s-drawing':''),open?'Open':r.phase==='drawing'?'Drawing now':'Winners'));card.append(top);
- if(open){card.append(el('div','phase lobby','Type !raffle in stream chat'));const c=el('p','who');if(r.endsAt){c.dataset.until=r.endsAt;c.dataset.prefix='Closes in ';c.textContent='Closes in '+left(r.endsAt);}card.append(c,el('p','who',fmt(r.count)+' ticket'+(r.count===1?'':'s')+' handed out so far. One each, with a random number.'));
-  const cm=el('div','cmds');cm.append(copyChip('!raffle','get your ticket'));card.append(cm);}
+ if(open){card.append(el('div','phase lobby','Type !join in stream chat'));const c=el('p','who');if(r.endsAt){c.dataset.until=r.endsAt;c.dataset.prefix='Closes in ';c.textContent='Closes in '+left(r.endsAt);}card.append(c,el('p','who',fmt(r.count)+' ticket'+(r.count===1?'':'s')+' handed out so far. One each, with a random number.'));
+  const cm=el('div','cmds');cm.append(copyChip('!join','get your ticket'));card.append(cm);}
  else{card.append(el('div','phase battle',r.phase==='drawing'?'The winning tickets are being drawn on stream':'The raffle is over'));
   if(r.winners?.length){const ol=el('ol','rows');r.winners.forEach((w,i)=>{const li=el('li');li.append(el('span','rank',String(i+1)),el('span','',w.name+(PLATFORM[w.platform]?' · '+PLATFORM[w.platform]:'')),el('span','',w.ticket?'#'+w.ticket:''));ol.append(li);});card.append(ol);}
   else card.append(el('p','who',fmt(r.count)+' ticket'+(r.count===1?'':'s')+' in the draw.'));}

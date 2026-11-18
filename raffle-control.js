@@ -19,13 +19,13 @@ function render(){
   const pw=$('power');pw.setAttribute('aria-pressed',String(s.enabled));pw.lastChild.textContent=s.enabled?'Raffle on':'Raffle off';
   $('start').hidden=!!r;$('start').disabled=!s.enabled;$('close').hidden=!open;$('cancel').hidden=!r||r.phase==='result';
   const now=$('now');now.textContent='';
-  if(!r)now.append(document.createTextNode(s.enabled?'Press Start a raffle. It opens for '+s.minutes+' minute'+(s.minutes===1?'':'s')+'; everyone who types !raffle gets one ticket with a random number, and '+(s.winners===1?'1 winner is':'up to '+s.winners+' winners are')+' drawn'+(s.prize?' for '+s.prize+' giveaway tickets each.':'.'):'The raffle is switched off. !raffle does nothing and both OBS sources stay hidden.'));
+  if(!r)now.append(document.createTextNode(s.enabled?'Press Start a raffle. It opens for '+s.minutes+' minute'+(s.minutes===1?'':'s')+'; everyone who types !join gets one ticket with a random number, and '+(s.winners===1?'1 winner is':'up to '+s.winners+' winners are')+' drawn'+(s.prize?' for '+s.prize+' giveaway tickets each.':'.'):'The raffle is switched off. !join does nothing and both OBS sources stay hidden.'));
   else if(open)now.append(el('b','',r.count+' ticket'+(r.count===1?'':'s')+' handed out'),document.createTextNode(' · closes in '+mmss(r.endsAt-view.serverAt)+' · '+(r.want===1?'1 winner':'up to '+r.want+' winners')+(r.prize?' at '+r.prize+' giveaway tickets each':'')));
   else if(r.phase==='drawing')now.append(el('b','','Drawing ticket '+Math.min(r.total,r.winners.length+1)+' of '+r.total),document.createTextNode(' · '+r.count+' in the draw'+(r.winners.length?' · so far: '+r.winners.map(w=>w.name+' #'+w.ticket).join(', '):'')));
   else now.append(el('b','',r.winners.length?'Winners: ':'No entries'),document.createTextNode(r.winners.map(w=>w.name+' #'+w.ticket).join(', ')));
   // entries (or the last raffle's winners)
   const L=$('entries');L.textContent='';const ents=view.entries||[];$('ent-pill').dataset.state=ents.length?'ok':'wait';$('ent-pill').textContent=r?String(r.count):'—';$('ent-title').textContent=r?'Tickets handed out':'Last raffle';
-  if(r){if(!ents.length)L.append(el('li','muted','Nobody yet. Viewers type !raffle in chat.'));const wins=new Set((r.winners||[]).map(w=>w.ticket));
+  if(r){if(!ents.length)L.append(el('li','muted','Nobody yet. Viewers type !join in chat.'));const wins=new Set((r.winners||[]).map(w=>w.ticket));
     for(const e of ents){const li=el('li',wins.has(e.ticket)?'win':''),a=el('span');a.append(el('span','rf-tk','#'+e.ticket),document.createTextNode(e.name));li.append(a,el('small','',(wins.has(e.ticket)?'WINNER · ':'')+(PLATFORM[e.platform]||e.platform)));L.append(li);}}
   else{const h=view.history[0];if(!h)L.append(el('li','muted','No raffle has been run yet.'));else{for(const w of h.winners){const li=el('li','win'),a=el('span');a.append(el('span','rf-tk','#'+w.ticket),document.createTextNode(w.name));li.append(a,el('small','','WINNER · '+(PLATFORM[w.platform]||w.platform)));L.append(li);}
       L.append(el('li','muted',h.entries+' ticket'+(h.entries===1?'':'s')+' in that draw · '+ago(h.at)));}}

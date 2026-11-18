@@ -7,7 +7,7 @@ async function make(settings={},picks=null){const dir=await mkdtemp(join(tmpdir(
   const g=await new Raffle({dataDir:dir,now:()=>now,pick,say:t=>said.push(t),onTickets:x=>grants.push(x)}).load();g.configure(settings);
   const run=ms=>{const end=now+ms;while(now<end){now+=100;g.tick();}};
   return {g,dir,said,grants,run,now:()=>now};}
-const msg=(name,text='!raffle',platform='twitch')=>({platform,userId:'id-'+name,login:name.toLowerCase(),name,text});
+const msg=(name,text='!join',platform='twitch')=>({platform,userId:'id-'+name,login:name.toLowerCase(),name,text});
 
 test('a raffle: ten minutes to join, one random ticket each, entries confirmed in chat, five winners drawn one by one, ten giveaway tickets each',async()=>{
   const {g,said,grants,run,now}=await make();
@@ -47,4 +47,12 @@ test('settings: up to five winners, the prize, confirmations off; the website se
   assert.equal(said.some(t=>t.startsWith('🎟 Raffle tickets:')),false);assert.deepEqual(Object.keys(g.share()).sort(),['count','endsAt','phase','prize','want','winners']);assert.equal(g.share().count,2);
   run(40000);assert.equal(g.share().phase,'drawing');assert.deepEqual(g.share().winners,[]);run(TIMING.reveal);assert.equal(g.share().winners.length,1);assert.equal(grants.length,0,'a prize of 0 grants nothing');
   await g.persist();const again=await new Raffle({dataDir:dir}).load();assert.equal(again.settings.winners,1);assert.equal(again.history.length,1);
+});
+
+test('!join enters an open raffle, !raffle still works, and neither does anything with no raffle running',async()=>{
+  const {g,run}=await make();
+  assert.equal(g.chat(msg('Early','!join')),null);
+  g.start();run(TIMING.intro+200);
+  assert.equal(g.chat(msg('Ada','!join')).ok,true);assert.equal(g.chat(msg('Bo','!raffle')).ok,true);assert.equal(g.chat(msg('Ada','!JOIN')).already,true);
+  assert.equal(g.view().raffle.count,2);
 });
