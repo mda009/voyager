@@ -2,6 +2,22 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.38.0 (18 November 2026)
+
+**Prospect Run and Bounty Hunt now play on the game stage, the same takeover as the Dreadnought.**
+
+- When you start a Prospect Run or a Bounty Hunt and the **game stage** source is in OBS (the one the Dreadnought and Versus already use), the same sequence plays:
+  1. **Splash:** the title slams in over your stream ("Contract posted · Prospect Run" with `!mine !fire !sell`, or "Wanted" with the target's name and `!track`).
+  2. **Transition:** your own scene shrinks into the picture-in-picture corner (the same Streamer.bot cue and timing as the Dreadnought) while the panels you chose arrive around the edge.
+  3. **The game** plays in the main frame with its lobby card, live display and result card.
+  4. **MVP celebration:** after the result card, the MVP gets the full-screen celebration with their name, what they did and their bonus giveaway tickets, for the same number of seconds as the Dreadnought MVP.
+  5. The stage leaves and your scene returns to full size.
+- It uses the layout you already set for the Dreadnought stage: the same slots, bottom stack, picture-in-picture corner, splash length, animation speed and MVP seconds. Nothing new to add in OBS or Streamer.bot if the stage already works for the Dreadnought.
+- **Switches:** Dreadnought › Stage takeover has "Take over the screen for a Prospect Run" and "…for a Bounty Hunt" (both on by default), and a 60-second test showing for each.
+- **No doubles:** while the stage shows a game, that game's own OBS source steps aside by itself, so you can keep both in your scenes. With the takeover switched off (or no stage source), the games play on their own sources as before.
+- If the Dreadnought is called during one of these games, the Dreadnought takes the stage.
+- Checked with practice runs on a test copy; not yet run in your OBS with real chat.
+
 ## 2.37.0 (18 November 2026)
 
 **Bounty Hunt, and Prospect Run restyled to match the Dreadnought. Both now name an MVP.**

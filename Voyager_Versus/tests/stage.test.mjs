@@ -95,3 +95,28 @@ test('Voyager Versus takeover (2.20.91): call, battle and result put the stage u
   assert.equal(STAGE_DEFAULTS.versus.winnerBonus,0,'no champion bonus unless the streamer sets one');
   const plain=await new Stage({dataDir:await dir(),now:()=>now}).load();plain.observeVersus(result);now+=9000;const po=plain.overlay(idle,{phase:'lobby'});assert.equal(po.celebrate.points,50,'a Versus win shows the 50-point reward');assert.equal(plain.bonusPayables().length,0);
 });
+
+test('2.38.0 Prospect Run and Bounty Hunt take over the stage like the Dreadnought: splash, the game, then the MVP celebration',async()=>{
+  let now=90000;const st=await new Stage({dataDir:await dir(),now:()=>now}).load();const idle={phase:'idle'},lobby={phase:'lobby'};
+  assert.equal(st.mode(idle,lobby,{}),'');assert.equal(st.mode(idle,lobby),'','older callers with no games still work');
+  // Bounty Hunt
+  const hunt={id:'h1',phase:'lobby',phaseEndsAt:now+30000,target:{name:'Captain Ilse Varn'},practice:false};
+  let o=st.overlay(idle,lobby,{bounty:hunt});assert.equal(o.mode,'bounty');assert.equal(o.active,true);assert.equal(o.splashOn,true);assert.equal(o.splash.title,'CAPTAIN ILSE VARN');assert.deepEqual(o.splash.chips,['!TRACK']);
+  assert.equal(o.main.url,'/control/Voyager_Bounty_Overlay.html?stage=1');assert.match(o.main.label,/BOUNTY HUNT/);
+  hunt.phase='hunt';o=st.overlay(idle,lobby,{bounty:hunt});assert.equal(o.splashOn,false);assert.equal(o.celebrate,null);
+  hunt.phase='result';hunt.phaseEndsAt=now+25000;hunt.result={outcome:'captured',target:'Captain Ilse Varn',hunters:7,mvpTickets:2,practice:false,mvp:{name:'Nova',platform:'twitch',tracks:10}};
+  o=st.overlay(idle,lobby,{bounty:hunt});assert.equal(o.phase,'result');assert.equal(o.celebrate,null,'the game shows its own result card first');
+  now+=25000;o=st.overlay(idle,lobby,{bounty:null});assert.equal(o.mode,'bounty','the MVP celebration keeps the stage up');assert.equal(o.phase,'mvp');
+  assert.equal(o.celebrate.name,'Nova');assert.equal(o.celebrate.points,2);assert.equal(o.celebrate.pointsLabel,'GIVEAWAY TICKETS');assert.match(o.celebrate.line,/10 TRACKS/);assert.match(o.celebrate.sub,/captured · 7 hunters/);
+  now+=10000;assert.equal(st.mode(idle,lobby,{bounty:null}),'','celebration over');
+  // Prospect Run, called off during its result: the celebration starts at once rather than after a gap
+  const run={id:'r1',phase:'contract',phaseEndsAt:now+20000,practice:false};o=st.overlay(idle,lobby,{prospect:run});assert.equal(o.mode,'prospect');assert.equal(o.splashOn,true);assert.deepEqual(o.splash.chips,['!MINE','!FIRE','!SELL']);assert.match(o.main.url,/Voyager_Prospect_Overlay\.html\?stage=1/);
+  run.phase='result';run.phaseEndsAt=now+20000;run.result={grade:'gold',title:'Gold haul',crew:5,cargo:210,score:270,mvpTickets:2,practice:false,mvp:{name:'Lyra',platform:'youtube',acts:14}};st.mode(idle,lobby,{prospect:run});
+  now+=3000;o=st.overlay(idle,lobby,{prospect:null});assert.equal(o.mode,'prospect');assert.equal(o.celebrate.name,'Lyra');assert.match(o.celebrate.sub,/Gold haul · 5 crew · 210 CU delivered · haul score 270/);
+  now+=11000;assert.equal(st.mode(idle,lobby,{}),'');
+  // priorities and switches
+  assert.equal(st.mode({phase:'battle'},lobby,{bounty:{id:'h2',phase:'hunt'}}),'dread','the Dreadnought comes first');
+  assert.equal(st.mode(idle,lobby,{prospect:{id:'r2',phase:'mine'},bounty:{id:'h2',phase:'hunt'}}),'prospect');
+  st.configure({games:{prospect:false}});assert.equal(st.mode(idle,lobby,{prospect:{id:'r2',phase:'mine'}}),'');assert.equal(st.mode(idle,lobby,{bounty:{id:'h2',phase:'hunt'}}),'bounty');assert.equal(st.settings.games.bounty,true);
+  st.configure({games:{bounty:false}});st.force(60,'bounty');assert.equal(st.mode(idle,lobby,{}),'bounty');assert.equal(st.overlay(idle,lobby,{}).splashOn,true,'a test showing plays the splash');
+});

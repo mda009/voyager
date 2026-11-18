@@ -11,11 +11,11 @@ import {randomUUID} from 'node:crypto';
 export const SLOT_KINDS={none:'Nothing',leaderboard:'Leaderboard panel',pilots:'Voyager Versus top pilots',standings:'Community goal standings',goals:'Community goals',bar:'Goal progress bar (compact)',helpers:'Community goal contributors',hall:'Hall of Fame',missions:"This week's missions",christmas:'Christmas goal panel',chat:'Chat (Twitch · YouTube · Kick)',squadron:'Squadron war panel',dread:'Dreadnought damage HUD',camera:'Camera window (transparent)'};
 export const STACK_KINDS={bucket:'Giveaway goals strip',ticker:'Right now ticker',moments:'Command hints & medal toasts',dread:'Dreadnought damage HUD'};
 export const SLOTS=['left','right','bottomLeft'];
-export const STAGE_DEFAULTS={enabled:true,slots:{left:'leaderboard',right:'helpers',bottomLeft:'chat'},stack:['bucket','ticker','moments'],pip:'br',scene:'',source:'',hide:[],resultSeconds:20,splashSeconds:6,mvpSeconds:10,animationMs:1200,chat:{twitch:true,youtube:true,kick:true,commands:false,names:true},versus:{enabled:true,splashSeconds:6,winnerSeconds:10,winnerBonus:0,slots:{left:'pilots',right:'',bottomLeft:''}}}; // 2.21.9: versus.slots override the panels while Versus is on ('' = same as the Dreadnought stage); top pilots top-left by default // 2.20.92: a Versus win stays 50 points; the champion bonus is off unless set
+export const STAGE_DEFAULTS={enabled:true,slots:{left:'leaderboard',right:'helpers',bottomLeft:'chat'},stack:['bucket','ticker','moments'],pip:'br',scene:'',source:'',hide:[],resultSeconds:20,splashSeconds:6,mvpSeconds:10,animationMs:1200,chat:{twitch:true,youtube:true,kick:true,commands:false,names:true},versus:{enabled:true,splashSeconds:6,winnerSeconds:10,winnerBonus:0,slots:{left:'pilots',right:'',bottomLeft:''}},games:{prospect:true,bounty:true}}; // 2.38.0: the same takeover for Prospect Run and Bounty Hunt // 2.21.9: versus.slots override the panels while Versus is on ('' = same as the Dreadnought stage); top pilots top-left by default // 2.20.92: a Versus win stays 50 points; the champion bonus is off unless set
 const CHAT_MAX=80,CHAT_SHOW=40;
 const clean=(v,n)=>String(v??'').replace(/[\u0000-\u001f\u007f]/g,'').trim().slice(0,n);
 export function normalizeSettings(raw={},prev=STAGE_DEFAULTS){
-  const s=JSON.parse(JSON.stringify(prev)),r=raw&&typeof raw==='object'?raw:{};s.versus={...STAGE_DEFAULTS.versus,...(s.versus||{}),slots:{...STAGE_DEFAULTS.versus.slots,...(s.versus?.slots||{})}};
+  const s=JSON.parse(JSON.stringify(prev)),r=raw&&typeof raw==='object'?raw:{};s.games={...STAGE_DEFAULTS.games,...(s.games||{})};if(r.games&&typeof r.games==='object')for(const k of ['prospect','bounty'])if(r.games[k]!==undefined)s.games[k]=!!r.games[k];s.versus={...STAGE_DEFAULTS.versus,...(s.versus||{}),slots:{...STAGE_DEFAULTS.versus.slots,...(s.versus?.slots||{})}};
   if(r.enabled!==undefined)s.enabled=!!r.enabled;
   if(r.slots&&typeof r.slots==='object')for(const k of SLOTS){if(r.slots[k]===undefined)continue;if(!Object.hasOwn(SLOT_KINDS,r.slots[k]))throw new Error('Unknown panel for the '+k+' slot.');s.slots[k]=r.slots[k];}
   if(r.stack!==undefined){if(!Array.isArray(r.stack))throw new Error('Stack must be a list.');const out=[];for(const k of r.stack){if(!Object.hasOwn(STACK_KINDS,k))throw new Error('Unknown item in the bottom stack.');if(!out.includes(k))out.push(k);}s.stack=out.slice(0,4);}
@@ -39,7 +39,7 @@ export class Stage{
   constructor({dataDir='.',now=()=>Date.now(),run=null,uuid=randomUUID,log=()=>{},version=''}={}){this.version=String(version||'');
     this.dataDir=dataDir;this.file=join(dataDir,'stage.json');this.now=now;this.run=run;this.uuid=uuid;this.log=log;
     this.settings=normalizeSettings({});this.revision=0;this.messages=[];this.saving=Promise.resolve();
-    this.cue={on:false,sending:false,last:null,battleId:0,dueAt:0};this.forcedUntil=0;this.forcedMode='dread';this.lastResult=null;this.lastVersus=null;this.versusRewards=[];
+    this.cue={on:false,sending:false,last:null,battleId:0,dueAt:0};this.forcedUntil=0;this.forcedMode='dread';this.lastResult=null;this.lastVersus=null;this.lastGame={};this.versusRewards=[];
   }
   async load(){try{const raw=JSON.parse(await readFile(this.file,'utf8'));this.settings=normalizeSettings(raw.settings||{});this.revision=Number(raw.revision)||0;this.versusRewards=Array.isArray(raw.versusRewards)?raw.versusRewards.slice(-20):[];
     // 2.20.92: 2.20.91 shipped a 25-point champion bonus by default; a Versus win is back to 50 points, so clear that default and any rows it created.
@@ -69,28 +69,48 @@ export class Stage{
     const bonus=this.settings.versus.winnerBonus;if(this.lastVersus.winner&&!r.demo&&bonus>0&&!this.versusRewards.some(x=>x.id===id)){const w=this.lastVersus.winner;
       this.versusRewards.push({id,at:this.now(),bonus,winner:{...w,key:/^\d{1,25}$/.test(w.userId)?'twitch:'+w.userId:''},loser:this.lastVersus.loser,duration:this.lastVersus.duration});this.versusRewards=this.versusRewards.slice(-20);void this.persist();}}
   versusWindow(){const r=this.lastVersus;if(!r)return null;const since=this.now()-r.endedAt,report=8000,win=r.winner?this.settings.versus.winnerSeconds*1000:0;if(since<report)return 'result';if(since<report+win)return 'winner';return null;}
-  // Which takeover is on: the Dreadnought first, then a Versus call / battle / result / winner, then a forced showing.
-  mode(boss,versus){
-    this.observe(boss);this.observeVersus(versus);const s=this.settings,now=this.now();
+  // 2.38.0 Prospect Run and Bounty Hunt on the same stage. The game is "live" while its run exists (splash card, play and its
+  // own result card); afterwards the MVP celebration holds the stage for mvpSeconds, exactly like the Dreadnought's.
+  observeGame(kind,g){
+    const r=this.lastGame[kind],now=this.now();
+    if(!g){if(r&&r.endsAt>now)r.endsAt=now;return;} // called off (or over): the celebration, if any, starts now
+    if(g.phase!=='result'||!g.result||(r&&r.id===g.id))return;const x=g.result,tix=Number(x.mvpTickets)||0;
+    this.lastGame[kind]=kind==='prospect'
+      ?{id:g.id,endsAt:Number(g.phaseEndsAt)||now,practice:!!x.practice,mvp:x.mvp?{name:x.mvp.name,platform:x.mvp.platform}:null,points:tix,line:x.mvp?x.mvp.acts+' COMMAND'+(x.mvp.acts===1?'':'S')+' · MOST OF THE CREW':'',
+        sub:x.title+' · '+x.crew+' crew · '+(x.grade==='fail'?'nothing sold':x.cargo+' CU delivered · haul score '+x.score)+(x.practice?' · practice run, no tickets':'')}
+      :{id:g.id,endsAt:Number(g.phaseEndsAt)||now,practice:!!x.practice,mvp:x.mvp?{name:x.mvp.name,platform:x.mvp.platform}:null,points:tix,line:x.mvp?x.mvp.tracks+' TRACK'+(x.mvp.tracks===1?'':'S')+' · MOST OF THE HUNTERS':'',
+        sub:x.target+(x.outcome==='captured'?' captured':' escaped')+' · '+x.hunters+' hunter'+(x.hunters===1?'':'s')+(x.practice?' · practice hunt, no tickets':'')};
+  }
+  gameWindow(kind){const r=this.lastGame[kind];if(!r||!r.mvp)return null;const since=this.now()-r.endsAt;return since>=0&&since<this.settings.mvpSeconds*1000?'mvp':null;}
+  // Which takeover is on: the Dreadnought first, then a Versus call / battle / result / winner, then Prospect Run, then Bounty Hunt, then a forced showing.
+  mode(boss,versus,games){
+    this.observe(boss);this.observeVersus(versus);const s=this.settings,now=this.now(),pr=games?.prospect||null,bh=games?.bounty||null;if(games){this.observeGame('prospect',pr);this.observeGame('bounty',bh);}
     if(s.enabled&&((boss&&(boss.phase==='lobby'||boss.phase==='battle'))||this.window()))return 'dread';
     if(s.versus.enabled&&versus&&(['calling','countdown','battle'].includes(versus.phase)||this.versusWindow()))return 'versus';
+    if(s.games.prospect&&(pr||this.gameWindow('prospect')))return 'prospect';
+    if(s.games.bounty&&(bh||this.gameWindow('bounty')))return 'bounty';
     if(this.forcedUntil>now)return this.forcedMode;
     return '';
   }
-  active(boss,versus){return !!this.mode(boss,versus);}
+  active(boss,versus,games){return !!this.mode(boss,versus,games);}
   // Winner bonuses as payables (Missions › Points owed), like the crew surge and Dreadnought rewards.
   bonusPayables(){return this.versusRewards.map(r=>({missionId:'versus-stage-'+r.id,title:'Versus champion'+(r.loser?' · beat '+r.loser:'')+(r.duration?' in '+Math.floor(r.duration/60)+':'+String(r.duration%60).padStart(2,'0'):''),reward:r.bonus,key:r.winner.key,name:r.winner.name,platform:'twitch',week:r.at,scope:'versus',label:'Versus stage',...(r.winner.key?{}:{account:false})}));}
-  force(seconds,mode='dread'){const n=Math.max(0,Math.min(600,Number(seconds)||0));this.forcedUntil=n?this.now()+n*1000:0;this.forcedMode=mode==='versus'?'versus':'dread';if(n&&!this.messages.length)this.sampleChat();return {ok:true,until:this.forcedUntil,mode:this.forcedMode};}
+  force(seconds,mode='dread'){const n=Math.max(0,Math.min(600,Number(seconds)||0));this.forcedUntil=n?this.now()+n*1000:0;this.forcedMode=['versus','prospect','bounty'].includes(mode)?mode:'dread';if(n&&!this.messages.length)this.sampleChat();return {ok:true,until:this.forcedUntil,mode:this.forcedMode};}
   // Fictional sample lines for a test showing, so the chat window is not empty before anyone has typed.
   sampleChat(){const now=this.now();[['twitch','StarNova','#9fd4ff','o7 fleet, boarding now',0,true],['youtube','Quillon','','!join',2,false],['kick','PixelDrift','','that hull bar is huge',0,false],['twitch','Ashgrove','#ffd56a','!fire !fire !fire',3,true],['twitch','Lumen_7','#7ff0b5','gifted 5 subs, torpedoes away 🚀',0,true],['youtube','Tamsin','','gg pilots',0,false]].forEach(([platform,name,color,text,role,sub],i)=>this.chat({platform,name,login:name.toLowerCase(),text,color,role,sub,messageId:'sample'+i}));}
   layout(mode=''){const s=this.settings,g=GEOMETRY,slots=mode==='versus'?{...s.slots,...Object.fromEntries(Object.entries(s.versus.slots||{}).filter(([,v])=>v))}:s.slots;return {slots,stack:s.stack,pip:s.pip,geometry:{main:g.main,pip:{x:g.pip[s.pip].x,y:g.pip.y,w:g.pip.w,h:g.pip.h},left:{x:g.columns.left,y:g.columns.y,w:g.columns.w,h:g.columns.h},right:{x:g.columns.right,y:g.columns.y,w:g.columns.w,h:g.columns.h},bottomLeft:{x:g.bottomLeft[s.pip].x,y:g.bottomLeft.y,w:g.bottomLeft.w,h:g.bottomLeft.h},stack:g.stack}};}
-  overlay(boss,versus){const now=this.now(),mode=this.mode(boss,versus),s=this.settings,common={serverAt:now,version:this.version,active:!!mode,mode,forced:this.forcedUntil>now,...this.layout(mode),chat:this.chatFeed(),chatNames:s.chat.names,animationMs:s.animationMs,cue:this.cue.last};
+  overlay(boss,versus,games){const now=this.now(),mode=this.mode(boss,versus,games),s=this.settings,common={serverAt:now,version:this.version,active:!!mode,mode,forced:this.forcedUntil>now,...this.layout(mode),chat:this.chatFeed(),chatNames:s.chat.names,animationMs:s.animationMs,cue:this.cue.last};
     if(mode==='versus'){const w=this.versusWindow(),r=this.lastVersus,live=versus&&['calling','countdown','battle'].includes(versus.phase),phase=live?versus.phase:w==='winner'?'winner':w==='result'?'result':'idle',caller=versus?.caller?.name||'',players=(versus?.players||[]).map(p=>p.name||p.login).filter(Boolean);
       const amount=(r?.rewardAmount||0)+(r&&!r.demo?s.versus.winnerBonus:0);
       return {...common,phase,demo:!!(versus?.players?.some?.(p=>p.demo)||(w&&r?.demo)),splashMs:s.versus.splashSeconds*1000,splashOn:phase==='calling'||(this.forcedUntil>now&&phase==='idle'),
         main:{url:'/index.html?overlay=1&stage=1&hideIdle=0',label:'VOYAGER VERSUS · LIVE',accent:'#7de0ff'},
         splash:{eyebrow:'⚔ VERSUS CHALLENGE',title:caller?caller.toUpperCase()+' CALLS':players.length===2?players[0].toUpperCase()+' VS '+players[1].toUpperCase():'VERSUS CALLED',chips:['!VERSUS']},
         celebrate:w==='winner'&&r?.winner?{eyebrow:'★ VERSUS CHAMPION ★',name:r.winner.name,line:(r.loser?'DEFEATED '+r.loser.toUpperCase():'VICTORY')+(r.duration?' · '+Math.floor(r.duration/60)+':'+String(r.duration%60).padStart(2,'0'):''),points:amount,pointsLabel:'VOYAGER POINTS',sub:(r.reason||'Hull destroyed')+(r.demo?' · training battle, no points':s.versus.winnerBonus&&r.rewardAmount?' · '+r.rewardAmount+' winner reward + '+s.versus.winnerBonus+' champion bonus':r.rewardAmount?' · Versus winner reward':''),until:r.endedAt+8000+s.versus.winnerSeconds*1000}:null};}
+    if(mode==='prospect'||mode==='bounty'){const g=games?.[mode]||null,r=this.lastGame[mode],w=!g&&this.gameWindow(mode),P=mode==='prospect',first=P?'contract':'lobby',phase=g?g.phase:w?'mvp':'idle';
+      return {...common,phase,demo:!!(g?.practice||(w&&r?.practice)),splashMs:s.splashSeconds*1000,splashOn:phase===first||(this.forcedUntil>now&&phase==='idle'),mvpMs:s.mvpSeconds*1000,
+        main:P?{url:'/control/Voyager_Prospect_Overlay.html?stage=1',label:'PROSPECT RUN · LIVE',accent:'#ffb060'}:{url:'/control/Voyager_Bounty_Overlay.html?stage=1',label:'BOUNTY HUNT · LIVE',accent:'#f2cd73'},
+        splash:P?{eyebrow:'⛏ CONTRACT POSTED',title:'PROSPECT RUN',chips:['!MINE','!FIRE','!SELL']}:{eyebrow:'⚠ WANTED · BOUNTY POSTED',title:g?.target?.name?String(g.target.name).toUpperCase():'BOUNTY HUNT',chips:['!TRACK']},
+        celebrate:w&&r?.mvp?{eyebrow:P?'★ PROSPECT RUN MVP ★':'★ BOUNTY HUNT MVP ★',name:r.mvp.name,line:r.line,points:r.points,pointsLabel:'GIVEAWAY TICKET'+(r.points===1?'':'S'),sub:r.sub,until:r.endsAt+s.mvpSeconds*1000}:null};}
     const w=this.window(),r=this.lastResult,live=boss&&(boss.phase==='lobby'||boss.phase==='battle'),phase=mode?(live?boss.phase:w==='mvp'?'mvp':w==='result'?'result':boss?.phase||'idle'):(boss?.phase||'idle');
     return {...common,phase,demo:!!(boss?.demo||(w&&r?.demo)),splashMs:s.splashSeconds*1000,splashOn:phase==='lobby'||(this.forcedUntil>now&&phase==='idle'),mvpMs:s.mvpSeconds*1000,
       main:{url:'/dreadnought.html?stage=1',label:'VOYAGER DREADNOUGHT · LIVE',accent:'#ff7b8c'},
@@ -99,14 +119,14 @@ export class Stage{
       // kept for older stage pages
       mvp:w==='mvp'&&r?.mvp?{...r.mvp,bonus:r.bonus,outcome:r.outcome,boss:r.name,damageTotal:r.damage,pilots:r.pilots,until:r.endedAt+(s.resultSeconds+s.mvpSeconds)*1000}:null};}
   // Send the cue for the current state again (the control page's "Move my scene again" after fixing the action or the names).
-  async resend(boss,versus){this.cue.on=!this.active(boss,versus);this.cue.dueAt=this.cue.on?0:1;return this.tick(boss,versus);}
+  async resend(boss,versus,games){this.cue.on=!this.active(boss,versus,games);this.cue.dueAt=this.cue.on?0:1;return this.tick(boss,versus,games);}
   // What OBS did, reported by the Streamer.bot action.
   result(r){this.cue.obs={at:Number(r.at)||this.now(),phase:String(r.phase||''),ok:!!r.ok,message:String(r.message||'').slice(0,300),version:String(r.backendVersion||'')};return this.cue.obs;}
   view(){return {settings:this.settings,defaults:STAGE_DEFAULTS,slotKinds:SLOT_KINDS,stackKinds:STACK_KINDS,geometry:GEOMETRY,cue:this.cue.last,obs:this.cue.obs||null,forced:this.forcedUntil>this.now(),forcedMode:this.forcedMode,chatCount:this.messages.length,versusRewards:this.versusRewards.slice(-5)};}
   // Shrink / restore cue to Streamer.bot: once when the stage comes up, once when it goes down. Needs the scene and the
   // nested scene / group that holds the streamer's game, named on the Dreadnought page.
-  async tick(boss,versus){
-    const mode=this.mode(boss,versus),want=!!mode,s=this.settings;if(want===this.cue.on||this.cue.sending)return null;
+  async tick(boss,versus,games){
+    const mode=this.mode(boss,versus,games),want=!!mode,s=this.settings;if(want===this.cue.on||this.cue.sending)return null;
     // Coming up: wait out the splash first, so the game shrinks when the panels arrive, not under the "called" slam.
     if(want){if(!this.cue.dueAt)this.cue.dueAt=this.now()+(mode==='versus'?s.versus.splashSeconds:s.splashSeconds)*1000;if(this.now()<this.cue.dueAt)return null;}
     this.cue.dueAt=0;this.cue.on=want;if(!this.run||!s.scene||!s.source)return null;

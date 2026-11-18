@@ -149,7 +149,7 @@ const stage=await new Stage({dataDir,version:VERSION,run:args=>actions.doAction(
 const rotation=await new Rotation({dataDir,run:args=>actions.doAction('Voyager - Dreadnought Stage',args),uuid:randomUUID}).load();
 if(rotation.seeded&&!rotation.settings.items.length){rotation.configure({items:[{name:'SC Ref',showSeconds:30,hideSeconds:600,enabled:true}]});}
 // What the stage decides from: the Dreadnought overlay and the Versus arena (phase, caller, players, result).
-const stageState=()=>[boss.overlay(),{phase:game.phase,matchId:game.matchId,caller:game.caller,players:game.players,result:game.result}];
+const stageState=()=>[boss.overlay(),{phase:game.phase,matchId:game.matchId,caller:game.caller,players:game.players,result:game.result},(()=>{try{return {prospect:prospect.overlay().run,bounty:bounty.overlay().hunt};}catch{return {};}})()]; // 2.38.0: Prospect Run and Bounty Hunt use the stage too
 const fleetCamera=new FleetCamera({run:args=>actions.doAction('Voyager - Fleet Alerts',args),log:m=>console.log('[fleet] '+m)});
 const bot=new StreamerBot({onOtherChat:chat=>{
   try{stage.chat(chat);}catch{}
@@ -296,7 +296,7 @@ const server=http.createServer(async(req,res)=>{
       }catch(e){response(res,400,{message:e.message||'That did not work.'});}
       return;
     }
-    if(url.pathname==='/api/prospect/overlay'&&req.method==='GET'){res.setHeader('Cache-Control','no-store');response(res,200,prospect.overlay());return;} // OBS overlay
+    if(url.pathname==='/api/prospect/overlay'&&req.method==='GET'){res.setHeader('Cache-Control','no-store');response(res,200,{...prospect.overlay(),stage:stage.mode(...stageState())==='prospect'});return;} // OBS overlay; the standalone source steps aside while the stage shows the game
     if(url.pathname.startsWith('/api/prospect')){
       if(!validToken(req)){response(res,403,{message:'Open Voyager Control › Prospect Run.'});return;} // only the streamer can start a run
       if(url.pathname==='/api/prospect'&&req.method==='GET'){response(res,200,{...prospect.view(),ticketGrants:ticketGranter.view(),ticketAction:await actionStatus('Voyager - Ticket Giveaway'),connected:bot.status.connected});return;}
@@ -309,7 +309,7 @@ const server=http.createServer(async(req,res)=>{
       }catch(e){response(res,400,{message:e.message||'That did not work.'});}
       return;
     }
-    if(url.pathname==='/api/bounty/overlay'&&req.method==='GET'){res.setHeader('Cache-Control','no-store');response(res,200,bounty.overlay());return;} // OBS overlay
+    if(url.pathname==='/api/bounty/overlay'&&req.method==='GET'){res.setHeader('Cache-Control','no-store');response(res,200,{...bounty.overlay(),stage:stage.mode(...stageState())==='bounty'});return;} // OBS overlay; the standalone source steps aside while the stage shows the game
     if(url.pathname.startsWith('/api/bounty')){
       if(!validToken(req)){response(res,403,{message:'Open Voyager Control › Bounty Hunt.'});return;} // only the streamer can start a hunt
       if(url.pathname==='/api/bounty'&&req.method==='GET'){response(res,200,{...bounty.view(),ticketGrants:ticketGranter.view(),ticketAction:await actionStatus('Voyager - Ticket Giveaway'),connected:bot.status.connected});return;}

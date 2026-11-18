@@ -6,7 +6,7 @@
 const $=id=>document.getElementById(id),q=new URLSearchParams(location.search),debug=q.get('debug')==='1';
 const hosted=location.protocol==='http:'&&/^(127\.0\.0\.1|localhost)$/.test(location.hostname),base=hosted?'':'http://127.0.0.1:'+(Number(q.get('voyager'))||8740);
 // 2.20.93: when Voyager is updated, the page reloads itself under a new address so OBS does not keep serving the cached copy.
-const BUILD='2.37.0';
+const BUILD='2.38.0';
 const stage=$('stage');let data=null,readAt=0,lastErr='',on=false,layoutKey='',offTimer=0,splashTimer=0,mvpKey='';
 function fit(){const s=Math.min(innerWidth/1920,innerHeight/1080);stage.style.transform='translate('+((innerWidth-1920*s)/2)+'px,'+((innerHeight-1080*s)/2)+'px) scale('+s+')';}
 addEventListener('resize',fit);fit();
@@ -54,12 +54,12 @@ function mvp(m){const box=$('mvp'),key=m?m.name+'|'+m.until:'';if(key===mvpKey)r
 function render(){
   const d=data,fresh=d&&Date.now()-readAt<15000,want=!!(fresh&&d.active);
   if(debug){$('debug').hidden=false;$('debug').textContent=['Stage · '+(base||location.origin)+'/api/stage/overlay',lastErr?'✗ '+lastErr:'✓ Voyager answered '+(readAt?Math.round((Date.now()-readAt)/1000)+' s ago':''),d?'Active: '+d.active+' · phase '+d.phase+(d.forced?' · forced from Voyager Control':'')+(d.demo?' · demo':''):'',d?'Slots: '+JSON.stringify(d.slots)+' · stack '+(d.stack||[]).join(', ')+' · PiP '+d.pip:'',d?.cue?'Cue: '+d.cue.phase+' '+(d.cue.ok?'sent':'failed: '+d.cue.message)+' · '+new Date(d.cue.at).toLocaleTimeString():'Cue: none sent yet (name the scene and game source on the Dreadnought page)'].filter(Boolean).join('\n');}
-  if(want&&!on){on=true;clearTimeout(offTimer);clearTimeout(splashTimer);stage.classList.remove('off');build(d);if(q.get('nomain')!=='1')$('dread').src=base+(d.main?.url||'/dreadnought.html?stage=1')+'&quality='+(['ultra','balanced','low'].includes(q.get('quality'))?q.get('quality'):'balanced')+(q.get('res')?'&res='+encodeURIComponent(q.get('res')):'');
+  if(want&&!on){on=true;clearTimeout(offTimer);clearTimeout(splashTimer);stage.classList.remove('off');build(d);$('dread').dataset.u=base+(d.main?.url||'/dreadnought.html?stage=1');if(q.get('nomain')!=='1')$('dread').src=base+(d.main?.url||'/dreadnought.html?stage=1')+'&quality='+(['ultra','balanced','low'].includes(q.get('quality'))?q.get('quality'):'balanced')+(q.get('res')?'&res='+encodeURIComponent(q.get('res')):'');
     // Splash first (boarding, or a test showing), then the stage builds; mid-battle or report, straight in.
     const splash=d.splashOn?Number(d.splashMs)||0:0;stage.style.setProperty('--splash',Math.max(1.6,splash/1000)+'s');
     if(splash>0){stage.classList.remove('alert');void stage.offsetWidth;stage.classList.add('alert');splashTimer=setTimeout(()=>{if(on)stage.classList.add('on');},splash);}else stage.classList.add('on');}
   else if(!want&&on){on=false;clearTimeout(splashTimer);stage.classList.add('off');stage.classList.remove('alert');offTimer=setTimeout(()=>{stage.classList.remove('on','off');clear();},700);}
-  else if(want&&on)build(d);
+  else if(want&&on){build(d);const u=base+(d.main?.url||'/dreadnought.html?stage=1');if(q.get('nomain')!=='1'&&$('dread').dataset.u&&$('dread').dataset.u!==u){$('dread').dataset.u=u;$('dread').src=u+'&quality=balanced';}}
   if(on)mvp(d.celebrate||null);
 }
 async function poll(){try{const r=await fetch(base+'/api/stage/overlay',{cache:'no-store'});if(!r.ok)throw new Error('Voyager answered '+r.status+(r.status===404?' (update Voyager to 2.20.84 or later)':''));data=await r.json();readAt=Date.now();lastErr='';if(debug)window.__stage=data;
