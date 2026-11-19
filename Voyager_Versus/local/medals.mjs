@@ -42,9 +42,12 @@ export const MEDALS=[
   {id:'rockbreaker',name:'Rock Breaker',cat:'games',kind:'count',unit:'rocks',grades:[3,15,50,150],desc:'Prospect Runs where you helped crack the rock'},
   {id:'gunrunner',name:'Gun Runner',cat:'games',kind:'count',unit:'pirates',grades:[3,15,50,150],desc:'Pirates you helped drive off on a Prospect Run'},
   {id:'hauler',name:'Long Hauler',cat:'games',kind:'count',unit:'Gold hauls',grades:[1,5,20,60],desc:'Prospect Runs finished as a Gold haul'},
+  // 2.40.0 Battleship
+  {id:'gunner',name:'Gunner',cat:'games',kind:'count',unit:'hits',grades:[10,50,200,600],desc:'Hits on enemy ships in Battleship'},
+  {id:'shipsinker',name:'Ship Sinker',cat:'games',kind:'count',unit:'ships sunk',grades:[3,15,50,150],desc:'Enemy ships you landed the sinking shot on in Battleship'},
   // 2.37.0 Bounty Hunt
   {id:'bountyhunter',name:'Bounty Hunter',cat:'games',kind:'count',unit:'captures',grades:[3,15,50,150],desc:'Bounty Hunts where you helped capture the target'},
-  {id:'reckoning',name:'Dead Reckoning',cat:'games',kind:'count',unit:'MVPs',grades:[1,5,20,60],desc:'Times you were the MVP of a Bounty Hunt or a Prospect Run'},
+  {id:'reckoning',name:'Dead Reckoning',cat:'games',kind:'count',unit:'MVPs',grades:[1,5,20,60],desc:'Times you were the MVP of a Bounty Hunt, a Prospect Run or a Battleship battle'},
   {id:'points',name:'Point Collector',cat:'community',kind:'count',unit:'points',grades:[1000,10000,50000,250000],desc:'Voyager points earned, all time'},
   {id:'missions',name:'Mission Runner',cat:'community',kind:'count',unit:'missions',grades:[5,25,100,250],desc:'Weekly missions completed'},
   {id:'spectrum',name:'Full Spectrum',cat:'community',kind:'count',unit:'mission types',grades:[2,3,4,6],desc:'Different mission types completed'},
@@ -57,6 +60,7 @@ export const MEDALS=[
   {id:'laststand',name:'Last Stand',cat:'special',kind:'secret',desc:'Landed the killing blow on the Dreadnought with 15 seconds or less left'},
   {id:'scratch',name:'Not a Scratch',cat:'special',kind:'secret',desc:'Flew a Gold Prospect Run with no cargo lost and no overcharge'},
   {id:'lastsecond',name:'Last Second',cat:'special',kind:'secret',desc:'Helped capture a bounty with ten seconds or less on the clock'},
+  {id:'bullseye',name:'First Salvo',cat:'special',kind:'secret',desc:'Hit an enemy ship with your very first shot of a winning Battleship battle'},
   {id:'nightwatch',name:'Night Watch',cat:'special',kind:'secret',desc:'Earned Voyager points between midnight and 5 am on five different nights'}
 ];
 // Line icons (24 × 24) for each medal, shared with the membership card's badge wall.
@@ -74,6 +78,7 @@ export const MEDAL_ICONS={watch:'M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0-18 0 M12 7
   comms:'M4 5h16v11H9l-5 4z M8 9h8 M8 12h5',lucky:'M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.6 6.6 19.5l1.2-6L3.3 9.3l6.1-.7z',founding:'M12 3l8 3v6c0 5-4 8-8 9-4-1-8-4-8-9V6z',
   firstcontact:'M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0-6 0',laststand:'M12 12m-8 0a8 8 0 1 0 16 0a8 8 0 1 0-16 0 M12 8v5 M12 16v.01',
   rockbreaker:'M12 3l7 5-2 9-10 0-2-9z M12 3l-1 6 3 3-2 5',gunrunner:'M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0-18 0 M12 5v4 M12 15v4 M5 12h4 M15 12h4',hauler:'M3 9h12v8H3z M15 12h4l2 3v2h-6z M7 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0-4 0 M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0-4 0',scratch:'M12 3l8 3v6c0 5-4 8-8 9-4-1-8-4-8-9V6z M8.5 12l2.5 2.5 4.5-5',
+  gunner:'M4 15h10l4-6h2v3h-2l-2 3v3H4z M7 15V9h4v6',shipsinker:'M3 14h18l-2.5 5h-13z M7 14V9h6v5 M10 9V5 M3 21c2-1.5 4-1.5 6 0s4 1.5 6 0 4-1.5 6 0',bullseye:'M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0-18 0 M12 12m-5 0a5 5 0 1 0 10 0a5 5 0 1 0-10 0 M12 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0-2 0',
   bountyhunter:'M12 12m-8 0a8 8 0 1 0 16 0a8 8 0 1 0-16 0 M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0-6 0 M12 2v4 M12 18v4 M2 12h4 M18 12h4',reckoning:'M12 3l2.6 5.6 6 .7-4.4 4.2 1.1 6-5.3-3-5.3 3 1.1-6L3.4 9.3l6-.7z',lastsecond:'M12 13m-8 0a8 8 0 1 0 16 0a8 8 0 1 0-16 0 M12 13V8 M12 13l3 2 M9 2h6',
   nightwatch:'M20 14A8 8 0 1 1 10 4a6 6 0 0 0 10 10z',secret:'M9 9a3 3 0 1 1 4 2.8c-.8.4-1 1-1 2v.7 M12 18v.01'};
 const BY_ID=Object.fromEntries(MEDALS.map(m=>[m.id,m]));
@@ -285,6 +290,16 @@ export class Medals{
     }
     this.persist();
   }
+  // 2.40.0 Battleship: battles joined, wins, hits, sinking shots, MVPs, and the secret first-shot hit.
+  observeBattleship(result){
+    if(!result||result.practice)return;const win=result.outcome==='victory';
+    for(const p of Array.isArray(result.crewList)?result.crewList:[]){
+      const v=this.viewer(clean(p.key,140),{name:p.name,platform:p.platform});if(!v)continue;
+      this.inc(v,'bsgames');if(p.hits>0)this.inc(v,'bshits',Math.min(200,Math.floor(p.hits)));if(p.sinks>0)this.inc(v,'bssinks',Math.min(10,Math.floor(p.sinks)));
+      if(win){this.inc(v,'bswins');if(p.mvp)this.inc(v,'gmvp');if(p.firstHit)v.c.bullseye=1;}
+    }
+    this.persist();
+  }
   // 2.37.0 Bounty Hunt: hunts joined, captures helped, MVPs, and the secret last-second capture.
   observeBounty(result){
     if(!result||result.practice)return;const win=result.outcome==='captured';
@@ -300,7 +315,7 @@ export class Medals{
     const c=v.c,versus=v.platform==='twitch'&&v.login?this.state.versus[v.login]:null;
     return {watch:(c.watch||0)/3600,follow:Math.floor((now-v.first)/DAY),streak:c.bestStreak||0,regular:c.days||0,subs:c.months||0,substreak:c.subBest||0,
       gifter:c.gifts||0,giftbomb:c.giftMax||0,power:(c.bits||0)+(c.kicks||0)+(c.sc||0),goals:c.goals||0,seasonpatron:c.seasonPatron||0,
-      versus:versus?.wins||0,hotstreak:versus?.best||0,slayer:c.slayer||0,torpedo:c.torpedo||0,topgun:c.topgun||0,legendary:c.legendary||0,hero:c.hero||0,rockbreaker:c.rocks||0,gunrunner:c.pirates||0,hauler:c.golds||0,bountyhunter:c.bcaps||0,reckoning:c.gmvp||0,points:c.points||0,
+      versus:versus?.wins||0,hotstreak:versus?.best||0,slayer:c.slayer||0,torpedo:c.torpedo||0,topgun:c.topgun||0,legendary:c.legendary||0,hero:c.hero||0,rockbreaker:c.rocks||0,gunrunner:c.pirates||0,hauler:c.golds||0,bountyhunter:c.bcaps||0,gunner:c.bshits||0,shipsinker:c.bssinks||0,reckoning:c.gmvp||0,points:c.points||0,
       comms:c.msgs||0,missions:c.missions||0,spectrum:(c.mtypes||[]).length,podium:c.podium||0,champion:c.champion||0,lucky:c.lucky||0};
   }
   scores(v,x){return {patron:(v.c.months||0)+(v.c.gifts||0)+Math.floor(x.power/500),elder:x.watch>=10?x.watch+x.follow/7:0};}
@@ -321,6 +336,7 @@ export class Medals{
         else if(m.id==='laststand')g=v.c.laststand?0:-1;
         else if(m.id==='scratch')g=v.c.scratch?0:-1;
         else if(m.id==='lastsecond')g=v.c.lastsecond?0:-1;
+        else if(m.id==='bullseye')g=v.c.bullseye?0:-1;
         else if(m.id==='nightwatch')g=(v.c.nights||0)>=5?0:-1;
         if(g>=0&&(v.m[m.id]?.g??-1)<g)awarded.push(this.award(key,v,m,g,x,now));
       }

@@ -51,7 +51,7 @@ function icon(path){const i=svg('svg',{viewBox:'0 0 24 24',fill:'none',stroke:'c
 function renderTabs(){
  const bar=$('tabbar');bar.textContent='';bar.setAttribute('role','tablist');
  const ok=TABS.filter(([t])=>available(t)).map(([t])=>t);if(wanted&&ok.includes(wanted)){tab=wanted;if(feed)wanted=null;}if(!ok.includes(tab))tab=ok.includes('home')?'home':ok[0]||'home';
- const lit=PARENT[tab]||tab,busy=feed&&(feed.live?.onAir||['lobby','battle'].includes(feed.dreadnought?.phase)||!!feed.prospect||!!feed.bounty||!!feed.raffle);
+ const lit=PARENT[tab]||tab,busy=feed&&(feed.live?.onAir||['lobby','battle'].includes(feed.dreadnought?.phase)||!!feed.prospect||!!feed.bounty||!!feed.battleship||!!feed.raffle);
  markSeen(tab);
  for(const [t,label,path] of TABS.filter(([t])=>BAR.includes(t)&&ok.includes(t))){
   const b=el('button');b.type='button';b.setAttribute('role','tab');b.setAttribute('aria-selected',String(t===lit));b.setAttribute('aria-controls',sectionsOf(t)[0]?.id||'');
@@ -97,6 +97,7 @@ window.renderRightNow=function(){
   tile('gold',s.name,(s.endsAt?days+' days to go · ':'')+(next?next.title+' '+Math.min(100,Math.floor(next.total/next.target*100))+'%':done+' of '+(s.goals||[]).length+' goals reached'),'goal','season');}
  const open=(feed.giveaways||[]).filter(g=>g.status==='open');if(open.length&&feed.online&&Date.now()-feed.generatedAt<15*60000)tile('',open.length===1?'Giveaway open':open.length+' giveaways open',open[0].title+(open[0].eligibility?' · '+open[0].eligibility:''),'live','giveaways');
  {const rf=feed.raffle;if(rf&&(rf.phase==='open'||rf.phase==='intro'))tile('gold','Raffle is open','Type !join in chat · '+fmt(rf.count)+' in','live','raffle');}
+ {const bs=feed.battleship;if(bs&&bs.phase!=='result')tile('gold','Battleship is on',bs.phase==='lobby'?'Type !fire to join the gun crew':'Call a square: !fire B5 · '+bs.sunk+' of '+bs.ships+' sunk','live','battleship');}
  {const bh=feed.bounty;if(bh&&bh.phase!=='result')tile('gold','Bounty Hunt is on',bh.phase==='lobby'?'Type !track to join the hunt':'Type !track · fix '+bh.fix+'%','live','bounty');}
  {const pr=feed.prospect;if(pr&&pr.phase!=='result')tile('gold','Prospect Run is on',({contract:'Type !mine, !fire or !sell to join',mine:'Type !mine now',haul:'Type !fire when pirates hit',sell:'Type !sell at the peak'})[pr.phase],'live','prospect');}
  const d=feed.dreadnought;if(d&&['lobby','battle'].includes(d.phase))tile('red',d.phase==='lobby'?'Dreadnought boarding':'Dreadnought fight',d.phase==='lobby'?'Type !join now':'Type !fire to attack','live','dread');
@@ -133,6 +134,18 @@ function renderRaffle(){
   else card.append(el('p','who',fmt(r.count)+' ticket'+(r.count===1?'':'s')+' in the draw.'));}
 }
 // 2.33.0 Prospect Run: shown on the Live tab only while a run is on.
+function renderBattleship(){
+ const b=feed.battleship,sec=$('battleship');if(!sec)return;sec.hidden=!b;if(!b)return;const card=$('battleship-card');card.textContent='';
+ const top=el('div','gw-top');top.append(el('span','kind','Crew game'+(b.practice?' · practice':'')),el('span','badge '+(b.phase==='result'?'':'s-drawing'),b.phase==='result'?'Just ended':'On now'));card.append(top);
+ card.append(el('div','phase battle',b.phase==='lobby'?'Enemy fleet sighted':b.phase==='battle'?'Open fire':'Battle over'));
+ const say=t=>card.append(el('p','who',t)),cm=el('div','cmds'),last=b.size?'ABCDEFGHIJ'[b.size-1]+b.size:'';
+ if(b.phase==='lobby'){say('An enemy fleet is hiding on the grid. Type !fire in chat now to join the gun crew ('+fmt(b.players)+' signed on).');cm.append(copyChip('!fire','join the gun crew'));}
+ else if(b.phase==='battle'){say('Call a square to shoot it, from A1 to '+last+': type !fire B5 (or just B5). '+b.sunk+' of '+b.ships+' enemy ships sunk by '+fmt(b.players)+' player'+(b.players===1?'':'s')+'. Cheers ping the sonar and gifted subs call an air strike for the whole crew.');cm.append(copyChip('!fire B5','shoot square B5'));
+  const pct=b.ships?Math.round(100*b.sunk/b.ships):0,hull=el('div','hull');hull.setAttribute('role','progressbar');hull.setAttribute('aria-label','Ships sunk');hull.setAttribute('aria-valuenow',String(pct));const f=el('i');f.style.width=pct+'%';hull.append(f);card.append(hull);}
+ else if(b.result){const r=b.result;say(r.outcome==='victory'?'Enemy fleet sunk by '+fmt(r.players)+' player'+(r.players===1?'':'s')+'.'+(r.mvp?' MVP: '+r.mvp.name+'.':'')+(b.practice?' Practice battle: no tickets.':r.tickets?' Every player who fired earned '+r.tickets+' giveaway ticket'+(r.tickets===1?'':'s')+(r.mvpTickets&&r.mvp?', the MVP '+r.mvpTickets+' more.':'.'):''):r.outcome==='empty'?'Nobody manned the guns this time.':'Time ran out with '+r.sunk+' of '+r.ships+' ships sunk. No tickets this time.');}
+ if(cm.children.length)card.append(cm);
+ if(b.phase!=='result')card.append(el('p','lede small','This page updates about once a minute; the grid is on stream. Each shot counts once every 6 seconds.'));
+}
 function renderBounty(){
  const b=feed.bounty,sec=$('bounty');if(!sec)return;sec.hidden=!b;if(!b)return;const card=$('bounty-card');card.textContent='';
  const top=el('div','gw-top');top.append(el('span','kind','Crew hunt'+(b.practice?' · practice':'')),el('span','badge '+(b.phase==='result'?'':'s-drawing'),b.phase==='result'?'Just ended':'On now'));card.append(top);
@@ -584,7 +597,7 @@ function renderWatch(){
 // ---------- feed ----------
 addEventListener('voyager:feed',e=>{
  feed=e.detail;
- try{renderNow();}catch{}try{renderHome();}catch{}try{renderWatch();}catch{}try{renderRequests();}catch{}try{push.render();}catch{}try{renderDread();}catch{}try{renderProspect();}catch{}try{renderBounty();}catch{}try{renderRaffle();}catch{}try{renderRanks();}catch{}try{renderMedals();}catch{}try{renderSquad();}catch{}try{renderLog();}catch{}try{renderIntel();}catch{}
+ try{renderNow();}catch{}try{renderHome();}catch{}try{renderWatch();}catch{}try{renderRequests();}catch{}try{push.render();}catch{}try{renderDread();}catch{}try{renderProspect();}catch{}try{renderBounty();}catch{}try{renderBattleship();}catch{}try{renderRaffle();}catch{}try{renderRanks();}catch{}try{renderMedals();}catch{}try{renderSquad();}catch{}try{renderLog();}catch{}try{renderIntel();}catch{}
  $('arena').hidden=$('versus').hidden;
  $('find').hidden=!feed.crew;
  renderTabs();

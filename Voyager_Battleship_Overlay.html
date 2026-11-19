@@ -1,0 +1,152 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Voyager • OBS Battleship</title><link rel="icon" href="brand-assets/voyager.png">
+<link rel="stylesheet" href="voyager-game-hud.css?v=2.40.0">
+<style>
+/* Voyager Battleship stage (2.40.0): an OBS browser source, 1920 × 1080 (any 16:9 size works). Invisible until a battle is
+   started from Voyager Control › Battleship. Reads /api/battleship/overlay from the local host and draws the grid (misses,
+   hits, sunk ships, sonar contacts, air strikes) under the same HUD as the Dreadnought: lobby splash, nameplate and bar,
+   clock, crew panel with the MVP, feed, legend, banners and the result card.
+   ?preview=1 plays a simulated battle for placing the source; ?backdrop=0 leaves the background transparent. */
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:transparent}
+#stage{position:absolute;left:0;top:0;width:1920px;height:1080px;transform-origin:0 0;opacity:0;transition:opacity .8s;overflow:hidden}
+#stage.on{opacity:1}
+#cv{position:absolute;inset:0;width:1920px;height:1080px}
+/* the enemy fleet roster, right of the board */
+#roster{position:absolute;right:40px;top:196px;width:330px;padding:16px 18px;background:var(--panel);border:1px solid var(--line);clip-path:polygon(0 0,100% 0,100% calc(100% - 16px),calc(100% - 16px) 100%,0 100%)}
+#roster h4{margin:0 0 6px;font:700 14px/1 var(--font);letter-spacing:4px;color:var(--muted)}
+#roster .s{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid rgba(114,216,255,.1);font:600 19px/1 var(--font)}
+#roster .s span{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#roster .s i{display:flex;gap:3px}#roster .s i u{width:16px;height:10px;background:rgba(114,216,255,.35);border:1px solid rgba(114,216,255,.6);text-decoration:none}
+#roster .s.sunk{color:var(--red)}#roster .s.sunk i u{background:var(--red);border-color:var(--red)}
+#roster .s small{display:block;font:700 11px/1.2 var(--font);letter-spacing:2px;color:var(--muted);margin-top:3px}
+</style></head>
+<body><div id="stage">
+ <canvas id="cv" width="1920" height="1080"></canvas>
+ <div class="gh" id="hud">
+  <div class="gh-plate" id="plate" hidden><div class="eyebrow">⚠ ENEMY FLEET · HIDDEN ON THE GRID</div><div class="name">Battleship</div><div class="gh-bar hot" id="bar"><i></i><span id="bartext"></span></div><div class="gh-tags" id="tags"></div></div>
+  <div class="gh-clock" id="clock" hidden><small>TIME LEFT</small><b id="clocktime">4:00</b></div>
+  <div class="gh-fleet" id="fleet" hidden><div class="head"><img src="brand-assets/voyager.png" alt=""><div>VOYAGER GUN CREW<b id="count">0 players</b></div></div><div class="gh-line"><span>HITS</span><b id="hits">0</b><i id="shipsleft"></i></div><ol class="gh-leaders" id="leaders"></ol></div>
+  <div id="roster" hidden><h4>ENEMY FLEET</h4><div id="ships"></div></div>
+  <div class="gh-feed" id="feed" style="width:470px"></div>
+  <div class="gh-legend" id="legend" hidden><div class="l1"><b>!fire B5</b><small>FREE · CALL A SQUARE</small></div><div class="l2"><b>CHEERS</b><small>BITS · SUPER CHATS · SONAR PING</small></div><div class="l3"><b>GIFT SUBS</b><small>AIR STRIKE</small></div></div>
+  <div class="gh-card lobby" id="lobby" hidden><div class="eyebrow">⚠ ENEMY FLEET SIGHTED</div><h1>Battleship</h1><p id="lobbysub">Call squares to find and sink the hidden fleet</p><div class="big" id="lobbytime">30</div><p><span class="cmd">!fire</span> to join the gun crew</p><p id="lobbycount">0 players signed on</p></div>
+  <div class="gh-card" id="result" hidden><div class="eyebrow" id="resulteyebrow">BATTLE REPORT</div><h1 id="resulttitle"></h1><div class="mvp" id="resultmvp" hidden><i>MVP</i><span id="mvpname"></span><small id="mvpline"></small></div><p id="resultline"></p><div class="stats" id="resultstats"></div></div>
+  <div class="gh-banner" id="banner"></div><div class="gh-flash" id="flash"></div>
+  <div class="gh-preview" id="preview-tag" hidden>PREVIEW · SIMULATED CHAT</div>
+ </div>
+</div>
+<script>
+(()=>{'use strict';
+const BUILD='2.40.0'; // when Voyager is updated the page reloads itself under a new address, so OBS does not keep a cached copy
+const $=id=>document.getElementById(id),cv=$('cv'),g=cv.getContext('2d'),q=new URLSearchParams(location.search),preview=q.has('preview'),stageIn=q.get('stage')==='1',backdrop=q.get('backdrop')!=='0',W=1920,H=1080,LETTERS='ABCDEFGHIJ';
+const BOARD={x:602,y:244,s:716}; // the grid square
+let aside=false,S=null,offset=0,phase='',gameId='',seen=0,resultAt=0,leadKey='',shipKey='',prevCells='';
+const fx=[],floats=[],planes=[];let sonarAt=0;
+const stars=Array.from({length:160},(_,i)=>({x:(i*397)%W,y:(i*653)%H,r:.7+(i%5)*.4,p:i*.7}));
+const setText=(id,v)=>{const e=$(id);if(e.textContent!==v)e.textContent=v;};
+const cl=(x,a=0,b=1)=>Math.max(a,Math.min(b,x)),fmt=n=>Number(n).toLocaleString('en');
+const mmss=ms=>{const t=Math.max(0,Math.ceil(ms/1000));return Math.floor(t/60)+':'+String(t%60).padStart(2,'0');};
+function banner(text){const b=$('banner');b.textContent=text;b.classList.remove('go');void b.offsetWidth;b.classList.add('go');}
+function flash(){const f=$('flash');f.classList.remove('go');void f.offsetWidth;f.classList.add('go');}
+function feed(text,cls){const d=document.createElement('div');d.className=cls||'';d.textContent=text;const f=$('feed');f.prepend(d);while(f.children.length>5)f.lastChild.remove();}
+const cellSize=n=>BOARD.s/n,centre=(i,n)=>({x:BOARD.x+(i%n+.5)*cellSize(n),y:BOARD.y+(Math.floor(i/n)+.5)*cellSize(n)});
+const indexOf=(lab,n)=>{const c=LETTERS.indexOf(String(lab)[0]),r=Number(String(lab).slice(1))-1;return c<0||!(r>=0)?-1:r*n+c;};
+function events(b,now){
+  for(const e of b.events||[]){if(e.seq<=seen)continue;seen=e.seq;const n=b.size||8,i=indexOf(String(e.cell).split(' ')[0],n),at=i>=0?centre(i,n):null;
+    if(e.kind==='join')feed(e.name+' joined the gun crew','join');
+    else if(e.kind==='miss'){if(at)floats.push({text:e.name+' · '+e.cell+' · MISS',x:at.x,y:at.y,at:now,c:'#cfe6ff'});}
+    else if(e.kind==='hit'){if(at)floats.push({text:e.name+' · '+e.cell+' · HIT!',x:at.x,y:at.y,at:now,c:'#ffb060'});feed('💥 '+e.name+' hit at '+e.cell,'bits');}
+    else if(e.kind==='sunk'){if(at)floats.push({text:e.name+' SANK THE '+String(e.extra).toUpperCase(),x:at.x,y:at.y,at:now,c:'#ff4d5e'});feed('☠ '+e.name+' sank the '+e.extra+' at '+e.cell,'alert');banner(String(e.extra).toUpperCase()+' SUNK · '+e.name.toUpperCase());flash();}
+    else if(e.kind==='sonar'){sonarAt=now;feed('⚡ '+e.name+' cheered '+fmt(e.extra)+' · sonar contact'+(String(e.cell).includes(' ')?'s':'')+' at '+(e.cell||'nothing'),'bits');banner('SONAR PING · '+e.name.toUpperCase());}
+    else if(e.kind==='strike'){for(const lab of String(e.cell).split(' ')){const k=indexOf(lab,n);if(k>=0)planes.push({to:centre(k,n),at:now+planes.length*120});}feed('★ '+e.name+' gifted '+e.extra+' sub'+(e.extra==='1'?'':'s')+' · air strike on '+e.cell,'gift');banner('AIR STRIKE · '+e.name.toUpperCase());}}
+}
+// New marks on the grid get a splash or an explosion.
+function diff(b,now){const c=b.cells||'';if(c.length===prevCells.length)for(let i=0;i<c.length;i++){if(c[i]===prevCells[i])continue;const p=centre(i,b.size);
+    if(c[i]==='o')fx.push({k:'splash',...p,at:now});else if(c[i]==='x'||(c[i]==='s'&&prevCells[i]!=='x'))fx.push({k:'boom',...p,at:now,parts:Array.from({length:16},()=>({a:Math.random()*6.28,v:60+Math.random()*130}))});}
+  prevCells=c;}
+function hud(b,now){
+  if(b.id!==gameId){gameId=b.id;phase='';$('feed').textContent='';fx.length=0;floats.length=0;planes.length=0;prevCells='';const qs=(b.events||[]).map(e=>e.seq);seen=!qs.length?seen:b.phase==='lobby'?Math.min(...qs)-1:Math.max(...qs);if(b.phase!=='lobby')prevCells=b.cells||'';}
+  if(b.phase!==phase){const was=phase;phase=b.phase;
+    $('lobby').hidden=phase!=='lobby';for(const id of ['plate','clock','fleet','legend','roster'])$(id).hidden=phase==='lobby';$('result').hidden=true;
+    if(phase==='battle'&&was)banner('OPEN FIRE');
+    if(phase==='result'){resultAt=now;const r=b.result||{};if(r.outcome==='victory'){flash();banner('ENEMY FLEET SUNK');}else if(r.outcome==='defeat')banner('THEY SLIPPED AWAY');}}
+  events(b,now);if(phase!=='lobby')diff(b,now);
+  const left=b.phaseEndsAt-now,n=b.players;
+  if(phase==='lobby'){setText('lobbytime',String(Math.max(0,Math.ceil(left/1000))));setText('lobbycount',n+' player'+(n===1?'':'s')+' signed on'+(b.practice?' · practice battle':''));return;}
+  const k=b.totalCells?b.hitCells/b.totalCells:0,sunk=(b.ships||[]).filter(s=>s.sunk).length,total=(b.ships||[]).length;
+  $('bar').firstElementChild.style.transform='scaleX('+cl(k)+')';setText('bartext','FLEET DESTROYED '+Math.floor(k*100)+'% · '+sunk+' OF '+total+' SHIPS SUNK');
+  setText('count',n+' player'+(n===1?'':'s'));setText('hits',String(b.hitCells));setText('shipsleft',(total-sunk)+' AFLOAT');
+  const low=phase==='battle'&&left<30000;$('clock').classList.toggle('low',low);setText('clocktime',phase==='battle'?mmss(left):mmss((b.result?.secondsLeft||0)*1000));
+  const tk=[b.size,b.practice,low,b.tickets].join('|');if($('tags').dataset.k!==tk){$('tags').dataset.k=tk;const T=$('tags');T.textContent='';const add=(t,c)=>{const x=document.createElement('b');x.textContent=t;if(c)x.className=c;T.append(x);};
+    add(b.size+' × '+b.size+' GRID · A1 TO '+LETTERS[b.size-1]+b.size);if(b.practice)add('PRACTICE · NO TICKETS','cy');else add('REWARD '+b.tickets+' TICKET'+(b.tickets===1?'':'S')+' EACH','gd');if(low)add('LAST 30 SECONDS','rage');}
+  const lk=JSON.stringify(b.leaders||[]);if(lk!==leadKey){leadKey=lk;const ol=$('leaders');ol.textContent='';(b.leaders||[]).forEach((p,i)=>{const li=document.createElement('li'),r=document.createElement('span');r.className='r';r.textContent=String(i+1);const dot=document.createElement('span');dot.className='p '+p.platform;const nm=document.createElement('span');nm.className='n';nm.textContent=p.name;const d=document.createElement('span');d.className='d';d.textContent=p.shots?p.hits+' HIT'+(p.hits===1?'':'S'):'READY';if(i===0&&p.score>0)li.className='mvp';li.append(r,dot,nm,d);ol.append(li);});}
+  const sk=JSON.stringify((b.ships||[]).map(s=>[s.name,s.len,s.sunk,s.sunkBy]));if(sk!==shipKey){shipKey=sk;const box=$('ships');box.textContent='';for(const s of b.ships||[]){const row=document.createElement('div');row.className='s'+(s.sunk?' sunk':'');const nm=document.createElement('span');nm.textContent=s.name;const st=document.createElement('small');st.textContent=s.sunk?'SUNK BY '+String(s.sunkBy).toUpperCase():s.len+' SQUARES · AFLOAT';nm.append(st);const sq=document.createElement('i');for(let j=0;j<s.len;j++)sq.append(document.createElement('u'));row.append(nm,sq);box.append(row);}}
+  // The result card follows the last explosion (or a look at where the survivors were hiding).
+  if(phase==='result'&&b.result&&$('result').hidden&&now-resultAt>(b.result.outcome==='victory'?2800:b.result.outcome==='defeat'?4500:300)){
+    const r=b.result,win=r.outcome==='victory',card=$('result');card.className='gh-card '+(win?'win':'lost');
+    setText('resulteyebrow',win?'★ VICTORY':r.outcome==='empty'?'NO GUN CREW':'☠ THE FLEET ESCAPED');setText('resulttitle',win?'Enemy fleet sunk':r.outcome==='empty'?'Nobody manned the guns':r.sunk+' of '+r.ships+' ships sunk');
+    $('resultmvp').hidden=!r.mvp;if(r.mvp){setText('mvpname',r.mvp.name);setText('mvpline',r.mvp.hits+' HIT'+(r.mvp.hits===1?'':'S')+(r.mvp.sinks?' · '+r.mvp.sinks+' SUNK':'')+(r.mvpTickets?' · +'+r.mvpTickets+' TICKET'+(r.mvpTickets===1?'':'S'):''));}
+    setText('resultline',win?(r.practice?'Practice battle: no tickets. Fine shooting.':r.tickets?'Every player who fired earns '+r.tickets+' giveaway ticket'+(r.tickets===1?'':'s'):'Fine shooting, gun crew'):r.outcome==='empty'?'The enemy fleet sails on.':'Time ran out. No tickets are awarded.');
+    const st=$('resultstats');st.textContent='';for(const [lab,value] of [['PLAYERS',r.players],['SHOTS',fmt(r.shots)],['ACCURACY',r.accuracy+'%'],[win?'TIME TO SPARE':'SHIPS SUNK',win?mmss(r.secondsLeft*1000):r.sunk+' / '+r.ships]]){const x=document.createElement('div'),v=document.createElement('b');v.textContent=String(value);x.append(v,lab);st.append(x);}
+    card.hidden=false;for(const id of ['plate','clock','fleet','legend','roster'])$(id).hidden=true;$('feed').textContent='';}
+}
+function hull(cells,n,col,fill){const cs=cellSize(n),a=centre(cells[0],n),z=centre(cells[cells.length-1],n),pad=cs*.2,x=Math.min(a.x,z.x)-cs/2+pad,y=Math.min(a.y,z.y)-cs/2+pad,w=Math.abs(z.x-a.x)+cs-pad*2,h=Math.abs(z.y-a.y)+cs-pad*2,r=Math.min(w,h)/2;
+  g.beginPath();g.moveTo(x+r,y);g.lineTo(x+w-r,y);g.arc(x+w-r,y+r,r,-1.57,0);g.lineTo(x+w,y+h-r);g.arc(x+w-r,y+h-r,r,0,1.57);g.lineTo(x+r,y+h);g.arc(x+r,y+h-r,r,1.57,3.14);g.lineTo(x,y+r);g.arc(x+r,y+r,r,3.14,4.71);g.closePath();
+  if(fill){g.fillStyle=fill;g.fill();}g.strokeStyle=col;g.lineWidth=3;g.stroke();}
+function draw(b,now){
+  g.clearRect(0,0,W,H);
+  if(backdrop){const bg=g.createRadialGradient(620,260,0,960,540,1300);bg.addColorStop(0,'#10243c');bg.addColorStop(1,'#04070d');g.fillStyle=bg;g.fillRect(0,0,W,H);
+    for(const st of stars){g.globalAlpha=.25+.3*Math.sin(now/900+st.p);g.fillStyle='#cfe6ff';g.beginPath();g.arc(st.x,st.y,st.r,0,6.28);g.fill();}g.globalAlpha=1;}
+  if(!b||b.phase==='lobby'||!b.size)return;if(b.phase==='result'&&!$('result').hidden)return; // the result card has the screen
+  const n=b.size,cs=cellSize(n),{x:X,y:Y,s:Sz}=BOARD,cells=b.cells||'',t=now/1000;
+  // the sea
+  g.fillStyle='rgba(5,14,26,.86)';g.fillRect(X-46,Y-46,Sz+62,Sz+62);const sea=g.createLinearGradient(X,Y,X,Y+Sz);sea.addColorStop(0,'#0d3554');sea.addColorStop(1,'#082338');g.fillStyle=sea;g.fillRect(X,Y,Sz,Sz);
+  g.save();g.beginPath();g.rect(X,Y,Sz,Sz);g.clip();g.strokeStyle='rgba(151,223,255,.07)';g.lineWidth=2;for(let k=0;k<14;k++){const yy=Y+((k*61+t*14)%Sz);g.beginPath();for(let xx=0;xx<=Sz;xx+=24)g.lineTo(X+xx,yy+Math.sin(xx/46+t+k)*5);g.stroke();}
+  if(sonarAt&&now-sonarAt<1800){const kk=(now-sonarAt)/1800;g.strokeStyle='rgba(127,240,181,'+(1-kk)+')';g.lineWidth=5;g.beginPath();g.arc(X+Sz/2,Y+Sz/2,kk*Sz*.8,0,6.28);g.stroke();}g.restore();
+  g.strokeStyle='rgba(151,223,255,.28)';g.lineWidth=1.5;for(let k=0;k<=n;k++){g.beginPath();g.moveTo(X+k*cs,Y);g.lineTo(X+k*cs,Y+Sz);g.stroke();g.beginPath();g.moveTo(X,Y+k*cs);g.lineTo(X+Sz,Y+k*cs);g.stroke();}
+  g.strokeStyle='rgba(151,223,255,.7)';g.lineWidth=3;g.strokeRect(X,Y,Sz,Sz);
+  g.font='700 '+Math.round(Math.min(30,cs*.42))+'px Rajdhani,sans-serif';g.fillStyle='#9fd4ff';g.textAlign='center';g.textBaseline='middle';
+  for(let k=0;k<n;k++){g.fillText(LETTERS[k],X+(k+.5)*cs,Y-22);g.fillText(String(k+1),X-22,Y+(k+.5)*cs);}
+  // sunk ships (and, once the battle is over, the ones that got away)
+  for(const s of b.ships||[]){if(!s.cells)continue;if(s.sunk)hull(s.cells,n,'#ff4d5e','rgba(60,10,16,.75)');else hull(s.cells,n,'rgba(207,230,255,.75)','rgba(151,223,255,.12)');}
+  for(let i=0;i<cells.length;i++){const c=cells[i];if(c==='.')continue;const p=centre(i,n);
+    if(c==='o'){g.strokeStyle='rgba(230,240,255,.75)';g.lineWidth=3;g.beginPath();g.arc(p.x,p.y,cs*.16,0,6.28);g.stroke();g.fillStyle='rgba(230,240,255,.5)';g.beginPath();g.arc(p.x,p.y,cs*.05,0,6.28);g.fill();}
+    else if(c==='x'||c==='s'){const fl=.75+.25*Math.sin(t*9+i),rg=g.createRadialGradient(p.x,p.y,0,p.x,p.y,cs*.38);rg.addColorStop(0,'rgba(255,230,150,'+fl+')');rg.addColorStop(.45,'rgba(255,120,50,'+(c==='s'?.55:.85)*fl+')');rg.addColorStop(1,'rgba(255,60,40,0)');g.fillStyle=rg;g.beginPath();g.arc(p.x,p.y,cs*.38,0,6.28);g.fill();
+      g.strokeStyle=c==='s'?'#ff4d5e':'#ffd27a';g.lineWidth=4;const d=cs*.17;g.beginPath();g.moveTo(p.x-d,p.y-d);g.lineTo(p.x+d,p.y+d);g.moveTo(p.x+d,p.y-d);g.lineTo(p.x-d,p.y+d);g.stroke();}
+    else if(c==='c'){const pu=.5+.5*Math.sin(t*5);g.strokeStyle='rgba(127,240,181,'+(.5+.5*pu)+')';g.lineWidth=3;const d=cs*(.24+.05*pu);g.beginPath();g.moveTo(p.x,p.y-d);g.lineTo(p.x+d,p.y);g.lineTo(p.x,p.y+d);g.lineTo(p.x-d,p.y);g.closePath();g.stroke();g.fillStyle='#7ff0b5';g.font='700 '+Math.round(cs*.3)+'px Rajdhani,sans-serif';g.fillText('?',p.x,p.y+1);}}
+  // effects: splashes, explosions, planes, who shot what
+  for(let i=fx.length-1;i>=0;i--){const e=fx[i],k=(now-e.at)/900;if(k>=1){fx.splice(i,1);continue;}
+    if(e.k==='splash'){for(const m of [0,.3]){const kk=cl(k-m,0,1);g.strokeStyle='rgba(230,240,255,'+(1-kk)+')';g.lineWidth=3;g.beginPath();g.arc(e.x,e.y,kk*cs*.6,0,6.28);g.stroke();}}
+    else{g.fillStyle='rgba(255,220,140,'+(1-k)+')';g.beginPath();g.arc(e.x,e.y,cs*.5*(.3+k),0,6.28);g.fill();for(const pt of e.parts){g.fillStyle='rgba(255,150,60,'+(1-k)+')';g.beginPath();g.arc(e.x+Math.cos(pt.a)*pt.v*k,e.y+Math.sin(pt.a)*pt.v*k,5*(1-k)+1,0,6.28);g.fill();}}}
+  for(let i=planes.length-1;i>=0;i--){const p=planes[i],k=(now-p.at)/700;if(k<0)continue;if(k>=1){planes.splice(i,1);continue;}const sx=-80,sy=p.to.y-260,x=sx+(p.to.x-sx)*k,y=sy+(p.to.y-sy)*k*k;
+    g.strokeStyle='rgba(242,205,115,'+(1-k*.6)+')';g.lineWidth=4;g.beginPath();g.moveTo(x-90,y-40*(1-k));g.lineTo(x,y);g.stroke();g.fillStyle='#f2cd73';g.beginPath();g.arc(x,y,7,0,6.28);g.fill();}
+  g.textBaseline='alphabetic';for(let i=floats.length-1;i>=0;i--){const f=floats[i],k=(now-f.at)/2200;if(k>=1){floats.splice(i,1);continue;}g.globalAlpha=k<.8?1:(1-k)/.2;g.font='700 24px Rajdhani,sans-serif';g.textAlign='center';g.lineWidth=5;g.strokeStyle='rgba(4,8,14,.85)';const y=f.y-cs*.45-k*26;g.strokeText(f.text,f.x,y);g.fillStyle=f.c;g.fillText(f.text,f.x,y);}g.globalAlpha=1;
+}
+// ---- ?preview=1: a simulated battle on a loop, so the source can be placed and sized ----
+const DEMO=['StarboundAce','NebulaRunner','OrbitKeeper','AuroraPilot','NovaCaptain','CometRider','LunarScout','VoidWalker'];
+let demo=null;
+function sim(now){
+  if(!demo||now>demo.end){const n=8,ships=[['Cruiser',4,[9,10,11,12]],['Frigate',3,[30,38,46]],['Corvette',3,[49,50,51]],['Scout',2,[5,6]]].map(([name,len,cells])=>({name,len,cells,hits:0,sunkBy:''}));
+    const shipCells=ships.flatMap(s=>s.cells),order=[];const pool=Array.from({length:64},(_,i)=>i).filter(i=>!shipCells.includes(i)).sort((a,b)=>((a*37)%64)-((b*37)%64));
+    for(let i=0,w=0,h=0;h<shipCells.length;i++){if(i%2===0&&w<pool.length)order.push(pool[w++]);else order.push(shipCells[h++]);}
+    demo={id:'preview'+now,t0:now,end:now+6000+order.length*1100+2500+13000,n,ships,order,done:0,grid:new Array(64).fill('.'),events:[],seq:seen,stats:DEMO.map(()=>({shots:0,hits:0,sinks:0})),resultAt:0};}
+  const d=demo,e=now-d.t0,lab=i=>LETTERS[i%d.n]+(Math.floor(i/d.n)+1);
+  if(e<6000)return {id:d.id,practice:false,phase:'lobby',phaseAt:d.t0,phaseEndsAt:d.t0+6000,size:0,cells:'',ships:[],players:Math.min(DEMO.length,1+Math.floor(e/700)),hitCells:0,totalCells:12,leaders:[],events:[],result:null,tickets:5,mvpTickets:2};
+  while(d.done<d.order.length&&e>=6000+(d.done+1)*1100){const i=d.order[d.done++],who=d.done%DEMO.length,s=d.ships.find(x=>x.cells.includes(i)),st=d.stats[who];st.shots++;
+    if(!s){d.grid[i]='o';d.events.push({seq:++d.seq,kind:'miss',name:DEMO[who],cell:lab(i),extra:''});}
+    else{s.hits++;st.hits++;if(s.hits>=s.len){s.sunkBy=DEMO[who];st.sinks++;for(const c of s.cells)d.grid[c]='s';d.events.push({seq:++d.seq,kind:'sunk',name:DEMO[who],cell:lab(i),extra:s.name});}else{d.grid[i]='x';d.events.push({seq:++d.seq,kind:'hit',name:DEMO[who],cell:lab(i),extra:''});}}}
+  const over=d.done>=d.order.length;if(over&&!d.resultAt)d.resultAt=now;const lead=DEMO.map((name,i)=>({name,platform:['twitch','youtube','kick'][i%3],...d.stats[i],score:d.stats[i].hits})).sort((a,b)=>b.score-a.score||b.shots-a.shots);
+  const base={id:d.id,practice:false,size:d.n,cells:d.grid.join(''),ships:d.ships.map(s=>({name:s.name,len:s.len,sunk:s.hits>=s.len,sunkBy:s.sunkBy,...(s.hits>=s.len?{cells:s.cells}:{})})),players:DEMO.length,hitCells:d.ships.reduce((a,s)=>a+s.hits,0),totalCells:12,leaders:lead.slice(0,5),events:d.events.slice(-18),tickets:5,mvpTickets:2};
+  if(!over||now-d.resultAt<1200)return {...base,phase:'battle',phaseAt:d.t0+6000,phaseEndsAt:now+240000-(e-6000)*4,result:null};
+  const shots=d.stats.reduce((a,s)=>a+s.shots,0);return {...base,phase:'result',phaseAt:d.resultAt,phaseEndsAt:d.end,result:{outcome:'victory',players:DEMO.length,shots,hits:12,accuracy:Math.round(1200/shots),sunk:4,ships:4,secondsLeft:52,tickets:5,mvpTickets:2,practice:false,mvp:{name:lead[0].name,platform:lead[0].platform,hits:lead[0].hits,sinks:lead[0].sinks}}};
+}
+function frame(){const now=Date.now()+offset;
+  if(preview&&(!S||String(S.id).startsWith('preview')))S=sim(now);
+  $('stage').classList.toggle('on',!!S&&!aside);$('preview-tag').hidden=!(preview&&S&&String(S.id).startsWith('preview'));
+  if(S){hud(S,now);draw(S,now);}
+  requestAnimationFrame(frame);}
+async function poll(){try{const d=await(await fetch('/api/battleship/overlay',{cache:'no-store'})).json();if(d.version&&d.version!==BUILD&&q.get('v')!==d.version){const u=new URL(location.href);u.searchParams.set('v',d.version);location.replace(u.href);return;}
+    offset=d.serverAt-Date.now();aside=!!d.stage&&!stageIn;if(d.battle)S=d.battle;else if(S&&!String(S.id).startsWith('preview')){S=null;phase='';gameId='';}}catch{}setTimeout(poll,400);}
+const fit=()=>{$('stage').style.transform='scale('+Math.min(innerWidth/1920,innerHeight/1080)+')';};addEventListener('resize',fit);fit();
+poll();requestAnimationFrame(frame);
+})();
+</script></body></html>

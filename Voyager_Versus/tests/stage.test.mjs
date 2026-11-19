@@ -126,3 +126,15 @@ test('2.39.0 during Prospect Run and Bounty Hunt the top-left column is the game
   assert.equal(st.overlay(idle,lobby,{bounty:{id:'h',phase:'hunt'}}).slots.left,'dread');assert.equal(st.overlay(idle,lobby,{prospect:{id:'r',phase:'mine'}}).slots.left,'dread');
   assert.equal(st.overlay(idle,lobby,{bounty:{id:'h',phase:'hunt'}}).slots.right,'chat');assert.equal(st.overlay({phase:'battle'},lobby,{}).slots.left,'leaderboard');
 });
+
+test('2.40.0 Battleship takes over the stage like the other games: splash, the board, the leaderboard HUD top-left, then the MVP',async()=>{
+  let now=50000;const st=await new Stage({dataDir:await dir(),now:()=>now}).load();const idle={phase:'idle'},lobby={phase:'lobby'};
+  const b={id:'b1',phase:'lobby',phaseEndsAt:now+30000,practice:false};let o=st.overlay(idle,lobby,{battleship:b});
+  assert.equal(o.mode,'battleship');assert.equal(o.splashOn,true);assert.equal(o.splash.title,'BATTLESHIP');assert.deepEqual(o.splash.chips,['!FIRE B5']);assert.equal(o.main.url,'/control/Voyager_Battleship_Overlay.html?stage=1');assert.equal(o.slots.left,'dread');
+  b.phase='battle';assert.equal(st.overlay(idle,lobby,{battleship:b}).splashOn,false);
+  b.phase='result';b.phaseEndsAt=now+25000;b.result={outcome:'victory',players:6,sunk:4,ships:4,accuracy:41,mvpTickets:2,practice:false,mvp:{name:'Nova',platform:'twitch',hits:5,sinks:2}};st.mode(idle,lobby,{battleship:b});
+  now+=25000;o=st.overlay(idle,lobby,{battleship:null});assert.equal(o.mode,'battleship');assert.equal(o.phase,'mvp');assert.equal(o.celebrate.name,'Nova');assert.equal(o.celebrate.points,2);
+  assert.match(o.celebrate.line,/5 HITS · 2 SHIPS SUNK/);assert.match(o.celebrate.sub,/Enemy fleet sunk · 6 players · 41% accuracy/);
+  now+=10000;assert.equal(st.mode(idle,lobby,{}),'');
+  st.configure({games:{battleship:false}});assert.equal(st.mode(idle,lobby,{battleship:{id:'b2',phase:'battle'}}),'');assert.equal(st.settings.games.prospect,true);st.force(30,'battleship');assert.equal(st.mode(idle,lobby,{}),'battleship');
+});

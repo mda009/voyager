@@ -32,6 +32,7 @@ import {Requests} from './requests.mjs';
 import {Doorframe} from './doorframe.mjs';
 import {ProspectRun} from './prospect.mjs';
 import {BountyHunt} from './bounty.mjs';
+import {Battleship} from './battleship.mjs';
 import {Raffle} from './raffle.mjs';
 import {TicketGranter} from './tickets.mjs';
 let VERSION='unknown';try{VERSION=JSON.parse(await readFile(new URL('../package.json',import.meta.url),'utf8')).version;}catch{}
@@ -153,7 +154,7 @@ if(rotation.seeded&&!rotation.settings.items.length){rotation.configure({items:[
 // the stage (and the picture-in-picture corner) when it sits above it in the scene. The host decides, from the address of the page
 // that is asking, so an OBS source still running an older cached copy of the overlay steps aside too.
 const fromStage=req=>/[?&]stage=1(&|$)/.test(String(req.headers.referer||''));
-const stageState=()=>[boss.overlay(),{phase:game.phase,matchId:game.matchId,caller:game.caller,players:game.players,result:game.result},(()=>{try{return {prospect:prospect.overlay().run,bounty:bounty.overlay().hunt};}catch{return {};}})()]; // 2.38.0: Prospect Run and Bounty Hunt use the stage too
+const stageState=()=>[boss.overlay(),{phase:game.phase,matchId:game.matchId,caller:game.caller,players:game.players,result:game.result},(()=>{try{return {prospect:prospect.overlay().run,bounty:bounty.overlay().hunt,battleship:battleship.overlay().battle};}catch{return {};}})()]; // 2.38.0: Prospect Run and Bounty Hunt use the stage too
 const fleetCamera=new FleetCamera({run:args=>actions.doAction('Voyager - Fleet Alerts',args),log:m=>console.log('[fleet] '+m)});
 const bot=new StreamerBot({onOtherChat:chat=>{
   try{stage.chat(chat);}catch{}
@@ -163,6 +164,7 @@ const bot=new StreamerBot({onOtherChat:chat=>{
   try{doorframe.chat(chat);}catch{}
   try{prospect.chat(chat);}catch{}
   try{bounty.chat(chat);}catch{}
+  try{battleship.chat(chat);}catch{}
   try{raffle.chat(chat);}catch{}
   // Kick and YouTube (2.20.8): same direct commands as Twitch, except Voyager Versus (Twitch only).
   const word=chat.text.trim().toLowerCase().split(/\s+/)[0];
@@ -178,6 +180,7 @@ onStats:p=>{try{const m=p?.metrics?.twitch?.subscriptions;if(p?.ok!==false&&m&&m
   if(ev.kind==='call'&&!['lobby','result'].includes(game.phase)){game.note('Finish the Versus battle before calling the Dreadnought.','system');return;}
   // 2.37.0: cheers and gifted subs during a Bounty Hunt fire scanner pulses and launch wingmen (the Dreadnought ignores them when it is not here).
   if((ev.kind==='bits'||ev.kind==='gift')&&bounty.active()&&!boss.active()){try{bounty.support(ev);}catch{}return;}
+  if((ev.kind==='bits'||ev.kind==='gift')&&battleship.active()&&!boss.active()){try{battleship.support(ev);}catch{}return;} // 2.40.0: sonar pings and air strikes
   boss.receive(ev);
 },onChat:chat=>{
   lastChatAt=Date.now();if(/^!/.test(String(chat.text||'')))try{moments.commandSeen();}catch{}
@@ -188,6 +191,7 @@ onStats:p=>{try{const m=p?.metrics?.twitch?.subscriptions;if(p?.ok!==false&&m&&m
   try{doorframe.chat({...chat,platform:chat.platform||'twitch'});}catch{}
   try{prospect.chat({...chat,platform:chat.platform||'twitch'});}catch{}
   try{bounty.chat({...chat,platform:chat.platform||'twitch'});}catch{}
+  try{battleship.chat({...chat,platform:chat.platform||'twitch'});}catch{}
   try{raffle.chat({...chat,platform:chat.platform||'twitch'});}catch{}
   // Dreadnought (2.20.3): Twitch !join and !fire also work straight from chat, so a missing Streamer.bot command trigger
   // can't stop the fight. The action's copy of the same message is ignored (already boarded / !fire cooldown).
@@ -229,7 +233,7 @@ publicSite?.setCompanion(()=>{
     dreadnought:{...d,history:boss.history.slice(0,6)},
     ranks:{ladder:rv.ranks,top:rv.members.slice(0,25),promotions:rv.promotions},
     medals:{catalogue:cat,honour:medals.leaderboard(10),recent:medals.state.recent.slice(0,12)},
-    intel:intel.share(),requests:(()=>{const r=requests.share();if(r&&!prospect.settings.enabled)r.options=(r.options||[]).filter(o=>o.key!=='prospect');return r;})(),raffle:raffle.share(),prospect:prospect.share(),bounty:bounty.share(), // game off: viewers cannot ask for it either
+    intel:intel.share(),requests:(()=>{const r=requests.share();if(r&&!prospect.settings.enabled)r.options=(r.options||[]).filter(o=>o.key!=='prospect');return r;})(),raffle:raffle.share(),prospect:prospect.share(),bounty:bounty.share(),battleship:battleship.share(), // game off: viewers cannot ask for it either
     quiz:(()=>{const b=engage.quizBoard(10);return {all:b.all,stream:b.stream};})()};
 });
 publicSite?.setCrew(()=>cards.crewRows(2000));
@@ -241,6 +245,11 @@ const matchChat=new MatchChat({directory:dataDir,game,bot,action:()=>rewards.rea
 // what the crew is working on, how far along it is, and who has done the most, with the MVP on top.
 function gameHud(){
   const now=Date.now(),left=t=>{const s=Math.max(0,Math.ceil((t-now)/1000));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');};
+  const bs=battleship.game;if(bs&&battleship.settings.enabled){const n=bs.players.size,r=bs.result,total=bs.ships.reduce((a,x)=>a+x.len,0),hit=total-bs.ships.reduce((a,x)=>a+x.len-x.hits,0),sunk=bs.ships.filter(x=>x.hits>=x.len).length;
+    return {kind:'battleship',tone:'blue',eyebrow:'BATTLESHIP · '+(bs.phase==='lobby'?'FLEET SIGHTED':bs.phase==='battle'?'LIVE':'RESULT'),
+      title:bs.phase==='lobby'?'Battle starts in '+left(bs.phaseEndsAt):bs.phase==='battle'?sunk+' of '+bs.ships.length+' ships sunk · '+left(bs.phaseEndsAt)+' left':r?.outcome==='victory'?'Enemy fleet sunk':sunk+' of '+bs.ships.length+' ships sunk',
+      pct:total?Math.floor(100*hit/total):0,unit:'HIT',count:n,leaders:n?battleship.leaders(8).filter(x=>x.shots>0).map(x=>({name:x.name,platform:x.platform,value:x.hits})):[],
+      empty:bs.phase==='lobby'?n+' player'+(n===1?'':'s')+' signed on · type !fire':'No shots yet · type !fire B5',practice:bs.practice};}
   const h=bounty.hunt;if(h&&bounty.settings.enabled){const pct=Math.floor(Math.min(1,h.fix)*100),n=h.hunters.size,r=h.result;
     return {kind:'bounty',tone:'gold',eyebrow:'BOUNTY HUNT · '+(h.phase==='lobby'?'BOUNTY POSTED':h.phase==='hunt'?'LIVE':'RESULT'),
       title:h.phase==='lobby'?'Hunt starts in '+left(h.phaseEndsAt):h.phase==='hunt'?'Position fix '+pct+'% · '+left(h.phaseEndsAt)+' left':r?.outcome==='captured'?h.target.name+' captured':'The target jumped',
@@ -270,6 +279,9 @@ const doorframe=await new Doorframe({dataDir,key:chat=>engage.key(chat),stream:(
 const prospect=await new ProspectRun({dataDir,key:chat=>engage.key(chat),onTickets:g=>{ticketGranter.grant(g);},onResult:r=>{try{medals.observeProspect(r);}catch{}},
   say:text=>runActionResult('Voyager - Medals',{medalSay:String(text).slice(0,450),medalSayPlatform:''})}).load();
 // 2.37.0 Bounty Hunt: chat closes a search ring on a wanted ship. !track is free; cheers and gifted subs help the whole crew.
+// 2.40.0 Battleship: chat calls squares to find and sink a hidden enemy fleet. Shots are free; cheers ping the sonar and gifted subs call air strikes.
+const battleship=await new Battleship({dataDir,key:chat=>engage.key(chat),onTickets:g=>{ticketGranter.grant(g);},onResult:r=>{try{medals.observeBattleship(r);}catch{}},
+  say:text=>runActionResult('Voyager - Medals',{medalSay:String(text).slice(0,450),medalSayPlatform:''})}).load();
 const bounty=await new BountyHunt({dataDir,key:chat=>engage.key(chat),onTickets:g=>{ticketGranter.grant(g);},onResult:r=>{try{medals.observeBounty(r);}catch{}},
   say:text=>runActionResult('Voyager - Medals',{medalSay:String(text).slice(0,450),medalSayPlatform:''})}).load();
 // 2.34.0 Raffle: ten minutes to join with !raffle, a random ticket each, up to five winners who get giveaway tickets. Only the streamer can start one.
@@ -326,7 +338,7 @@ const server=http.createServer(async(req,res)=>{
       if(req.method!=='POST'||!req.headers['content-type']?.startsWith('application/json')){response(res,405,{message:'Method not allowed.'});return;}
       try{const input=await body(req,8192);
         if(url.pathname==='/api/prospect/settings'){response(res,200,{ok:true,...prospect.configure(input||{})});return;}
-        if(url.pathname==='/api/prospect/start'){response(res,200,{ok:true,...prospect.start({practice:input?.practice===true})});return;}
+        if(url.pathname==='/api/prospect/start'){if(bounty.hunt)throw new Error('Finish the Bounty Hunt first.');if(battleship.game)throw new Error('Finish the Battleship battle first.');response(res,200,{ok:true,...prospect.start({practice:input?.practice===true})});return;}
         if(url.pathname==='/api/prospect/stop'){response(res,200,{ok:true,...prospect.stop()});return;}
         response(res,404,{message:'Not found.'});
       }catch(e){response(res,400,{message:e.message||'That did not work.'});}
@@ -339,8 +351,21 @@ const server=http.createServer(async(req,res)=>{
       if(req.method!=='POST'||!req.headers['content-type']?.startsWith('application/json')){response(res,405,{message:'Method not allowed.'});return;}
       try{const input=await body(req,8192);
         if(url.pathname==='/api/bounty/settings'){response(res,200,{ok:true,...bounty.configure(input||{})});return;}
-        if(url.pathname==='/api/bounty/start'){if(boss.active())throw new Error('Finish the Dreadnought fight first.');if(prospect.run)throw new Error('Finish the Prospect Run first.');response(res,200,{ok:true,...bounty.start({practice:input?.practice===true})});return;}
+        if(url.pathname==='/api/bounty/start'){if(boss.active())throw new Error('Finish the Dreadnought fight first.');if(prospect.run)throw new Error('Finish the Prospect Run first.');if(battleship.game)throw new Error('Finish the Battleship battle first.');response(res,200,{ok:true,...bounty.start({practice:input?.practice===true})});return;}
         if(url.pathname==='/api/bounty/stop'){response(res,200,{ok:true,...bounty.stop()});return;}
+        response(res,404,{message:'Not found.'});
+      }catch(e){response(res,400,{message:e.message||'That did not work.'});}
+      return;
+    }
+    if(url.pathname==='/api/battleship/overlay'&&req.method==='GET'){res.setHeader('Cache-Control','no-store');{const up=stage.mode(...stageState())==='battleship',o=battleship.overlay();response(res,200,up&&!fromStage(req)?{serverAt:o.serverAt,battle:null,stage:true,version:VERSION}:{...o,stage:up,version:VERSION});}return;} // OBS overlay; the standalone source steps aside while the stage shows the game
+    if(url.pathname.startsWith('/api/battleship')){
+      if(!validToken(req)){response(res,403,{message:'Open Voyager Control › Battleship.'});return;} // only the streamer can start a battle
+      if(url.pathname==='/api/battleship'&&req.method==='GET'){response(res,200,{...battleship.view(),ticketGrants:ticketGranter.view(),ticketAction:await actionStatus('Voyager - Ticket Giveaway'),connected:bot.status.connected});return;}
+      if(req.method!=='POST'||!req.headers['content-type']?.startsWith('application/json')){response(res,405,{message:'Method not allowed.'});return;}
+      try{const input=await body(req,8192);
+        if(url.pathname==='/api/battleship/settings'){response(res,200,{ok:true,...battleship.configure(input||{})});return;}
+        if(url.pathname==='/api/battleship/start'){if(boss.active())throw new Error('Finish the Dreadnought fight first.');if(prospect.run)throw new Error('Finish the Prospect Run first.');if(bounty.hunt)throw new Error('Finish the Bounty Hunt first.');response(res,200,{ok:true,...battleship.start({practice:input?.practice===true})});return;}
+        if(url.pathname==='/api/battleship/stop'){response(res,200,{ok:true,...battleship.stop()});return;}
         response(res,404,{message:'Not found.'});
       }catch(e){response(res,400,{message:e.message||'That did not work.'});}
       return;
@@ -628,6 +653,7 @@ let ticks=0,lastStatsAsk=0,lastPointsAsk=0;const timer=setInterval(()=>{
   try{doorframe.tick();}catch{}
   try{prospect.tick();}catch{}
   try{bounty.tick();}catch{}
+  try{battleship.tick();}catch{}
   try{raffle.tick();}catch{}
   if(ticks%100===33)void requests.poll().catch(()=>{}); // every 10 s
   if(ticks%10===5)void rotation.tick({stageUp:!!stage.mode(...stageState()),connected:bot.status.connected}).catch(()=>{});

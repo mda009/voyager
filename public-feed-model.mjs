@@ -313,6 +313,10 @@ export function projectCompanion(raw,settings=DEFAULT_SETTINGS,online=true,crewC
   if(show.live&&online&&raw.raffle&&typeof raw.raffle==='object'){const r=raw.raffle;
     out.raffle={phase:oneOf(r.phase,['intro','open','drawing','result'],'open'),endsAt:time(r.endsAt),count:int(r.count,0,1e5)??0,want:int(r.want,1,5)??1,prize:int(r.prize,0,100)??0,
       winners:settings.showNames===false?[]:list(r.winners).slice(0,5).map(w=>({name:clean(w?.name,LIMITS.name),platform:oneOf(w?.platform,Object.keys(PLATFORMS),''),ticket:int(w?.ticket,0,9999)??0})).filter(w=>w.name)};}
+  // 2.40.0 Battleship: only while a battle is on. How many ships are sunk and the outcome; never where the ships are.
+  if(show.live&&online&&raw.battleship&&typeof raw.battleship==='object'){const b=raw.battleship,r=b.result&&typeof b.result==='object'?b.result:null;
+    out.battleship={phase:oneOf(b.phase,['lobby','battle','result'],'lobby'),phaseEndsAt:time(b.phaseEndsAt),size:int(b.size,0,10)??0,players:int(b.players,0,1e5)??0,sunk:int(b.sunk,0,10)??0,ships:int(b.ships,0,10)??0,practice:b.practice===true,tickets:int(b.tickets,0,100)??0,
+      result:r?{outcome:oneOf(r.outcome,['victory','defeat','empty'],'defeat'),players:int(r.players,0,1e5)??0,sunk:int(r.sunk,0,10)??0,ships:int(r.ships,0,10)??0,tickets:int(r.tickets,0,100)??0,mvpTickets:int(r.mvpTickets,0,100)??0,mvp:person(r.mvp)}:null};}
   // 2.37.0 Bounty Hunt: only while a hunt is on. The target's (invented) name, how close the crew is and the outcome; the MVP's name follows "Show viewer names".
   if(show.live&&online&&raw.bounty&&typeof raw.bounty==='object'){const b=raw.bounty,r=b.result&&typeof b.result==='object'?b.result:null;
     out.bounty={phase:oneOf(b.phase,['lobby','hunt','result'],'lobby'),phaseEndsAt:time(b.phaseEndsAt),target:clean(b.target,60),hunters:int(b.hunters,0,1e5)??0,fix:int(b.fix,0,100)??0,practice:b.practice===true,tickets:int(b.tickets,0,100)??0,

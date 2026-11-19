@@ -69,7 +69,7 @@ test('Local host serves assets, rejects unauthorized controls and shares authori
 test('Bundled Voyager Control and the game share one host without exposing game runtime files',async()=>{
   const dir=await mkdtemp(join(tmpdir(),'voyager-control-test-')),bundle=join(dir,'Voyager_Versus'),port=18744,base=`http://127.0.0.1:${port}`;
   await mkdir(join(bundle,'local'),{recursive:true});await mkdir(join(bundle,'dist'),{recursive:true});
-  for(const file of ['server.mjs','rewards.mjs','availability.mjs','streamerbot.mjs','stream-entries.mjs','live-overlay.mjs','match-chat.mjs','pilot-leaderboard.mjs','public-site.mjs','connection-config.mjs','community.mjs','boss.mjs','medals.mjs','cards.mjs','engage.mjs','actions.mjs','fleet-camera.mjs','moments.mjs','stage.mjs','sources.mjs','rotation.mjs','payer.mjs','intel.mjs','intel-sources.mjs','requests.mjs','doorframe.mjs','prospect.mjs','bounty.mjs','raffle.mjs','tickets.mjs'])await copyFile(fileURLToPath(new URL('../local/'+file,import.meta.url)),join(bundle,'local',file));
+  for(const file of ['server.mjs','rewards.mjs','availability.mjs','streamerbot.mjs','stream-entries.mjs','live-overlay.mjs','match-chat.mjs','pilot-leaderboard.mjs','public-site.mjs','connection-config.mjs','community.mjs','boss.mjs','medals.mjs','cards.mjs','engage.mjs','actions.mjs','fleet-camera.mjs','moments.mjs','stage.mjs','sources.mjs','rotation.mjs','payer.mjs','intel.mjs','intel-sources.mjs','requests.mjs','doorframe.mjs','prospect.mjs','bounty.mjs','battleship.mjs','raffle.mjs','tickets.mjs'])await copyFile(fileURLToPath(new URL('../local/'+file,import.meta.url)),join(bundle,'local',file));
   await copyFile(fileURLToPath(new URL('../dist/engine.mjs',import.meta.url)),join(bundle,'dist/engine.mjs'));
   await writeFile(join(bundle,'dist/index.html'),'<h1>Game</h1>');
   await writeFile(join(dir,'Voyager_Command_Center.html'),'<a href="Voyager_Versus.html">Voyager Versus</a>');await writeFile(join(dir,'Voyager_Stream_Deck.html'),'<a href="Voyager_Versus.html">Voyager Versus</a> Live');
@@ -91,7 +91,7 @@ test('Bundled Voyager Control and the game share one host without exposing game 
 
 test('2.38.1 the game overlays carry a build number that the release bump keeps in step, and the host hides a game from its own source while the stage shows it',async()=>{
   const {readFile}=await import('node:fs/promises');const root=new URL('../../',import.meta.url),version=JSON.parse(await readFile(new URL('package.json',root),'utf8')).version;
-  for(const f of ['Voyager_Bounty_Overlay.html','Voyager_Prospect_Overlay.html']){const s=await readFile(new URL(f,root),'utf8');assert.ok(s.includes("const BUILD='"+version+"'"),f+' BUILD must be '+version);assert.match(s,/d\.version!==BUILD/);}
+  for(const f of ['Voyager_Bounty_Overlay.html','Voyager_Prospect_Overlay.html','Voyager_Battleship_Overlay.html']){const s=await readFile(new URL(f,root),'utf8');assert.ok(s.includes("const BUILD='"+version+"'"),f+' BUILD must be '+version);assert.match(s,/d\.version!==BUILD/);}
   const srv=await readFile(new URL('Voyager_Versus/local/server.mjs',root),'utf8');assert.match(srv,/up&&!fromStage\(req\)\?\{serverAt:o\.serverAt,hunt:null,stage:true/);assert.match(srv,/up&&!fromStage\(req\)\?\{serverAt:o\.serverAt,run:null,stage:true/);
   assert.ok(/[?&]stage=1(&|$)/.test('http://127.0.0.1:8740/control/Voyager_Bounty_Overlay.html?stage=1&quality=balanced'));assert.ok(!/[?&]stage=1(&|$)/.test('http://127.0.0.1:8740/control/Voyager_Bounty_Overlay.html'));
 });

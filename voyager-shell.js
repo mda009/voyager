@@ -26,6 +26,8 @@ const DESTINATIONS=[
   tabs:[['Giveaway_Control.html','Chat & members'],['Voyager_Ticket_Giveaway.html','Ticketed'],['Voyager_Entrant_Board.html','Entrant board ↗',{blank:true}]]},
  {id:'raffle',label:'Raffle',ico:'🎟',group:'Games & events',live:true,help:'Voyager_Guide.html',keys:'raffle ticket tickets random draw winners 10 minutes join !raffle panel entries giveaway prize',
   tabs:[['Voyager_Raffle.html','Raffle']]},
+ {id:'battleship',label:'Battleship',ico:'🚢',group:'Games & events',live:true,help:'Voyager_Guide.html',keys:'battleship battleships grid guess ship sink fleet fire square coordinates sonar air strike mvp tickets giveaway cheers bits gift subs !fire',
+  tabs:[['Voyager_Battleship.html','Battleship']]},
  {id:'bounty',label:'Bounty Hunt',ico:'🎯',group:'Games & events',live:true,help:'Voyager_Guide.html',keys:'bounty hunt wanted target track search ring scanner pulse wingmen capture mvp tickets giveaway cheers bits gift subs !track',
   tabs:[['Voyager_Bounty.html','Bounty Hunt']]},
  {id:'prospect',label:'Prospect Run',ico:'⛏',group:'Games & events',live:true,help:'Voyager_Guide.html',keys:'prospect run mining hauling haul mine ore lumenite cargo pirate interdiction jump sell exchange tickets giveaway crew contract !mine !fire !sell star citizen',

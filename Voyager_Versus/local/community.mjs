@@ -28,6 +28,9 @@ export const TYPES={
   prospectRuns:{label:'Fly Prospect Runs',unit:'runs',medal:'hauler',counter:'pruns',max:20},
   prospectGold:{label:'Fly a Gold haul on a Prospect Run',unit:'Gold hauls',medal:'hauler',counter:'golds',max:10},
   prospectRocks:{label:'Help crack the rock on a Prospect Run',unit:'rocks',medal:'rockbreaker',counter:'rocks',max:20},
+  // 2.40.0 Battleship
+  battleshipGames:{label:'Join Battleship battles',unit:'battles',medal:'gunner',counter:'bsgames',max:20},
+  battleshipHits:{label:'Hit enemy ships in Battleship',unit:'hits',medal:'gunner',counter:'bshits',max:100},
   // 2.37.0 Bounty Hunt
   bountyHunts:{label:'Join Bounty Hunts',unit:'hunts',medal:'bountyhunter',counter:'bhunts',max:20},
   bountyCaptures:{label:'Help capture a bounty',unit:'captures',medal:'bountyhunter',counter:'bcaps',max:20}

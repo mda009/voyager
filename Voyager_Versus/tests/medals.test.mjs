@@ -144,7 +144,7 @@ test('Settings validate grade targets; switched-off medals are not awarded; sett
   const got=m.evaluate().map(a=>a.medal);assert.ok(!got.includes('watch'));assert.ok(got.includes('subs'));
   await m.flush();await m.saving;
   const saved=JSON.parse(await readFile(join(dir,'medals.json'),'utf8'));assert.deepEqual(saved.settings.off,['watch']);
-  assert.equal(MEDALS.filter(x=>x.grades).length,32);
+  assert.equal(MEDALS.filter(x=>x.grades).length,34);
 });
 
 test('Twitch watch streaks: a shared streak becomes the viewer\'s stream streak, plays the comet once, and the day count does not add to it (2.20.70)',async()=>{
@@ -193,4 +193,14 @@ test('2.37.0 Bounty Hunt medals: captures count for Bounty Hunter, MVPs for Dead
   assert.deepEqual([nova.bhunts,nova.bcaps,nova.gmvp,nova.lastsecond],[2,1,1,1]);assert.deepEqual([lyra.bhunts,lyra.bcaps,lyra.gmvp,lyra.lastsecond],[2,1,undefined,1],'practice hunts are not counted');
   m.primed=false;const got=m.evaluate().filter(a=>a.key==='twitch:1').map(a=>a.medal);assert.ok(got.includes('reckoning'),'one MVP is Bronze Dead Reckoning');assert.ok(got.includes('lastsecond'));assert.ok(!got.includes('bountyhunter'),'three captures are needed for Bounty Hunter');
   assert.ok(TYPES.bountyHunts.counter==='bhunts'&&TYPES.bountyCaptures.medal==='bountyhunter');
+});
+
+test('2.40.0 Battleship medals: hits count for Gunner, sinking shots for Ship Sinker, a first-shot hit in a win is a secret medal',async()=>{
+  const {m}=await make();m.state.backfilled=true;
+  const crewList=[{key:'twitch:1',name:'Nova',platform:'twitch',shots:14,hits:11,sinks:3,firstHit:true,mvp:true},{key:'youtube:2',name:'Lyra',platform:'youtube',shots:5,hits:0,sinks:0,firstHit:false,mvp:false}];
+  m.observeBattleship({outcome:'victory',practice:false,crewList});m.observeBattleship({outcome:'defeat',crewList});m.observeBattleship({outcome:'victory',practice:true,crewList});
+  const nova=m.state.viewers['twitch:1'].c,lyra=m.state.viewers['youtube:2'].c;
+  assert.deepEqual([nova.bsgames,nova.bswins,nova.bshits,nova.bssinks,nova.gmvp,nova.bullseye],[2,1,22,6,1,1]);assert.deepEqual([lyra.bsgames,lyra.bshits,lyra.bullseye],[2,undefined,undefined]);
+  m.primed=false;const got=m.evaluate().filter(a=>a.key==='twitch:1').map(a=>a.medal);for(const id of ['gunner','shipsinker','bullseye','reckoning'])assert.ok(got.includes(id),id);
+  assert.ok(TYPES.battleshipGames.counter==='bsgames'&&TYPES.battleshipHits.counter==='bshits');
 });

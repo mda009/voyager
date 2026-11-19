@@ -2,6 +2,25 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.40.0 (19 November 2026)
+
+**New game: Battleship. Chat calls squares to find and sink a hidden enemy fleet.**
+
+- **Games & events › Battleship.** Only you can start it. An enemy fleet is hidden on a grid, with letters across the top and numbers down the side, exactly like the board game. Chat has four minutes to find and sink every ship.
+- **Three ways to help**, the same shape as the Dreadnought:
+  - **Free:** `!fire B5` shoots square B5 (typing just `B5` works too; `!shot` and `!shoot` also work). One shot per person every 6 seconds. A square that has already been shot costs nothing, so nobody loses a turn to a repeat.
+  - **Cheers:** Bits and Super Chats of 100 or more ping the sonar. One hidden ship square is marked as a **contact** for every 100, up to 3 a cheer. A contact is a clue, not a hit: someone still has to shoot it.
+  - **Gift subs:** each gifted sub calls an **air strike** on a random unshot square, up to 5 a gift.
+- **The board grows with the crew** that signs on in the 30 seconds before the battle: 6 × 6 with 3 ships for up to 3 players, 8 × 8 with 4 ships for up to 11, and 10 × 10 with 5 ships beyond that. Chat is told the grid size when the battle opens.
+- **Tickets:** when the whole fleet is sunk, every player who fired at least one shot gets 5 tickets for the active ticketed giveaway and the **MVP 2 more** (both adjustable). If time runs out nobody is paid, and the board shows where the surviving ships were hiding.
+- **Paying never earns more tickets.** Cheering or gifting alone earns none, an air strike never lands the final hit, and by default the MVP is the player with the most hits from their own shots (there is a switch if you want air-strike hits to count).
+- **On screen, in the Dreadnought's style** (OBS Browser source, 1920 × 1080, `/control/Voyager_Battleship_Overlay.html`): the splash with a countdown to join, the grid with splashes for misses, explosions for hits and the hull drawn in when a ship is sunk, pulsing sonar contacts, air strikes flying in, who shot what, the enemy fleet roster, the gun-crew panel with the top five and an MVP tag, feed, legend, banners and the result card. `?preview=1` plays a sample battle.
+- **Game stage:** Battleship takes over the stage like the Dreadnought, Prospect Run and Bounty Hunt (splash, your scene moving to the corner, panels, the leaderboard panel top-left, the MVP celebration). There is a switch and a 60-second test showing on Dreadnought › Stage takeover. Its own OBS source steps aside while the stage shows it.
+- **Medals:** Gunner (hits), Ship Sinker (sinking shots), one secret, and Battleship MVPs count toward Dead Reckoning. **Missions:** join Battleship battles, hit enemy ships.
+- **Website:** a Battleship card on the Live tab while a battle is on (ships sunk and the result, never where the ships are), a Home tile, and `!fire B5` in the command list.
+- Practice battle, call it off, on/off switch, recent battles and the ticket-grant status are on the Battleship page. A battle cannot start while a Dreadnought fight, a Prospect Run or a Bounty Hunt is under way, and those cannot start during a battle.
+- Not yet run with real chat, cheers or gifted subs: do a practice battle first. The member manual PDF has not been updated.
+
 ## 2.39.0 (18 November 2026)
 
 **A leaderboard panel top-left for Prospect Run and Bounty Hunt, like the Dreadnought's.**
