@@ -63,7 +63,7 @@ import {mergeVertices} from './Voyager_Versus/dist/vendor/BufferGeometryUtils.mj
 import {RoomEnvironment} from './Voyager_Versus/dist/vendor/RoomEnvironment.mjs';
 import {createVessel,bevelBox,strut,geometryBatch} from './fleet-vessels.mjs';
 const $=id=>document.getElementById(id),cv=$('cv'),preview=new URLSearchParams(location.search).has('preview'),stageIn=new URLSearchParams(location.search).get('stage')==='1';let aside=false;
-const BUILD='2.40.0'; // when Voyager is updated the page reloads itself under a new address, so OBS does not keep a cached copy
+const BUILD='2.41.0'; // when Voyager is updated the page reloads itself under a new address, so OBS does not keep a cached copy
 const PHASES=['contract','mine','haul','sell','result'];
 const TITLE={contract:['Contract accepted','Type any command to fly with the crew'],mine:['Mine','Keep the laser charge in the optimal window'],haul:['Haul','Jump the cargo home and survive the interdiction'],sell:['Sell','Agree on the peak, then sell'],result:['Payout','']};
 const HINT={contract:[['!mine','!fire','!sell'],'three commands, one per phase · anyone can join in'],mine:[['!mine'],'keeps your laser on for 10 s · not everyone at once, or it overcharges'],haul:[['!fire'],'drive off the pirates before they shoot cargo loose'],sell:[['!sell'],'enough votes sells the cargo'],result:[[],'Tickets are added to the active ticketed giveaway']};

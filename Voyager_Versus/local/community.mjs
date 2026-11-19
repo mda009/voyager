@@ -60,8 +60,9 @@ export const PLATFORM_OPTIONS={all:'All platforms',twitch:'Twitch',youtube:'YouT
 // Season goals (2.15): one shared target for the whole community; everyone who helped is rewarded once it's reached.
 // 2.20.48 "Community goals": seasons are now campaigns you start and end yourself (nothing runs on its own), every goal
 // has its own points reward and optional due date, and goals can also count Voyager points earned or Versus wins.
-export const GOAL_METRICS={support:'Subs, renewals and gifted subs',subs:'Subs and renewals',gifts:'Gifted subs',activeSubs:'Twitch active subscribers (live count)',points:'Voyager points earned by the crew',versus:'Voyager Versus wins'};
+export const GOAL_METRICS={support:'Subs, renewals and gifted subs',subs:'Subs and renewals',gifts:'Gifted subs',activeSubs:'Twitch active subscribers (live count)',youtubeSubs:'YouTube subscribers (live count)',points:'Voyager points earned by the crew',versus:'Voyager Versus wins'};
 export const GOAL_LIMIT=8;
+export const YOUTUBE_GOAL={id:'youtube-1k',title:'YouTube 1K',metric:'youtubeSubs',platform:'youtube',target:1000,reward:1000,tickets:15,minimum:1,dueAt:0,description:'Subscribe on YouTube: at 1,000 every YouTube crew member gets 15 tickets and 1,000 points',multiplier:1};
 export const DEFAULT_MISSIONS=[
   {id:'regular',title:'Regular Pilot',type:'streamDays',target:3,reward:35,enabled:true},
   {id:'collector',title:'Point Collector',type:'earnPoints',target:500,reward:25,enabled:true},
@@ -125,7 +126,9 @@ export function normalizeGoals(raw){
     let dueAt=0;if(g.dueAt!==undefined&&g.dueAt!==null&&g.dueAt!==''){dueAt=Number(g.dueAt);if(!Number.isFinite(dueAt)||dueAt<0)throw new Error(title+': the due date is not valid.');dueAt=Math.round(dueAt);}
     // 2.20.74: contributors earn their Voyager points times this during the run (1 = no bonus, 1.5 = half as much again), paid when it ends.
     let multiplier=1;if(g.multiplier!==undefined&&g.multiplier!==null&&g.multiplier!==''){multiplier=Math.round(Number(g.multiplier)*100)/100;if(!Number.isFinite(multiplier)||multiplier<1||multiplier>5)throw new Error(title+': the points multiplier must be between 1 and 5.');}
-    out.push({id,title,metric,platform,target,reward,minimum,dueAt,description:clean(g.description,120),multiplier});
+    // 2.41.0: giveaway tickets for every rewarded account (YouTube subscriber goals).
+    const tickets=g.tickets===undefined||g.tickets===null||g.tickets===''?0:int(g.tickets,0,1000);if(tickets===null)throw new Error(title+': the tickets must be 0 to 1,000.');
+    out.push({id,title,metric,platform:metric==='youtubeSubs'?'youtube':platform,target,reward,minimum,dueAt,description:clean(g.description,120),multiplier,tickets});
   }
   return out;
 }
@@ -136,7 +139,7 @@ export class Community{
   fresh(){
     const now=this.now();
     return {schema:1,missions:normalizeMissions([...DEFAULT_MISSIONS,...SUB_MISSIONS]),subSeeded:true,rewards2161:true,members:{},support:{},supportAt:0,
-      goals:[],goalsOff2048:true,supportBonus:DEFAULT_SUPPORT_BONUS,previousSeason:null,
+      goals:[],goalsOff2048:true,ytGoal2410:true,supportBonus:DEFAULT_SUPPORT_BONUS,previousSeason:null,
       week:{id:weekStart(now),baseline:{},days:{},versus:{},gifts:{},medal:{}},previous:null,payouts:{},
       season:this.idleSeason(0),hall:[],panel:{config:{...PANEL_DEFAULTS},visible:false,expiresAt:0,revision:0}};
   }
@@ -152,6 +155,8 @@ export class Community{
         if(!raw.subSeeded){for(const m of SUB_MISSIONS)if(s.missions.length<8&&!s.missions.some(x=>x.id===m.id||x.type===m.type))s.missions.push({...m});s.subSeeded=true;}
         // 2.21.7: a goal called "Sub Goal" that counted sub events now tracks Twitch's live subscriber count (asked for 9 Nov 2026). Once.
         if(!raw.subGoalLive2217){for(const g of s.goals||[])if(/\bsub\s*goal\b/i.test(g.title||'')&&['support','subs'].includes(g.metric))g.metric='activeSubs';s.subGoalLive2217=true;}
+        // 2.41.0: the YouTube 1K goal, added once (it can be edited or removed under Community goals).
+        if(!raw.ytGoal2410){if(s.goals.length<GOAL_LIMIT&&!s.goals.some(g=>g.metric==='youtubeSubs'))s.goals.push(...normalizeGoals([YOUTUBE_GOAL]));s.ytGoal2410=true;}
         try{s.goals=normalizeGoals(s.goals);}catch{s.goals=[];}
         // 2.20.48 (asked for): every goal off and no campaign running until one is started by hand. The previous season's
         // reached goals stay payable; its standings are archived to the Hall of Fame if anyone scored.
@@ -255,6 +260,7 @@ export class Community{
     const s=this.state,w=weekStart(now);
     if(w!==s.week.id){s.previous={id:s.week.id,completions:this.completions()};s.week={id:w,baseline:{},days:{},versus:{},gifts:{},medal:{},medalAt:{}};this.noteMedals();this.persist();}
     if(s.season.active&&s.season.endsAt&&now>=s.season.endsAt)this.endSeason(now);
+    if((s.goals||[]).some(g=>g.metric==='youtubeSubs')||s.ytReached&&Object.keys(s.ytReached).length)this.latchYoutube();
   }
   progressFor(m){
     const s=this.state,rows=[];
@@ -296,6 +302,8 @@ export class Community{
     const s=this.state,rows=[];
     // 2.20.79: rows other modules owe (crew surge bonuses), paid and recorded like the rest.
     for(const c of (this.extraPayables?.()||[])){if(!c.reward)continue;const k=this.payKey(c.week,c.missionId,c.key);rows.push({...c,payable:!!c.key&&c.account!==false,status:s.payouts[k]?.status||'owed',paidAt:s.payouts[k]?.at||0,note:s.payouts[k]?.note||''});}
+    // 2.41.0: a reached YouTube goal owes its points to the accounts frozen when it was reached (keyed by that moment, so a new goal run never owes them twice).
+    for(const c of this.youtubeCompletions()){if(!c.reward)continue;const k=this.payKey(c.week,c.missionId,c.key);rows.push({...c,payable:!!c.key&&c.account!==false,status:s.payouts[k]?.status||'owed',paidAt:s.payouts[k]?.at||0,note:s.payouts[k]?.note||''});}
     // Season goals use the season's start time in place of a week, so their payouts never clash with missions.
     for(const [week,list,scope,label] of [[s.week.id,this.completions(),'week','this week'],[s.previous?.id,s.previous?.completions||[],'week','last week'],
       [s.season.startedAt,this.goalCompletions(),'season',s.season.name],[s.previousSeason?.id,s.previousSeason?.completions||[],'season',s.previousSeason?.name||'last season']]){
@@ -320,6 +328,38 @@ export class Community{
   }
   // 2.21.7: Twitch's live subscriber count, heard from the "Voyager - Stream Stats" broadcast (its Get Subscriber Count sub-action).
   twitchSubs(input){const v=Number(input?.value);if(!Number.isFinite(v)||v<0)return false;const at=Number(input?.at)||this.now();const prev=this.state.twitchSubs;if(prev&&prev.at>at)return false;if(prev&&prev.value===Math.round(v)){prev.at=at;return true;}this.state.twitchSubs={value:Math.round(v),at};this.persist();return true;}
+  // 2.41.0: YouTube's subscriber number (read by youtube-subs.mjs or typed in). A YouTube goal does not need a goal run to be open.
+  youtubeSubs(input){const v=Number(input?.value);if(!Number.isFinite(v)||v<0)return false;const at=Number(input?.at)||this.now();const prev=this.state.youtubeSubs;if(prev&&prev.at>at)return false;
+    if(prev&&prev.value===Math.round(v))prev.at=at;else{this.state.youtubeSubs={value:Math.round(v),at};this.persist();}this.latchYoutube();return true;}
+  // The moment the number reaches a goal's target the goal is locked as reached (the number can dip again) and the list of
+  // rewarded accounts is frozen: every YouTube account Voyager knows at that moment. Tickets are queued once, points become owed.
+  latchYoutube(){
+    const s=this.state,latches=s.ytReached||(s.ytReached={}),value=Math.round(Number(s.youtubeSubs?.value)||0);let changed=false;
+    for(const id of Object.keys(latches)){const g=(s.goals||[]).find(x=>x.id===id&&x.metric==='youtubeSubs');if(!g||g.target>latches[id].target){delete latches[id];changed=true;}}
+    for(const g of (s.goals||[]).filter(x=>x.metric==='youtubeSubs')){
+      if(latches[g.id]||!s.youtubeSubs||value<g.target)continue;
+      const keys=Object.keys(s.members).filter(k=>k.startsWith('youtube:')).slice(0,5000);
+      latches[g.id]={at:this.now(),value,target:g.target,keys,names:Object.fromEntries(keys.map(k=>[k,s.members[k].name||''])),round:0};changed=true;
+      try{this.onGoalReached?.({id:g.id,title:g.title,target:g.target,reward:g.reward,tickets:g.tickets||0,accounts:keys.length});}catch{}
+      this.queueYoutubeTickets(g.id);
+    }
+    if(changed)this.persist();return changed;
+  }
+  // Giveaway tickets for a reached YouTube goal, in batches the Ticket Giveaway action accepts. again=true queues a fresh round
+  // (for when no ticketed giveaway was collecting at the time).
+  queueYoutubeTickets(id,again=false){
+    const s=this.state,l=s.ytReached?.[id],g=(s.goals||[]).find(x=>x.id===id);if(!l||!g)throw new Error('That goal has not been reached.');if(!(g.tickets>0))return {jobs:0,accounts:0};
+    if(again){l.round=(l.round||0)+1;this.persist();}
+    const rows=l.keys.map(key=>({key,name:s.members[key]?.name||l.names?.[key]||'',login:s.members[key]?.login||'',tickets:g.tickets}));let jobs=0;
+    for(let i=0;i<rows.length;i+=200){jobs++;try{this.onTickets?.({id:'ytgoal-'+g.id+'-'+l.at+'-r'+(l.round||0)+'-'+(i/200),reason:'YouTube goal reached: '+g.title,grants:rows.slice(i,i+200)});}catch{}}
+    return {jobs,accounts:rows.length,tickets:g.tickets};
+  }
+  youtubeCompletions(){
+    const s=this.state,out=[];
+    for(const g of (s.goals||[]).filter(x=>x.metric==='youtubeSubs')){const l=s.ytReached?.[g.id];if(!l)continue;
+      for(const key of l.keys)out.push({missionId:'goal-'+g.id,title:'YouTube goal: '+g.title,reward:g.reward,key,name:s.members[key]?.name||l.names?.[key]||key,platform:'youtube',week:l.at,scope:'season',label:g.target.toLocaleString('en-US')+' subscribers',...(s.members[key]?{}:{account:false})});}
+    return out;
+  }
   // Season goals: community totals, and who helped.
   goalProgress(){
     const s=this.state,now=this.now(),active=!!s.season.active,rows=active&&(s.goals||[]).some(g=>g.metric==='points'||g.metric==='versus')?this.standings(100000):[];
@@ -327,7 +367,12 @@ export class Community{
       const helpers=[];let total=0,contributors=0;const minimum=g.minimum||1;
       const pts=new Map(rows.length?rows.map(r=>[r.key,r.points]):[]),bonusOf=key=>g.multiplier>1?Math.round((pts.size?pts.get(key)||0:this.seasonPointsOf(key))*(g.multiplier-1)):0;
       const add=(key,name,platform,n,account)=>{if(n<=0)return;total+=n;contributors++;if(n>=minimum)helpers.push({key,name,platform,count:n,account,bonus:bonusOf(key)});};
-      if(active&&g.metric==='activeSubs'){
+      const latch=g.metric==='youtubeSubs'?s.ytReached?.[g.id]:null;
+      if(g.metric==='youtubeSubs'){
+        // 2.41.0: the goal IS YouTube's subscriber number. Everyone it rewards is listed: the YouTube accounts Voyager knows.
+        for(const key of latch?latch.keys:Object.keys(s.members).filter(k=>k.startsWith('youtube:')))helpers.push({key,name:s.members[key]?.name||latch?.names?.[key]||key,platform:'youtube',count:1,account:!!s.members[key],bonus:0});
+        contributors=helpers.length;total=Math.max(0,Math.round(Number(s.youtubeSubs?.value)||0));
+      }else if(active&&g.metric==='activeSubs'){
         // 2.21.7: the goal IS Twitch's current subscriber count (Get Subscriber Count via Voyager - Stream Stats), not a tally of
         // events. Helpers are the Twitch accounts that subscribed or renewed this season; their counts do not add up to the total.
         for(const [key,v] of Object.entries(s.support||{})){if(v.platform!=='twitch')continue;const u=this.seasonSupport(key);if(u.subs>0&&u.subs>=minimum)helpers.push({key,name:s.members[key]?.name||v.name,platform:'twitch',count:u.subs,account:!!s.members[key],bonus:bonusOf(key)});}
@@ -347,8 +392,8 @@ export class Community{
           if(!onPlatform(g.platform,platform))continue;add(mk||'manual:'+man.name.toLowerCase(),mk?s.members[mk].name:man.name,platform,n,!!mk);}
       }
       helpers.sort((a,b)=>b.count-a.count||a.name.localeCompare(b.name));
-      const dueAt=g.dueAt||s.season.endsAt||0,reached=total>=g.target,missed=!reached&&!!dueAt&&now>dueAt;
-      return {...g,label:GOAL_METRICS[g.metric],total,reached,missed,dueAt,status:reached?'reached':missed?'missed':active?'open':'waiting',helpers,contributors};
+      const yt=g.metric==='youtubeSubs',dueAt=yt?g.dueAt||0:g.dueAt||s.season.endsAt||0,reached=yt?!!latch||(!!s.youtubeSubs&&total>=g.target):total>=g.target,missed=!reached&&!!dueAt&&now>dueAt;
+      return {...g,label:GOAL_METRICS[g.metric],total,reached,missed,dueAt,status:reached?'reached':missed?'missed':active||yt?'open':'waiting',helpers,contributors,...(latch?{reachedAt:latch.at,ticketRound:latch.round||0}:{})};
     });
   }
   // 2.20.71: why a viewer does or does not count towards each goal (Community goals › Check a viewer).
@@ -361,8 +406,8 @@ export class Community{
     const matches=[...keys].slice(0,5).map(key=>{const m=s.members[key],sup=s.support?.[key],u=this.seasonSupport(key),st=rows.find(r=>r.key===key);
       return {key,name:m?.name||sup?.name||key,platform:key.split(':')[0],member:!!m,points:m?{lifetime:m.value,baseline:s.season.baseline[key]??null,season:st?.points??0}:null,
         support:sup?{months:sup.months,monthsAt:sup.monthsAt,gifts:sup.gifts,giftsAt:sup.giftsAt,baseline:s.season.support?.[key]||null,season:u}:null,
-        goals:(s.goals||[]).map(g=>{const n=!active?0:g.metric==='points'?(st?.points||0):g.metric==='versus'?(st?.wins||0):g.metric==='subs'||g.metric==='activeSubs'?u.subs:g.metric==='gifts'?u.gifts:u.subs+u.gifts;const on=g.metric==='activeSubs'?key.startsWith('twitch:'):onPlatform(g.platform,key.split(':')[0]);
-          return {id:g.id,title:g.title,metric:g.metric,count:on?n:0,minimum:g.minimum||1,counts:on&&n>0,earns:on&&n>=(g.minimum||1),why:!active?'No community goal is running.':!on?'Goal is for '+g.platform+' only.':n>0?'':g.metric==='points'?(m?'No Voyager points earned since the goal started (baseline '+(s.season.baseline[key]??'none')+').':'Not in the points ledger yet.'):g.metric==='versus'?'No Versus wins since the goal started.':sup?'No '+(g.metric==='gifts'?'gifts':g.metric==='subs'?'subs or renewals':'subs or gifts')+' recorded since the goal started (tracker total '+(g.metric==='gifts'?sup.gifts:sup.months)+', baseline '+(s.season.support?.[key]?(g.metric==='gifts'?s.season.support[key].gifts:s.season.support[key].months):'none')+').':'No support record from Voyager - Stream Stats for this viewer (the Community Tracker has not recorded a sub or gift for them, or the support feed has not arrived).'};})};});
+        goals:(s.goals||[]).map(g=>{const n=g.metric==='youtubeSubs'?(key.startsWith('youtube:')?1:0):!active?0:g.metric==='points'?(st?.points||0):g.metric==='versus'?(st?.wins||0):g.metric==='subs'||g.metric==='activeSubs'?u.subs:g.metric==='gifts'?u.gifts:u.subs+u.gifts;const on=g.metric==='youtubeSubs'?key.startsWith('youtube:'):g.metric==='activeSubs'?key.startsWith('twitch:'):onPlatform(g.platform,key.split(':')[0]);
+          return {id:g.id,title:g.title,metric:g.metric,count:on?n:0,minimum:g.minimum||1,counts:on&&n>0,earns:on&&n>=(g.minimum||1),why:g.metric==='youtubeSubs'?(on?'':'This goal rewards YouTube accounts.'):!active?'No community goal is running.':!on?'Goal is for '+g.platform+' only.':n>0?'':g.metric==='points'?(m?'No Voyager points earned since the goal started (baseline '+(s.season.baseline[key]??'none')+').':'Not in the points ledger yet.'):g.metric==='versus'?'No Versus wins since the goal started.':sup?'No '+(g.metric==='gifts'?'gifts':g.metric==='subs'?'subs or renewals':'subs or gifts')+' recorded since the goal started (tracker total '+(g.metric==='gifts'?sup.gifts:sup.months)+', baseline '+(s.season.support?.[key]?(g.metric==='gifts'?s.season.support[key].gifts:s.season.support[key].months):'none')+').':'No support record from Voyager - Stream Stats for this viewer (the Community Tracker has not recorded a sub or gift for them, or the support feed has not arrived).'};})};});
     return {query:q,matches,feed:this.feed()};
   }
   feed(){const s=this.state;return {supportAt:s.supportAt||0,supporters:Object.keys(s.support||{}).length,membersAt:s.membersAt||0,members:Object.keys(s.members).length,seasonStartedAt:s.season.startedAt||0,active:!!s.season.active};}
@@ -396,7 +441,7 @@ export class Community{
   goalBonuses(){const out=[];for(const g of this.goalProgress().filter(x=>x.multiplier>1))for(const h of g.helpers)if(h.bonus>0)out.push({missionId:'bonus-'+g.id,title:'Points x'+g.multiplier+' · '+g.title,reward:h.bonus,key:h.key,name:h.name,platform:h.platform,bonus:true,...(h.account?{}:{account:false})});return out;}
   goalCompletions(){
     const out=[];
-    for(const g of this.goalProgress().filter(x=>x.reached))for(const h of g.helpers)out.push({missionId:'goal-'+g.id,title:'Community goal: '+g.title,reward:g.reward,key:h.key,name:h.name,platform:h.platform,...(h.account?{}:{account:false})});
+    for(const g of this.goalProgress().filter(x=>x.reached&&x.metric!=='youtubeSubs'))for(const h of g.helpers)out.push({missionId:'goal-'+g.id,title:'Community goal: '+g.title,reward:g.reward,key:h.key,name:h.name,platform:h.platform,...(h.account?{}:{account:false})});
     return out;
   }
   recordPayout({week,missionId,key,status,note}){
@@ -472,14 +517,14 @@ export class Community{
     const s=this.state,missions=s.missions.map(m=>{const p=this.progressFor(m);return {...m,typeLabel:TYPES[m.type].label,unit:TYPES[m.type].unit,started:p.length,completed:p.filter(x=>x.done).length,top:p.slice(0,8)};});
     return {missions,week:{id:s.week.id,endsAt:s.week.id+7*DAY},members:Object.keys(s.members).length,payables:this.payables(),
       season:{number:s.season.number,name:s.season.name,startedAt:s.season.startedAt,openedAt:s.season.openedAt||s.season.startedAt,endsAt:s.season.endsAt,weeks:s.season.weeks,active:!!s.season.active,manual:s.season.manual?{viewers:Object.keys(s.season.manual).length,subs:Object.values(s.season.manual).reduce((a,x)=>a+x.subs,0),gifts:Object.values(s.season.manual).reduce((a,x)=>a+x.gifts,0),until:s.season.manualUntil||0}:null},feed:this.feed(),standings:this.standings(),topPilot:this.topPilot(),hall:s.hall,types:TYPES,goalLimit:GOAL_LIMIT,missionMedals:MISSION_MEDALS,ideas:MISSION_IDEAS,rewardMax:MISSION_REWARD_MAX,panel:this.panelView(),panelKinds:PANEL_KINDS,
-      platforms:PLATFORM_OPTIONS,goalMetrics:GOAL_METRICS,twitchSubs:s.twitchSubs||null,goals:this.goalProgress().map(g=>({...g,helpers:g.helpers.slice(0,10),contributorsList:g.helpers.slice(0,500)})),supportBonus:s.supportBonus??DEFAULT_SUPPORT_BONUS,
+      platforms:PLATFORM_OPTIONS,goalMetrics:GOAL_METRICS,twitchSubs:s.twitchSubs||null,youtubeSubs:s.youtubeSubs||null,goals:this.goalProgress().map(g=>({...g,helpers:g.helpers.slice(0,10),contributorsList:g.helpers.slice(0,500)})),supportBonus:s.supportBonus??DEFAULT_SUPPORT_BONUS,
       support:{tracked:Object.keys(s.support||{}).length,updatedAt:s.supportAt||0}};
   }
   // What the public site may show (names are masked later if "Show viewer names" is off).
   publicView(){
     const v=this.view();
     return {season:{name:v.season.name,endsAt:v.season.endsAt,startedAt:v.season.startedAt,active:v.season.active,supportBonus:v.supportBonus,standings:v.standings.slice(0,10).map(r=>({rank:r.rank,name:r.name,platform:r.platform,points:r.score,earned:r.points,support:r.support,wins:r.wins})),
-        goals:v.goals.map(g=>({title:g.title,metric:g.metric,platform:g.platform,target:g.target,total:g.total,reward:g.reward,multiplier:g.multiplier||1,reached:g.reached,missed:g.missed,dueAt:g.dueAt,description:g.description||'',helpers:g.helpers.length}))},
+        goals:v.goals.map(g=>({title:g.title,metric:g.metric,platform:g.platform,target:g.target,total:g.total,reward:g.reward,tickets:g.tickets||0,multiplier:g.multiplier||1,reached:g.reached,missed:g.missed,dueAt:g.dueAt,description:g.description||'',helpers:g.helpers.length}))},
       hall:v.hall.slice(0,6).map(h=>({name:h.name,endedAt:h.endedAt,champion:h.champion,topPilot:h.topPilot})),
       missions:v.missions.filter(m=>m.enabled).map(m=>({title:m.title,type:m.type,platform:m.platform,target:m.target,reward:m.reward,completed:m.completed,medal:MISSION_MEDALS[m.type]||''})),weekEndsAt:v.week.endsAt};
   }

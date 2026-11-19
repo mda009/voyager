@@ -30,9 +30,22 @@
 <label>Supporter bonus (score per sub, renewal or gifted sub)<input name="supportBonus" type="number" min="0" max="100000"></label>
 </form>
 <div class="card-heading" style="margin-top:14px"><div><span class="eyebrow">GOALS IN THIS RUN</span><h2 id="goals-h">Goals</h2></div><div class="st-actions"><button type="button" id="goal-add">+ Add goal</button></div></div>
-<p class="st-hint">Each goal has its own target, points reward and (optionally) its own due date. When a goal is reached, everyone who helped (at least the minimum) earns its reward — pay it from Missions › Points owed. Goals can count subs and gifts, Voyager points earned by the crew, or Voyager Versus wins — or track <b>Twitch active subscribers (live count)</b>: the goal shows Twitch's own subscriber number (read through <b>Voyager - Stream Stats</b>' Get Subscriber Count every 5 minutes, and whenever a dashboard asks), so it moves with your real sub count rather than adding up events. Everyone who subscribed or renewed on Twitch this run counts as a helper for the reward. <span id="twitch-subs"></span></p>
+<p class="st-hint">Each goal has its own target, points reward and (optionally) its own due date. When a goal is reached, everyone who helped (at least the minimum) earns its reward — pay it from Missions › Points owed. Goals can count subs and gifts, Voyager points earned by the crew, or Voyager Versus wins — or track <b>Twitch active subscribers (live count)</b>: the goal shows Twitch's own subscriber number (read through <b>Voyager - Stream Stats</b>' Get Subscriber Count every 5 minutes, and whenever a dashboard asks), so it moves with your real sub count rather than adding up events. <b>YouTube subscribers (live count)</b> follows your YouTube channel's subscriber number and, the moment it is reached, gives every YouTube account Voyager knows its points and giveaway tickets; it keeps counting with or without a run. Everyone who subscribed or renewed on Twitch this run counts as a helper for the reward. <span id="twitch-subs"></span></p>
 <div id="goals" class="cs-goal-list"></div>
-<div class="st-actions" style="margin-top:12px"><button type="button" class="primary" id="season-start">Start the run</button><button type="button" class="primary" id="season-save" hidden>Save changes</button><button type="button" id="end-season" hidden>End now…</button></div>
+<div id="youtube-card" class="cs-goal" hidden style="margin-top:12px">
+<div class="card-heading"><div><span class="eyebrow">YOUTUBE SUBSCRIBER NUMBER</span><h2>Where the YouTube goal gets its count</h2></div><span class="st-pill" id="youtube-state" data-state="wait">Not set up</span></div>
+<p class="st-hint" id="youtube-note"></p>
+<form id="youtube-form" class="cs-form" style="grid-template-columns:1fr 1fr" autocomplete="off">
+<label>Your YouTube channel (@handle, channel ID or link)<input name="channel" maxlength="200" placeholder="@YourChannel"></label>
+<label>YouTube Data API key (optional, kept on this PC only)<input name="apiKey" type="password" maxlength="80" autocomplete="off"></label>
+<label>Or type the subscriber number in by hand<input name="manual" type="number" min="0" max="1000000000" placeholder="From YouTube Studio"></label>
+<div class="st-actions"><button type="submit" class="primary">Save</button><button type="button" id="youtube-read">Read YouTube now</button><button type="button" id="youtube-clear" class="link" hidden>Remove the key</button></div>
+</form>
+<details><summary class="st-hint" style="cursor:pointer">How to get a free YouTube Data API key (5 minutes, once)</summary>
+<ol class="st-hint"><li>Open <b>console.cloud.google.com</b>, sign in with any Google account and create a project (any name).</li><li>Open <b>APIs &amp; Services › Library</b>, find <b>YouTube Data API v3</b> and press <b>Enable</b>.</li><li>Open <b>APIs &amp; Services › Credentials › Create credentials › API key</b>. Under <b>API restrictions</b> choose <b>Restrict key</b> and tick only YouTube Data API v3.</li><li>Paste the key (it starts with <code>AIza</code>) into the box above and press Save. It is stored only in this PC's Voyager data folder and is never uploaded or shown again.</li></ol>
+<p class="st-hint">The key can only read public YouTube information; it cannot change your channel. Voyager uses about 290 of the 10,000 free requests a day. YouTube gives the exact number below 1,000 subscribers and a rounded one above that.</p></details>
+</div>
+<div class="st-actions" style="margin-top:12px"><button type="button" class="primary" id="season-start">Start the run</button><button type="button" class="primary" id="season-save" hidden>Save changes</button><button type="button" id="goals-save" hidden>Save goals</button><button type="button" id="end-season" hidden>End now…</button></div>
 <p class="st-hint" id="campaign-hint"></p>
 <p class="st-hint" id="support-note"></p>
 <div id="contributors"></div>
@@ -82,8 +95,8 @@
 </div>
 </main>
 </div>
-<script src="seasons.js?v=2.21.7"></script>
-<script src="voyager-shell.js?v=2.40.0"></script>
+<script src="seasons.js?v=2.41.0"></script>
+<script src="voyager-shell.js?v=2.41.0"></script>
 <script src="voyager-navigation.js"></script>
 </body>
 </html>

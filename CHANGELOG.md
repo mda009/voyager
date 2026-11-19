@@ -2,6 +2,17 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.41.0 (20 November 2026)
+
+**YouTube subscriber goal: a goal bar that follows your YouTube subscriber number, and rewards your YouTube crew at 1,000.**
+
+- **A new goal, "YouTube 1K", has been added for you** under Missions & goals › Community goals: target 1,000 YouTube subscribers, reward 15 giveaway tickets and 1,000 Voyager points. Change or remove it there.
+- **It shows wherever the Sub Goal shows:** as a second bar on the compact goal bar panel, on the Christmas goal panel, on the Community goals panels and on the website.
+- **Where the number comes from.** Streamer.bot cannot read a YouTube subscriber count, so Voyager asks YouTube itself every 5 minutes. That needs your channel name and a free YouTube Data API key, entered once on the Community goals page (steps are on the page; the key stays on this PC and is never shown again or uploaded). Without a key you can type the number in by hand.
+- **Who is rewarded.** YouTube does not tell anyone who a channel's subscribers are. So the reward goes to every YouTube account Voyager knows: everyone who has chatted on your YouTube stream. The list is fixed the moment the goal is reached.
+- **When it is reached:** chat is told, the tickets are queued straight away (they need a ticketed giveaway that is collecting, and Ticket Giveaway v1.5), and the points appear under Missions › Points owed, where auto-pay pays them if it is on. The goal stays reached even if the number dips afterwards. If no giveaway was collecting, **Give the tickets again** on the goal sends them later.
+- The YouTube goal counts with or without a goal run, has no deadline unless you give it one, and its goals can now be saved without starting a run (**Save goals**).
+
 ## 2.40.0 (19 November 2026)
 
 **New game: Battleship. Chat calls squares to find and sink a hidden enemy fleet.**

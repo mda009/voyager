@@ -279,3 +279,34 @@ test('Twitch active subscribers goal (2.21.7): the total is Twitch\'s live count
   const raw=JSON.parse(await readFile(join(c.dataDir,'community.json'),'utf8'));raw.goals[0].metric='support';delete raw.subGoalLive2217;await writeFile(join(c.dataDir,'community.json'),JSON.stringify(raw));
   const again=await new (c.constructor)({dataDir:c.dataDir,now:c.now}).load();assert.equal(again.state.goals[0].metric,'activeSubs');assert.equal(again.state.subGoalLive2217,true);
 });
+
+test('YouTube subscribers goal (2.41.0): follows YouTube\'s number without a run, locks when reached, and rewards every YouTube account once with points and tickets',async()=>{
+  const monday=weekStart(Date.UTC(2026,10,2)),{c,set}=await make(monday);const jobs=[],said=[];c.onTickets=j=>jobs.push(j);c.onGoalReached=g=>said.push(g);
+  c.receive([{key:'youtube:UCa',name:'AuroraFox',login:'aurorafox',capturedIn:100},{key:'youtube:UCb',name:'OrbitOtter',login:'orbitotter',capturedIn:5},{key:'twitch:1',name:'NebulaKnight',login:'nebulaknight',capturedIn:50}]);
+  c.configureSeason({goals:[{id:'yt',title:'YouTube 1K',metric:'youtubeSubs',platform:'all',target:1000,reward:1000,tickets:15}]});
+  assert.equal(c.state.goals[0].platform,'youtube');assert.equal(c.state.goals[0].tickets,15);
+  let g=c.goalProgress()[0];assert.equal(g.status,'open','counts with no run open');assert.equal(g.total,0);assert.equal(g.reached,false);assert.equal(g.helpers.length,2,'the YouTube accounts Voyager knows');
+  c.youtubeSubs({value:987,at:monday+1});g=c.goalProgress()[0];assert.equal(g.total,987);assert.equal(g.reached,false);assert.equal(c.payables().length,0);assert.equal(jobs.length,0);
+  set(monday+DAY);c.youtubeSubs({value:1000,at:monday+DAY});g=c.goalProgress()[0];assert.equal(g.reached,true);assert.equal(g.reachedAt,monday+DAY);
+  assert.equal(said.length,1);assert.deepEqual([said[0].accounts,said[0].tickets,said[0].reward],[2,15,1000]);
+  assert.equal(jobs.length,1);assert.deepEqual(jobs[0].grants.map(r=>[r.key,r.tickets]),[['youtube:UCa',15],['youtube:UCb',15]]);
+  let owed=c.payables();assert.deepEqual(owed.map(p=>[p.key,p.reward,p.status]),[['youtube:UCa',1000,'owed'],['youtube:UCb',1000,'owed']]);
+  // The number dips and a new YouTube viewer appears: still reached, nobody new is added, nothing is queued twice.
+  c.receive([{key:'youtube:UCc',name:'CometCass',login:'cometcass',capturedIn:1}]);c.youtubeSubs({value:998,at:monday+DAY+5});c.roll(monday+DAY+10);
+  g=c.goalProgress()[0];assert.equal(g.reached,true);assert.equal(g.total,998);assert.equal(g.helpers.length,2);assert.equal(jobs.length,1);assert.equal(said.length,1);
+  c.recordPayout({week:owed[0].week,missionId:owed[0].missionId,key:owed[0].key,status:'paid'});
+  // A goal run starting afterwards never owes the same reward again.
+  c.startSeason({name:'Summer 2027',endsAt:monday+60*DAY});owed=c.payables().filter(p=>p.missionId==='goal-yt');assert.deepEqual(owed.map(p=>p.status),['paid','owed']);
+  assert.equal(c.queueYoutubeTickets('yt',true).accounts,2);assert.equal(jobs.length,2);assert.notEqual(jobs[1].id,jobs[0].id);
+  assert.equal(c.publicView().season.goals[0].tickets,15);
+  await c.saving; const again=await new (c.constructor)({dataDir:c.dataDir,now:c.now}).load();assert.equal(again.goalProgress()[0].reached,true);
+  // Raising the target re-opens the goal.
+  again.configureSeason({goals:[{id:'yt',title:'YouTube 2K',metric:'youtubeSubs',target:2000,reward:1000,tickets:15}]});again.roll(monday+2*DAY);assert.equal(again.goalProgress()[0].reached,false);
+});
+
+test('the YouTube 1K goal is added once to an existing programme (2.41.0)',async()=>{
+  const {writeFile}=await import('node:fs/promises');const dir=await mkdtemp(join(tmpdir(),'voyager-community-'));
+  await writeFile(join(dir,'community.json'),JSON.stringify({schema:1,goalsOff2048:true,subGoalLive2217:true,goals:[{id:'s',title:'Sub Goal',metric:'activeSubs',platform:'all',target:1000,reward:150}]}));
+  const c=await new Community({dataDir:dir}).load();assert.deepEqual(c.state.goals.map(g=>[g.id,g.metric,g.target,g.reward,g.tickets]),[['s','activeSubs',1000,150,0],['youtube-1k','youtubeSubs',1000,1000,15]]);
+  c.configureSeason({goals:[c.state.goals[0]]});await c.saving;const again=await new Community({dataDir:dir}).load();assert.equal(again.state.goals.length,1,'removing it sticks');
+});

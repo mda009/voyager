@@ -26,7 +26,7 @@ function render(){
   $('season-bar').style.width=active?Math.min(100,Math.max(0,(now-s.startedAt)/(s.endsAt-s.startedAt)*100)).toFixed(1)+'%':'0%';
   const f=$('season-form').elements;
   if(!editing){if(active){f.name.value=s.name;f.startsAt.value=toLocal(s.startedAt);f.endsAt.value=toLocal(s.endsAt);}else{if(!f.name.value)f.name.value='Christmas 2026';if(!f.startsAt.value)f.startsAt.value=toLocal(Date.now());if(!f.endsAt.value)f.endsAt.value=toLocal(defaultDue());}f.supportBonus.value=view.supportBonus??100;}
-  $('season-start').hidden=active;$('season-save').hidden=!active;$('end-season').hidden=!active;
+  $('season-start').hidden=active;$('season-save').hidden=!active;$('end-season').hidden=!active;$('goals-save').hidden=active;renderYoutube();
   $('campaign-hint').textContent=active?'Running until '+when(s.endsAt)+' · subs and gifts counted from '+date(s.startedAt)+(s.openedAt&&s.openedAt-s.startedAt>3600000?' (points from '+date(s.openedAt)+', when the run was opened)':'')+'. Change anything above or in the goals and press Save changes; End now closes it early: the top five go into the Hall of Fame, reached goals and multiplier bonuses become payable from Missions › Points owed.':'Nothing runs on its own. Set the goals below, give the community goal a name and a due date, then press Start. Standings and every goal count from that moment; it ends on its due date (or when you end it) and the top five go into the Hall of Fame.';
   const tb=$('standings');tb.textContent='';
   for(const r of view.standings){const tr=el('tr');tr.append(el('td','cs-rank',String(r.rank)),el('td','',r.name),el('td','',PLATFORM[r.platform]||r.platform),el('td','num',r.points.toLocaleString()),el('td','num',r.support?String(r.support):'–'),el('td','num cs-score',(r.score??r.points).toLocaleString()),el('td','num',r.wins?String(r.wins):'–'));tb.append(tr);}
@@ -39,7 +39,7 @@ function render(){
 }
 // Goals (2.20.48): custom goals with a reward, an optional due date and a minimum contribution.
 function renderGoals(){
-  if(!goalsEditing||!goals)goals=(view.goals||[]).map(({id,title,metric,platform,target,reward,minimum,dueAt,description,multiplier})=>({id,title,metric,platform,target,reward,minimum:minimum||1,dueAt:dueAt&&dueAt!==view.season.endsAt?dueAt:0,description:description||'',multiplier:multiplier||1}));
+  if(!goalsEditing||!goals)goals=(view.goals||[]).map(({id,title,metric,platform,target,reward,minimum,dueAt,description,multiplier,tickets})=>({id,title,metric,platform,target,reward,minimum:minimum||1,dueAt:dueAt&&dueAt!==view.season.endsAt?dueAt:0,description:description||'',multiplier:multiplier||1,tickets:tickets||0}));
   const live=Object.fromEntries((view.goals||[]).map(g=>[g.id,g])),box=$('goals');box.textContent='';const active=!!view.season.active;
   const opts=(sel,map,val)=>{for(const [k,label] of Object.entries(map||{})){const o=el('option','',label);o.value=k;o.selected=k===val;sel.append(o);}return sel;};
   goals.forEach((g,i)=>{
@@ -49,15 +49,28 @@ function renderGoals(){
     const del=el('button','link','Remove');del.type='button';del.onclick=()=>{goals.splice(i,1);goalsEditing=true;renderGoals();};
     head.append(title,del);card.append(head);
     const f=el('div','cm-fields cs-goal-fields');
-    const metric=opts(el('select'),view.goalMetrics,g.metric);metric.onchange=()=>{g.metric=metric.value;};
+    const metric=opts(el('select'),view.goalMetrics,g.metric);metric.onchange=()=>{g.metric=metric.value;if(g.metric==='youtubeSubs'){g.platform='youtube';if(g.target<100)g.target=1000;}goalsEditing=true;renderGoals();};
     const plat=opts(el('select'),view.platforms,g.platform);plat.onchange=()=>{g.platform=plat.value;};
     const num=(key,min,max)=>{const i=el('input');i.type='number';i.min=String(min);i.max=String(max);i.value=g[key];i.oninput=()=>{g[key]=Number(i.value);};return i;};
     const due=el('input');due.type='datetime-local';due.value=toLocal(g.dueAt);due.oninput=()=>{g.dueAt=fromLocal(due.value);};
     const desc=el('input');desc.maxLength=120;desc.value=g.description;desc.placeholder='Shown on the panel and website (optional)';desc.oninput=()=>{g.description=desc.value;};
     const mult=el('input');mult.type='number';mult.min='1';mult.max='5';mult.step='0.1';mult.value=g.multiplier;mult.oninput=()=>{g.multiplier=Number(mult.value);};
-    for(const [label,input] of [['Counts',metric],['Platform',plat],['Community target',num('target',1,1e9)],['Reward each helper when reached (points)',num('reward',0,1e6)],['Points multiplier for helpers during the run (1 = none, 1.5 = half again)',mult],['Minimum to count as a helper',num('minimum',1,1e9)],['Due date (blank = with the run)',due],['Description',desc]]){const l=el('label','',label);l.append(input);f.append(l);}
+    const yt=g.metric==='youtubeSubs';
+    // 2.41.0: a YouTube subscriber goal rewards every YouTube account Voyager knows, with points and giveaway tickets, the moment it is reached.
+    for(const [label,input] of yt?[['Counts',metric],['Subscriber target',num('target',1,1e9)],['Points for every YouTube account when reached',num('reward',0,1e6)],['Giveaway tickets for every YouTube account when reached',num('tickets',0,1000)],['Due date (blank = no deadline)',due],['Description',desc]]
+      :[['Counts',metric],['Platform',plat],['Community target',num('target',1,1e9)],['Reward each helper when reached (points)',num('reward',0,1e6)],['Points multiplier for helpers during the run (1 = none, 1.5 = half again)',mult],['Minimum to count as a helper',num('minimum',1,1e9)],['Due date (blank = with the run)',due],['Description',desc]]){const l=el('label','',label);l.append(input);f.append(l);}
     card.append(f);
-    if(lv&&active){
+    if(lv&&lv.metric==='youtubeSubs'){
+      const bar=el('div','cm-bar big');const fill=el('i');fill.style.width=Math.min(100,lv.total/lv.target*100).toFixed(1)+'%';bar.append(fill);
+      card.append(el('div','cs-goal-num',(lv.reached?'✓ Reached'+(lv.reachedAt?' '+when(lv.reachedAt):'')+' · ':'')+lv.total.toLocaleString()+' / '+lv.target.toLocaleString()+' YouTube subscribers'),bar,
+        el('p','st-hint',lv.reached?lv.contributors.toLocaleString()+' YouTube accounts were rewarded: '+lv.reward.toLocaleString()+' points each (Missions › Points owed, or paid by auto-pay)'+(lv.tickets?' and '+lv.tickets+' giveaway tickets each (given straight away if a ticketed giveaway was collecting).':'.')
+          :'When YouTube reports '+lv.target.toLocaleString()+' subscribers, the '+lv.contributors.toLocaleString()+' YouTube accounts Voyager knows (everyone who has chatted on your YouTube stream) each get '+[lv.tickets?lv.tickets+' giveaway tickets':'',lv.reward?lv.reward.toLocaleString()+' points':''].filter(Boolean).join(' and ')+'. YouTube does not tell anyone who a channel\'s subscribers are, so Voyager rewards its YouTube crew.'));
+      if(lv.reached&&lv.tickets){const again=el('button','','Give the tickets again');again.type='button';again.title='For when no ticketed giveaway was collecting when the goal was reached. Accounts that already hold these tickets get them a second time.';
+        again.onclick=async()=>{if(!confirm('Queue '+lv.tickets+' tickets for each of the '+lv.contributors+' YouTube accounts again? Only do this if the first grant was skipped (see below), or they will hold the tickets twice.'))return;try{const r=await api('/api/community/goal-tickets',{id:lv.id});notice('Queued '+r.tickets+' tickets for '+r.accounts+' accounts.');load();}catch(e){notice(e.message,true);}};
+        const acts=el('div','st-actions');acts.append(again);card.append(acts);
+        const hist=[...(view.ticketGrants?.waiting||[]),...(view.ticketGrants?.history||[])].filter(j=>String(j.id).startsWith('ytgoal-'+lv.id+'-'));
+        if(hist.length)card.append(el('p','st-hint','Tickets: '+hist.map(j=>(j.status||'waiting')+' · '+(j.message||j.accounts+' accounts')).join(' | ')));}
+    }else if(lv&&active){
       const bar=el('div','cm-bar big');const fill=el('i');fill.style.width=Math.min(100,lv.total/lv.target*100).toFixed(1)+'%';bar.append(fill);
       const label=lv.reached?'✓ Reached · ':lv.missed?'✗ Missed · ':'';
       card.append(el('div','cs-goal-num',label+lv.total.toLocaleString()+' / '+lv.target.toLocaleString()+(lv.dueAt?' · due '+when(lv.dueAt):'')),bar,
@@ -77,7 +90,7 @@ $('goals').addEventListener('input',()=>{goalsEditing=true;});$('goals').addEven
 // 2.20.74: who has contributed to each goal, with the multiplier bonus accrued, and a Copy names button for giveaways.
 function renderContributors(){const box=$('contributors');box.replaceChildren();if(!view.season.active)return;
   for(const g of view.goals||[]){const list=g.contributorsList||g.helpers||[];const wrap=el('div','cm-table');wrap.style.marginTop='14px';
-    const head=el('div','card-heading');const t=el('div');t.append(el('span','eyebrow','CONTRIBUTORS · '+g.title.toUpperCase()),el('h2','',list.length+' helping · '+g.total.toLocaleString()+' of '+g.target.toLocaleString()+' '+(view.goalMetrics?.[g.metric]||g.metric).toLowerCase()));
+    const head=el('div','card-heading');const t=el('div');t.append(el('span','eyebrow',(g.metric==='youtubeSubs'?(g.reached?'YOUTUBE ACCOUNTS REWARDED · ':'YOUTUBE ACCOUNTS TO BE REWARDED · '):'CONTRIBUTORS · ')+g.title.toUpperCase()),el('h2','',list.length+(g.metric==='youtubeSubs'?' accounts · ':' helping · ')+g.total.toLocaleString()+' of '+g.target.toLocaleString()+' '+(view.goalMetrics?.[g.metric]||g.metric).toLowerCase()));
     const copy=el('button','','Copy names');copy.type='button';copy.onclick=async()=>{try{await navigator.clipboard.writeText(list.map(h=>h.name).join('\n'));copy.textContent='Copied '+list.length;setTimeout(()=>copy.textContent='Copy names',1500);}catch{}};
     head.append(t,copy);wrap.append(head);
     const table=el('table'),thead=el('thead'),tr=el('tr');for(const h of ['#','Viewer','Platform','Contribution',g.multiplier>1?'Bonus points (x'+g.multiplier+')':'Reward when reached']){const th=el('th','',h);if(h!=='#'&&h!=='Viewer'&&h!=='Platform')th.className='num';tr.append(th);}thead.append(tr);table.append(thead);
@@ -86,7 +99,7 @@ function renderContributors(){const box=$('contributors');box.replaceChildren();
     table.append(tb);wrap.append(table);
     if(g.multiplier>1)wrap.append(el('p','st-hint','Bonus = Voyager points each helper earns during the run x '+(g.multiplier-1).toFixed(2).replace(/0+$/,'').replace(/\.$/,'')+', paid from Missions › Points owed when the run ends'+(g.reward?'; the '+g.reward.toLocaleString()+'-point reward is paid when the goal is reached':'')+'.'));
     box.append(wrap);}}
-$('goal-add').onclick=()=>{goals.push({id:'g'+Date.now().toString(36),title:'New goal',metric:'gifts',platform:'all',target:25,reward:200,minimum:1,dueAt:0,description:''});goalsEditing=true;renderGoals();};
+$('goal-add').onclick=()=>{goals.push({id:'g'+Date.now().toString(36),title:'New goal',metric:'gifts',platform:'all',target:25,reward:200,minimum:1,dueAt:0,description:'',tickets:0});goalsEditing=true;renderGoals();};
 async function load(){try{view=await api('/api/community');render();renderPanel();}catch(e){notice(e.message,true);}}
 const form=$('season-form');form.addEventListener('focusin',()=>{editing=true;});
 const campaign=()=>({name:form.elements.name.value,startsAt:fromLocal(form.elements.startsAt.value),endsAt:fromLocal(form.elements.endsAt.value),supportBonus:Number(form.elements.supportBonus.value),goals});
@@ -97,6 +110,23 @@ async function start(){if(!goals.length){notice('Add at least one goal first.',t
 async function save(){try{view=await api('/api/community/season',campaign());goalsEditing=false;editing=false;notice('Run saved.');render();}catch(err){notice(err.message,true);}}
 $('season-start').onclick=start;
 $('season-save').onclick=save;
+// 2.41.0: goals can be saved without a run (a YouTube subscriber goal counts on its own).
+$('goals-save').onclick=async()=>{try{view={...view,...await api('/api/community/season',{goals})};goalsEditing=false;notice('Goals saved.');load();}catch(err){notice(err.message,true);}};
+// 2.41.0: where the YouTube subscriber number comes from. The API key is sent to this PC's Voyager once and never shown again.
+let ytEditing=false;
+function renderYoutube(){
+  const y=view.youtube,card=$('youtube-card');if(!card)return;card.hidden=!y||!(goals||view.goals||[]).some(g=>g.metric==='youtubeSubs');if(card.hidden)return;
+  const f=$('youtube-form').elements,r=y.reading;if(!ytEditing)f.channel.value=y.channel||'';
+  f.apiKey.placeholder=y.hasKey?'A key is saved on this PC (type a new one to replace it)':'Starts with AIza…';$('youtube-clear').hidden=!y.hasKey;
+  const st=$('youtube-state');st.dataset.state=y.error?'error':r?'ok':'wait';st.textContent=y.error?'Problem':y.automatic?'Automatic':r?'Typed in':'Not set up';
+  $('youtube-note').textContent=(r?(y.title?y.title+': ':'')+r.value.toLocaleString()+' subscribers ('+(r.source==='manual'?'typed in':'from YouTube')+' '+when(r.at)+'). ':'No subscriber number yet. ')+(y.error?y.error+' ':'')+(y.automatic?'Voyager reads YouTube every '+y.everyMinutes+' minutes while it is running.':'Without a key, type the number from YouTube Studio below whenever it changes.');
+}
+$('youtube-form').addEventListener('focusin',()=>{ytEditing=true;});
+$('youtube-form').onsubmit=async e=>{e.preventDefault();const f=e.target.elements,body={channel:f.channel.value};if(f.apiKey.value.trim())body.apiKey=f.apiKey.value.trim();if(f.manual.value!=='')body.manual=Number(f.manual.value);
+  {const hit=body.manual!==undefined&&(view.goals||[]).find(g=>g.metric==='youtubeSubs'&&!g.reached&&body.manual>=g.target);if(hit&&!confirm(body.manual.toLocaleString()+' reaches "'+hit.title+'". The reward goes out straight away to '+hit.contributors+' YouTube accounts ('+[hit.tickets?hit.tickets+' tickets':'',hit.reward?hit.reward.toLocaleString()+' points':''].filter(Boolean).join(' and ')+' each) and cannot be taken back. Continue?'))return;}
+  try{const r=await api('/api/community/youtube',body);f.apiKey.value='';f.manual.value='';ytEditing=false;view.youtube=r.youtube;notice(r.youtube.error?r.youtube.error:'YouTube settings saved.',!!r.youtube.error);load();}catch(err){notice(err.message,true);}};
+$('youtube-read').onclick=async()=>{try{const r=await api('/api/community/youtube',{read:true});view.youtube=r.youtube;notice(r.youtube.error||'Read YouTube: '+(r.youtube.reading?r.youtube.reading.value.toLocaleString()+' subscribers.':'no number yet.'),!!r.youtube.error);load();}catch(err){notice(err.message,true);}};
+$('youtube-clear').onclick=async()=>{if(!confirm('Remove the saved YouTube API key from this PC?'))return;try{const r=await api('/api/community/youtube',{clearKey:true});view.youtube=r.youtube;load();}catch(err){notice(err.message,true);}};
 $('end-season').onclick=async()=>{if(!view||!confirm('End '+view.season.name+' now? Its top five go into the Hall of Fame and reached goals stay payable. Nothing starts afterwards until you start the next community goal. Points balances are not changed.'))return;try{view=await api('/api/community/season',{action:'end'});editing=false;notice(view.hall[0]?.name+' has ended.');render();}catch(e){notice(e.message,true);}};
 // On-stream panel (2.14)
 const pf=$('panel-form'),FIELDS=['kind','limit','duration','title','top','right','width','opacity','speed'];let panelEditing=false,previewReady=false;

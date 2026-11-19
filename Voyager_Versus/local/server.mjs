@@ -27,6 +27,7 @@ import {Stage} from './stage.mjs';
 import {Sources} from './sources.mjs';
 import {Rotation} from './rotation.mjs';
 import {Payer} from './payer.mjs';
+import {YoutubeSubs} from './youtube-subs.mjs';
 import {Intel} from './intel.mjs';
 import {Requests} from './requests.mjs';
 import {Doorframe} from './doorframe.mjs';
@@ -291,6 +292,14 @@ const raffle=await new Raffle({dataDir,key:chat=>engage.key(chat),onTickets:g=>{
 const requests=await new Requests({dataDir,siteUrl:()=>publicSite?.view?.().siteUrl||'',round:()=>engage?.state?.stream?.id||0,onAir:()=>Date.now()-lastChatAt<10*60000,
   known:name=>{const k=String(name||'').toLowerCase();try{return cards.crewRows(5000).find(r=>String(r.name||'').toLowerCase()===k)?.name||null;}catch{return null;}},
   say:text=>runActionResult('Voyager - Medals',{medalSay:String(text).slice(0,450),medalSayPlatform:''}),log:m=>console.log('[requests] '+m)}).load();
+// 2.41.0: YouTube's subscriber number for a "YouTube subscribers" goal; reaching the goal queues its tickets and says so in chat.
+const youtubeSubs=community?await new YoutubeSubs({dataDir,onReading:r=>{try{community.youtubeSubs(r);}catch{}},log:m=>console.log('[youtube] '+m)}).load():null;
+if(community){
+  community.onTickets=g=>{ticketGranter.grant(g);};
+  community.onGoalReached=g=>{console.log('[youtube] goal reached: '+g.title+' · '+g.accounts+' YouTube accounts');
+    void runActionResult('Voyager - Medals',{medalSay:('🎉 '+g.title+' reached: '+g.target.toLocaleString('en-US')+' YouTube subscribers! Every YouTube crew member gets '+[g.tickets?g.tickets+' giveaway tickets':'',g.reward?g.reward.toLocaleString('en-US')+' Voyager points':''].filter(Boolean).join(' and ')+'. Thank you!').slice(0,450),medalSayPlatform:''}).catch(()=>{});};
+  if(youtubeSubs?.reading)try{community.youtubeSubs(youtubeSubs.reading);}catch{}
+}
 const payer=community?await new Payer({dataDir,community,run:args=>actions.doAction('Voyager - Points Ledger',args),uuid:randomUUID,log:m=>console.log('[auto-pay] '+m)}).load():null;
 if(community)community.onPoints=list=>{try{moments.points(list);}catch{}};medals.onStreak=list=>{try{moments.streaks(list);}catch{}};
 function packet(){const snapshot=game.snapshot();for(const r of snapshot.result?.rewards||[])r.status=economy.data.rewards.find(x=>x.id===r.id)?.status||r.status;return {serverTime:Date.now(),stage:stage.mode(...stageState())==='versus',game:snapshot,connection:bot.status,rewards:rewards.snapshot(),announcements:announcements.snapshot(),matchChat:matchChat.snapshot(),entries:entries.snapshot(),pilotLeaderboard:pilots.snapshot()};}
@@ -429,7 +438,7 @@ const server=http.createServer(async(req,res)=>{
       // The OBS panel reads this without the control token (local only, no member keys), like /api/live-overlay.
       if(url.pathname==='/api/community/overlay'&&req.method==='GET'){res.setHeader('Cache-Control','no-store');sourceSeen.community=Date.now();response(res,200,{...community.overlay(),stage:stage.active(...stageState())});return;}
       if(!validToken(req)){response(res,403,{message:'Open the local Missions or Seasons page.'});return;}
-      if(url.pathname==='/api/community'&&req.method==='GET'){community.roll(Date.now());response(res,200,{...community.view(),sourceAt:sourceSeen.community,autoPay:payer?.view()||null});return;}
+      if(url.pathname==='/api/community'&&req.method==='GET'){community.roll(Date.now());response(res,200,{...community.view(),sourceAt:sourceSeen.community,autoPay:payer?.view()||null,youtube:youtubeSubs?.view()||null,ticketGrants:ticketGranter.view()});return;}
       if(req.method!=='POST'||!req.headers['content-type']?.startsWith('application/json')){response(res,405,{message:'Method not allowed.'});return;}
       try{
         const input=await body(req,['/api/community/members','/api/community/support'].includes(url.pathname)?8*1024*1024:65536);
@@ -439,6 +448,8 @@ const server=http.createServer(async(req,res)=>{
         if(url.pathname==='/api/community/explain'){response(res,200,{ok:true,...community.explain(String(input?.query||''))});return;}
         if(url.pathname==='/api/community/missions'){response(res,200,{ok:true,...community.setMissions(input?.missions)});return;}
         if(url.pathname==='/api/community/season'){try{response(res,200,{ok:true,...(input?.action==='end'?community.endSeason():input?.action==='start'?community.startSeason(input):community.configureSeason(input||{}))});}catch(e){response(res,400,{ok:false,message:e.message});}return;}
+        if(url.pathname==='/api/community/youtube'){const v=youtubeSubs.configure(input||{});if(input?.read===true||input?.apiKey||input?.channel!==undefined){youtubeSubs.triedAt=0;await youtubeSubs.tick({wanted:true});}response(res,200,{ok:true,youtube:youtubeSubs.view()});return;}
+        if(url.pathname==='/api/community/goal-tickets'){response(res,200,{ok:true,...community.queueYoutubeTickets(String(input?.id||''),true)});return;}
         if(url.pathname==='/api/community/panel'){response(res,200,{ok:true,panel:community.setPanel(input||{})});return;}
         if(url.pathname==='/api/community/payout'){response(res,200,community.recordPayout(input||{}));return;}
         if(url.pathname==='/api/community/autopay'){response(res,200,{ok:true,autoPay:payer?payer.configure(input||{}):null});return;}
@@ -664,6 +675,7 @@ let ticks=0,lastStatsAsk=0,lastPointsAsk=0;const timer=setInterval(()=>{
   if(ticks%50===25&&bot.status.connected&&Date.now()-lastPointsAsk>600000){lastPointsAsk=Date.now();void runAction('Voyager - Points Ledger',{requestId:randomUUID(),pointsOperation:'snapshot'});}
   // 2.21.7: a live-subscriber goal needs Twitch's count: ask Stream Stats within seconds of connecting and every 5 minutes after (any dashboard's own request is heard too).
   if(ticks%50===0&&bot.status.connected&&Date.now()-lastStatsAsk>300000&&(community?.state.goals||[]).some(g=>g.metric==='activeSubs')){lastStatsAsk=Date.now();void runAction('Voyager - Stream Stats',{requestId:randomUUID(),includeSupport:'0'});}
+  if(ticks%50===10&&youtubeSubs)void youtubeSubs.tick({wanted:(community?.state.goals||[]).some(g=>g.metric==='youtubeSubs')}).catch(()=>{});
   if(ticks%10===0){try{engage.tick();engage.observePilots();}catch{}community?.roll(Date.now());void publicSite?.tick();void pilots.tick();void rewards.tick();void announcements.tick();void matchChat.tick();}
   // Medals: read the action's export every minute, work out medals every 30 s, post grouped chat lines.
   if(ticks%600===50)void medalSync();
