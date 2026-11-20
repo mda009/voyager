@@ -1,7 +1,7 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Voyager • OBS Battleship</title><link rel="icon" href="brand-assets/voyager.png">
-<link rel="stylesheet" href="voyager-game-hud.css?v=2.41.0">
+<link rel="stylesheet" href="voyager-game-hud.css?v=2.41.1">
 <style>
-/* Voyager Battleship stage (2.41.0): an OBS browser source, 1920 × 1080 (any 16:9 size works). Invisible until a battle is
+/* Voyager Battleship stage (2.41.1): an OBS browser source, 1920 × 1080 (any 16:9 size works). Invisible until a battle is
    started from Voyager Control › Battleship. Reads /api/battleship/overlay from the local host and draws the grid (misses,
    hits, sunk ships, sonar contacts, air strikes) under the same HUD as the Dreadnought: lobby splash, nameplate and bar,
    clock, crew panel with the MVP, feed, legend, banners and the result card.
@@ -36,7 +36,7 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:transparent
 </div>
 <script>
 (()=>{'use strict';
-const BUILD='2.41.0'; // when Voyager is updated the page reloads itself under a new address, so OBS does not keep a cached copy
+const BUILD='2.41.1'; // when Voyager is updated the page reloads itself under a new address, so OBS does not keep a cached copy
 const $=id=>document.getElementById(id),cv=$('cv'),g=cv.getContext('2d'),q=new URLSearchParams(location.search),preview=q.has('preview'),stageIn=q.get('stage')==='1',backdrop=q.get('backdrop')!=='0',W=1920,H=1080,LETTERS='ABCDEFGHIJ';
 const BOARD={x:602,y:244,s:716}; // the grid square
 let aside=false,S=null,offset=0,phase='',gameId='',seen=0,resultAt=0,leadKey='',shipKey='',prevCells='';

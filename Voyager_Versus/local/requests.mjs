@@ -13,7 +13,7 @@ import {readFile,writeFile,mkdir,rename} from 'node:fs/promises';
 import {join} from 'node:path';
 
 export const REQUEST_DEFAULTS={enabled:true,onlyLive:true,chat:true,overlay:true,overlaySeconds:12,sound:true,appAlert:true,
-  options:[{key:'quiz',label:'Bridge Quiz',enabled:true},{key:'dreadnought',label:'Dreadnought',enabled:true},{key:'frenzy',label:'Frenzy',enabled:true},{key:'marbles',label:'Marbles',enabled:true},{key:'versus',label:'Voyager Versus',enabled:true},{key:'prospect',label:'Prospect Run',enabled:true}]};
+  options:[{key:'quiz',label:'Bridge Quiz',enabled:true},{key:'dreadnought',label:'Dreadnought',enabled:true},{key:'frenzy',label:'Frenzy',enabled:true},{key:'marbles',label:'Marbles',enabled:true},{key:'versus',label:'Voyager Versus',enabled:true},{key:'prospect',label:'Prospect Run',enabled:true},{key:'battleship',label:'Battleship',enabled:true}]};
 const clean=(v,max)=>String(v??'').replace(/[\u0000-\u001f\u007f]/g,' ').replace(/\s+/g,' ').trim().slice(0,max);
 const STATUS=['new','done','dismissed'],KEEP=2000;
 const csv=v=>{let t=String(v??'');if(/^[=+\-@\t\r]/.test(t))t="'"+t;return /[",\n]/.test(t)?'"'+t.replace(/"/g,'""')+'"':t;};
@@ -39,8 +39,10 @@ export class Requests{
   }
   async load(){try{const raw=JSON.parse(await readFile(this.file,'utf8'));this.settings=normalizeRequestSettings(raw.settings||{});this.items=(Array.isArray(raw.items)?raw.items:[]).filter(i=>i&&i.id&&i.name).slice(0,KEEP);this.cursor=Number(raw.cursor)||0;for(const i of this.items)this.seen.add(i.id);
     // 2.33.0: Prospect Run joins a saved option list once (it can be switched off or removed like any other).
-    this.seeded=Array.isArray(raw.seeded)?raw.seeded:[];if(!this.seeded.includes('prospect')){this.seeded.push('prospect');if(this.settings.options.length<10&&!this.settings.options.some(o=>o.key==='prospect'))this.settings.options.push({key:'prospect',label:'Prospect Run',enabled:true});}}catch{}return this;}
-  async persist(){try{await mkdir(this.dataDir,{recursive:true});const tmp=this.file+'.tmp';await writeFile(tmp,JSON.stringify({schema:1,settings:this.settings,items:this.items.slice(0,KEEP),cursor:this.cursor,seeded:this.seeded||['prospect']},null,1));await rename(tmp,this.file);}catch{}}
+    this.seeded=Array.isArray(raw.seeded)?raw.seeded:[];if(!this.seeded.includes('prospect')){this.seeded.push('prospect');if(this.settings.options.length<10&&!this.settings.options.some(o=>o.key==='prospect'))this.settings.options.push({key:'prospect',label:'Prospect Run',enabled:true});}
+    // 2.41.1: Battleship joins a saved option list once, the same way.
+    if(!this.seeded.includes('battleship')){this.seeded.push('battleship');if(this.settings.options.length<10&&!this.settings.options.some(o=>o.key==='battleship'))this.settings.options.push({key:'battleship',label:'Battleship',enabled:true});}}catch{}return this;}
+  async persist(){try{await mkdir(this.dataDir,{recursive:true});const tmp=this.file+'.tmp';await writeFile(tmp,JSON.stringify({schema:1,settings:this.settings,items:this.items.slice(0,KEEP),cursor:this.cursor,seeded:this.seeded||['prospect','battleship']},null,1));await rename(tmp,this.file);}catch{}}
   configure(raw={}){this.settings=normalizeRequestSettings({...this.settings,...raw});void this.persist();return this.view();}
   open(){return this.settings.enabled&&(!this.settings.onlyLive||!!this.onAir());}
   current(){const round=this.round();return this.items.filter(i=>i.round===round&&!i.cleared);}

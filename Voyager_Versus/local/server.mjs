@@ -234,7 +234,7 @@ publicSite?.setCompanion(()=>{
     dreadnought:{...d,history:boss.history.slice(0,6)},
     ranks:{ladder:rv.ranks,top:rv.members.slice(0,25),promotions:rv.promotions},
     medals:{catalogue:cat,honour:medals.leaderboard(10),recent:medals.state.recent.slice(0,12)},
-    intel:intel.share(),requests:(()=>{const r=requests.share();if(r&&!prospect.settings.enabled)r.options=(r.options||[]).filter(o=>o.key!=='prospect');return r;})(),raffle:raffle.share(),prospect:prospect.share(),bounty:bounty.share(),battleship:battleship.share(), // game off: viewers cannot ask for it either
+    intel:intel.share(),requests:(()=>{const r=requests.share();if(r&&!prospect.settings.enabled)r.options=(r.options||[]).filter(o=>o.key!=='prospect');if(r&&!battleship.settings.enabled)r.options=(r.options||[]).filter(o=>o.key!=='battleship');return r;})(),raffle:raffle.share(),prospect:prospect.share(),bounty:bounty.share(),battleship:battleship.share(), // game off: viewers cannot ask for it either
     quiz:(()=>{const b=engage.quizBoard(10);return {all:b.all,stream:b.stream};})()};
 });
 publicSite?.setCrew(()=>cards.crewRows(2000));

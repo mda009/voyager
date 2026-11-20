@@ -2,6 +2,13 @@
 
 Older update notes are listed in `Voyager_Guide.html` (Update history) and kept in `docs/updates/` and `docs/updates/versus/`.
 
+## 2.41.1 (20 November 2026)
+
+**Battleship is now one of the website request buttons.**
+
+- Viewers can ask for **Battleship** from the website's request buttons, next to Bridge Quiz, Dreadnought, Frenzy, Marbles, Voyager Versus and Prospect Run. It is added to your saved list once; switch it off or remove it under Viewer requests like any other.
+- If Battleship itself is switched off, its request button is hidden.
+
 ## 2.41.0 (20 November 2026)
 
 **YouTube subscriber goal: a goal bar that follows your YouTube subscriber number, and rewards your YouTube crew at 1,000.**
